@@ -32,7 +32,3 @@ docker-compose.override.yml
 # AI Rules
 .zencoder
 .zenflow
-
-# Assets
-demo.mp4
-demo1.mp4

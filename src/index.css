@@ -19,6 +19,8 @@
   --font-bricolage: "Bricolage Grotesque", sans-serif;
   --font-inter: "Inter Tight", sans-serif;
   --font-over: "OverusedGrotesk", system-ui, sans-serif;
+  --font-zoo: "Zen Tokyo Zoo", system-ui;
+  --font-tourney: "Tourney", system-ui;
 
   --radius-default: 0.5rem;
   --radius-xl: 1rem;

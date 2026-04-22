@@ -6,13 +6,109 @@ import { clsx } from "clsx";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-const picareProjects = [
-  { id: 1, name: "Picare CRM", desc: "Customer Relationship", color: "text-blue-500" },
-  { id: 2, name: "Picare HR", desc: "Human Resources", color: "text-emerald-500" },
-  { id: 3, name: "Picare Finance", desc: "Accounting & Finance", color: "text-rose-500" },
-  { id: 4, name: "Picare OMS", desc: "Order Management", color: "text-amber-500" },
-  { id: 5, name: "Picare Chat", desc: "Internal Comms", color: "text-purple-500" },
-  { id: 6, name: "Picare Tasks", desc: "Project Management", color: "text-cyan-500" },
+const squareItems = [
+  {
+    id: 1,
+    type: "text",
+    text: "Brand",
+    style: "bg-white text-black",
+    font: "font-bricolage font-black tracking-tighter text-3xl",
+    verticalOffset: "-20px",
+    size: "h-36 w-36",
+    zIndex: "z-10",
+    marginLeft: "0px",
+  },
+  {
+    id: 2,
+    type: "image",
+    src: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=300&auto=format&fit=crop",
+    verticalOffset: "40px",
+    size: "h-56 w-56",
+    zIndex: "z-0",
+    marginLeft: "-30px",
+  },
+  {
+    id: 3,
+    type: "text",
+    text: "CRM",
+    style: "bg-blue-100 text-blue-900",
+    font: "font-serif italic text-2xl",
+    verticalOffset: "-30px",
+    size: "h-28 w-28",
+    zIndex: "z-20",
+    marginLeft: "-20px",
+  },
+  {
+    id: 4,
+    type: "image",
+    src: "https://images.unsplash.com/photo-1600132806370-bf17e65e942f?q=80&w=300&auto=format&fit=crop",
+    verticalOffset: "10px",
+    size: "h-48 w-48",
+    zIndex: "z-10",
+    marginLeft: "-40px",
+  },
+  {
+    id: 5,
+    type: "text",
+    text: "Scale",
+    style: "bg-yellow-100 text-yellow-900",
+    font: "font-mono font-bold tracking-widest text-lg",
+    verticalOffset: "45px",
+    size: "h-32 w-32",
+    zIndex: "z-30",
+    marginLeft: "-20px",
+  },
+  {
+    id: 6,
+    type: "image",
+    src: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=300&auto=format&fit=crop",
+    verticalOffset: "-40px",
+    size: "h-64 w-64",
+    zIndex: "z-0",
+    marginLeft: "-60px",
+  },
+  {
+    id: 7,
+    type: "text",
+    text: "Design",
+    style: "bg-rose-100 text-rose-900",
+    font: "font-sans font-light text-3xl",
+    verticalOffset: "20px",
+    size: "h-40 w-40",
+    zIndex: "z-20",
+    marginLeft: "-40px",
+  },
+  {
+    id: 8,
+    type: "text",
+    text: "Sync",
+    style: "bg-emerald-100 text-emerald-900",
+    font: "font-inter font-black italic",
+    verticalOffset: "-50px",
+    size: "h-32 w-32",
+    zIndex: "z-10",
+    marginLeft: "-25px",
+  },
+  {
+    id: 9,
+    type: "image",
+    src: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=300&auto=format&fit=crop",
+    verticalOffset: "30px",
+    size: "h-52 w-52",
+    zIndex: "z-0",
+    marginLeft: "-50px",
+  },
+  {
+    id: 10,
+    type: "text",
+    text: "Growth",
+    style: "bg-purple-100 text-purple-900",
+    font: "font-bricolage text-[28px] font-medium",
+    verticalOffset: "-20px",
+    size: "h-36 w-36",
+    zIndex: "z-30",
+    marginLeft: "-30px",
+  },
 ];
 
 export default function AnimatedGrid() {
@@ -31,7 +127,7 @@ export default function AnimatedGrid() {
       tweenRef.current = gsap.to(marqueeRef.current, {
         xPercent: -33.333333,
         ease: "none",
-        duration: 30,
+        duration: 35,
         repeat: -1,
       });
 
@@ -45,7 +141,7 @@ export default function AnimatedGrid() {
 
           const velocity = self.getVelocity();
           const targetTimeScale = 1 + Math.abs(velocity) / 500;
-          
+
           gsap.to(tweenRef.current, {
             timeScale: Math.min(targetTimeScale, 4),
             duration: 0.2,
@@ -66,9 +162,9 @@ export default function AnimatedGrid() {
       if (cards) {
         cards.forEach((card) => {
           // Dao động Y (Floating) để tạo cảm giác trôi lơ lửng
-          const randomY = gsap.utils.random(-15, 15);
+          const randomY = gsap.utils.random(-25, 25);
           const randomDurationY = gsap.utils.random(2.5, 4);
-          
+
           gsap.fromTo(
             card,
             { y: -randomY },
@@ -79,11 +175,11 @@ export default function AnimatedGrid() {
               repeat: -1,
               yoyo: true,
               ease: "sine.inOut",
-            }
+            },
           );
 
           // Cảm giác "tốc độ không đồng đều": cho các thẻ dao động ngang (X-axis)
-          const randomX = gsap.utils.random(-20, 20);
+          const randomX = gsap.utils.random(-15, 15);
           gsap.fromTo(
             card,
             { x: -randomX },
@@ -94,69 +190,96 @@ export default function AnimatedGrid() {
               repeat: -1,
               yoyo: true,
               ease: "sine.inOut",
-            }
+            },
           );
         });
       }
     },
-    { scope: containerRef }
+    { scope: containerRef },
   );
 
   const handleMouseEnter = () => {
     isHoveredRef.current = true;
-    if (tweenRef.current) gsap.to(tweenRef.current, { timeScale: 0, duration: 0.8 });
+    if (tweenRef.current)
+      gsap.to(tweenRef.current, { timeScale: 0, duration: 0.8 });
   };
 
   const handleMouseLeave = () => {
     isHoveredRef.current = false;
     setHoveredCardIndex(null);
-    if (tweenRef.current) gsap.to(tweenRef.current, { timeScale: 1, duration: 0.8 });
+    if (tweenRef.current)
+      gsap.to(tweenRef.current, { timeScale: 1, duration: 0.8 });
   };
 
   return (
     <div
-      className="absolute bottom-16 left-0 right-0 z-20 w-full overflow-hidden"
+      className="absolute right-0 bottom-[10%] left-0 z-20 w-full overflow-hidden"
       ref={containerRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Gradients for fade out */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-30 w-48 bg-gradient-to-r from-[#050505] to-transparent"></div>
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-30 w-48 bg-gradient-to-l from-[#050505] to-transparent"></div>
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-30 w-48 bg-linear-to-r from-[#050505] to-transparent"></div>
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-30 w-48 bg-linear-to-l from-[#050505] to-transparent"></div>
 
-      <div className="flex w-max" ref={marqueeRef}>
+      <div className="flex w-max items-center py-20" ref={marqueeRef}>
         {[0, 1, 2].map((setIndex) => (
-          <div key={setIndex} className="flex w-max items-center justify-center gap-6 pr-6">
-            {picareProjects.map((project, idx) => {
-              const globalIdx = setIndex * picareProjects.length + idx;
+          <div
+            key={setIndex}
+            className="flex w-max items-center justify-center pr-10"
+          >
+            {squareItems.map((item, idx) => {
+              const globalIdx = setIndex * squareItems.length + idx;
               const isCardHovered = hoveredCardIndex === globalIdx;
-              const isOtherHovered = hoveredCardIndex !== null && hoveredCardIndex !== globalIdx;
+              const isOtherHovered =
+                hoveredCardIndex !== null && hoveredCardIndex !== globalIdx;
 
-              // Đồng bộ index để hover 1 item thì các bản sao cũng phải sáng lên?
-              // Logic thông thường là chỉ hover đúng phần tử đó. Nhưng để trông ảo hơn thì ta có thể làm mờ tất cả những cái không đang được hover.
-              // Biến globalIdx giúp React xác định duy nhất card.
-              
+              const baseClasses = clsx(
+                "cursor-pointer transition-all duration-500 will-change-transform flex rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.2)] overflow-hidden shrink-0",
+                item.size,
+                isCardHovered
+                  ? "scale-110 shadow-[0_30px_60px_rgba(0,0,0,0.4)]"
+                  : "",
+                isOtherHovered ? "opacity-30 grayscale-[60%]" : "opacity-100",
+              );
+
               return (
                 <div
                   key={globalIdx}
-                  className="floating-card py-10"
+                  className={clsx(
+                    "floating-card relative",
+                    isCardHovered ? "z-50" : item.zIndex,
+                  )}
                   onMouseEnter={() => setHoveredCardIndex(globalIdx)}
+                  style={{
+                    marginTop: item.verticalOffset,
+                    marginLeft:
+                      idx === 0 && setIndex === 0 ? "0px" : item.marginLeft,
+                  }}
                 >
-                  <div
-                    style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
-                    className={clsx(
-                      "flex h-40 w-64 cursor-pointer flex-col items-center justify-center rounded-[2rem] bg-[#f9fafb] border border-black/5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-500",
-                      isCardHovered ? "scale-105 shadow-[0_20px_40px_rgba(255,255,255,0.1)] bg-white" : "",
-                      isOtherHovered ? "opacity-40 grayscale-[50%]" : "opacity-100"
-                    )}
-                  >
-                    <span className={clsx("text-2xl font-bold tracking-tight", project.color)}>
-                      {project.name}
-                    </span>
-                    <span className="mt-2 text-[13px] font-medium text-gray-500 uppercase tracking-widest">
-                      {project.desc}
-                    </span>
-                  </div>
+                  {item.type === "text" && (
+                    <div
+                      className={clsx(
+                        baseClasses,
+                        "items-center justify-center",
+                        item.style,
+                      )}
+                    >
+                      <span className={clsx("text-center", item.font)}>
+                        {item.text}
+                      </span>
+                    </div>
+                  )}
+
+                  {item.type === "image" && (
+                    <div className={baseClasses}>
+                      <img
+                        src={item.src}
+                        alt="random grid"
+                        className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.15]"
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}
