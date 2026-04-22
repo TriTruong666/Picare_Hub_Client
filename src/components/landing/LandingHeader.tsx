@@ -42,7 +42,7 @@ export default function LandingHeader() {
               delay: 0.2,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="flex items-center rounded-full border border-white/5 bg-white/5 p-1 backdrop-blur-md"
+            className="flex items-center rounded-full border border-white/5 bg-neutral-900 p-1"
           >
             {navItems.map((item) => {
               const isActive = activeTab === item.name;
@@ -51,7 +51,7 @@ export default function LandingHeader() {
                   key={item.name}
                   onClick={() => setActiveTab(item.name)}
                   className={`font-inter relative flex items-center gap-2 rounded-full px-5 py-2 text-[13px] font-semibold transition-colors duration-300 ${
-                    isActive ? "text-white" : "text-white/50 hover:text-white"
+                    isActive ? "text-white" : "text-white/80 hover:text-white"
                   }`}
                 >
                   {isActive && (
@@ -67,7 +67,6 @@ export default function LandingHeader() {
                   )}
 
                   <span className="relative z-10 flex items-center gap-2">
-
                     {item.name}
                     {item.hasDropdown && (
                       <svg
