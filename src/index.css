@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #de3c3c;
+  --color-primary: #D492BA;
   --color-background-light: #f3f4f6;
   --color-background-dark: #18181b;
   --color-surface-light: #ffffff;
@@ -16,9 +16,8 @@
   --color-card-dark: #16111d;
 
 
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-logo: "Zen Tokyo Zoo", system-ui;
+  --font-bricolage: "Bricolage Grotesque", sans-serif;
+  --font-inter: "Inter Tight", sans-serif;
   --font-over: "OverusedGrotesk", system-ui, sans-serif;
 
   --radius-default: 0.5rem;
