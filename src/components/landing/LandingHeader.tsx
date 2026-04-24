@@ -2,13 +2,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import logo from "@/assets/images/logo.png";
-import {
-  FiChevronDown,
-  FiUsers,
-  FiBriefcase,
-  FiDollarSign,
-  FiGlobe,
-} from "react-icons/fi";
+import { FiChevronDown, FiGlobe } from "react-icons/fi";
+import { useHubClients } from "@/hooks/data/useHubClientHooks";
+import type { HubClient } from "@/types/HubClient";
 
 export default function LandingHeader() {
   const [activeTab, setActiveTab] = useState("Giới thiệu");
@@ -33,51 +29,17 @@ export default function LandingHeader() {
     { name: "Liên hệ", hasDropdown: false },
   ];
 
-  const megamenuItems = [
-    {
-      id: 1,
-      title: "Picare OMS",
-      fullName: "Order Management System",
-      desc: "Hệ thống quản lý đơn hàng của Picare Vietnam giúp quản lý đơn hàng, tồn kho, báo cáo chuyên sâu.",
-    },
-    {
-      id: 2,
-      title: "Picare CRM",
-      fullName: "Customer Relationship Management",
-      desc: "Giải pháp tối ưu quản lý và chăm sóc khách hàng chuyên nghiệp cho doanh nghiệp.",
-    },
-    {
-      id: 3,
-      title: "Picare HR",
-      fullName: "Human Resources Management",
-      desc: "Quản trị nhân sự, chấm công và tính lương tự động, minh bạch và chính xác.",
-    },
-    {
-      id: 4,
-      title: "Picare FINANCE",
-      fullName: "Finance & Accounting Tool",
-      desc: "Kiểm soát dòng tiền, báo cáo tài chính và quản lý ngân sách tập trung.",
-    },
-    {
-      id: 5,
-      title: "Picare ASSETS",
-      fullName: "Asset Management Tool",
-      desc: "Quản lý tài sản cố định, trang thiết bị và lịch trình bảo trì định kỳ.",
-    },
-    {
-      id: 6,
-      title: "Picare LOGS",
-      fullName: "Operation Logs & Audit",
-      desc: "Theo dõi nhật ký vận hành, kiểm soát rủi ro và tăng cường bảo mật hệ thống.",
-    },
-  ];
+  const {
+    data: hubClients,
+    fullResponse,
+    isLoading,
+  } = useHubClients({
+    page: currentPage + 1,
+    limit: 3,
+  });
 
-  const itemsPerPage = 3;
-  const totalPages = Math.ceil(megamenuItems.length / itemsPerPage);
-  const displayedItems = megamenuItems.slice(
-    currentPage * itemsPerPage,
-    (currentPage + 1) * itemsPerPage,
-  );
+  const totalPages = fullResponse?.pagination?.totalPages || 1;
+  const displayedItems = hubClients || [];
 
   const nextMore = () => {
     setCurrentPage((prev) => (prev + 1) % totalPages);
@@ -219,51 +181,13 @@ export default function LandingHeader() {
                     }}
                     className="grid grid-cols-3 gap-4"
                   >
-                    {displayedItems.map((item) => (
-                      <motion.div
-                        key={item.id}
-                        variants={{
-                          hidden: { opacity: 0, y: 30, scale: 0.95 },
-                          visible: {
-                            opacity: 1,
-                            y: 0,
-                            scale: 1,
-                            transition: {
-                              duration: 0.8,
-                              ease: [0.16, 1, 0.3, 1],
-                            },
-                          },
-                        }}
-                        whileHover={{
-                          y: -6,
-                          backgroundColor: "rgba(38, 38, 38, 0.5)",
-                          borderColor: "rgba(255, 255, 255, 0.15)",
-                          transition: { duration: 0.3 },
-                        }}
-                        className="group flex cursor-pointer flex-col space-y-3 rounded-xl border border-white/5 bg-neutral-900/40 p-4 transition-colors duration-300"
-                      >
-                        <div className="relative overflow-hidden rounded-lg outline-1 outline-white/5 group-hover:outline-white/10">
-                          <img
-                            src="https://framerusercontent.com/images/gTH5qA521PTXYmAuTkvadn5fso.png?width=1292&height=450"
-                            alt=""
-                            className="h-44 w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          />
-                          <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent opacity-40 transition-opacity duration-300 group-hover:opacity-100" />
-                        </div>
-                        <div className="space-y-1">
-                          <h4 className="group-hover:text-primary-foreground text-[15px] font-semibold tracking-tight text-white transition-colors">
-                            {item.title} - {item.fullName}
-                          </h4>
-                          <p className="text-[13px] leading-relaxed text-white/50 group-hover:text-white/70">
-                            {item.desc}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 pt-2 text-[12px] font-medium text-white/40 transition-colors group-hover:text-white">
-                          <span>Khám phá ngay</span>
-                          <FiChevronDown className="-rotate-90" size={14} />
-                        </div>
-                      </motion.div>
-                    ))}
+                    {isLoading
+                      ? Array.from({ length: 3 }).map((_, i) => (
+                          <HubClientCardSkeleton key={i} />
+                        ))
+                      : displayedItems.map((item) => (
+                          <HubClientCard key={item.clientId} item={item} />
+                        ))}
                   </motion.div>
 
                   <div className="flex items-center justify-between">
@@ -310,5 +234,65 @@ export default function LandingHeader() {
         </div>
       </div>
     </motion.header>
+  );
+}
+
+function HubClientCard({ item }: { item: HubClient }) {
+  return (
+    <motion.a
+      href={item.clientInternalUrl}
+      variants={{
+        hidden: { opacity: 0, y: 30, scale: 0.95 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          transition: {
+            duration: 0.8,
+            ease: [0.16, 1, 0.3, 1],
+          },
+        },
+      }}
+      whileHover={{
+        y: -6,
+        backgroundColor: "rgba(38, 38, 38, 0.5)",
+        borderColor: "rgba(255, 255, 255, 0.15)",
+        transition: { duration: 0.3 },
+      }}
+      className="group flex cursor-pointer flex-col space-y-3 rounded-xl border border-white/5 bg-neutral-900/40 p-4 transition-colors duration-300"
+    >
+      <div className="relative overflow-hidden rounded-lg outline-1 outline-white/5 group-hover:outline-white/10">
+        <img
+          src="https://framerusercontent.com/images/gTH5qA521PTXYmAuTkvadn5fso.png?width=1292&height=450"
+          alt=""
+          className="h-44 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent opacity-40 transition-opacity duration-300 group-hover:opacity-100" />
+      </div>
+      <div className="space-y-1">
+        <h4 className="group-hover:text-primary-foreground text-[15px] font-semibold tracking-tight text-white transition-colors">
+          {item.clientName}
+        </h4>
+        <p className="line-clamp-2 text-[13px] leading-relaxed text-white/50 group-hover:text-white/70">
+          {item.clientDescription}
+        </p>
+      </div>
+      <div className="flex items-center gap-2 pt-2 text-[12px] font-medium text-white/40 transition-colors group-hover:text-white">
+        <span>Khám phá ngay</span>
+        <FiChevronDown className="-rotate-90" size={14} />
+      </div>
+    </motion.a>
+  );
+}
+
+function HubClientCardSkeleton() {
+  return (
+    <div className="flex flex-col space-y-3 rounded-xl border border-white/5 bg-neutral-900/40 p-4">
+      <div className="h-44 w-full animate-pulse rounded-lg bg-white/5" />
+      <div className="space-y-2">
+        <div className="h-5 w-2/3 animate-pulse rounded bg-white/5" />
+        <div className="h-4 w-full animate-pulse rounded bg-white/5" />
+      </div>
+    </div>
   );
 }

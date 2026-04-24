@@ -1,16 +1,20 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff, FiArrowRight, FiGrid, FiX } from "react-icons/fi";
 import logo from "@/assets/images/logo.png";
 import loginMockup from "@/assets/images/login_mockup.jpeg";
+import { useLogin } from "@/hooks/data/useAuthHooks";
+import { getApiErrorMessage } from "@/common/api.error";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [showProjects, setShowProjects] = useState(false);
+
+  const loginMutation = useLogin();
 
   const projects = [
     { name: "Picare CRM", desc: "Quản lý khách hàng chuyên sâu" },
@@ -21,8 +25,16 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+    loginMutation.mutate(
+      { email, password },
+      {
+        onSuccess: (res) => {
+          if (res.success) {
+            window.location.href = "http://localhost:5174/";
+          }
+        },
+      },
+    );
   };
 
   return (
@@ -131,6 +143,17 @@ export default function LoginPage() {
                   <div className="absolute bottom-0 h-px w-full origin-left scale-x-0 bg-linear-to-r from-[#E1A3F1] to-[#A3CFF1] transition-transform duration-500 ease-[0.16,1,0.3,1] group-focus-within:scale-x-100" />
                 </div>
 
+                {/* Inline Error Message */}
+                {loginMutation.isError && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-2 text-[12px] font-medium text-red-500"
+                  >
+                    * {getApiErrorMessage(loginMutation.error)}
+                  </motion.p>
+                )}
+
                 <motion.div
                   className="flex justify-start pt-3"
                   initial={{ opacity: 0 }}
@@ -149,7 +172,7 @@ export default function LoginPage() {
               {/* Submit Button */}
               <motion.button
                 type="submit"
-                disabled={isLoading}
+                disabled={loginMutation.isPending}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
@@ -160,7 +183,9 @@ export default function LoginPage() {
                 className="group relative mt-4 flex w-full items-center justify-center gap-3 overflow-hidden rounded-full bg-linear-to-r from-[#E1A3F1] to-[#D192E1] py-4 text-sm font-bold tracking-tight text-[#050505] shadow-[0_10px_30px_-10px_rgba(225,163,241,0.5)] transition-all hover:scale-[1.01] hover:shadow-[0_15px_40px_-12px_rgba(225,163,241,0.6)] active:scale-95 disabled:opacity-50"
               >
                 <span className="relative z-10">
-                  {isLoading ? "Đang kết nối..." : "Đăng nhập hệ thống"}
+                  {loginMutation.isPending
+                    ? "Đang xác thực..."
+                    : "Đăng nhập hệ thống"}
                 </span>
                 <FiArrowRight className="relative z-10 text-[18px] transition-transform group-hover:translate-x-1" />
                 <div className="absolute inset-0 z-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
