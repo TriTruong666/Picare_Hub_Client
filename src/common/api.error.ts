@@ -55,6 +55,11 @@ export const ErrorCodes = {
     message: "Email đã được sử dụng",
     statusCode: 400,
   },
+  AUTH_FORBIDDEN_CLIENT: {
+    code: "ERR_AUTH_003",
+    message: "Tài khoản của bạn không có quyền truy cập vào hệ thống này",
+    statusCode: 403,
+  },
 
   USER_NOT_FOUND: {
     code: "ERR_USER_001",
