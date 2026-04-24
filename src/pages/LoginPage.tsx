@@ -6,9 +6,15 @@ import logo from "@/assets/images/logo.png";
 import loginMockup from "@/assets/images/login_mockup.jpeg";
 import { useLogin } from "@/hooks/data/useAuthHooks";
 import { getApiErrorMessage } from "@/common/api.error";
+import { useSearchParams } from "react-router-dom";
+import LoginClientPage from "./LoginClientPage";
+import { useHubClientDetail } from "@/hooks/data/useHubClientHooks";
 
 export default function LoginPage() {
+  const [searchParams] = useSearchParams();
+  const clientId = searchParams.get("clientId");
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -36,6 +42,12 @@ export default function LoginPage() {
       },
     );
   };
+
+  const { data: clientDetail } = useHubClientDetail(clientId || "");
+
+  if (!clientId) {
+    return <LoginClientPage />;
+  }
 
   return (
     <div className="font-inter flex h-screen w-full overflow-hidden bg-[#050505]">
@@ -71,10 +83,11 @@ export default function LoginPage() {
               }}
             >
               <h1 className="font-bricolage text-3xl font-bold tracking-tight text-white">
-                Picare OMS
+                {clientDetail?.clientName || "Picare OMS"}
               </h1>
               <p className="font-inter mt-2 text-[13px] font-light text-white/40">
-                Vui lòng đăng nhập để vào hệ thống Picare OMS
+                Vui lòng đăng nhập để vào hệ thống{" "}
+                {clientDetail?.clientName || "Picare OMS"}
               </p>
             </motion.div>
 
