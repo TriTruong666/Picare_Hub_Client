@@ -13,6 +13,7 @@ import {
 export default function LandingHeader() {
   const [activeTab, setActiveTab] = useState("Giới thiệu");
   const [isSystemMenuOpen, setIsSystemMenuOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
   const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,23 +33,55 @@ export default function LandingHeader() {
     { name: "Liên hệ", hasDropdown: false },
   ];
 
-  const systemMenuItems = [
+  const megamenuItems = [
     {
+      id: 1,
+      title: "Picare OMS",
+      fullName: "Order Management System",
+      desc: "Hệ thống quản lý đơn hàng của Picare Vietnam giúp quản lý đơn hàng, tồn kho, báo cáo chuyên sâu.",
+    },
+    {
+      id: 2,
       title: "Picare CRM",
-      desc: "Quản lý quan hệ khách hàng.",
-      icon: <FiUsers size={20} className="text-purple-500" />,
+      fullName: "Customer Relationship Management",
+      desc: "Giải pháp tối ưu quản lý và chăm sóc khách hàng chuyên nghiệp cho doanh nghiệp.",
     },
     {
+      id: 3,
       title: "Picare HR",
-      desc: "Quản trị nhân sự & Chấm công.",
-      icon: <FiBriefcase size={20} className="text-blue-500" />,
+      fullName: "Human Resources Management",
+      desc: "Quản trị nhân sự, chấm công và tính lương tự động, minh bạch và chính xác.",
     },
     {
-      title: "Picare Finance",
-      desc: "Hệ thống quản lý tài chính.",
-      icon: <FiDollarSign size={20} className="text-emerald-500" />,
+      id: 4,
+      title: "Picare FINANCE",
+      fullName: "Finance & Accounting Tool",
+      desc: "Kiểm soát dòng tiền, báo cáo tài chính và quản lý ngân sách tập trung.",
+    },
+    {
+      id: 5,
+      title: "Picare ASSETS",
+      fullName: "Asset Management Tool",
+      desc: "Quản lý tài sản cố định, trang thiết bị và lịch trình bảo trì định kỳ.",
+    },
+    {
+      id: 6,
+      title: "Picare LOGS",
+      fullName: "Operation Logs & Audit",
+      desc: "Theo dõi nhật ký vận hành, kiểm soát rủi ro và tăng cường bảo mật hệ thống.",
     },
   ];
+
+  const itemsPerPage = 3;
+  const totalPages = Math.ceil(megamenuItems.length / itemsPerPage);
+  const displayedItems = megamenuItems.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage,
+  );
+
+  const nextMore = () => {
+    setCurrentPage((prev) => (prev + 1) % totalPages);
+  };
 
   return (
     <motion.header
@@ -98,7 +131,7 @@ export default function LandingHeader() {
                       }
                     }}
                     className={`relative flex items-center gap-2 rounded-full px-5 py-2 font-sans text-[13px] font-medium transition-colors duration-300 ${
-                      isActive ? "text-white" : "text-white/80 hover:text-white"
+                      isActive ? "text-black" : "text-white hover:text-white"
                     }`}
                   >
                     {isActive && (
@@ -113,7 +146,7 @@ export default function LandingHeader() {
                       />
                     )}
 
-                    <span className="relative z-10 flex items-center gap-2">
+                    <span className="relative z-10 flex items-center gap-x-2">
                       {item.name}
                       {item.hasDropdown && (
                         <motion.div
@@ -125,7 +158,7 @@ export default function LandingHeader() {
                         >
                           <FiChevronDown
                             size={14}
-                            className={isActive ? "text-white" : ""}
+                            className={isActive ? "text-black" : ""}
                           />
                         </motion.div>
                       )}
@@ -136,38 +169,124 @@ export default function LandingHeader() {
             })}
           </motion.nav>
 
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {isSystemMenuOpen && (
               <motion.div
-                initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute top-full left-1/2 mt-4 w-[540px] -translate-x-1/2 rounded-[24px] border border-black/5 bg-white p-3 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)]"
+                key="system-menu"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={{
+                  hidden: { opacity: 0, y: 15, scale: 0.95 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    transition: {
+                      duration: 0.4,
+                      ease: [0.16, 1, 0.3, 1],
+                      staggerChildren: 0.1,
+                    },
+                  },
+                  exit: {
+                    opacity: 0,
+                    y: 15,
+                    scale: 0.95,
+                    transition: { duration: 0.2 },
+                  },
+                }}
+                className="absolute top-full left-1/2 mt-4 w-[1200px] -translate-x-1/2 rounded-2xl border border-white/10 bg-black/90 p-4 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] backdrop-blur-xl"
               >
-                <div className="grid grid-cols-2 gap-2">
-                  {systemMenuItems.map((sysItem, i) => (
-                    <motion.button
-                      key={sysItem.title}
-                      type="button"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="flex w-full items-start gap-3 rounded-2xl p-3 text-left transition-all hover:bg-neutral-100/80 active:scale-95"
+                <div className="flex flex-col gap-6">
+                  <motion.div
+                    key={currentPage}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    variants={{
+                      hidden: { opacity: 0 },
+                      visible: {
+                        opacity: 1,
+                        transition: {
+                          staggerChildren: 0.15,
+                          delayChildren: 0.05,
+                        },
+                      },
+                      exit: {
+                        opacity: 0,
+                        transition: { duration: 0.2 },
+                      },
+                    }}
+                    className="grid grid-cols-3 gap-4"
+                  >
+                    {displayedItems.map((item) => (
+                      <motion.div
+                        key={item.id}
+                        variants={{
+                          hidden: { opacity: 0, y: 30, scale: 0.95 },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            scale: 1,
+                            transition: {
+                              duration: 0.8,
+                              ease: [0.16, 1, 0.3, 1],
+                            },
+                          },
+                        }}
+                        whileHover={{
+                          y: -6,
+                          backgroundColor: "rgba(38, 38, 38, 0.5)",
+                          borderColor: "rgba(255, 255, 255, 0.15)",
+                          transition: { duration: 0.3 },
+                        }}
+                        className="group flex cursor-pointer flex-col space-y-3 rounded-xl border border-white/5 bg-neutral-900/40 p-4 transition-colors duration-300"
+                      >
+                        <div className="relative overflow-hidden rounded-lg outline-1 outline-white/5 group-hover:outline-white/10">
+                          <img
+                            src="https://framerusercontent.com/images/gTH5qA521PTXYmAuTkvadn5fso.png?width=1292&height=450"
+                            alt=""
+                            className="h-44 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent opacity-40 transition-opacity duration-300 group-hover:opacity-100" />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="group-hover:text-primary-foreground text-[15px] font-semibold tracking-tight text-white transition-colors">
+                            {item.title} - {item.fullName}
+                          </h4>
+                          <p className="text-[13px] leading-relaxed text-white/50 group-hover:text-white/70">
+                            {item.desc}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 pt-2 text-[12px] font-medium text-white/40 transition-colors group-hover:text-white">
+                          <span>Khám phá ngay</span>
+                          <FiChevronDown className="-rotate-90" size={14} />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-1.5">
+                      {Array.from({ length: totalPages }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={`h-1 rounded-full transition-all duration-300 ${
+                            currentPage === i
+                              ? "w-8 bg-white"
+                              : "w-2 bg-white/20"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <button
+                      onClick={nextMore}
+                      className="group flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all hover:bg-white/10 active:scale-95"
+                      aria-label="Tiếp theo"
                     >
-                      <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border border-black/5 bg-neutral-100 shadow-sm">
-                        {sysItem.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-[14px] leading-none font-bold tracking-tight text-neutral-900">
-                          {sysItem.title}
-                        </div>
-                        <div className="mt-1.5 text-[12px] leading-snug font-medium text-neutral-500">
-                          {sysItem.desc}
-                        </div>
-                      </div>
-                    </motion.button>
-                  ))}
+                      <FiChevronDown className="-rotate-90" size={18} />
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             )}
