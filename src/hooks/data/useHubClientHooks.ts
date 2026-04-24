@@ -61,6 +61,7 @@ export function useCheckAccessHubClient(id: string) {
     () => HubClientService.checkAccessHubClient(id),
     {
       enabled: !!id,
+      refetchOnWindowFocus: false, // Tắt tự động refetch khi quay lại tab
     },
   );
 }

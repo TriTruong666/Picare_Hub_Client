@@ -3,35 +3,17 @@ import { FiArrowUpRight } from "react-icons/fi";
 import type { HubClient } from "@/types/HubClient";
 import loginMockup from "@/assets/images/login_mockup.jpeg";
 import { useHubClients } from "@/hooks/data/useHubClientHooks";
-import { useSearchParams } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { checkAccessHubClient } from "@/apis/hub_client.service";
+import { useNavigate } from "react-router-dom";
+import { PATHS } from "@/config/paths";
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
 function ClientCard({ client, index }: { client: HubClient; index: number }) {
-  const [, setSearchParams] = useSearchParams();
-  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const isActive = client.clientStatus === "active";
 
-  const handleAccess = async () => {
-    if (!isActive) return;
-
-    if (!isAuthenticated) {
-      // Chưa đăng nhập → đẩy sang form login
-      setSearchParams({ clientId: client.clientId });
-      return;
-    }
-
-    // Đã đăng nhập → kiểm tra quyền với client này
-    try {
-      const res = await checkAccessHubClient(client.clientId);
-      if (res.success) {
-        // Đúng role → redirect thẳng tới client
-        window.location.href = client.clientInternalUrl;
-      }
-      // Sai role → ở yên, không làm gì (no toast yet)
-    } catch {
-      // Lỗi network hoặc 403 → ở yên
+  const handleAccess = () => {
+    if (isActive) {
+      navigate(`${PATHS.LOGIN_CLIENT}?clientId=${client.clientId}`);
     }
   };
 

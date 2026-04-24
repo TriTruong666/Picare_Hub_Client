@@ -24,11 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return res.data ?? null;
     },
     retry: false,
-    staleTime: Infinity, // Dữ liệu sẽ không bao giờ bị coi là cũ cho đến khi bạn tự invalidate
-    gcTime: 1000 * 60 * 60 * 24, // 24 tiếng lưu cache trong memory
-    refetchOnMount: false,
     refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
   });
 
   const user = isError ? null : (data ?? null);

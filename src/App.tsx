@@ -4,6 +4,7 @@ import { useState } from "react";
 import AppRouter from "./routes/AppRouter";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AuthProvider } from "./hooks/useAuth";
+import { ToastContainer } from "./components/ToastContainer";
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <AppRouter />
+          <ToastContainer />
         </BrowserRouter>
       </AuthProvider>
     </QueryProvider>

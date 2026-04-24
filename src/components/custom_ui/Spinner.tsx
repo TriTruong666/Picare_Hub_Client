@@ -27,7 +27,7 @@ export const Spinner = ({
 
 export const FullScreenSpinner = () => {
   return (
-    <div className="fixed inset-0 z-[9999] flex h-screen w-screen items-center justify-center bg-black">
+    <div className="fixed inset-0 z-[200] flex h-screen w-screen items-center justify-center bg-black">
       <Spinner size="lg" color="primary" />
     </div>
   );

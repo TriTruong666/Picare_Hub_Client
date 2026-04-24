@@ -5,9 +5,10 @@
 export const PATHS = {
   // Public Paths
   HOME: "/",
-  LOGIN: "/login",
+  LOGIN: "/login",            // Trang chọn client hub
+  LOGIN_CLIENT: "/login/client", // Form đăng nhập cho client cụ thể
 
-  // Private Paths (Dashboard) - Placeholder for future use
+  // Private Paths (Dashboard)
   DASHBOARD: {
     ROOT: "/dashboard",
   },
