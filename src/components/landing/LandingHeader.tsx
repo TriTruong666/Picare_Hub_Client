@@ -302,7 +302,7 @@ export default function LandingHeader() {
           </button>
 
           <Link
-            to="/dashboard"
+            to="/login"
             className="font-inter rounded-full bg-white px-6 py-2 text-[13px] font-bold text-black shadow-lg transition-all hover:bg-white/90 active:scale-95"
           >
             Đăng nhập vào hệ thống
