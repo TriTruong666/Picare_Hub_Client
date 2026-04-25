@@ -74,14 +74,13 @@ jobs:
             # Login để pull image mới
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Kéo image mới nhất về
-            docker compose -p picare-hub-client pull
+            # Kéo image mới nhất về (Phải chỉ định file .prod.yml)
+            docker compose -f docker-compose.prod.yml -p picare-hub-client pull
 
-            # Chạy lại container (Không dùng 'down' để tránh mất kết nối lâu)
-            # --remove-orphans đảm bảo xóa các container thừa không có trong file yml này
-            docker compose -p picare-hub-client up -d --remove-orphans --force-recreate
+            # Chạy lại container
+            docker compose -f docker-compose.prod.yml -p picare-hub-client up -d --remove-orphans --force-recreate
 
-            # Dọn dẹp image cũ để tránh đầy ổ cứng
+            # Dọn dẹp image cũ
             docker image prune -f
             
             # (Tùy chọn) Reload Nginx Gateway nếu cần cập nhật IP nội bộ
