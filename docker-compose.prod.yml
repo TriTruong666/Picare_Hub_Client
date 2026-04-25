@@ -1,0 +1,16 @@
+services:
+  picare-hub-client:
+    
+    image: ghcr.io/tritruong666/picare-hub-client:latest
+    container_name: picare-hub-client
+    restart: always
+    networks:
+      - picare-network
+      - web_network
+
+networks:
+  picare-network:
+    external: true
+  web_network: 
+    external: true
+    
