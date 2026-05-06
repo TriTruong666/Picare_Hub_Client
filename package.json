@@ -1,6 +1,7 @@
 {
-  "name": "picare_oms_client",
+  "name": "picare_hub_client",
   "private": true,
+  "author": "TriTruong666",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
