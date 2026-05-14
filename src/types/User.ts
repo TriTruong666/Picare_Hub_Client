@@ -11,6 +11,7 @@ export type User = {
     | "ecom_lead"
     | "warehouse"
     | "logistics"
+    | "marketing"
     | "default";
   createdAt: string;
 };

@@ -296,7 +296,7 @@ export default function LandingHeader() {
                         Hub Center
                       </Link>
                       <Link
-                        to="/admin"
+                        to="/dashboard"
                         className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
                         onClick={() => setIsUserMenuOpen(false)}
                       >

@@ -68,7 +68,8 @@ export default function AccountDashboardPage() {
   } = useUsers(page, pageSize);
   const [, openModal] = useAtom(openModalAtom);
 
-  const pagination = (fullResponse as BasePaginatedResponse<User[]>)?.pagination;
+  const pagination = (fullResponse as BasePaginatedResponse<User[]>)
+    ?.pagination;
 
   return (
     <div className="page-layout">
@@ -152,10 +153,14 @@ function AccountTable({
     ecom_staff: "Ecom Team",
     logistics: "Vận hành",
     warehouse: "Kho",
+    marketing: "Marketing",
     default: "Người dùng",
   };
 
-  const sortedUsers = useMemo(() => sortUsers(users, sortType), [users, sortType]);
+  const sortedUsers = useMemo(
+    () => sortUsers(users, sortType),
+    [users, sortType],
+  );
 
   if (isLoading) {
     return (
@@ -212,7 +217,7 @@ function AccountTable({
             {columns.map((col, i) => (
               <th
                 key={col.key}
-                className={`border-b border-gray-400 p-4 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:border-white/10 dark:text-gray-400 ${
+                className={`border-b border-gray-400 p-4 text-xs font-semibold tracking-wide text-gray-600 uppercase dark:border-white/10 dark:text-gray-400 ${
                   col.width ?? ""
                 } ${col.align === "center" ? "text-center" : "text-left"} ${
                   i < columns.length - 1
@@ -238,7 +243,7 @@ function AccountTable({
                     <span className="text-sm font-semibold text-gray-900 dark:text-white">
                       {user.name}
                     </span>
-                    <span className="text-[12px] font-semibold italic text-gray-900 dark:text-primary/90">
+                    <span className="dark:text-primary/90 text-[12px] font-semibold text-gray-900 italic">
                       {user.email}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
