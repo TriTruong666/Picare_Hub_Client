@@ -11,5 +11,10 @@ export const PATHS = {
   // Private Paths (Dashboard)
   DASHBOARD: {
     ROOT: "/dashboard",
+    SUMMARY: "/dashboard/summary",
+    NOTIFICATIONS: "/dashboard/notifications",
+    MESSAGES: "/dashboard/messages",
+    PROFILE: "/dashboard/profile",
+    SETTINGS: "/dashboard/settings",
   },
 };

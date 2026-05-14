@@ -301,3 +301,22 @@ body.dark {
     transform: scale(1);
   }
 }
+
+.dashboard-theme {
+  --dashboard-color-primary: #de3c3c;
+  --dashboard-font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family: var(--dashboard-font-sans);
+}
+
+.dashboard-theme .page-layout {
+  @apply w-full space-y-6 px-6 py-4 md:py-8 xl:px-12 2xl:px-24;
+}
+
+.dashboard-theme .dashboard-input {
+  @apply h-11 w-full rounded-lg border border-gray-300 bg-white pr-4 pl-11 text-sm text-gray-700 shadow-sm backdrop-blur-md outline-none transition-all placeholder:text-gray-400 hover:border-gray-400 hover:bg-gray-50 focus:border-gray-400 focus:bg-white focus:ring-2 focus:ring-gray-200 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:focus:border-white/20 dark:focus:bg-white/10 dark:focus:ring-white/10;
+}
+
+.dashboard-theme .dashboard-chip-active {
+  background-color: var(--dashboard-color-primary);
+}

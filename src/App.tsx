@@ -5,6 +5,7 @@ import AppRouter from "./routes/AppRouter";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AuthProvider } from "./hooks/useAuth";
 import { ToastContainer } from "./components/ToastContainer";
+import ModalContainer from "./components/ModalContainer";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <AppRouter />
+          <ModalContainer />
           <ToastContainer />
         </BrowserRouter>
       </AuthProvider>

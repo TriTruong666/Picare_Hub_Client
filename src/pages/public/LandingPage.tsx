@@ -1,5 +1,5 @@
-import LandingHeader from "../components/landing/LandingHeader";
-import HeroSection from "../components/landing/HeroSection";
+import LandingHeader from "../../components/landing/LandingHeader";
+import HeroSection from "../../components/landing/HeroSection";
 
 export default function LandingPage() {
   return (

@@ -1,17 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
-import LandingPage from "@/pages/LandingPage";
-import LoginPage from "@/pages/LoginPage";
-import LoginClientPage from "@/pages/LoginClientPage";
+import { FiLayout } from "react-icons/fi";
+import type { Role } from "@/hooks/useAuth";
+import LandingPage from "@/pages/public/LandingPage";
+import LoginPage from "@/pages/public/LoginPage";
+import LoginClientPage from "@/pages/public/LoginClientPage";
+import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
 import { PATHS } from "./paths";
 
-// Types for Route Configuration
 export interface RouteConfig {
   path: string;
   element?: ReactNode;
   label?: string;
   icon?: any;
   showInSidebar?: boolean;
+  roles?: Role[];
   children?: RouteConfig[];
   index?: boolean;
 }
@@ -23,18 +26,35 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
     index: true,
   },
   {
-    // /login → Trang chọn client (LoginClientPage)
     path: PATHS.LOGIN,
     element: <LoginClientPage />,
   },
   {
-    // /login?clientId=xxx → Được xử lý bởi LoginClientPage (setSearchParams)
-    // Nhưng LoginPage cần route riêng khi navigate với clientId
     path: PATHS.LOGIN_CLIENT,
     element: <LoginPage />,
   },
 ];
 
 export const PRIVATE_ROUTES: RouteConfig[] = [
-  // Placeholder for future dashboard routes
+  {
+    path: PATHS.DASHBOARD.ROOT,
+    element: <SummaryDashboardPage />,
+    label: "T\u1ed5ng quan",
+    icon: FiLayout,
+    showInSidebar: true,
+    index: true,
+  },
+  {
+    path: PATHS.DASHBOARD.SUMMARY,
+    element: <SummaryDashboardPage />,
+    label: "T\u1ed5ng quan",
+    icon: FiLayout,
+    showInSidebar: false,
+  },
 ];
+
+export const getSidebarNavigation = (role?: Role) =>
+  PRIVATE_ROUTES.filter((route) => {
+    const hasRole = !route.roles || (role && route.roles.includes(role));
+    return route.showInSidebar && hasRole;
+  });
