@@ -411,7 +411,10 @@ function DashboardThemeToggle() {
     const rect = btnRef.current?.getBoundingClientRect();
     const x = rect ? Math.round(rect.left + rect.width / 2) : event.clientX;
     const y = rect ? Math.round(rect.top + rect.height / 2) : event.clientY;
-    const maxRadius = Math.hypot(x, y);
+    const maxRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
 
     const applyTheme = () => {
       root.classList.toggle("dark", nextDark);
@@ -449,32 +452,43 @@ function DashboardThemeToggle() {
     <button
       ref={btnRef}
       onClick={toggleTheme}
-      className="relative flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm transition-all hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:hover:bg-white/10"
+      className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm backdrop-blur-md transition-all hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:hover:bg-white/10"
       aria-label="Toggle theme"
       type="button"
     >
+      <AnimatePresence>
+        {dark ? (
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.4 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 rounded-lg bg-indigo-500/30 blur-md"
+          />
+        ) : null}
+      </AnimatePresence>
+
       <AnimatePresence mode="wait">
         {dark ? (
           <motion.span
-            key="dark"
+            key="moon"
             initial={{ opacity: 0, rotate: -90, scale: 0.6 }}
             animate={{ opacity: 1, rotate: 0, scale: 1 }}
             exit={{ opacity: 0, rotate: 90, scale: 0.6 }}
             transition={{ duration: 0.25 }}
             className="relative z-10"
           >
-            <FiMoon className="text-base" />
+            <FiMoon className="text-lg text-indigo-400" />
           </motion.span>
         ) : (
           <motion.span
-            key="light"
+            key="sun"
             initial={{ opacity: 0, rotate: 90, scale: 0.6 }}
             animate={{ opacity: 1, rotate: 0, scale: 1 }}
             exit={{ opacity: 0, rotate: -90, scale: 0.6 }}
             transition={{ duration: 0.25 }}
             className="relative z-10"
           >
-            <FiSun className="text-base" />
+            <FiSun className="text-lg text-amber-400" />
           </motion.span>
         )}
       </AnimatePresence>

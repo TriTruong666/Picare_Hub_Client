@@ -16,5 +16,7 @@ export const PATHS = {
     MESSAGES: "/dashboard/messages",
     PROFILE: "/dashboard/profile",
     SETTINGS: "/dashboard/settings",
+    ACCOUNTS: "/dashboard/accounts",
+    STORAGE: "/dashboard/storage",
   },
 };

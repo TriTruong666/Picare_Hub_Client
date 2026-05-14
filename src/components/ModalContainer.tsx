@@ -12,7 +12,7 @@ function ActionStateModal({
   const [, closeModal] = useAtom(closeModalAtom);
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-gray-300 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-neutral-900">
+    <div className="dashboard-theme w-full max-w-md rounded-2xl border border-gray-300 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-neutral-900">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
         {title}
       </h2>
@@ -25,7 +25,7 @@ function ActionStateModal({
           onClick={closeModal}
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
         >
-          Dong
+          Đóng
         </button>
       </div>
     </div>

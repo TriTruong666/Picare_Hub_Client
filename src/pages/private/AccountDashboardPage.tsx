@@ -41,17 +41,17 @@ function sortUsers(users: User[], sortType: SortType): User[] {
 }
 
 const breadcrumbItems = [
-  { label: "Dashboard", path: "/dashboard" },
-  { label: "Tai khoan", path: "/dashboard/accounts" },
-  { label: "Tat ca" },
+  { label: "Trang chủ", path: "/dashboard" },
+  { label: "Tài khoản", path: "/dashboard/accounts" },
+  { label: "Tất cả" },
 ];
 
 const columns = [
-  { key: "info", label: "Thong tin ca nhan", width: "w-[30%]", align: "left" },
-  { key: "phone", label: "So dien thoai", width: "w-[15%]", align: "center" },
-  { key: "role", label: "Chuc vu", width: "w-[20%]", align: "center" },
-  { key: "status", label: "Trang thai", width: "w-[20%]", align: "center" },
-  { key: "actions", label: "Thao tac", width: "w-[15%]", align: "center" },
+  { key: "info", label: "Thông tin cá nhân", width: "w-[30%]", align: "left" },
+  { key: "phone", label: "Số điện thoại", width: "w-[15%]", align: "center" },
+  { key: "role", label: "Vai trò", width: "w-[20%]", align: "center" },
+  { key: "status", label: "Trạng thái", width: "w-[20%]", align: "center" },
+  { key: "actions", label: "Thao tác", width: "w-[15%]", align: "center" },
 ] as const;
 
 export default function AccountDashboardPage() {
@@ -76,7 +76,7 @@ export default function AccountDashboardPage() {
         <div>
           <Breadcrumb items={breadcrumbItems} />
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl dark:text-white">
-            Quan ly tai khoan
+            Quản lý tài khoản
           </h1>
         </div>
         <div className="flex items-center gap-3">
@@ -84,23 +84,23 @@ export default function AccountDashboardPage() {
             <GlassSelect
               value={sortType}
               onChange={(value) => setSortType(value as SortType)}
-              placeholder="Sap xep theo"
+              placeholder="Sắp xếp theo"
               options={[
-                { label: "Ngay", value: "by_date" },
-                { label: "Trang thai", value: "by_status" },
+                { label: "Ngày tạo", value: "by_date" },
+                { label: "Trạng thái", value: "by_status" },
               ]}
             />
           </div>
           <button className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-[13px] font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10">
-            Xuat <PiExport />
+            Xuất file <PiExport />
           </button>
 
           <button
             onClick={() => openModal("add_account")}
-            className="btn-primary"
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-[13px] font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.03] hover:bg-indigo-500 active:scale-95 dark:bg-indigo-500 dark:shadow-indigo-500/10 dark:hover:bg-indigo-400"
           >
             <FiUserPlus />
-            Them tai khoan
+            Thêm tài khoản
           </button>
         </div>
       </div>
@@ -147,12 +147,12 @@ function AccountTable({
   const [, openModal] = useAtom(openModalAtom);
 
   const roleLabels: Record<User["role"], string> = {
-    admin: "Quan tri vien",
+    admin: "Quản trị viên",
     ecom_lead: "Ecom Leader",
     ecom_staff: "Ecom Team",
-    logistics: "Van hanh",
+    logistics: "Vận hành",
     warehouse: "Kho",
-    default: "Nguoi dung",
+    default: "Người dùng",
   };
 
   const sortedUsers = useMemo(() => sortUsers(users, sortType), [users, sortType]);
@@ -162,7 +162,7 @@ function AccountTable({
       <div className="flex min-h-100 flex-col items-center justify-center py-10">
         <Spinner size="lg" />
         <p className="mt-4 text-sm font-medium text-gray-500">
-          Dang tai du lieu...
+          Đang tải dữ liệu...
         </p>
       </div>
     );
@@ -172,13 +172,13 @@ function AccountTable({
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
         <p className="max-w-md text-center text-sm font-medium text-red-400">
-          Da xay ra loi khi tai danh sach tai khoan
+          Đã xảy ra lỗi khi tải danh sách tài khoản
         </p>
         <button
           onClick={refetch}
           className="mt-6 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/5 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
         >
-          Thu lai
+          Thử lại
         </button>
       </div>
     );
@@ -188,17 +188,17 @@ function AccountTable({
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Danh sach trong
+          Danh sách trống
         </h3>
         <p className="mt-2 text-sm text-gray-500 dark:text-white/50">
-          Chua co tai khoan nao duoc tao trong he thong
+          Hệ thống chưa có tài khoản nào được tạo
         </p>
         <button
           onClick={() => openModal("add_account")}
-          className="mt-6 flex items-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-xs font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-red-600"
+          className="mt-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-xs font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
         >
           <FiPlus className="text-lg" />
-          Them tai khoan ngay
+          Tạo tài khoản ngay
         </button>
       </div>
     );
@@ -261,7 +261,7 @@ function AccountTable({
                 <StatusBadge isOnline={user.isOnline} />
               </td>
               <td className="p-4 text-center">
-                <Tooltip content={user.isOnline ? "Vo hieu hoa" : "Kich hoat"}>
+                <Tooltip content={user.isOnline ? "Vô hiệu hóa" : "Kích hoạt"}>
                   <IconAction
                     onClick={() =>
                       user.isOnline
@@ -289,9 +289,9 @@ function AccountTable({
 
 function StatusBadge({ isOnline }: { isOnline: boolean }) {
   return isOnline ? (
-    <Badge type="success" value="Truc tuyen" />
+    <Badge type="success" value="Trực tuyến" />
   ) : (
-    <Badge type="info" value="Ngoai tuyen" />
+    <Badge type="info" value="Ngoại tuyến" />
   );
 }
 

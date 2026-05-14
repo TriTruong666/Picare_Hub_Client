@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
-import { FiLayout } from "react-icons/fi";
+import { FiArchive, FiLayout, FiUsers } from "react-icons/fi";
 import type { Role } from "@/hooks/useAuth";
 import LandingPage from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/public/LoginPage";
 import LoginClientPage from "@/pages/public/LoginClientPage";
+import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
+import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
 import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
 import { PATHS } from "./paths";
 
@@ -50,6 +52,20 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     label: "T\u1ed5ng quan",
     icon: FiLayout,
     showInSidebar: false,
+  },
+  {
+    path: PATHS.DASHBOARD.ACCOUNTS,
+    element: <AccountDashboardPage />,
+    label: "T\u00e0i kho\u1ea3n",
+    icon: FiUsers,
+    showInSidebar: true,
+  },
+  {
+    path: PATHS.DASHBOARD.STORAGE,
+    element: <StorageDashboardPage />,
+    label: "L\u01b0u tr\u1eef",
+    icon: FiArchive,
+    showInSidebar: true,
   },
 ];
 

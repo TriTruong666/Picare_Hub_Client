@@ -19,9 +19,11 @@ Maintain a "Simple & Black" aesthetic. Our goal is a premium, high-end dark SaaS
 ### 🎨 Design Palette & Tokens
 - **Backgrounds**: Main (`#18181b`), Surface (`#202022`), Glass (`bg-white/5` or `bg-white/2` with `backdrop-blur`).
 - **Borders**: Thin and subtle (`border-white/10` or `border-white/5`).
-- **Primary Color**: `#de3c3c` (Red) for primary actions.
+- **Primary Color**: `#4f46e5` (Indigo) for primary dashboard actions (replacing red for a more premium dark feel).
+- **Secondary Action**: `#de3c3c` (Red) for critical/destructive actions or specific highlights.
 - **Accent Purple**: `#E1A3F1` for branding and decorative elements.
-- **Typography**: Display/Headings (`OverusedGrotesk`), Body (`Manrope`).
+- **Typography**: Display/Headings (`OverusedGrotesk`), Body (`Manrope`). Use `.dashboard-theme` to ensure consistent font application.
+- **Language**: Always use proper Vietnamese with full diacritics. Avoid mixing English/Vietnamese or using unsalted Vietnamese.
 - **Text**: White for headings, `text-gray-400` or `white/40` for secondary/helper text. Avoid pure bright white for large blocks of text.
 
 ### 📐 Principles of Minimalism
@@ -42,9 +44,9 @@ Maintain a "Simple & Black" aesthetic. Our goal is a premium, high-end dark SaaS
 - **Interaction**: Use `hover:bg-gray-50` for rows and items.
 
 ### 🎨 Shared Design Tokens
-- **Primary Color**: `#de3c3c` (Primary Red) for highlights.
-- **Action Color**: `#de3c3c` (Red) for critical buttons.
-- **Typography**: Display/Headings (`OverusedGrotesk`), Body (`Manrope`).
+- **Primary Action**: `#4f46e5` (Indigo) for most primary buttons in dashboard.
+- **Critical Action**: `#de3c3c` (Red) for delete/warning buttons.
+- **Typography**: Display/Headings (`OverusedGrotesk`), Body (`Manrope`). Always wrap dashboard-specific UI in `.dashboard-theme`.
 - **Micro-interactions**: Use `hover:scale-[1.02]` or `transition-all`. Theme toggle uses **Circular Reveal Animation** (View Transitions API).
 
 ---
@@ -110,6 +112,12 @@ Tables must follow a consistent layout for a clean "Simple & Black" look.
 
 ### C. Grid/Card Layout Strategy (Skeletons & Minimalist Blocks)
 For dashboard grids, use **Skeleton Cards** (pulse effects) for loading and **Minimalist Blocks** (transparent/no background) for error/empty states.
+
+#### Minimalist Folder/Collection Cards
+- **Aesthetic**: No cover images. Use a gradient header with a large icon.
+- **Typography**: Small and refined. Titles (`text-sm font-bold`), Metadata Labels (`text-[10px] uppercase tracking-wider`), Values (`text-xs`).
+- **Interaction**: `transition-all hover:-translate-y-1`.
+- **Spacing**: Tighter padding (`p-4` or `p-5`) and gaps (`gap-2`) to maintain a clean, high-information-density look.
 
 ```tsx
 {isLoading ? (
@@ -207,12 +215,13 @@ Modals are managed via `src/stores/modalStore.ts` using Jotai.
 - **Footer**: 
   - **Styles**: `flex items-center justify-end gap-3 border-t border-white/10 bg-white/2 p-6 backdrop-blur-md`.
   - **Secondary Button (Exit/Cancel)**: `rounded-lg px-4 py-2 text-sm text-gray-300 transition hover:bg-white/10`.
-  - **Primary Button (Next/Submit)**: `bg-primary rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:bg-white/10 disabled:text-white/40`.
+  - **Primary Button (Next/Submit)**: `bg-indigo-600 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95 disabled:bg-white/10 disabled:text-white/40`.
+- **Typography**: Always wrap the modal root in `.dashboard-theme` to ensure font consistency.
 - **Animations**: Modals automatically fade and scale via `AnimatePresence` in `ModalContainer.tsx`.
 - **Patterns**:
   - **Multi-step Selection (Phase Pattern)**: Use a `step` or `phase` state. Start with a selection screen using large cards.
     - **Selection Card Style**: `rounded-xl border p-6 transition-all duration-300`.
-    - **Active State**: `border-primary bg-primary/10 shadow-lg shadow-primary/20`.
+    - **Active State**: `border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/20`.
     - **Hover State**: `border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10`.
     - **Footer Logic**: In Step 1, the primary button is "Tiếp theo" (Next) and is `disabled` until a selection is made. In Step 2, show a "Quay lại" (Back) button on the left to return to the selection phase.
   - **Confirm/Sync Modal**: Highlight warnings with `border-yellow-500/20 bg-yellow-500/5`. Use `isModalLockedAtom` to prevent closing during async tasks.
@@ -240,7 +249,9 @@ A structured layout for grid lists.
 ## ⚖️ 5. Golden Rules for Styling
 
 1. **Leverage `src/components`**: Always check `src/components` for pre-built UI components (`Input`, `Select`, `Tooltip`, `Badge`, `IconAction`, `Spinner`, etc.) before deciding to build custom elements.
-2. **Never use generic blue/green**: Always use the project's Red/Purple/Zinc dark system.
-3. **Subtle Transitions**: Use `transition-all duration-300` for all hover states.
+2. **Never use generic blue/green**: Always use the project's Indigo/Red/Zinc dark system.
+3. **Proper Vietnamese**: All UI text must be in Vietnamese with full diacritics. No mixing of languages unless it's a technical term (e.g., "ID", "API").
+4. **Font Consistency**: Ensure all dashboard UI (including modals and floating elements) uses the `Manrope` font via the `.dashboard-theme` class.
+5. **Subtle Transitions**: Use `transition-all duration-300` for all hover states.
 4. **Spacing**: Maintain generous white space (airy design) to avoid an "overcrowded" feel.
 5. **Rounded Corners**: Stick to `rounded-lg` for inputs/buttons and `rounded-2xl` for large containers.

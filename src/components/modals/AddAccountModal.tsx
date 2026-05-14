@@ -7,6 +7,7 @@ import { PiHandEyeLight } from "react-icons/pi";
 import clsx from "clsx";
 import { closeModalAtom } from "@/stores/modalStore";
 
+
 function RoleCard({ icon, title, description, active, onClick }: any) {
   return (
     <div
@@ -14,7 +15,7 @@ function RoleCard({ icon, title, description, active, onClick }: any) {
       className={clsx(
         "group cursor-pointer rounded-lg border p-5 transition-all duration-200",
         active
-          ? "border-primary bg-primary/10 shadow-primary/20 shadow-lg"
+          ? "border-indigo-500 bg-indigo-500/10 shadow-indigo-500/20 shadow-lg"
           : "border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/10",
       )}
     >
@@ -22,7 +23,7 @@ function RoleCard({ icon, title, description, active, onClick }: any) {
         className={clsx(
           "mb-4 flex h-12 w-12 items-center justify-center rounded-lg transition",
           active
-            ? "bg-primary text-white"
+            ? "bg-indigo-600 text-white"
             : "bg-gray-100 text-gray-700 group-hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:group-hover:bg-white/20",
         )}
       >
@@ -71,7 +72,7 @@ export function AddAccountModal() {
   const [, closeModal] = useAtom(closeModalAtom);
 
   return (
-    <div className="flex w-150 flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-neutral-900/80">
+    <div className="dashboard-theme flex w-150 flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]">
       <div className="flex items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white">
           Tạo tài khoản mới
@@ -100,9 +101,9 @@ export function AddAccountModal() {
         <button
           disabled={!role}
           className={clsx(
-            "rounded-lg px-4 py-2 text-sm font-medium transition",
+            "rounded-lg px-4 py-2 text-sm font-semibold transition-all active:scale-95",
             role
-              ? "bg-primary text-white hover:opacity-90"
+              ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 hover:bg-indigo-500 dark:bg-indigo-500 dark:shadow-indigo-500/10 dark:hover:bg-indigo-400"
               : "bg-gray-100 text-gray-400 dark:bg-white/10 dark:text-white/40",
           )}
         >
