@@ -1,21 +1,41 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
+import { IoBusinessOutline } from "react-icons/io5";
 import logo from "@/assets/images/logo.png";
-import { FiChevronDown, FiGlobe } from "react-icons/fi";
+import {
+  FiChevronDown,
+  FiGlobe,
+  FiUser,
+  FiSettings,
+  FiLogOut,
+  FiLayout,
+} from "react-icons/fi";
 import { useHubClients } from "@/hooks/data/useHubClientHooks";
 import type { HubClient } from "@/types/HubClient";
+import { useAuth } from "@/hooks/useAuth";
+import { useLogout } from "@/hooks/data/useAuthHooks";
 
 export default function LandingHeader() {
   const [activeTab, setActiveTab] = useState("Giới thiệu");
   const [isSystemMenuOpen, setIsSystemMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const navRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const { isAuthenticated, user } = useAuth();
+  const { mutate: logout } = useLogout();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (navRef.current && !navRef.current.contains(event.target as Node)) {
         setIsSystemMenuOpen(false);
+      }
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsUserMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -225,12 +245,107 @@ export default function LandingHeader() {
             <FiChevronDown size={14} />
           </button>
 
-          <Link
-            to="/login"
-            className="font-inter rounded-full bg-white px-6 py-2 text-[13px] font-bold text-black shadow-lg transition-all hover:bg-white/90 active:scale-95"
-          >
-            Đăng nhập vào hệ thống
-          </Link>
+          {isAuthenticated ? (
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="group flex items-center gap-3 rounded-full border border-white/10 bg-white/5 p-1.5 pr-4 transition-all hover:bg-white/10 active:scale-95"
+              >
+                <div className="from-primary to-primary/60 flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br text-sm font-bold text-black">
+                  {user?.name?.[0].toUpperCase() || "U"}
+                </div>
+                <span className="font-inter text-[13px] font-medium text-white/90 group-hover:text-white">
+                  Hi, {user?.name.split(" ")[0]}
+                </span>
+                <FiChevronDown
+                  className={`text-white/40 transition-transform duration-300 ${isUserMenuOpen ? "rotate-180" : ""}`}
+                  size={14}
+                />
+              </button>
+
+              <AnimatePresence>
+                {isUserMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute right-0 mt-3 w-64 overflow-hidden rounded-2xl border border-white/10 bg-black/90 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+                  >
+                    {/* User Profile Summary */}
+                    <div className="border-b border-white/5 p-4">
+                      <p className="font-inter text-[13px] font-semibold text-white">
+                        {user?.name}
+                      </p>
+                      <p className="font-inter mt-0.5 text-[11px] text-white/40">
+                        {user?.email}
+                      </p>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="p-1.5">
+                      <Link
+                        to="/login"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <IoBusinessOutline
+                          size={16}
+                          className="text-white/40"
+                        />
+                        Hub Center
+                      </Link>
+                      <Link
+                        to="/admin"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <FiLayout size={16} className="text-white/40" />
+                        Hub Dashboard
+                      </Link>
+                      <Link
+                        to="/profile"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <FiUser size={16} className="text-white/40" />
+                        Hồ sơ của tôi
+                      </Link>
+                      <Link
+                        to="/settings"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <FiSettings size={16} className="text-white/40" />
+                        Cài đặt
+                      </Link>
+                    </div>
+
+                    {/* Logout */}
+                    <div className="border-t border-white/5 p-1.5">
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          logout();
+                        }}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-red-400 transition-colors hover:bg-red-400/10"
+                      >
+                        <FiLogOut size={16} />
+                        Đăng xuất
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="font-inter rounded-full bg-white px-6 py-2 text-[13px] font-bold text-black shadow-lg transition-all hover:bg-white/90 active:scale-95"
+            >
+              Đăng nhập vào hệ thống
+            </Link>
+          )}
         </div>
       </div>
     </motion.header>

@@ -8,3 +8,7 @@ export const login = async (
   const res = await hubAxiosClient.post("/api/v1/auth/login", data);
   return res.data;
 };
+export const logout = async (): Promise<BaseResponse<null>> => {
+  const res = await hubAxiosClient.post("/api/v1/auth/logout");
+  return res.data;
+};
