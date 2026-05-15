@@ -1,7 +1,7 @@
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  FiAlertCircle,
   FiDownload,
   FiEye,
   FiEyeOff,
@@ -13,16 +13,17 @@ import {
   FiUpload,
 } from "react-icons/fi";
 import { Navigate, useParams } from "react-router-dom";
+
+import { formatFileSize, formatRelativeTime } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
-import GlassSelect from "@/components/custom_ui/Select";
 import IconAction from "@/components/custom_ui/IconAction";
 import { Pagination } from "@/components/custom_ui/Pagination";
+import GlassSelect from "@/components/custom_ui/Select";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
 import { useS3Assets, useS3Folders } from "@/hooks/data/useS3Hooks";
-import { formatFileSize, formatRelativeTime } from "@/common/format";
 import type { S3Asset, S3Folder } from "@/types/S3";
 
 type StorageViewMode = "grid" | "table";
@@ -53,13 +54,11 @@ export default function StorageFolderDetailPage() {
   const [allAssets, setAllAssets] = useState<S3Asset[]>([]);
   const pageSize = 12;
 
-  // 1. Lấy thông tin folder (Metadata)
   const { data: foldersData, isLoading: isLoadingFolders } = useS3Folders();
-  const folder = (foldersData as any as S3Folder[])?.find(
-    (f) => f.folderId === folderId || f.name === folderId,
+  const folder = (foldersData as S3Folder[] | undefined)?.find(
+    (item) => item.folderId === folderId || item.name === folderId,
   );
 
-  // 2. Lấy danh sách assets trong folder
   const {
     data: assetsData,
     fullResponse,
@@ -69,38 +68,35 @@ export default function StorageFolderDetailPage() {
     refetch,
   } = useS3Assets({
     folder: folder?.name || folderId || "",
-    assetType: assetType as any,
+    assetType: assetType as "image" | "video" | "document" | "audio" | "",
     limit: pageSize,
     offset: (page - 1) * pageSize,
   });
 
-  // useFetch giải nén data: response.data (mảng assets)
-  const currentRows = (assetsData as any as S3Asset[]) || [];
-  // Tổng số bản ghi nằm trong pagination.totalRecords của fullResponse
+  const currentRows = (assetsData as S3Asset[] | undefined) || [];
   const totalAssets = fullResponse?.pagination?.totalRecords || 0;
+  const hasMore = allAssets.length < totalAssets;
 
-  // Reset danh sách khi đổi folder hoặc filter
   useEffect(() => {
     setAllAssets([]);
     setPage(1);
   }, [folderId, assetType]);
 
-  // Cập nhật danh sách khi có dữ liệu mới từ API
   useEffect(() => {
-    if (currentRows.length > 0) {
-      if (page === 1) {
-        setAllAssets(currentRows);
-      } else {
-        setAllAssets((prev) => {
-          // Lọc trùng ID để an toàn
-          const existingIds = new Set(prev.map((a) => a.assetId));
-          const newUnique = currentRows.filter(
-            (a) => !existingIds.has(a.assetId),
-          );
-          return [...prev, ...newUnique];
-        });
-      }
+    if (page === 1) {
+      setAllAssets(currentRows);
+      return;
     }
+
+    if (currentRows.length === 0) return;
+
+    setAllAssets((prev) => {
+      const existingIds = new Set(prev.map((asset) => asset.assetId));
+      const newUniqueAssets = currentRows.filter(
+        (asset) => !existingIds.has(asset.assetId),
+      );
+      return [...prev, ...newUniqueAssets];
+    });
   }, [currentRows, page]);
 
   const handleLoadMore = () => {
@@ -110,10 +106,11 @@ export default function StorageFolderDetailPage() {
   const handleViewAsset = (asset: S3Asset) => {
     if (asset.visibility === "public") {
       window.open(asset.s3Url, "_blank");
-    } else {
-      const baseUrl = import.meta.env.VITE_HUB_API_URL;
-      window.open(`${baseUrl}/api/v1/s3/view/${asset.s3Key}`, "_blank");
+      return;
     }
+
+    const baseUrl = import.meta.env.VITE_HUB_API_URL;
+    window.open(`${baseUrl}/api/v1/s3/view/${asset.s3Key}`, "_blank");
   };
 
   if (isLoadingFolders) {
@@ -127,8 +124,6 @@ export default function StorageFolderDetailPage() {
   if (!folder && !isLoadingFolders) {
     return <Navigate to={PATHS.DASHBOARD.STORAGE} replace />;
   }
-
-  const hasMore = allAssets.length < totalAssets;
 
   return (
     <div className="page-layout">
@@ -153,9 +148,7 @@ export default function StorageFolderDetailPage() {
           <div className="w-40">
             <GlassSelect
               value={assetType}
-              onChange={(val) => {
-                setAssetType(val);
-              }}
+              onChange={(value) => setAssetType(value)}
               options={[
                 { value: "", label: "Tất cả loại" },
                 { value: "image", label: "Hình ảnh" },
@@ -219,94 +212,97 @@ export default function StorageFolderDetailPage() {
         />
       </div>
 
-      {isLoadingAssets && allAssets.length === 0 ? (
-        viewMode === "grid" ? (
-          <StorageGridSkeleton />
-        ) : (
-          <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
-            <Spinner size="lg" />
-            <p className="mt-4 text-sm font-medium text-gray-500">
-              Đang tải dữ liệu...
-            </p>
-          </div>
-        )
-      ) : isError ? (
-        <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
-          <p className="max-w-md text-center text-sm font-medium text-red-400">
-            Đã xảy ra lỗi khi tải danh sách tệp
-          </p>
-          <button
-            onClick={() => refetch()}
-            className="mt-6 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/5 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-          >
-            Thử lại
-          </button>
-        </div>
-      ) : allAssets.length === 0 ? (
-        <div className="flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Danh sách trống
-          </h3>
-          <p className="mt-2 text-sm text-gray-500 dark:text-white/50">
-            Thư mục này hiện chưa có tệp tin nào
-          </p>
-          <button
-            type="button"
-            className="mt-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-xs font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-          >
-            <FiUpload className="text-lg" />
-            Tải lên ngay
-          </button>
-        </div>
-      ) : (
-        <div className="relative space-y-10">
-          {isFetchingAssets && viewMode === "table" && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/50 backdrop-blur-[1px] dark:bg-black/20">
-              <div className="flex flex-col items-center gap-2 rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
-                <Spinner size="md" />
-                <span className="text-xs font-medium text-gray-500">
-                  Đang cập nhật...
-                </span>
-              </div>
-            </div>
-          )}
-
-          {viewMode === "grid" ? (
-            <>
-              <StorageGrid assets={allAssets} onView={handleViewAsset} />
-              {hasMore && (
-                <div className="flex justify-center pb-12">
-                  <button
-                    onClick={handleLoadMore}
-                    disabled={isFetchingAssets}
-                    className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-8 py-3 text-sm font-bold text-gray-900 transition-all hover:border-gray-400 hover:bg-gray-50 active:scale-95 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/[0.08]"
-                  >
-                    {isFetchingAssets ? (
-                      <>
-                        <Spinner size="sm" />
-                        Đang tải...
-                      </>
-                    ) : (
-                      "Tải thêm"
-                    )}
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <StorageTable
-              assets={currentRows}
-              onView={handleViewAsset}
-              pagination={
-                <Pagination
-                  page={page}
-                  pageSize={pageSize}
-                  total={totalAssets}
-                  onPageChange={setPage}
-                />
-              }
+      {viewMode === "table" ? (
+        <StorageTable
+          assets={currentRows}
+          isLoading={isLoadingAssets}
+          isFetching={isFetchingAssets}
+          isError={isError}
+          onRefetch={refetch}
+          onView={handleViewAsset}
+          pagination={
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={totalAssets}
+              onPageChange={setPage}
             />
-          )}
+          }
+        />
+      ) : (
+        <StorageGridSection
+          assets={allAssets}
+          hasMore={hasMore}
+          isLoading={isLoadingAssets}
+          isFetching={isFetchingAssets}
+          isError={isError}
+          onLoadMore={handleLoadMore}
+          onRefetch={refetch}
+          onView={handleViewAsset}
+        />
+      )}
+    </div>
+  );
+}
+
+function StorageGridSection({
+  assets,
+  hasMore,
+  isLoading,
+  isFetching,
+  isError,
+  onLoadMore,
+  onRefetch,
+  onView,
+}: {
+  assets: S3Asset[];
+  hasMore: boolean;
+  isLoading: boolean;
+  isFetching: boolean;
+  isError: boolean;
+  onLoadMore: () => void;
+  onRefetch: () => void;
+  onView: (asset: S3Asset) => void;
+}) {
+  if (isLoading && assets.length === 0) {
+    return <StorageGridSkeleton />;
+  }
+
+  if (isError && assets.length === 0) {
+    return (
+      <StorageErrorState
+        message="Đã xảy ra lỗi khi tải danh sách tệp"
+        onRetry={onRefetch}
+      />
+    );
+  }
+
+  if (assets.length === 0) {
+    return (
+      <StorageEmptyState description="Thư mục này hiện chưa có tệp tin nào" />
+    );
+  }
+
+  return (
+    <div className="space-y-10">
+      <StorageGrid assets={assets} onView={onView} />
+
+      {hasMore && (
+        <div className="flex justify-center pb-12">
+          <button
+            onClick={onLoadMore}
+            disabled={isFetching}
+            className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-8 py-3 text-sm font-bold text-gray-900 transition-all hover:border-gray-400 hover:bg-gray-50 active:scale-95 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/[0.08]"
+          >
+            {isFetching ? (
+              <>
+                <Spinner size="sm" />
+                Đang tải...
+              </>
+            ) : (
+              "Tải thêm"
+            )}
+          </button>
         </div>
       )}
     </div>
@@ -316,9 +312,9 @@ export default function StorageFolderDetailPage() {
 function StorageGridSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
-      {Array.from({ length: 8 }).map((_, i) => (
+      {Array.from({ length: 8 }).map((_, index) => (
         <div
-          key={i}
+          key={index}
           className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/5"
         >
           <div className="aspect-square animate-pulse bg-gray-100 dark:bg-white/5" />
@@ -350,6 +346,7 @@ function StorageGrid({
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
       {assets.map((asset, index) => {
         const isPrivate = asset.visibility === "private";
+
         return (
           <motion.article
             key={asset.assetId}
@@ -364,7 +361,7 @@ function StorageGrid({
               {isPrivate ? (
                 <div className="flex h-full w-full flex-col items-center justify-center bg-gray-100/50 dark:bg-white/5">
                   <FiEyeOff className="mb-2 text-3xl text-gray-400" />
-                  <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
                     Private
                   </span>
                 </div>
@@ -379,6 +376,7 @@ function StorageGrid({
                   <FiPlayCircle className="text-4xl text-gray-300" />
                 </div>
               )}
+
               <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
 
               <div className="absolute top-4 left-4 flex items-center gap-2">
@@ -417,19 +415,19 @@ function StorageGrid({
 
               <div className="flex items-center justify-between border-t border-gray-300 pt-3 dark:border-white/10">
                 <div className="flex flex-wrap gap-1">
-                  {asset.tags
-                    ?.slice(0, 2)
-                    .map((tag) => (
-                      <Badge key={tag} type="info" value={tag} />
-                    )) || (
+                  {asset.tags?.length ? (
+                    asset.tags
+                      .slice(0, 2)
+                      .map((tag) => <Badge key={tag} type="info" value={tag} />)
+                  ) : (
                     <span className="text-[10px] text-gray-400">No tags</span>
                   )}
                 </div>
                 <div className="flex items-center gap-1">
                   <Tooltip content="Xem">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={(event) => {
+                        event.stopPropagation();
                         onView(asset);
                       }}
                       className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white"
@@ -439,7 +437,7 @@ function StorageGrid({
                   </Tooltip>
                   <Tooltip content="Tải xuống">
                     <button
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(event) => event.stopPropagation()}
                       className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white"
                     >
                       <FiDownload size={14} />
@@ -457,110 +455,200 @@ function StorageGrid({
 
 function StorageTable({
   assets,
+  isLoading,
+  isFetching,
+  isError,
+  onRefetch,
   onView,
   pagination,
 }: {
   assets: S3Asset[];
+  isLoading: boolean;
+  isFetching: boolean;
+  isError: boolean;
+  onRefetch: () => void;
   onView: (asset: S3Asset) => void;
-  pagination: React.ReactNode;
+  pagination: ReactNode;
 }) {
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
+        <Spinner size="lg" />
+        <p className="mt-4 text-sm font-medium text-gray-500">
+          Đang tải dữ liệu...
+        </p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <StorageErrorState
+        message="Đã xảy ra lỗi khi tải danh sách tệp"
+        onRetry={onRefetch}
+      />
+    );
+  }
+
+  if (assets.length === 0) {
+    return (
+      <StorageEmptyState description="Thư mục này hiện chưa có tệp tin nào" />
+    );
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[850px] table-fixed border-collapse border-x border-t border-gray-400 text-left dark:border-white/10">
-        <thead>
-          <tr className="bg-gray-100/50 dark:bg-white/5">
-            {columns.map((column, index) => (
-              <th
-                key={column.key}
-                className={`border-b border-gray-400 p-4 text-xs font-semibold tracking-wide text-gray-600 uppercase dark:border-white/10 dark:text-gray-400 ${
-                  column.width
-                } ${column.align === "center" ? "text-center" : "text-left"} ${
-                  index < columns.length - 1
-                    ? "border-r border-gray-400 dark:border-white/10"
-                    : ""
-                }`}
-              >
-                {column.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-400 dark:divide-white/10">
-          {assets.map((asset) => {
-            const isPrivate = asset.visibility === "private";
-            return (
-              <tr
-                key={asset.assetId}
-                onClick={() => onView(asset)}
-                className="group cursor-pointer transition-colors hover:bg-gray-100/50 dark:hover:bg-white/5"
-              >
-                <td className="border-r border-gray-400 p-4 dark:border-white/10">
-                  <div className="flex items-start gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-white">
-                          {isPrivate ? (
-                            <FiEyeOff />
-                          ) : asset.assetType === "video" ? (
-                            <FiPlayCircle />
-                          ) : (
-                            <FiImage />
-                          )}
-                        </span>
-                        <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                          {asset.originalName}
-                        </p>
-                        {isPrivate && <Badge type="error" value="Private" />}
-                      </div>
-                      <div className="mt-2 flex items-center gap-3">
-                        <div className="flex gap-1">
-                          {asset.tags?.map((tag) => (
-                            <Badge key={tag} type="info" value={tag} />
-                          ))}
+    <div className="relative">
+      {isFetching && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/50 backdrop-blur-[1px] dark:bg-black/20">
+          <div className="flex flex-col items-center gap-2 rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
+            <Spinner size="md" />
+            <span className="text-xs font-medium text-gray-500">
+              Đang cập nhật...
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[850px] table-fixed border-collapse border-x border-t border-gray-400 text-left dark:border-white/10">
+          <thead>
+            <tr className="bg-gray-100/50 dark:bg-white/5">
+              {columns.map((column, index) => (
+                <th
+                  key={column.key}
+                  className={`border-b border-gray-400 p-4 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:border-white/10 dark:text-gray-400 ${
+                    column.width
+                  } ${column.align === "center" ? "text-center" : "text-left"} ${
+                    index < columns.length - 1
+                      ? "border-r border-gray-400 dark:border-white/10"
+                      : ""
+                  }`}
+                >
+                  {column.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-400 dark:divide-white/10">
+            {assets.map((asset) => {
+              const isPrivate = asset.visibility === "private";
+
+              return (
+                <tr
+                  key={asset.assetId}
+                  onClick={() => onView(asset)}
+                  className="group cursor-pointer transition-colors hover:bg-gray-100/50 dark:hover:bg-white/5"
+                >
+                  <td className="border-r border-gray-400 p-4 dark:border-white/10">
+                    <div className="flex items-start gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-white">
+                            {isPrivate ? (
+                              <FiEyeOff />
+                            ) : asset.assetType === "video" ? (
+                              <FiPlayCircle />
+                            ) : (
+                              <FiImage />
+                            )}
+                          </span>
+                          <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                            {asset.originalName}
+                          </p>
+                          {isPrivate && <Badge type="error" value="Private" />}
+                        </div>
+                        <div className="mt-2 flex items-center gap-3">
+                          <div className="flex gap-1">
+                            {asset.tags?.map((tag) => (
+                              <Badge key={tag} type="info" value={tag} />
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </td>
+                  </td>
 
-                <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
-                  <span className="text-[13px] text-gray-600 dark:text-gray-300">
-                    {formatFileSize(asset.fileSize)}
-                  </span>
-                </td>
+                  <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
+                    <span className="text-[13px] text-gray-600 dark:text-gray-300">
+                      {formatFileSize(asset.fileSize)}
+                    </span>
+                  </td>
 
-                <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
-                  <Badge
-                    type={asset.assetType === "video" ? "purple" : "blue"}
-                    value={asset.assetType === "video" ? "Video" : "Ảnh"}
-                  />
-                </td>
+                  <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
+                    <Badge
+                      type={asset.assetType === "video" ? "purple" : "blue"}
+                      value={asset.assetType === "video" ? "Video" : "Ảnh"}
+                    />
+                  </td>
 
-                <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
-                  <span className="text-[13px] font-medium text-gray-600 dark:text-gray-300">
-                    {asset.mimeType.split("/")[1]?.toUpperCase()}
-                  </span>
-                </td>
+                  <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
+                    <span className="text-[13px] font-medium text-gray-600 dark:text-gray-300">
+                      {asset.mimeType.split("/")[1]?.toUpperCase()}
+                    </span>
+                  </td>
 
-                <td className="p-4">
-                  <div className="flex items-center justify-center gap-2">
-                    <Tooltip content="Xem file">
-                      <IconAction icon={<FiEye />} />
-                    </Tooltip>
-                    <Tooltip content="Tải xuống">
-                      <IconAction icon={<FiDownload />} />
-                    </Tooltip>
-                    <Tooltip content="Tùy chọn">
-                      <IconAction icon={<FiMoreHorizontal />} />
-                    </Tooltip>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <div className="border-gray-400 dark:border-white/10">{pagination}</div>
+                  <td className="p-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <Tooltip content="Xem file">
+                        <IconAction icon={<FiEye />} />
+                      </Tooltip>
+                      <Tooltip content="Tải xuống">
+                        <IconAction icon={<FiDownload />} />
+                      </Tooltip>
+                      <Tooltip content="Tùy chọn">
+                        <IconAction icon={<FiMoreHorizontal />} />
+                      </Tooltip>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <div className="border-gray-400 dark:border-white/10">{pagination}</div>
+      </div>
+    </div>
+  );
+}
+
+function StorageErrorState({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
+      <p className="max-w-md text-center text-sm font-medium text-red-400">
+        {message}
+      </p>
+      <button
+        onClick={onRetry}
+        className="mt-6 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/5 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+      >
+        Thử lại
+      </button>
+    </div>
+  );
+}
+
+function StorageEmptyState({ description }: { description: string }) {
+  return (
+    <div className="flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        Danh sách trống
+      </h3>
+      <p className="mt-2 text-sm text-gray-500 dark:text-white/50">
+        {description}
+      </p>
+      <button
+        type="button"
+        className="mt-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-xs font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+      >
+        <FiUpload className="text-lg" />
+        Tải lên ngay
+      </button>
     </div>
   );
 }
@@ -568,7 +656,7 @@ function StorageTable({
 function FileMetaBlock({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
         {label}
       </p>
       <p className="mt-0.5 text-xs font-semibold text-gray-800 dark:text-gray-200">

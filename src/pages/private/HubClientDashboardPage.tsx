@@ -1,18 +1,14 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FiSearch, FiExternalLink, FiGlobe, FiPlus } from "react-icons/fi";
+import { FiExternalLink, FiGlobe, FiPlus, FiSearch } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import Breadcrumb from "@/components/custom_ui/Breadcrumb";
+
 import { Badge } from "@/components/custom_ui/Badge";
+import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import GlassSelect from "@/components/custom_ui/Select";
-
-import { useHubClients } from "@/hooks/data/useHubClientHooks";
 import { PATHS } from "@/config/paths";
+import { useHubClients } from "@/hooks/data/useHubClientHooks";
 import type { HubClient } from "@/types/HubClient";
-
-// ──────────────────────────────────────────────
-// Card Component
-// ──────────────────────────────────────────────
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -42,7 +38,6 @@ function HubClientCard({ client }: { client: HubClient }) {
       }
       className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/5 bg-white/5 backdrop-blur transition-all duration-300 hover:border-white/10 hover:bg-white/8"
     >
-      {/* Logo area */}
       <div className="relative flex h-36 items-center justify-center overflow-hidden border-b border-white/5 bg-gradient-to-br from-white/5 to-transparent">
         {client.clientLogoImage ? (
           <img
@@ -55,7 +50,7 @@ function HubClientCard({ client }: { client: HubClient }) {
             <FiGlobe className="text-2xl text-white/30" />
           </div>
         )}
-        {/* Status dot */}
+
         <div className="absolute top-3 right-3">
           <span
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold backdrop-blur ${
@@ -72,7 +67,6 @@ function HubClientCard({ client }: { client: HubClient }) {
         </div>
       </div>
 
-      {/* Content */}
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div>
           <h3 className="line-clamp-1 text-sm font-bold tracking-tight text-white">
@@ -83,8 +77,7 @@ function HubClientCard({ client }: { client: HubClient }) {
           </p>
         </div>
 
-        {/* Roles */}
-        {client.allowedRoles && client.allowedRoles.length > 0 && (
+        {client.allowedRoles.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {client.allowedRoles.slice(0, 3).map((role) => (
               <Badge key={role} value={role} type="info" />
@@ -95,12 +88,10 @@ function HubClientCard({ client }: { client: HubClient }) {
           </div>
         )}
 
-        {/* Separator */}
         <div className="h-px bg-white/5" />
 
-        {/* Footer */}
         <div className="flex items-center justify-between">
-          <span className="text-[10px] tracking-wider text-white/30 uppercase">
+          <span className="text-[10px] uppercase tracking-wider text-white/30">
             {client.clientId.slice(0, 8).toUpperCase()}
           </span>
           <a
@@ -108,7 +99,7 @@ function HubClientCard({ client }: { client: HubClient }) {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/60 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/10 hover:text-indigo-400"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
           >
             <FiExternalLink className="text-xs" />
             Mở
@@ -119,9 +110,6 @@ function HubClientCard({ client }: { client: HubClient }) {
   );
 }
 
-// ──────────────────────────────────────────────
-// Skeleton Card
-// ──────────────────────────────────────────────
 function SkeletonCard() {
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-white/5 opacity-60">
@@ -144,10 +132,8 @@ function SkeletonCard() {
   );
 }
 
-// ──────────────────────────────────────────────
-// Main Page
-// ──────────────────────────────────────────────
 export default function HubClientDashboardPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
 
@@ -162,14 +148,8 @@ export default function HubClientDashboardPage() {
     limit: 50,
   });
 
-  const totalActive =
-    clients?.filter((c) => c.clientStatus === "active").length ?? 0;
-  const totalInactive =
-    clients?.filter((c) => c.clientStatus === "inactive").length ?? 0;
-
   return (
     <div className="page-layout dashboard-theme">
-      {/* Header */}
       <div className="mb-6 flex flex-col">
         <Breadcrumb
           items={[
@@ -184,7 +164,10 @@ export default function HubClientDashboardPage() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 active:scale-95">
+            <button
+              onClick={() => navigate(PATHS.DASHBOARD.HUB_CLIENT_CREATE)}
+              className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 active:scale-95"
+            >
               <FiPlus className="text-sm" />
               Thêm client
             </button>
@@ -192,7 +175,6 @@ export default function HubClientDashboardPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-white/30" />
@@ -201,14 +183,14 @@ export default function HubClientDashboardPage() {
             type="text"
             placeholder="Tìm kiếm theo tên..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-10 w-full rounded-lg border border-white/10 bg-white/5 pr-4 pl-9 text-sm text-white placeholder-white/30 transition-all outline-none focus:border-indigo-500/50 focus:bg-white/8"
+            onChange={(event) => setSearch(event.target.value)}
+            className="h-10 w-full rounded-lg border border-white/10 bg-white/5 pl-9 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-indigo-500/50 focus:bg-white/8"
           />
         </div>
         <div className="w-48">
           <GlassSelect
             value={statusFilter}
-            onChange={(val) => setStatusFilter(val)}
+            onChange={(value) => setStatusFilter(value)}
             placeholder="Tất cả trạng thái"
             options={[
               { label: "Hoạt động", value: "active" },
@@ -218,11 +200,10 @@ export default function HubClientDashboardPage() {
         </div>
       </div>
 
-      {/* Content */}
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {[...Array(8)].map((_, i) => (
-            <SkeletonCard key={i} />
+          {Array.from({ length: 8 }).map((_, index) => (
+            <SkeletonCard key={index} />
           ))}
         </div>
       ) : isError ? (
@@ -256,21 +237,20 @@ export default function HubClientDashboardPage() {
               ? `Không tìm thấy kết quả cho "${search}"`
               : "Chưa có hub client nào trong hệ thống"}
           </p>
-          <button className="mt-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-xs font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-indigo-500">
+          <button
+            onClick={() => navigate(PATHS.DASHBOARD.HUB_CLIENT_CREATE)}
+            className="mt-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-xs font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-indigo-500"
+          >
             <FiPlus className="text-lg" />
             Thêm ngay
           </button>
         </div>
       )}
 
-      {/* Footer count */}
       {!isLoading && !isError && clients && clients.length > 0 && (
         <div className="mt-6 flex items-center justify-center">
-          <span className="text-xs text-white/30 tabular-nums">
-            Đang hiển thị{" "}
-            <span className="font-semibold text-white/50">
-              {clients.length}
-            </span>{" "}
+          <span className="tabular-nums text-xs text-white/30">
+            Đang hiển thị <span className="font-semibold text-white/50">{clients.length}</span>{" "}
             client
           </span>
         </div>
