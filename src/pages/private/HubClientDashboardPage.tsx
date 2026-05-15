@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { FiSearch, FiExternalLink, FiGlobe, FiPlus } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import { Badge } from "@/components/custom_ui/Badge";
 import GlassSelect from "@/components/custom_ui/Select";
@@ -28,12 +29,18 @@ const cardVariants = {
 
 function HubClientCard({ client }: { client: HubClient }) {
   const isActive = client.clientStatus === "active";
+  const navigate = useNavigate();
 
   return (
     <motion.div
       variants={cardVariants}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-white/5 backdrop-blur transition-all duration-300 hover:border-white/10 hover:bg-white/8"
+      onClick={() =>
+        navigate(
+          PATHS.DASHBOARD.HUB_CLIENT_EDIT.replace(":clientId", client.clientId),
+        )
+      }
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/5 bg-white/5 backdrop-blur transition-all duration-300 hover:border-white/10 hover:bg-white/8"
     >
       {/* Logo area */}
       <div className="relative flex h-36 items-center justify-center overflow-hidden border-b border-white/5 bg-gradient-to-br from-white/5 to-transparent">
@@ -209,7 +216,6 @@ export default function HubClientDashboardPage() {
             ]}
           />
         </div>
-
       </div>
 
       {/* Content */}
