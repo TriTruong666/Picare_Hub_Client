@@ -60,6 +60,7 @@ export default function LoginPage() {
       (accessResponse && accessResponse.success === false));
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const clientMockupImage = clientDetail?.clientMockupImage?.trim() || loginMockup;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -371,9 +372,13 @@ export default function LoginPage() {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
           <img
-            src={loginMockup}
+            src={clientMockupImage}
             alt="Picare Hub Interface"
             className="h-full w-full object-cover brightness-90 transition-all duration-1000 hover:brightness-100 hover:grayscale-0"
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = loginMockup;
+            }}
           />
           <div className="absolute inset-0 bg-linear-to-r from-[#050505] via-transparent to-transparent opacity-20" />
         </motion.div>

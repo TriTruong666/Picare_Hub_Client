@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
+  FiAlertCircle,
   FiDownload,
   FiEye,
+  FiEyeOff,
   FiGrid,
   FiImage,
   FiList,
@@ -13,16 +15,17 @@ import {
 import { Navigate, useParams } from "react-router-dom";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
+import GlassSelect from "@/components/custom_ui/Select";
 import IconAction from "@/components/custom_ui/IconAction";
 import { Pagination } from "@/components/custom_ui/Pagination";
+import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
-import { getStorageFolder } from "./StorageDashboardPage";
+import { useS3Assets, useS3Folders } from "@/hooks/data/useS3Hooks";
+import { formatFileSize, formatRelativeTime } from "@/common/format";
+import type { S3Asset, S3Folder } from "@/types/S3";
 
 type StorageViewMode = "grid" | "table";
-type StorageFile = NonNullable<
-  ReturnType<typeof getStorageFolder>
->["files"][number];
 
 const viewTabs: Array<{
   value: StorageViewMode;
@@ -42,21 +45,90 @@ const columns = [
 ] as const;
 
 export default function StorageFolderDetailPage() {
-  const { folderId } = useParams();
-  const folder = getStorageFolder(folderId);
-  const [viewMode, setViewMode] = useState<StorageViewMode>("grid");
-  const [page, setPage] = useState(1);
-  const pageSize = 6;
+  const { folderId } = useParams<{ folderId: string }>();
 
-  if (!folder) {
+  const [viewMode, setViewMode] = useState<StorageViewMode>("grid");
+  const [assetType, setAssetType] = useState<string>("");
+  const [page, setPage] = useState(1);
+  const [allAssets, setAllAssets] = useState<S3Asset[]>([]);
+  const pageSize = 12;
+
+  // 1. Lấy thông tin folder (Metadata)
+  const { data: foldersData, isLoading: isLoadingFolders } = useS3Folders();
+  const folder = (foldersData as any as S3Folder[])?.find(
+    (f) => f.folderId === folderId || f.name === folderId,
+  );
+
+  // 2. Lấy danh sách assets trong folder
+  const {
+    data: assetsData,
+    fullResponse,
+    isLoading: isLoadingAssets,
+    isFetching: isFetchingAssets,
+    isError,
+    refetch,
+  } = useS3Assets({
+    folder: folder?.name || folderId || "",
+    assetType: assetType as any,
+    limit: pageSize,
+    offset: (page - 1) * pageSize,
+  });
+
+  // useFetch giải nén data: response.data (mảng assets)
+  const currentRows = (assetsData as any as S3Asset[]) || [];
+  // Tổng số bản ghi nằm trong pagination.totalRecords của fullResponse
+  const totalAssets = fullResponse?.pagination?.totalRecords || 0;
+
+  // Reset danh sách khi đổi folder hoặc filter
+  useEffect(() => {
+    setAllAssets([]);
+    setPage(1);
+  }, [folderId, assetType]);
+
+  // Cập nhật danh sách khi có dữ liệu mới từ API
+  useEffect(() => {
+    if (currentRows.length > 0) {
+      if (page === 1) {
+        setAllAssets(currentRows);
+      } else {
+        setAllAssets((prev) => {
+          // Lọc trùng ID để an toàn
+          const existingIds = new Set(prev.map((a) => a.assetId));
+          const newUnique = currentRows.filter(
+            (a) => !existingIds.has(a.assetId),
+          );
+          return [...prev, ...newUnique];
+        });
+      }
+    }
+  }, [currentRows, page]);
+
+  const handleLoadMore = () => {
+    setPage((prev) => prev + 1);
+  };
+
+  const handleViewAsset = (asset: S3Asset) => {
+    if (asset.visibility === "public") {
+      window.open(asset.s3Url, "_blank");
+    } else {
+      const baseUrl = import.meta.env.VITE_HUB_API_URL;
+      window.open(`${baseUrl}/api/v1/s3/view/${asset.s3Key}`, "_blank");
+    }
+  };
+
+  if (isLoadingFolders) {
+    return (
+      <div className="page-layout flex min-h-[400px] items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!folder && !isLoadingFolders) {
     return <Navigate to={PATHS.DASHBOARD.STORAGE} replace />;
   }
 
-  const totalFiles = folder.files.length;
-  const paginatedFiles = folder.files.slice(
-    (page - 1) * pageSize,
-    page * pageSize,
-  );
+  const hasMore = allAssets.length < totalAssets;
 
   return (
     <div className="page-layout">
@@ -66,18 +138,34 @@ export default function StorageFolderDetailPage() {
             items={[
               { label: "Dashboard", path: PATHS.DASHBOARD.ROOT },
               { label: "Lưu trữ", path: PATHS.DASHBOARD.STORAGE },
-              { label: folder.name },
+              { label: folder?.name || "Chi tiết" },
             ]}
           />
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl dark:text-white">
-            {folder.name}
+            {folder?.name}
           </h1>
           <p className="mt-2 max-w-3xl text-sm text-gray-500 dark:text-gray-400">
-            {folder.description}
+            {folder?.description || "Không có mô tả cho thư mục này."}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="w-40">
+            <GlassSelect
+              value={assetType}
+              onChange={(val) => {
+                setAssetType(val);
+              }}
+              options={[
+                { value: "", label: "Tất cả loại" },
+                { value: "image", label: "Hình ảnh" },
+                { value: "video", label: "Video" },
+                { value: "document", label: "Tài liệu" },
+                { value: "audio", label: "Âm thanh" },
+              ]}
+            />
+          </div>
+
           <div className="flex items-center rounded-lg border border-gray-300 bg-gray-50/50 p-1 dark:border-white/10 dark:bg-white/5">
             {viewTabs.map((tab) => {
               const Icon = tab.icon;
@@ -123,109 +211,257 @@ export default function StorageFolderDetailPage() {
       </div>
 
       <div className="mt-6 mb-8 flex flex-wrap gap-3">
-        <Badge type="info" value={`${folder.files.length} tệp`} />
-        <Badge type="purple" value={folder.totalSize} />
-        <Badge type="success" value={folder.lastUpdated} />
+        <Badge type="info" value={`${folder?.assetCount || 0} tệp`} />
+        <Badge type="purple" value={formatFileSize(folder?.totalSize || 0)} />
+        <Badge
+          type="success"
+          value={`Cập nhật: ${formatRelativeTime(folder?.updatedAt || "")}`}
+        />
       </div>
 
-      {viewMode === "grid" ? (
-        <>
-          <StorageGrid files={paginatedFiles} />
-          <div className="mt-8">
-            <Pagination
-              page={page}
-              pageSize={pageSize}
-              total={totalFiles}
-              onPageChange={setPage}
-            />
+      {isLoadingAssets && allAssets.length === 0 ? (
+        viewMode === "grid" ? (
+          <StorageGridSkeleton />
+        ) : (
+          <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
+            <Spinner size="lg" />
+            <p className="mt-4 text-sm font-medium text-gray-500">
+              Đang tải dữ liệu...
+            </p>
           </div>
-        </>
+        )
+      ) : isError ? (
+        <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
+          <p className="max-w-md text-center text-sm font-medium text-red-400">
+            Đã xảy ra lỗi khi tải danh sách tệp
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="mt-6 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/5 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+          >
+            Thử lại
+          </button>
+        </div>
+      ) : allAssets.length === 0 ? (
+        <div className="flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Danh sách trống
+          </h3>
+          <p className="mt-2 text-sm text-gray-500 dark:text-white/50">
+            Thư mục này hiện chưa có tệp tin nào
+          </p>
+          <button
+            type="button"
+            className="mt-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-xs font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+          >
+            <FiUpload className="text-lg" />
+            Tải lên ngay
+          </button>
+        </div>
       ) : (
-        <StorageTable
-          files={paginatedFiles}
-          pagination={
-            <Pagination
-              page={page}
-              pageSize={pageSize}
-              total={totalFiles}
-              onPageChange={setPage}
+        <div className="relative space-y-10">
+          {isFetchingAssets && viewMode === "table" && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/50 backdrop-blur-[1px] dark:bg-black/20">
+              <div className="flex flex-col items-center gap-2 rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
+                <Spinner size="md" />
+                <span className="text-xs font-medium text-gray-500">
+                  Đang cập nhật...
+                </span>
+              </div>
+            </div>
+          )}
+
+          {viewMode === "grid" ? (
+            <>
+              <StorageGrid assets={allAssets} onView={handleViewAsset} />
+              {hasMore && (
+                <div className="flex justify-center pb-12">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={isFetchingAssets}
+                    className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-8 py-3 text-sm font-bold text-gray-900 transition-all hover:border-gray-400 hover:bg-gray-50 active:scale-95 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/[0.08]"
+                  >
+                    {isFetchingAssets ? (
+                      <>
+                        <Spinner size="sm" />
+                        Đang tải...
+                      </>
+                    ) : (
+                      "Tải thêm"
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <StorageTable
+              assets={currentRows}
+              onView={handleViewAsset}
+              pagination={
+                <Pagination
+                  page={page}
+                  pageSize={pageSize}
+                  total={totalAssets}
+                  onPageChange={setPage}
+                />
+              }
             />
-          }
-        />
+          )}
+        </div>
       )}
     </div>
   );
 }
 
-function StorageGrid({ files }: { files: StorageFile[] }) {
+function StorageGridSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-3">
-      {files.map((file, index) => (
-        <motion.article
-          key={file.id}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -8 }}
-          transition={{ duration: 0.3, delay: index * 0.04 }}
-          className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-300 bg-gray-50 transition-all duration-300 hover:border-gray-400 hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/[0.08] dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div
+          key={i}
+          className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/5"
         >
-          <div className="relative aspect-[4/3] overflow-hidden border-b border-gray-300 dark:border-white/10">
-            <img
-              src={file.thumbnail}
-              alt={file.name}
-              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
-
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
-                {file.type === "video" ? <FiPlayCircle /> : <FiImage />}
-              </span>
-              <Badge
-                type={file.type === "video" ? "purple" : "blue"}
-                value={file.mimeLabel}
-              />
+          <div className="aspect-square animate-pulse bg-gray-100 dark:bg-white/5" />
+          <div className="space-y-3 p-4">
+            <div className="h-4 w-2/3 animate-pulse rounded bg-gray-100 dark:bg-white/5" />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="h-3 animate-pulse rounded bg-gray-100 dark:bg-white/5" />
+              <div className="h-3 animate-pulse rounded bg-gray-100 dark:bg-white/5" />
             </div>
-
-            {file.duration ? (
-              <span className="absolute right-4 bottom-4 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white tabular-nums backdrop-blur">
-                {file.duration}
-              </span>
-            ) : null}
-          </div>
-
-          <div className="space-y-3.5 p-4">
-            <div className="space-y-2">
-              <h2 className="line-clamp-1 text-sm font-bold tracking-tight text-gray-900 dark:text-white">
-                {file.name}
-              </h2>
-              <div className="grid grid-cols-3 gap-2">
-                <FileMetaBlock label="Kích thước" value={file.size} />
-                <FileMetaBlock
-                  label="Loại"
-                  value={file.type === "video" ? "Video" : "Ảnh"}
-                />
-                <FileMetaBlock label="Định dạng" value={file.mimeLabel} />
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-1.5 border-t border-gray-300 pt-3 dark:border-white/10">
-              {file.tags.map((tag) => (
-                <Badge key={tag} type="info" value={tag} />
-              ))}
+            <div className="flex gap-1.5 pt-2">
+              <div className="h-4 w-12 animate-pulse rounded bg-gray-100 dark:bg-white/5" />
+              <div className="h-4 w-12 animate-pulse rounded bg-gray-100 dark:bg-white/5" />
             </div>
           </div>
-        </motion.article>
+        </div>
       ))}
     </div>
   );
 }
 
+function StorageGrid({
+  assets,
+  onView,
+}: {
+  assets: S3Asset[];
+  onView: (asset: S3Asset) => void;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
+      {assets.map((asset, index) => {
+        const isPrivate = asset.visibility === "private";
+        return (
+          <motion.article
+            key={asset.assetId}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -8 }}
+            transition={{ duration: 0.3, delay: index * 0.04 }}
+            onClick={() => onView(asset)}
+            className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-300 bg-gray-50 transition-all duration-300 hover:border-gray-400 hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/[0.08] dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+          >
+            <div className="relative aspect-square overflow-hidden border-b border-gray-300 dark:border-white/10">
+              {isPrivate ? (
+                <div className="flex h-full w-full flex-col items-center justify-center bg-gray-100/50 dark:bg-white/5">
+                  <FiEyeOff className="mb-2 text-3xl text-gray-400" />
+                  <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">
+                    Private
+                  </span>
+                </div>
+              ) : asset.assetType === "image" ? (
+                <img
+                  src={asset.presignedUrl || asset.s3Url}
+                  alt={asset.originalName}
+                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-white/5">
+                  <FiPlayCircle className="text-4xl text-gray-300" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
+
+              <div className="absolute top-4 left-4 flex items-center gap-2">
+                <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
+                  {asset.assetType === "video" ? <FiPlayCircle /> : <FiImage />}
+                </span>
+                <Badge
+                  type={asset.assetType === "video" ? "purple" : "blue"}
+                  value={asset.mimeType.split("/")[1]?.toUpperCase() || "FILE"}
+                />
+              </div>
+
+              {isPrivate && (
+                <div className="absolute top-4 right-4">
+                  <Badge type="error" value="Private" />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3.5 p-4">
+              <div className="space-y-2">
+                <h2 className="line-clamp-1 text-sm font-bold tracking-tight text-gray-900 dark:text-white">
+                  {asset.originalName}
+                </h2>
+                <div className="grid grid-cols-2 gap-2">
+                  <FileMetaBlock
+                    label="Kích thước"
+                    value={formatFileSize(asset.fileSize)}
+                  />
+                  <FileMetaBlock
+                    label="Loại"
+                    value={asset.assetType === "video" ? "Video" : "Ảnh"}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-gray-300 pt-3 dark:border-white/10">
+                <div className="flex flex-wrap gap-1">
+                  {asset.tags
+                    ?.slice(0, 2)
+                    .map((tag) => (
+                      <Badge key={tag} type="info" value={tag} />
+                    )) || (
+                    <span className="text-[10px] text-gray-400">No tags</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Tooltip content="Xem">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onView(asset);
+                      }}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white"
+                    >
+                      <FiEye size={14} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="Tải xuống">
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white"
+                    >
+                      <FiDownload size={14} />
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+          </motion.article>
+        );
+      })}
+    </div>
+  );
+}
+
 function StorageTable({
-  files,
+  assets,
+  onView,
   pagination,
 }: {
-  files: StorageFile[];
+  assets: S3Asset[];
+  onView: (asset: S3Asset) => void;
   pagination: React.ReactNode;
 }) {
   return (
@@ -250,72 +486,78 @@ function StorageTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-400 dark:divide-white/10">
-          {files.map((file) => (
-            <tr
-              key={file.id}
-              className="transition-colors hover:bg-gray-100/50 dark:hover:bg-white/5"
-            >
-              <td className="border-r border-gray-400 p-4 dark:border-white/10">
-                <div className="flex items-start gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-white">
-                        {file.type === "video" ? <FiPlayCircle /> : <FiImage />}
-                      </span>
-                      <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                        {file.name}
-                      </p>
-                    </div>
-                    <div className="mt-2 flex items-center gap-3">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {file.duration
-                          ? `Thời lượng ${file.duration}`
-                          : "Ảnh tĩnh"}
-                      </p>
-                      <div className="flex gap-1">
-                        {file.tags.map((tag) => (
-                          <Badge key={tag} type="info" value={tag} />
-                        ))}
+          {assets.map((asset) => {
+            const isPrivate = asset.visibility === "private";
+            return (
+              <tr
+                key={asset.assetId}
+                onClick={() => onView(asset)}
+                className="group cursor-pointer transition-colors hover:bg-gray-100/50 dark:hover:bg-white/5"
+              >
+                <td className="border-r border-gray-400 p-4 dark:border-white/10">
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-white">
+                          {isPrivate ? (
+                            <FiEyeOff />
+                          ) : asset.assetType === "video" ? (
+                            <FiPlayCircle />
+                          ) : (
+                            <FiImage />
+                          )}
+                        </span>
+                        <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                          {asset.originalName}
+                        </p>
+                        {isPrivate && <Badge type="error" value="Private" />}
+                      </div>
+                      <div className="mt-2 flex items-center gap-3">
+                        <div className="flex gap-1">
+                          {asset.tags?.map((tag) => (
+                            <Badge key={tag} type="info" value={tag} />
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </td>
+                </td>
 
-              <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
-                <span className="text-[13px] text-gray-600 dark:text-gray-300">
-                  {file.size}
-                </span>
-              </td>
+                <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
+                  <span className="text-[13px] text-gray-600 dark:text-gray-300">
+                    {formatFileSize(asset.fileSize)}
+                  </span>
+                </td>
 
-              <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
-                <Badge
-                  type={file.type === "video" ? "purple" : "blue"}
-                  value={file.type === "video" ? "Video" : "Ảnh"}
-                />
-              </td>
+                <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
+                  <Badge
+                    type={asset.assetType === "video" ? "purple" : "blue"}
+                    value={asset.assetType === "video" ? "Video" : "Ảnh"}
+                  />
+                </td>
 
-              <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
-                <span className="text-[13px] font-medium text-gray-600 dark:text-gray-300">
-                  {file.mimeLabel}
-                </span>
-              </td>
+                <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
+                  <span className="text-[13px] font-medium text-gray-600 dark:text-gray-300">
+                    {asset.mimeType.split("/")[1]?.toUpperCase()}
+                  </span>
+                </td>
 
-              <td className="p-4">
-                <div className="flex items-center justify-center gap-2">
-                  <Tooltip content="Xem file">
-                    <IconAction icon={<FiEye />} />
-                  </Tooltip>
-                  <Tooltip content="Tải xuống">
-                    <IconAction icon={<FiDownload />} />
-                  </Tooltip>
-                  <Tooltip content="Tùy chọn">
-                    <IconAction icon={<FiMoreHorizontal />} />
-                  </Tooltip>
-                </div>
-              </td>
-            </tr>
-          ))}
+                <td className="p-4">
+                  <div className="flex items-center justify-center gap-2">
+                    <Tooltip content="Xem file">
+                      <IconAction icon={<FiEye />} />
+                    </Tooltip>
+                    <Tooltip content="Tải xuống">
+                      <IconAction icon={<FiDownload />} />
+                    </Tooltip>
+                    <Tooltip content="Tùy chọn">
+                      <IconAction icon={<FiMoreHorizontal />} />
+                    </Tooltip>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       <div className="border-gray-400 dark:border-white/10">{pagination}</div>

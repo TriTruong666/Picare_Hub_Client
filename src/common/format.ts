@@ -66,3 +66,12 @@ export const formatRelativeTime = (dateString: string): string => {
 
   return "";
 };
+
+export const formatFileSize = (bytes: number | string): string => {
+  const numBytes = typeof bytes === "string" ? parseInt(bytes, 10) : bytes;
+  if (isNaN(numBytes) || numBytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(numBytes) / Math.log(k));
+  return parseFloat((numBytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};

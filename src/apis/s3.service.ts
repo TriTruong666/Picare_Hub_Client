@@ -1,7 +1,9 @@
-import type { BaseResponse } from "@/types/ApiResponse";
+import type { BasePaginatedResponse, BaseResponse } from "@/types/ApiResponse";
 import type {
   GetPresignedURLRequest,
   GetPresignedURLResponse,
+  S3Asset,
+  S3Folder,
   UploadS3Request,
   UploadS3Response,
 } from "@/types/S3";
@@ -25,5 +27,25 @@ export async function getPresignedURL(
 
 export async function deleteS3Object(key: string): Promise<BaseResponse<null>> {
   const res = await hubAxiosClient.delete(`/api/v1/s3/objects/${key}`);
+  return res.data;
+}
+
+export async function getS3Assets(params: {
+  folder: string;
+  clientId?: string;
+  userId?: string;
+  assetType?: "image" | "video" | "document" | "audio" | "";
+  visibility?: "public" | "private" | "";
+  limit: number;
+  offset: number;
+}): Promise<BasePaginatedResponse<S3Asset[]>> {
+  const res = await hubAxiosClient.get(`/api/v1/s3/assets`, { params });
+  return res.data;
+}
+
+export async function getS3Folders(): Promise<
+  BasePaginatedResponse<S3Folder[]>
+> {
+  const res = await hubAxiosClient.get("/api/v1/s3-folders");
   return res.data;
 }

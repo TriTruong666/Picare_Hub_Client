@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { FiArrowUpRight } from "react-icons/fi";
 import type { HubClient } from "@/types/HubClient";
@@ -10,6 +11,8 @@ import { PATHS } from "@/config/paths";
 function ClientCard({ client, index }: { client: HubClient; index: number }) {
   const navigate = useNavigate();
   const isActive = client.clientStatus === "active";
+  const preferredMockup = client.clientMockupImage?.trim() || loginMockup;
+  const [mockupSrc, setMockupSrc] = useState(preferredMockup);
 
   const handleAccess = () => {
     if (isActive) {
@@ -38,9 +41,10 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
         {/* Mockup Image Header */}
         <div className="relative aspect-video w-full overflow-hidden border-b border-white/[0.07]">
           <img
-            src={client.clientMockupImage || loginMockup}
+            src={mockupSrc}
             alt={client.clientName}
             className="h-full w-full object-cover opacity-60 grayscale transition-all duration-500 group-hover:scale-105 group-hover:opacity-100 group-hover:grayscale-0"
+            onError={() => setMockupSrc(loginMockup)}
           />
         </div>
 

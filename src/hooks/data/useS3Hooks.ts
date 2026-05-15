@@ -75,3 +75,25 @@ export function useDeleteS3Object() {
     onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
   });
 }
+
+/**
+ * Hook lấy danh sách asset từ S3 (DB)
+ */
+export function useS3Assets(params: {
+  folder: string;
+  clientId?: string;
+  userId?: string;
+  assetType?: "image" | "video" | "document" | "audio" | "";
+  visibility?: "public" | "private" | "";
+  limit: number;
+  offset: number;
+}) {
+  return useFetch(["s3-assets", params], () => S3Service.getS3Assets(params));
+}
+
+/**
+ * Hook lấy danh sách các folder S3
+ */
+export function useS3Folders() {
+  return useFetch(["s3-folders"], () => S3Service.getS3Folders());
+}
