@@ -18,5 +18,6 @@ export const PATHS = {
     SETTINGS: "/dashboard/settings",
     ACCOUNTS: "/dashboard/accounts",
     STORAGE: "/dashboard/storage",
+    HUB_CLIENTS: "/dashboard/hub-clients",
   },
 };

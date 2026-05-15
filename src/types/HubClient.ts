@@ -21,3 +21,28 @@ export type HubClientRole =
   | "ecom_lead"
   | "logistics"
   | "warehouse";
+
+export type CreateHubClientInput = {
+  clientName: string;
+  clientDescription: string;
+  clientInternalUrl: string;
+  clientExternalUrl: string;
+  clientLogoImage: string;
+  clientMockupImage: string;
+  clientStatus: HubClientStatus;
+  allowedRoles: HubClientRole[];
+  note?: string;
+};
+
+export type UpdateHubClientInput = {
+  clientId: string;
+  clientName?: string;
+  clientDescription?: string;
+  clientInternalUrl?: string;
+  clientExternalUrl?: string;
+  clientLogoImage?: string;
+  clientMockupImage?: string;
+  clientStatus?: HubClientStatus;
+  allowedRoles?: HubClientRole[];
+  note?: string;
+};

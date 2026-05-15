@@ -1,5 +1,12 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetch, useSuspenseFetch } from "../useQuery";
 import * as HubClientService from "@/apis/hub_client.service";
+import { toast } from "../useToast";
+import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
+import type {
+  CreateHubClientInput,
+  UpdateHubClientInput,
+} from "@/types/HubClient";
 
 /**
  * Hook lấy danh sách Hub Clients
@@ -73,4 +80,73 @@ export function useSuspenseCheckAccessHubClient(id: string) {
   return useSuspenseFetch(["hub-clients-access", id], () =>
     HubClientService.checkAccessHubClient(id),
   );
+}
+
+/**
+ * Hook tạo Hub Client mới
+ */
+export function useCreateHubClient() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateHubClientInput) =>
+      HubClientService.createHubClient(data),
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã tạo Hub Client mới");
+        queryClient.invalidateQueries({ queryKey: ["hub-clients"] });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+/**
+ * Hook cập nhật Hub Client
+ */
+export function useUpdateHubClient() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateHubClientInput }) =>
+      HubClientService.updateHubClient(id, data),
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã cập nhật Hub Client");
+        queryClient.invalidateQueries({ queryKey: ["hub-clients"] });
+        queryClient.invalidateQueries({ queryKey: ["hub-clients", variables.id] });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+/**
+ * Hook xóa Hub Client
+ */
+export function useDeleteHubClient() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => HubClientService.deleteHubClient(id),
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã xóa Hub Client");
+        queryClient.invalidateQueries({ queryKey: ["hub-clients"] });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
 }

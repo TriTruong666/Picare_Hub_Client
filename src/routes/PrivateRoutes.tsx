@@ -3,6 +3,7 @@ import { AuthGuard } from "@/components/guards/AuthGuard";
 import { PATHS } from "@/config/paths";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
+import HubClientDashboardPage from "@/pages/private/HubClientDashboardPage";
 import PrivateStubPage from "@/pages/private/PrivateStubPage";
 import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
 import StorageFolderDetailPage from "@/pages/private/StorageFolderDetailPage";
@@ -18,6 +19,7 @@ export default function PrivateRoutes() {
           <Route path="accounts" element={<AccountDashboardPage />} />
           <Route path="storage" element={<StorageDashboardPage />} />
           <Route path="storage/:folderId" element={<StorageFolderDetailPage />} />
+          <Route path="hub-clients" element={<HubClientDashboardPage />} />
           <Route path="notifications" element={<PrivateStubPage />} />
           <Route path="messages" element={<PrivateStubPage />} />
           <Route path="profile" element={<PrivateStubPage />} />

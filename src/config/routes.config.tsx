@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
-import { FiArchive, FiLayout, FiUsers } from "react-icons/fi";
+import { FiArchive, FiLayout, FiUsers, FiGrid } from "react-icons/fi";
 import type { Role } from "@/hooks/useAuth";
 import LandingPage from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/public/LoginPage";
@@ -8,6 +8,7 @@ import LoginClientPage from "@/pages/public/LoginClientPage";
 import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
 import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
 import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
+import HubClientDashboardPage from "@/pages/private/HubClientDashboardPage";
 import { PATHS } from "./paths";
 
 export interface RouteConfig {
@@ -65,6 +66,13 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     element: <StorageDashboardPage />,
     label: "L\u01b0u tr\u1eef",
     icon: FiArchive,
+    showInSidebar: true,
+  },
+  {
+    path: PATHS.DASHBOARD.HUB_CLIENTS,
+    element: <HubClientDashboardPage />,
+    label: "Hub Clients",
+    icon: FiGrid,
     showInSidebar: true,
   },
 ];

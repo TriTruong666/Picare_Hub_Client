@@ -392,14 +392,16 @@ function DashboardThemeToggle() {
   useEffect(() => {
     const saved = localStorage.getItem("theme");
 
-    if (saved === "dark") {
-      document.documentElement.classList.add("dark");
-      setDark(true);
+    if (saved === "light") {
+      document.documentElement.classList.remove("dark");
+      setDark(false);
       return;
     }
 
-    document.documentElement.classList.remove("dark");
-    setDark(false);
+    // Mặc định dark mode
+    document.documentElement.classList.add("dark");
+    localStorage.setItem("theme", "dark");
+    setDark(true);
   }, []);
 
   const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {

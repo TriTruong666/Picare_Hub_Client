@@ -1,6 +1,10 @@
 import type { BasePaginatedResponse, BaseResponse } from "@/types/ApiResponse";
 import { hubAxiosClient } from "./client";
-import type { HubClient } from "@/types/HubClient";
+import type {
+  CreateHubClientInput,
+  HubClient,
+  UpdateHubClientInput,
+} from "@/types/HubClient";
 
 export const getHubClients = async (params: {
   page?: number;
@@ -25,5 +29,27 @@ export const checkAccessHubClient = async (
   const res = await hubAxiosClient.get(
     `/api/v1/hub-clients/${clientId}/check-access`,
   );
+  return res.data;
+};
+
+export const createHubClient = async (
+  data: CreateHubClientInput,
+): Promise<BaseResponse<null>> => {
+  const res = await hubAxiosClient.post(`/api/v1/hub-clients`, data);
+  return res.data;
+};
+
+export const updateHubClient = async (
+  clientId: string,
+  data: UpdateHubClientInput,
+): Promise<BaseResponse<null>> => {
+  const res = await hubAxiosClient.put(`/api/v1/hub-clients/${clientId}`, data);
+  return res.data;
+};
+
+export const deleteHubClient = async (
+  clientId: string,
+): Promise<BaseResponse<null>> => {
+  const res = await hubAxiosClient.delete(`/api/v1/hub-clients/${clientId}`);
   return res.data;
 };
