@@ -1,26 +1,39 @@
+import type { ChangeEvent, RefObject, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  FiArrowLeft,
+  FiImage,
+  FiSave,
+  FiTrash2,
+  FiUpload,
+  FiX,
+} from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiArrowLeft, FiImage, FiLink, FiSave, FiTrash2, FiX } from "react-icons/fi";
 
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
-import { Spinner } from "@/components/custom_ui/Spinner";
 import GlassSelect from "@/components/custom_ui/Select";
-import { useHubClientDetail } from "@/hooks/data/useHubClientHooks";
-import {
-  useUpdateHubClient,
-  useDeleteHubClient,
-} from "@/hooks/data/useHubClientHooks";
+import { Spinner } from "@/components/custom_ui/Spinner";
 import { PATHS } from "@/config/paths";
+import {
+  useDeleteHubClient,
+  useHubClientDetail,
+  useUpdateHubClient,
+} from "@/hooks/data/useHubClientHooks";
+import { useUploadS3Asset } from "@/hooks/data/useS3Hooks";
 import type { HubClientRole, HubClientStatus } from "@/types/HubClient";
 
-// ──────────────────────────────────────────────
+const HUB_CLIENT_IMAGE_FOLDER = "public";
+
 const ALL_ROLES: { value: HubClientRole; label: string }[] = [
   { value: "admin", label: "Quản trị viên" },
   { value: "ecom_staff", label: "Ecom Staff" },
   { value: "ecom_lead", label: "Ecom Leader" },
   { value: "logistics", label: "Vận hành" },
   { value: "warehouse", label: "Kho" },
+  { value: "sale_lead", label: "Sale Leader" },
+  { value: "sale_staff", label: "Sale Staff" },
+  { value: "marketing", label: "Marketing" },
 ];
 
 const STATUS_OPTIONS: { value: HubClientStatus; label: string }[] = [
@@ -28,12 +41,28 @@ const STATUS_OPTIONS: { value: HubClientStatus; label: string }[] = [
   { value: "inactive", label: "Tạm dừng" },
 ];
 
-// ──────────────────────────────────────────────
-// Form field helper
-// ──────────────────────────────────────────────
-function FieldLabel({ children }: { children: React.ReactNode }) {
+function fileToBase64(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("Không thể đọc file ảnh"));
+    };
+
+    reader.onerror = () =>
+      reject(reader.error ?? new Error("Đọc file thất bại"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-white/40">
+    <label className="mb-1.5 block text-xs font-semibold tracking-wider text-white/40 uppercase">
       {children}
     </label>
   );
@@ -60,7 +89,7 @@ function TextInput({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
-      className="h-10 w-full rounded-lg border border-white/10 bg-white/5 px-4 text-sm text-white placeholder-white/25 outline-none transition-all focus:border-indigo-500/50 focus:bg-white/8 disabled:cursor-not-allowed disabled:opacity-40"
+      className="h-10 w-full rounded-lg border border-white/10 bg-white/5 px-4 text-sm text-white placeholder-white/25 transition-all outline-none focus:border-indigo-500/50 focus:bg-white/8 disabled:cursor-not-allowed disabled:opacity-40"
     />
   );
 }
@@ -71,12 +100,14 @@ function TextareaInput({
   onChange,
   placeholder,
   rows = 3,
+  disabled,
 }: {
   id: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   rows?: number;
+  disabled?: boolean;
 }) {
   return (
     <textarea
@@ -85,48 +116,49 @@ function TextareaInput({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-white/25 outline-none transition-all focus:border-indigo-500/50 focus:bg-white/8 resize-none"
+      disabled={disabled}
+      className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-white/25 transition-all outline-none focus:border-indigo-500/50 focus:bg-white/8 disabled:cursor-not-allowed disabled:opacity-40"
     />
   );
 }
 
-// ──────────────────────────────────────────────
-// Image Upload Field
-// ──────────────────────────────────────────────
 function ImageUploadField({
   id,
   label,
   value,
-  onChange,
+  fileName,
+  onSelectFile,
+  onClear,
   aspectRatio = "square",
+  disabled,
 }: {
   id: string;
   label: string;
   value: string;
-  onChange: (v: string) => void;
+  fileName?: string | null;
+  onSelectFile: (file: File) => void;
+  onClear: () => void;
   aspectRatio?: "square" | "landscape";
+  disabled?: boolean;
 }) {
-  const [showUrlInput, setShowUrlInput] = useState(false);
-  const [inputVal, setInputVal] = useState(value);
   const [imgError, setImgError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // sync external value changes
   useEffect(() => {
-    setInputVal(value);
     setImgError(false);
   }, [value]);
 
-  const handleConfirm = () => {
-    onChange(inputVal.trim());
-    setShowUrlInput(false);
-    setImgError(false);
+  const openPicker = () => {
+    if (disabled) return;
+    inputRef.current?.click();
   };
 
-  const handleClear = () => {
-    onChange("");
-    setInputVal("");
-    setImgError(false);
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+    onSelectFile(file);
   };
 
   const hasImage = !!value && !imgError;
@@ -136,7 +168,16 @@ function ImageUploadField({
     <div>
       <FieldLabel>{label}</FieldLabel>
 
-      {/* Preview zone */}
+      <input
+        ref={inputRef}
+        id={id}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+        disabled={disabled}
+      />
+
       <div
         className={`group relative w-full overflow-hidden rounded-xl border transition-all duration-200 ${
           hasImage
@@ -150,27 +191,27 @@ function ImageUploadField({
               src={value}
               alt={label}
               className={`h-full w-full ${
-                aspectRatio === "landscape" ? "object-cover" : "object-contain p-4"
+                aspectRatio === "landscape"
+                  ? "object-cover"
+                  : "object-contain p-4"
               }`}
               onError={() => setImgError(true)}
             />
-            {/* Hover overlay */}
             <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/60 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               <button
                 type="button"
-                onClick={() => {
-                  setShowUrlInput(true);
-                  setTimeout(() => inputRef.current?.focus(), 50);
-                }}
-                className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition hover:bg-white/20"
+                onClick={openPicker}
+                disabled={disabled}
+                className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <FiLink className="text-xs" />
-                Đổi URL
+                <FiUpload className="text-xs" />
+                Đổi ảnh
               </button>
               <button
                 type="button"
-                onClick={handleClear}
-                className="flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 backdrop-blur transition hover:bg-red-500/20"
+                onClick={onClear}
+                disabled={disabled}
+                className="flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 backdrop-blur transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <FiX className="text-xs" />
                 Xóa
@@ -180,61 +221,34 @@ function ImageUploadField({
         ) : (
           <button
             type="button"
-            onClick={() => {
-              setShowUrlInput(true);
-              setTimeout(() => inputRef.current?.focus(), 50);
-            }}
-            className="flex h-full w-full flex-col items-center justify-center gap-2 text-white/25 transition-colors hover:text-white/40"
+            onClick={openPicker}
+            disabled={disabled}
+            className="flex h-full w-full flex-col items-center justify-center gap-2 text-white/25 transition-colors hover:text-white/40 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <FiImage className="text-3xl" />
-            <span className="text-xs font-medium">Nhập URL hình ảnh</span>
+            <span className="text-xs font-medium">Chọn file ảnh</span>
           </button>
         )}
       </div>
 
-      {/* URL input panel */}
-      <AnimatePresence>
-        {showUrlInput && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="mt-2 flex gap-2">
-              <input
-                ref={inputRef}
-                id={id}
-                type="text"
-                value={inputVal}
-                onChange={(e) => setInputVal(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
-                placeholder="https://example.com/image.png"
-                className="h-9 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 text-xs text-white placeholder-white/25 outline-none transition-all focus:border-indigo-500/50"
-              />
-              <button
-                type="button"
-                onClick={handleConfirm}
-                className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-500"
-              >
-                Xác nhận
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowUrlInput(false)}
-                className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60 transition hover:bg-white/10"
-              >
-                Hủy
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-white/35">
+        <span className="truncate">
+          {fileName
+            ? `Đã chọn: ${fileName}`
+            : "Ảnh chỉ được upload khi bấm Lưu"}
+        </span>
+        <button
+          type="button"
+          onClick={openPicker}
+          disabled={disabled}
+          className="shrink-0 text-white/55 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {hasImage ? "Chọn ảnh khác" : "Chọn ảnh"}
+        </button>
+      </div>
     </div>
   );
 }
-
 
 export default function HubClientEditPage() {
   const { clientId } = useParams<{ clientId: string }>();
@@ -248,31 +262,85 @@ export default function HubClientEditPage() {
 
   const updateMutation = useUpdateHubClient();
   const deleteMutation = useDeleteHubClient();
+  const uploadMutation = useUploadS3Asset({ showSuccessToast: false });
 
-  // Form state
+  const logoObjectUrlRef = useRef<string | null>(null);
+  const mockupObjectUrlRef = useRef<string | null>(null);
+
   const [clientName, setClientName] = useState("");
   const [clientDescription, setClientDescription] = useState("");
   const [clientInternalUrl, setClientInternalUrl] = useState("");
   const [clientExternalUrl, setClientExternalUrl] = useState("");
   const [clientLogoImage, setClientLogoImage] = useState("");
   const [clientMockupImage, setClientMockupImage] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [mockupFile, setMockupFile] = useState<File | null>(null);
   const [clientStatus, setClientStatus] = useState<HubClientStatus>("active");
   const [allowedRoles, setAllowedRoles] = useState<HubClientRole[]>([]);
   const [note, setNote] = useState("");
 
-  // Pre-fill form when client data is loaded
+  const revokeObjectUrl = (ref: RefObject<string | null>) => {
+    if (!ref.current) return;
+    URL.revokeObjectURL(ref.current);
+    ref.current = null;
+  };
+
+  const setImageState = ({
+    file,
+    setFile,
+    setPreview,
+    objectUrlRef,
+  }: {
+    file: File;
+    setFile: (next: File | null) => void;
+    setPreview: (next: string) => void;
+    objectUrlRef: RefObject<string | null>;
+  }) => {
+    revokeObjectUrl(objectUrlRef);
+    objectUrlRef.current = URL.createObjectURL(file);
+    setFile(file);
+    setPreview(objectUrlRef.current);
+  };
+
+  const clearImageState = ({
+    setFile,
+    setPreview,
+    objectUrlRef,
+  }: {
+    setFile: (next: File | null) => void;
+    setPreview: (next: string) => void;
+    objectUrlRef: RefObject<string | null>;
+  }) => {
+    revokeObjectUrl(objectUrlRef);
+    setFile(null);
+    setPreview("");
+  };
+
   useEffect(() => {
     if (!client) return;
+
+    revokeObjectUrl(logoObjectUrlRef);
+    revokeObjectUrl(mockupObjectUrlRef);
+
     setClientName(client.clientName ?? "");
     setClientDescription(client.clientDescription ?? "");
     setClientInternalUrl(client.clientInternalUrl ?? "");
     setClientExternalUrl(client.clientExternalUrl ?? "");
     setClientLogoImage(client.clientLogoImage ?? "");
     setClientMockupImage(client.clientMockupImage ?? "");
+    setLogoFile(null);
+    setMockupFile(null);
     setClientStatus(client.clientStatus ?? "active");
     setAllowedRoles(client.allowedRoles ?? []);
     setNote(client.note ?? "");
   }, [client]);
+
+  useEffect(() => {
+    return () => {
+      revokeObjectUrl(logoObjectUrlRef);
+      revokeObjectUrl(mockupObjectUrlRef);
+    };
+  }, []);
 
   const toggleRole = (role: HubClientRole) => {
     setAllowedRoles((prev) =>
@@ -280,10 +348,47 @@ export default function HubClientEditPage() {
     );
   };
 
-  const handleSave = () => {
-    if (!clientId) return;
-    updateMutation.mutate(
-      {
+  const uploadImageIfNeeded = async (
+    file: File | null,
+    fallbackUrl: string,
+    description: string,
+  ) => {
+    if (!file || !clientId) return fallbackUrl;
+
+    const base64File = await fileToBase64(file);
+    const response = await uploadMutation.mutateAsync({
+      file: base64File,
+      folder: HUB_CLIENT_IMAGE_FOLDER,
+      clientId,
+      description,
+      visibility: "public",
+    });
+
+    if (!response.success || !response.data?.url) {
+      throw new Error(response.message ?? "Upload ảnh thất bại");
+    }
+
+    return response.data.url;
+  };
+
+  const handleSave = async () => {
+    if (!clientId || updateMutation.isPending || uploadMutation.isPending)
+      return;
+
+    try {
+      const uploadedLogoUrl = await uploadImageIfNeeded(
+        logoFile,
+        clientLogoImage,
+        `Hub client logo - ${clientId}`,
+      );
+
+      const uploadedMockupUrl = await uploadImageIfNeeded(
+        mockupFile,
+        clientMockupImage,
+        `Hub client mockup - ${clientId}`,
+      );
+
+      const response = await updateMutation.mutateAsync({
         id: clientId,
         data: {
           clientId,
@@ -291,24 +396,26 @@ export default function HubClientEditPage() {
           clientDescription,
           clientInternalUrl,
           clientExternalUrl,
-          clientLogoImage,
-          clientMockupImage,
+          clientLogoImage: uploadedLogoUrl,
+          clientMockupImage: uploadedMockupUrl,
           clientStatus,
           allowedRoles,
           note,
         },
-      },
-      {
-        onSuccess: (res) => {
-          if (res.success) navigate(PATHS.DASHBOARD.HUB_CLIENTS);
-        },
-      },
-    );
+      });
+
+      if (response.success) {
+        navigate(PATHS.DASHBOARD.HUB_CLIENTS);
+      }
+    } catch {
+      return;
+    }
   };
 
   const handleDelete = () => {
     if (!clientId) return;
     if (!window.confirm("Bạn có chắc muốn xóa client này không?")) return;
+
     deleteMutation.mutate(clientId, {
       onSuccess: (res) => {
         if (res.success) navigate(PATHS.DASHBOARD.HUB_CLIENTS);
@@ -316,7 +423,6 @@ export default function HubClientEditPage() {
     });
   };
 
-  // ── Loading / Error ──────────────────────────
   if (isLoading) {
     return (
       <div className="page-layout dashboard-theme flex min-h-[50vh] items-center justify-center">
@@ -339,13 +445,11 @@ export default function HubClientEditPage() {
     );
   }
 
-  const isSaving = updateMutation.isPending;
+  const isSaving = updateMutation.isPending || uploadMutation.isPending;
   const isDeleting = deleteMutation.isPending;
 
-  // ── Render ───────────────────────────────────
   return (
     <div className="page-layout dashboard-theme">
-      {/* Header */}
       <div className="mb-8 flex flex-col">
         <Breadcrumb
           items={[
@@ -374,7 +478,7 @@ export default function HubClientEditPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleDelete}
-              disabled={isDeleting}
+              disabled={isDeleting || isSaving}
               className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-xs font-medium text-red-400 transition-all hover:bg-red-500/20 disabled:opacity-50"
             >
               {isDeleting ? (
@@ -389,23 +493,24 @@ export default function HubClientEditPage() {
               disabled={isSaving}
               className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 active:scale-95 disabled:opacity-50"
             >
-              {isSaving ? <Spinner size="sm" /> : <FiSave className="text-sm" />}
+              {isSaving ? (
+                <Spinner size="sm" />
+              ) : (
+                <FiSave className="text-sm" />
+              )}
               Lưu thay đổi
             </button>
           </div>
         </div>
       </div>
 
-      {/* Form */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         className="grid grid-cols-1 gap-6 lg:grid-cols-3"
       >
-        {/* Left col — main info */}
         <div className="flex flex-col gap-5 lg:col-span-2">
-          {/* Basic info */}
           <section className="rounded-2xl border border-white/5 bg-white/3 p-6">
             <h2 className="mb-5 text-sm font-semibold text-white">
               Thông tin cơ bản
@@ -418,6 +523,7 @@ export default function HubClientEditPage() {
                   value={clientName}
                   onChange={setClientName}
                   placeholder="Tên hiển thị của client"
+                  disabled={isSaving}
                 />
               </div>
               <div>
@@ -428,6 +534,7 @@ export default function HubClientEditPage() {
                   onChange={setClientDescription}
                   placeholder="Mô tả ngắn về client này..."
                   rows={3}
+                  disabled={isSaving}
                 />
               </div>
               <div>
@@ -438,16 +545,14 @@ export default function HubClientEditPage() {
                   onChange={setNote}
                   placeholder="Ghi chú dành cho nội bộ (không hiển thị ra ngoài)"
                   rows={2}
+                  disabled={isSaving}
                 />
               </div>
             </div>
           </section>
 
-          {/* URLs */}
           <section className="rounded-2xl border border-white/5 bg-white/3 p-6">
-            <h2 className="mb-5 text-sm font-semibold text-white">
-              Đường dẫn
-            </h2>
+            <h2 className="mb-5 text-sm font-semibold text-white">Đường dẫn</h2>
             <div className="flex flex-col gap-4">
               <div>
                 <FieldLabel>URL nội bộ</FieldLabel>
@@ -456,6 +561,7 @@ export default function HubClientEditPage() {
                   value={clientInternalUrl}
                   onChange={setClientInternalUrl}
                   placeholder="http://internal.example.com"
+                  disabled={isSaving}
                 />
               </div>
               <div>
@@ -465,12 +571,12 @@ export default function HubClientEditPage() {
                   value={clientExternalUrl}
                   onChange={setClientExternalUrl}
                   placeholder="https://example.com"
+                  disabled={isSaving}
                 />
               </div>
             </div>
           </section>
 
-          {/* Images */}
           <section className="rounded-2xl border border-white/5 bg-white/3 p-6">
             <h2 className="mb-5 text-sm font-semibold text-white">Hình ảnh</h2>
             <div className="flex flex-col gap-6">
@@ -478,23 +584,53 @@ export default function HubClientEditPage() {
                 id="client-logo-image"
                 label="Logo"
                 value={clientLogoImage}
-                onChange={setClientLogoImage}
+                fileName={logoFile?.name}
+                onSelectFile={(file) =>
+                  setImageState({
+                    file,
+                    setFile: setLogoFile,
+                    setPreview: setClientLogoImage,
+                    objectUrlRef: logoObjectUrlRef,
+                  })
+                }
+                onClear={() =>
+                  clearImageState({
+                    setFile: setLogoFile,
+                    setPreview: setClientLogoImage,
+                    objectUrlRef: logoObjectUrlRef,
+                  })
+                }
                 aspectRatio="square"
+                disabled={isSaving}
               />
               <ImageUploadField
                 id="client-mockup-image"
                 label="Mockup"
                 value={clientMockupImage}
-                onChange={setClientMockupImage}
+                fileName={mockupFile?.name}
+                onSelectFile={(file) =>
+                  setImageState({
+                    file,
+                    setFile: setMockupFile,
+                    setPreview: setClientMockupImage,
+                    objectUrlRef: mockupObjectUrlRef,
+                  })
+                }
+                onClear={() =>
+                  clearImageState({
+                    setFile: setMockupFile,
+                    setPreview: setClientMockupImage,
+                    objectUrlRef: mockupObjectUrlRef,
+                  })
+                }
                 aspectRatio="landscape"
+                disabled={isSaving}
               />
             </div>
           </section>
         </div>
 
-        {/* Right col — settings */}
         <div className="flex flex-col gap-5">
-          {/* Status */}
           <section className="rounded-2xl border border-white/5 bg-white/3 p-6">
             <h2 className="mb-5 text-sm font-semibold text-white">
               Trạng thái
@@ -507,7 +643,6 @@ export default function HubClientEditPage() {
             />
           </section>
 
-          {/* Roles */}
           <section className="rounded-2xl border border-white/5 bg-white/3 p-6">
             <h2 className="mb-1 text-sm font-semibold text-white">
               Roles được phép
@@ -523,7 +658,8 @@ export default function HubClientEditPage() {
                     key={role.value}
                     type="button"
                     onClick={() => toggleRole(role.value)}
-                    className={`flex items-center justify-between rounded-lg border px-4 py-2.5 text-xs font-medium transition-all ${
+                    disabled={isSaving}
+                    className={`flex items-center justify-between rounded-lg border px-4 py-2.5 text-xs font-medium transition-all disabled:opacity-50 ${
                       active
                         ? "border-indigo-500/40 bg-indigo-500/10 text-indigo-300"
                         : "border-white/5 bg-white/3 text-white/50 hover:border-white/10 hover:bg-white/5 hover:text-white/70"
@@ -539,7 +675,6 @@ export default function HubClientEditPage() {
             </div>
           </section>
 
-          {/* Meta */}
           <section className="rounded-2xl border border-white/5 bg-white/3 p-6">
             <h2 className="mb-4 text-sm font-semibold text-white">
               Thông tin hệ thống
@@ -553,11 +688,15 @@ export default function HubClientEditPage() {
               </div>
               <div className="flex justify-between">
                 <span>Ngày tạo</span>
-                <span>{new Date(client.createdAt).toLocaleDateString("vi-VN")}</span>
+                <span>
+                  {new Date(client.createdAt).toLocaleDateString("vi-VN")}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Cập nhật lần cuối</span>
-                <span>{new Date(client.updatedAt).toLocaleDateString("vi-VN")}</span>
+                <span>
+                  {new Date(client.updatedAt).toLocaleDateString("vi-VN")}
+                </span>
               </div>
             </div>
           </section>

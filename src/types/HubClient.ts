@@ -20,7 +20,10 @@ export type HubClientRole =
   | "ecom_staff"
   | "ecom_lead"
   | "logistics"
-  | "warehouse";
+  | "warehouse"
+  | "sale_lead"
+  | "sale_staff"
+  | "marketing";
 
 export type CreateHubClientInput = {
   clientName: string;
