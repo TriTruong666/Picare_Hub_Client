@@ -97,3 +97,33 @@ export function useS3Assets(params: {
 export function useS3Folders() {
   return useFetch(["s3-folders"], () => S3Service.getS3Folders());
 }
+
+/**
+ * Hook tải tập tin từ S3
+ */
+export function useDownloadS3Asset() {
+  return useMutation({
+    mutationFn: async (payload: { key: string; originalName: string }) => {
+      // Vì API là link redirect để tải trực tiếp (HTTP 302 Redirect hoặc file attachment),
+      // việc gọi qua Axios sẽ làm Axios tải toàn bộ file vào bộ nhớ dưới dạng response body thay vì kích hoạt trình duyệt lưu file.
+      // Do đó, ta sẽ điều hướng trình duyệt trực tiếp thông qua thẻ <a> để kích hoạt tải xuống tự nhiên.
+      const baseUrl = import.meta.env.VITE_HUB_API_URL || "";
+      const downloadUrl = `${baseUrl}/api/v1/s3/download/${payload.key}`;
+
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.target = "_blank";
+      a.download = payload.originalName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      return payload;
+    },
+    onSuccess: (payload) => {
+      toast.success("Thành công", `Đang tải xuống tệp tin: ${payload.originalName}`);
+    },
+    onError: (err) => toast.error("Lỗi khi tải xuống", getApiErrorMessage(err)),
+  });
+}
+

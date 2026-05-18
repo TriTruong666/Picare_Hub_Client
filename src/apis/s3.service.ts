@@ -49,3 +49,10 @@ export async function getS3Folders(): Promise<
   const res = await hubAxiosClient.get("/api/v1/s3-folders");
   return res.data;
 }
+
+export async function downloadS3AssetByKey(
+  key: string,
+): Promise<BaseResponse<null>> {
+  const res = await hubAxiosClient.get(`/api/v1/s3/download/${key}`);
+  return res.data;
+}

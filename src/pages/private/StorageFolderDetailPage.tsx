@@ -25,7 +25,7 @@ import GlassSelect from "@/components/custom_ui/Select";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
-import { useS3Assets, useS3Folders } from "@/hooks/data/useS3Hooks";
+import { useS3Assets, useS3Folders, useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
 import type { S3Asset, S3Folder } from "@/types/S3";
 
 type StorageViewMode = "grid" | "table";
@@ -57,6 +57,12 @@ export default function StorageFolderDetailPage() {
   const pageSize = 12;
 
   const [assetToDelete, setAssetToDelete] = useState<S3Asset | null>(null);
+
+  const downloadMutation = useDownloadS3Asset();
+
+  const handleDownloadAsset = (asset: S3Asset) => {
+    downloadMutation.mutate({ key: asset.s3Key, originalName: asset.originalName });
+  };
 
   const { data: foldersData, isLoading: isLoadingFolders } = useS3Folders();
   const folder = (foldersData as S3Folder[] | undefined)?.find(
@@ -225,6 +231,7 @@ export default function StorageFolderDetailPage() {
           onRefetch={refetch}
           onView={handleViewAsset}
           onDelete={setAssetToDelete}
+          onDownload={handleDownloadAsset}
           pagination={
             <Pagination
               page={page}
@@ -245,6 +252,7 @@ export default function StorageFolderDetailPage() {
           onRefetch={refetch}
           onView={handleViewAsset}
           onDelete={setAssetToDelete}
+          onDownload={handleDownloadAsset}
         />
       )}
 
@@ -272,6 +280,7 @@ function StorageGridSection({
   onRefetch,
   onView,
   onDelete,
+  onDownload,
 }: {
   assets: S3Asset[];
   hasMore: boolean;
@@ -282,6 +291,7 @@ function StorageGridSection({
   onRefetch: () => void;
   onView: (asset: S3Asset) => void;
   onDelete: (asset: S3Asset) => void;
+  onDownload: (asset: S3Asset) => void;
 }) {
   if (isLoading && assets.length === 0) {
     return <StorageGridSkeleton />;
@@ -304,7 +314,12 @@ function StorageGridSection({
 
   return (
     <div className="space-y-10">
-      <StorageGrid assets={assets} onView={onView} onDelete={onDelete} />
+      <StorageGrid
+        assets={assets}
+        onView={onView}
+        onDelete={onDelete}
+        onDownload={onDownload}
+      />
 
       {hasMore && (
         <div className="flex justify-center pb-12">
@@ -358,10 +373,12 @@ function StorageGrid({
   assets,
   onView,
   onDelete,
+  onDownload,
 }: {
   assets: S3Asset[];
   onView: (asset: S3Asset) => void;
   onDelete: (asset: S3Asset) => void;
+  onDownload: (asset: S3Asset) => void;
 }) {
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
@@ -458,7 +475,10 @@ function StorageGrid({
                   </Tooltip>
                   <Tooltip content="Tải xuống">
                     <button
-                      onClick={(event) => event.stopPropagation()}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onDownload(asset);
+                      }}
                       className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white"
                     >
                       <FiDownload size={14} />
@@ -493,6 +513,7 @@ function StorageTable({
   onRefetch,
   onView,
   onDelete,
+  onDownload,
   pagination,
 }: {
   assets: S3Asset[];
@@ -502,6 +523,7 @@ function StorageTable({
   onRefetch: () => void;
   onView: (asset: S3Asset) => void;
   onDelete: (asset: S3Asset) => void;
+  onDownload: (asset: S3Asset) => void;
   pagination: ReactNode;
 }) {
   if (isLoading) {
@@ -570,13 +592,15 @@ function StorageTable({
               return (
                 <tr
                   key={asset.assetId}
-                  onClick={() => onView(asset)}
-                  className="group cursor-pointer transition-colors hover:bg-gray-100/50 dark:hover:bg-white/5"
+                  className="group transition-colors hover:bg-gray-100/50 dark:hover:bg-white/5"
                 >
                   <td className="border-r border-gray-400 p-4 dark:border-white/10">
                     <div className="flex items-start gap-3">
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div
+                          onClick={() => onView(asset)}
+                          className="flex cursor-pointer items-center gap-2 text-gray-900 transition-colors hover:text-indigo-600 dark:text-white dark:hover:text-indigo-400"
+                        >
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-white">
                             {isPrivate ? (
                               <FiEyeOff />
@@ -586,7 +610,7 @@ function StorageTable({
                               <FiImage />
                             )}
                           </span>
-                          <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                          <p className="truncate text-sm font-semibold hover:underline">
                             {asset.originalName}
                           </p>
                           {isPrivate && <Badge type="error" value="Private" />}
@@ -630,7 +654,10 @@ function StorageTable({
                         />
                       </Tooltip>
                       <Tooltip content="Tải xuống">
-                        <IconAction icon={<FiDownload />} />
+                        <IconAction
+                          icon={<FiDownload />}
+                          onClick={() => onDownload(asset)}
+                        />
                       </Tooltip>
                       <Tooltip content="Xóa file">
                         <IconAction
