@@ -11,6 +11,7 @@ import {
   FiMoreHorizontal,
   FiPlayCircle,
   FiUpload,
+  FiTrash2,
 } from "react-icons/fi";
 import { Navigate, useParams } from "react-router-dom";
 
@@ -18,6 +19,7 @@ import { formatFileSize, formatRelativeTime } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import IconAction from "@/components/custom_ui/IconAction";
+import DeleteS3AssetModal from "@/components/modals/DeleteS3AssetModal";
 import { Pagination } from "@/components/custom_ui/Pagination";
 import GlassSelect from "@/components/custom_ui/Select";
 import { Spinner } from "@/components/custom_ui/Spinner";
@@ -53,6 +55,8 @@ export default function StorageFolderDetailPage() {
   const [page, setPage] = useState(1);
   const [allAssets, setAllAssets] = useState<S3Asset[]>([]);
   const pageSize = 12;
+
+  const [assetToDelete, setAssetToDelete] = useState<S3Asset | null>(null);
 
   const { data: foldersData, isLoading: isLoadingFolders } = useS3Folders();
   const folder = (foldersData as S3Folder[] | undefined)?.find(
@@ -220,6 +224,7 @@ export default function StorageFolderDetailPage() {
           isError={isError}
           onRefetch={refetch}
           onView={handleViewAsset}
+          onDelete={setAssetToDelete}
           pagination={
             <Pagination
               page={page}
@@ -239,8 +244,20 @@ export default function StorageFolderDetailPage() {
           onLoadMore={handleLoadMore}
           onRefetch={refetch}
           onView={handleViewAsset}
+          onDelete={setAssetToDelete}
         />
       )}
+
+      {/* Modal xác nhận xóa */}
+      <DeleteS3AssetModal
+        asset={assetToDelete}
+        onClose={() => setAssetToDelete(null)}
+        onSuccess={(deletedAsset) => {
+          setAllAssets((prev) =>
+            prev.filter((item) => item.assetId !== deletedAsset.assetId),
+          );
+        }}
+      />
     </div>
   );
 }
@@ -254,6 +271,7 @@ function StorageGridSection({
   onLoadMore,
   onRefetch,
   onView,
+  onDelete,
 }: {
   assets: S3Asset[];
   hasMore: boolean;
@@ -263,6 +281,7 @@ function StorageGridSection({
   onLoadMore: () => void;
   onRefetch: () => void;
   onView: (asset: S3Asset) => void;
+  onDelete: (asset: S3Asset) => void;
 }) {
   if (isLoading && assets.length === 0) {
     return <StorageGridSkeleton />;
@@ -285,7 +304,7 @@ function StorageGridSection({
 
   return (
     <div className="space-y-10">
-      <StorageGrid assets={assets} onView={onView} />
+      <StorageGrid assets={assets} onView={onView} onDelete={onDelete} />
 
       {hasMore && (
         <div className="flex justify-center pb-12">
@@ -338,9 +357,11 @@ function StorageGridSkeleton() {
 function StorageGrid({
   assets,
   onView,
+  onDelete,
 }: {
   assets: S3Asset[];
   onView: (asset: S3Asset) => void;
+  onDelete: (asset: S3Asset) => void;
 }) {
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
@@ -443,6 +464,17 @@ function StorageGrid({
                       <FiDownload size={14} />
                     </button>
                   </Tooltip>
+                  <Tooltip content="Xóa">
+                    <button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onDelete(asset);
+                      }}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                    >
+                      <FiTrash2 size={14} />
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
             </div>
@@ -460,6 +492,7 @@ function StorageTable({
   isError,
   onRefetch,
   onView,
+  onDelete,
   pagination,
 }: {
   assets: S3Asset[];
@@ -468,6 +501,7 @@ function StorageTable({
   isError: boolean;
   onRefetch: () => void;
   onView: (asset: S3Asset) => void;
+  onDelete: (asset: S3Asset) => void;
   pagination: ReactNode;
 }) {
   if (isLoading) {
@@ -587,16 +621,23 @@ function StorageTable({
                     </span>
                   </td>
 
-                  <td className="p-4">
+                  <td className="p-4" onClick={(event) => event.stopPropagation()}>
                     <div className="flex items-center justify-center gap-2">
                       <Tooltip content="Xem file">
-                        <IconAction icon={<FiEye />} />
+                        <IconAction
+                          icon={<FiEye />}
+                          onClick={() => onView(asset)}
+                        />
                       </Tooltip>
                       <Tooltip content="Tải xuống">
                         <IconAction icon={<FiDownload />} />
                       </Tooltip>
-                      <Tooltip content="Tùy chọn">
-                        <IconAction icon={<FiMoreHorizontal />} />
+                      <Tooltip content="Xóa file">
+                        <IconAction
+                          icon={<FiTrash2 />}
+                          danger
+                          onClick={() => onDelete(asset)}
+                        />
                       </Tooltip>
                     </div>
                   </td>
