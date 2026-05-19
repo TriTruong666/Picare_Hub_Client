@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FiDownload,
@@ -8,10 +8,9 @@ import {
   FiGrid,
   FiImage,
   FiList,
-  FiMoreHorizontal,
   FiPlayCircle,
-  FiUpload,
   FiTrash2,
+  FiUpload,
 } from "react-icons/fi";
 import { Navigate, useParams } from "react-router-dom";
 
@@ -20,12 +19,17 @@ import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import IconAction from "@/components/custom_ui/IconAction";
 import DeleteS3AssetModal from "@/components/modals/DeleteS3AssetModal";
+import UploadS3AssetsModal from "@/components/modals/UploadS3AssetsModal";
 import { Pagination } from "@/components/custom_ui/Pagination";
 import GlassSelect from "@/components/custom_ui/Select";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
-import { useS3Assets, useS3Folders, useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
+import {
+  useDownloadS3Asset,
+  useS3Assets,
+  useS3Folders,
+} from "@/hooks/data/useS3Hooks";
 import type { S3Asset, S3Folder } from "@/types/S3";
 
 type StorageViewMode = "grid" | "table";
@@ -57,11 +61,15 @@ export default function StorageFolderDetailPage() {
   const pageSize = 12;
 
   const [assetToDelete, setAssetToDelete] = useState<S3Asset | null>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const downloadMutation = useDownloadS3Asset();
 
   const handleDownloadAsset = (asset: S3Asset) => {
-    downloadMutation.mutate({ key: asset.s3Key, originalName: asset.originalName });
+    downloadMutation.mutate({
+      key: asset.s3Key,
+      originalName: asset.originalName,
+    });
   };
 
   const { data: foldersData, isLoading: isLoadingFolders } = useS3Folders();
@@ -83,31 +91,59 @@ export default function StorageFolderDetailPage() {
     offset: (page - 1) * pageSize,
   });
 
-  const currentRows = (assetsData as S3Asset[] | undefined) || [];
+  const currentRows = useMemo(
+    () => (assetsData as S3Asset[] | undefined) || [],
+    [assetsData],
+  );
   const totalAssets = fullResponse?.pagination?.totalRecords || 0;
   const hasMore = allAssets.length < totalAssets;
 
   useEffect(() => {
-    setAllAssets([]);
-    setPage(1);
+    let canceled = false;
+
+    queueMicrotask(() => {
+      if (canceled) return;
+      setAllAssets([]);
+      setPage(1);
+    });
+
+    return () => {
+      canceled = true;
+    };
   }, [folderId, assetType]);
 
   useEffect(() => {
-    if (page === 1) {
-      setAllAssets(currentRows);
-      return;
-    }
+    let canceled = false;
 
-    if (currentRows.length === 0) return;
+    queueMicrotask(() => {
+      if (canceled) return;
 
-    setAllAssets((prev) => {
-      const existingIds = new Set(prev.map((asset) => asset.assetId));
-      const newUniqueAssets = currentRows.filter(
-        (asset) => !existingIds.has(asset.assetId),
-      );
-      return [...prev, ...newUniqueAssets];
+      if (page === 1) {
+        setAllAssets(currentRows);
+        return;
+      }
+
+      if (currentRows.length === 0) return;
+
+      setAllAssets((prev) => {
+        const existingIds = new Set(prev.map((asset) => asset.assetId));
+        const newUniqueAssets = currentRows.filter(
+          (asset) => !existingIds.has(asset.assetId),
+        );
+        return [...prev, ...newUniqueAssets];
+      });
     });
+
+    return () => {
+      canceled = true;
+    };
   }, [currentRows, page]);
+
+  const refreshAssetsAfterUpload = () => {
+    setAllAssets([]);
+    setPage(1);
+    refetch();
+  };
 
   const handleLoadMore = () => {
     setPage((prev) => prev + 1);
@@ -205,6 +241,7 @@ export default function StorageFolderDetailPage() {
 
           <button
             type="button"
+            onClick={() => setIsUploadModalOpen(true)}
             className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-[13px] font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.03] hover:bg-indigo-500 active:scale-95 dark:bg-indigo-500 dark:shadow-indigo-500/10 dark:hover:bg-indigo-400"
           >
             <FiUpload />
@@ -232,6 +269,7 @@ export default function StorageFolderDetailPage() {
           onView={handleViewAsset}
           onDelete={setAssetToDelete}
           onDownload={handleDownloadAsset}
+          onUpload={() => setIsUploadModalOpen(true)}
           pagination={
             <Pagination
               page={page}
@@ -253,8 +291,16 @@ export default function StorageFolderDetailPage() {
           onView={handleViewAsset}
           onDelete={setAssetToDelete}
           onDownload={handleDownloadAsset}
+          onUpload={() => setIsUploadModalOpen(true)}
         />
       )}
+
+      <UploadS3AssetsModal
+        open={isUploadModalOpen}
+        folderName={folder?.name || folderId || ""}
+        onClose={() => setIsUploadModalOpen(false)}
+        onSuccess={refreshAssetsAfterUpload}
+      />
 
       {/* Modal xác nhận xóa */}
       <DeleteS3AssetModal
@@ -281,6 +327,7 @@ function StorageGridSection({
   onView,
   onDelete,
   onDownload,
+  onUpload,
 }: {
   assets: S3Asset[];
   hasMore: boolean;
@@ -292,6 +339,7 @@ function StorageGridSection({
   onView: (asset: S3Asset) => void;
   onDelete: (asset: S3Asset) => void;
   onDownload: (asset: S3Asset) => void;
+  onUpload: () => void;
 }) {
   if (isLoading && assets.length === 0) {
     return <StorageGridSkeleton />;
@@ -308,7 +356,10 @@ function StorageGridSection({
 
   if (assets.length === 0) {
     return (
-      <StorageEmptyState description="Thư mục này hiện chưa có tệp tin nào" />
+      <StorageEmptyState
+        description="Thư mục này hiện chưa có tệp tin nào"
+        onUpload={onUpload}
+      />
     );
   }
 
@@ -399,7 +450,7 @@ function StorageGrid({
               {isPrivate ? (
                 <div className="flex h-full w-full flex-col items-center justify-center bg-gray-100/50 dark:bg-white/5">
                   <FiEyeOff className="mb-2 text-3xl text-gray-400" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                  <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">
                     Private
                   </span>
                 </div>
@@ -514,6 +565,7 @@ function StorageTable({
   onView,
   onDelete,
   onDownload,
+  onUpload,
   pagination,
 }: {
   assets: S3Asset[];
@@ -524,6 +576,7 @@ function StorageTable({
   onView: (asset: S3Asset) => void;
   onDelete: (asset: S3Asset) => void;
   onDownload: (asset: S3Asset) => void;
+  onUpload: () => void;
   pagination: ReactNode;
 }) {
   if (isLoading) {
@@ -548,7 +601,10 @@ function StorageTable({
 
   if (assets.length === 0) {
     return (
-      <StorageEmptyState description="Thư mục này hiện chưa có tệp tin nào" />
+      <StorageEmptyState
+        description="Thư mục này hiện chưa có tệp tin nào"
+        onUpload={onUpload}
+      />
     );
   }
 
@@ -572,7 +628,7 @@ function StorageTable({
               {columns.map((column, index) => (
                 <th
                   key={column.key}
-                  className={`border-b border-gray-400 p-4 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:border-white/10 dark:text-gray-400 ${
+                  className={`border-b border-gray-400 p-4 text-xs font-semibold tracking-wide text-gray-600 uppercase dark:border-white/10 dark:text-gray-400 ${
                     column.width
                   } ${column.align === "center" ? "text-center" : "text-left"} ${
                     index < columns.length - 1
@@ -645,7 +701,10 @@ function StorageTable({
                     </span>
                   </td>
 
-                  <td className="p-4" onClick={(event) => event.stopPropagation()}>
+                  <td
+                    className="p-4"
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     <div className="flex items-center justify-center gap-2">
                       <Tooltip content="Xem file">
                         <IconAction
@@ -701,7 +760,13 @@ function StorageErrorState({
   );
 }
 
-function StorageEmptyState({ description }: { description: string }) {
+function StorageEmptyState({
+  description,
+  onUpload,
+}: {
+  description: string;
+  onUpload: () => void;
+}) {
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -712,6 +777,7 @@ function StorageEmptyState({ description }: { description: string }) {
       </p>
       <button
         type="button"
+        onClick={onUpload}
         className="mt-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-xs font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
       >
         <FiUpload className="text-lg" />
@@ -724,7 +790,7 @@ function StorageEmptyState({ description }: { description: string }) {
 function FileMetaBlock({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+      <p className="text-[10px] font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
         {label}
       </p>
       <p className="mt-0.5 text-xs font-semibold text-gray-800 dark:text-gray-200">
