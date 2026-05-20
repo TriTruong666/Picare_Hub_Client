@@ -1,10 +1,14 @@
 import { motion } from "framer-motion";
 import { FiPlay, FiChevronRight, FiArrowDown, FiZap } from "react-icons/fi";
+import { Link } from "react-router-dom";
+import { PATHS } from "@/config/paths";
+import { useAuth } from "@/hooks/useAuth";
 import FloatingBento from "../reactbit/FloatingBento";
 import DarkVeil from "../reactbit/DarkVeil";
 import AnimatedGrid from "../reactbit/AnimatedGrid";
 
 export default function HeroSection() {
+  const { isAuthenticated } = useAuth();
   return (
     <section className="relative flex h-[100vh] min-h-[700px] w-full flex-col items-center justify-start overflow-hidden rounded-b-[48px] bg-[#050505] px-6 pt-50 text-center shadow-2xl">
       {/* Dynamic Background */}
@@ -61,19 +65,21 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="mt-10 flex flex-wrap items-center justify-center gap-3"
         >
-          <button
-            type="button"
+          <Link
+            to={PATHS.LOGIN}
             className="font-inter cursor-pointer rounded-full bg-white px-6 py-2 text-[13px] font-bold text-black shadow-lg transition-all hover:bg-white/90 active:scale-95"
           >
-            Sign up as a Creator
-          </button>
+            Bắt đầu công việc
+          </Link>
 
-          <button
-            type="button"
-            className="font-inter cursor-pointer rounded-full border border-white/20 bg-white/5 px-6 py-2 text-[13px] font-bold text-white backdrop-blur-sm transition-all hover:bg-white/10 active:scale-95"
-          >
-            Sign up as Brand
-          </button>
+          {!isAuthenticated && (
+            <Link
+              to={PATHS.LOGIN_HUB}
+              className="font-inter cursor-pointer rounded-full border border-white/20 bg-white/5 px-6 py-2 text-[13px] font-bold text-white backdrop-blur-sm transition-all hover:bg-white/10 active:scale-95"
+            >
+              Đăng nhập Hub
+            </Link>
+          )}
         </motion.div>
       </div>
 

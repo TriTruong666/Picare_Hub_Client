@@ -7,6 +7,7 @@ export const PATHS = {
   HOME: "/",
   LOGIN: "/login",            // Trang chọn client hub
   LOGIN_CLIENT: "/login/client", // Form đăng nhập cho client cụ thể
+  LOGIN_HUB: "/login/hub",       // Trang đăng nhập Hub chung (centered)
 
   // Private Paths (Dashboard)
   DASHBOARD: {

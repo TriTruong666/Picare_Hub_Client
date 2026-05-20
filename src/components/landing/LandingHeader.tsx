@@ -378,8 +378,8 @@ function HubClientCard({ item }: { item: HubClient }) {
     >
       <div className="relative overflow-hidden rounded-lg outline-1 outline-white/5 group-hover:outline-white/10">
         <img
-          src="https://framerusercontent.com/images/gTH5qA521PTXYmAuTkvadn5fso.png?width=1292&height=450"
-          alt=""
+          src={item.clientLogoImage?.trim() || "https://framerusercontent.com/images/gTH5qA521PTXYmAuTkvadn5fso.png?width=1292&height=450"}
+          alt={item.clientName}
           className="h-44 w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent opacity-40 transition-opacity duration-300 group-hover:opacity-100" />

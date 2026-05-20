@@ -5,6 +5,7 @@ import type { Role } from "@/hooks/useAuth";
 import LandingPage from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/public/LoginPage";
 import LoginClientPage from "@/pages/public/LoginClientPage";
+import LoginHubPage from "@/pages/public/LoginHubPage";
 import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
 import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
 import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
@@ -35,6 +36,10 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
   {
     path: PATHS.LOGIN_CLIENT,
     element: <LoginPage />,
+  },
+  {
+    path: PATHS.LOGIN_HUB,
+    element: <LoginHubPage />,
   },
 ];
 

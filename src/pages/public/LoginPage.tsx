@@ -60,7 +60,8 @@ export default function LoginPage() {
       (accessResponse && accessResponse.success === false));
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const clientMockupImage = clientDetail?.clientMockupImage?.trim() || loginMockup;
+  const clientMockupImage =
+    clientDetail?.clientMockupImage?.trim() || loginMockup;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,16 +101,13 @@ export default function LoginPage() {
                   "Tài khoản không có quyền truy cập hệ thống",
                 );
               } else {
-                toast.error(
-                  "Lỗi xác thực",
-                  "Không thể kiểm tra quyền lúc này",
-                );
+                toast.error("Lỗi xác thực", "Không thể kiểm tra quyền lúc này");
               }
               // Ghi lỗi vào cache để tránh spinner
-              queryClient.setQueryData(
-                ["hub-clients-access", clientId],
-                { success: false, error_code: errCode || "ERR_UNKNOWN" },
-              );
+              queryClient.setQueryData(["hub-clients-access", clientId], {
+                success: false,
+                error_code: errCode || "ERR_UNKNOWN",
+              });
               await queryClient.refetchQueries({ queryKey: ["auth", "me"] });
               setShowLoginForm(false);
               setIsSubmitting(false);
