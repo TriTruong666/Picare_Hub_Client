@@ -1,0 +1,4 @@
+interface:
+  display_name: "Picare Release Sync"
+  short_description: "Commit, push, and sync main with production"
+  default_prompt: "Use this skill to publish Picare HUB changes safely by checking git status, committing intended edits, pushing main, fast-forwarding production from main, and pushing production without rewriting shared history."
