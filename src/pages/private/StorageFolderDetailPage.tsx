@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
@@ -31,6 +32,7 @@ import {
   useS3Folders,
 } from "@/hooks/data/useS3Hooks";
 import type { S3Asset, S3Folder } from "@/types/S3";
+import clsx from "clsx";
 
 type StorageViewMode = "grid" | "table";
 
@@ -159,9 +161,11 @@ export default function StorageFolderDetailPage() {
     window.open(`${baseUrl}/api/v1/s3/view/${asset.s3Key}`, "_blank");
   };
 
+  const pagination = fullResponse?.pagination;
+
   if (isLoadingFolders) {
     return (
-      <div className="page-layout flex min-h-[400px] items-center justify-center">
+      <div className="page-layout flex min-h-100 items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -292,6 +296,7 @@ export default function StorageFolderDetailPage() {
           onDelete={setAssetToDelete}
           onDownload={handleDownloadAsset}
           onUpload={() => setIsUploadModalOpen(true)}
+          pagination={pagination}
         />
       )}
 
@@ -328,7 +333,9 @@ function StorageGridSection({
   onDelete,
   onDownload,
   onUpload,
+  pagination,
 }: {
+  pagination: any;
   assets: S3Asset[];
   hasMore: boolean;
   isLoading: boolean;
@@ -372,24 +379,40 @@ function StorageGridSection({
         onDownload={onDownload}
       />
 
-      {hasMore && (
-        <div className="flex justify-center pb-12">
+      <div className="mt-12 flex flex-col items-center justify-center pb-20">
+        {hasMore ? (
           <button
             onClick={onLoadMore}
             disabled={isFetching}
-            className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-8 py-3 text-sm font-bold text-gray-900 transition-all hover:border-gray-400 hover:bg-gray-50 active:scale-95 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/[0.08]"
+            className={clsx(
+              "btn-secondary min-w-50 gap-3 rounded-xl border-gray-300 bg-white py-3 text-xs shadow-sm transition-all hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10",
+              isFetching && "cursor-not-allowed opacity-50",
+            )}
           >
             {isFetching ? (
               <>
-                <Spinner size="sm" />
-                Đang tải...
+                <Spinner size="sm" color="primary" />
+                <span>Đang tải thêm...</span>
               </>
             ) : (
-              "Tải thêm"
+              <>
+                <span>Tải thêm files</span>
+                <Badge
+                  type="info"
+                  value={`${assets.length} / ${pagination?.totalRecords || 0}`}
+                />
+              </>
             )}
           </button>
-        </div>
-      )}
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-px w-20 bg-gray-300 dark:bg-white/5" />
+            <p className="text-[10px] tracking-widest text-gray-500 dark:text-white/20">
+              Hiển thị ({assets.length}) files
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -466,7 +489,7 @@ function StorageGrid({
                 </div>
               )}
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/45 via-black/10 to-transparent" />
 
               <div className="absolute top-4 left-4 flex items-center gap-2">
                 <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
