@@ -7,9 +7,9 @@ export type CreateContractPayload = {
   details: ContractDetailPayload[];
 };
 
-type ContractDetailPayload = {
+export type ContractDetailPayload = {
   productName: string;
-  price: string;
+  price: number;
 };
 
 export type OwnerCompanyInfoPayload = {
@@ -33,6 +33,83 @@ export type PartnerCompanyInfoPayload = {
   mst: string;
   ownerName: string;
   role: string;
+};
+
+export type ContractType = "digital" | "default";
+
+export type ContractDocumentStatus =
+  | "unsigned"
+  | "owner_signed"
+  | "completed";
+
+export type ContractSignatureStatus = "signed";
+export type ContractSignerType = "owner" | "partner";
+export type ContractSigningMethod = "pdf_byte_range";
+
+export type ContractDetail = {
+  id: number;
+  contractDetailId: string;
+  productName: string;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ContractDocument = {
+  id: number;
+  contractDocumentId: string;
+  version: number;
+  status: ContractDocumentStatus;
+  fileUrl: string;
+  fileHash: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ContractSignature = {
+  contractSignatureId: string;
+  contractDocumentId: string;
+  signerType: ContractSignerType;
+  signerEmail: string;
+  signerName: string;
+  signingMethod: ContractSigningMethod;
+  status: ContractSignatureStatus;
+  pdfHashBeforeSign: string;
+  preparedPdfHash: string;
+  byteRange: number[];
+  signatureLength: number;
+  certificateSerial: string;
+  certificateSubject: string;
+  certificateIssuer: string;
+  vendor: string;
+  signedPdfHash: string;
+  signedPdfUrl: string;
+  signedAt: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Contract = {
+  id: number;
+  contractId: string;
+  contractNumber: string;
+  ownerCompanyInfo: OwnerCompanyInfoPayload;
+  partnerCompanyInfo: PartnerCompanyInfoPayload;
+  contractDueDate: string;
+  contractChecksum: string;
+  contractType: ContractType;
+  contractUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  details: ContractDetail[];
+  documents: ContractDocument[];
+  signatures: ContractSignature[];
+};
+
+export type CreateContractResponse = {
+  contract: Contract;
+  pdfHashHex: string;
+  previewUrl: string;
 };
 
 export type SigningSessionPayload = {
