@@ -39,3 +39,10 @@ export type CertificateResponse = {
   issuerHex: string;
   serialHex: string;
 };
+
+export type SignPDFCMSPayload = {
+  hash: string;
+  pin: string;
+  vendor: string;
+  certificateId: string;
+};

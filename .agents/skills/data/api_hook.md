@@ -17,7 +17,7 @@ When creating a new hook file, ensure you include the following standard imports
 
 ```typescript
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useFetch, useSuspenseFetch } from "../useFetch"; // Use these instead of standard useQuery
+import { useQuery, useSuspenseFetch } from "../useQuery"; // Use these instead of standard useQuery
 import { toast } from "../useToast"; // Standard toast notification
 import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error"; // Error handling
 // Import your service and types here:
@@ -27,7 +27,7 @@ import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error"; 
 
 ## 🔍 1. Queries (Fetching Data)
 
-For data fetching, use the custom `useFetch` wrapper. It automatically handles extracting `data` from our standard `BaseResponse<T>` and throwing errors when `success` is false. Use `useSuspenseFetch` if the component uses React Suspense.
+For data fetching, use the custom `useQuery` wrapper. It automatically handles extracting `data` from our standard `BaseResponse<T>` and throwing errors when `success` is false. Use `useSuspenseFetch` if the component uses React Suspense.
 
 ### Template:
 ```typescript
@@ -35,14 +35,14 @@ For data fetching, use the custom `useFetch` wrapper. It automatically handles e
  * Lấy danh sách thực thể
  */
 export function useEntityList() {
-  return useFetch(["entities"], () => EntityService.getEntities());
+  return useQuery(["entities"], () => EntityService.getEntities());
 }
 
 /**
  * Lấy chi tiết chi tiết thực thể theo ID
  */
 export function useEntity(id: string) {
-  return useFetch(["entities", id], () => EntityService.getEntity(id), {
+  return useQuery(["entities", id], () => EntityService.getEntity(id), {
     enabled: !!id,
   });
 }

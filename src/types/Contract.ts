@@ -41,6 +41,19 @@ export type SigningSessionPayload = {
   signerName: string;
 };
 
+export type SigningSessionResponse = {
+  contractId: string;
+  contractSignatureId: string;
+  contractDocumentId: string;
+  documentVersion: number;
+  hashToSign: string;
+  pdfHashBeforeSign: string;
+  byteRange: number[];
+  algorithm: string;
+  signatureFormat: string;
+  localSignUrl: string;
+};
+
 export type SigningCompletePayload = {
   signatureHex: string;
   certificatePem: string;

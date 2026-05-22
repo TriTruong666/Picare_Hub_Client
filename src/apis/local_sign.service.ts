@@ -1,6 +1,10 @@
 import type { BaseResponse } from "@/types/ApiResponse";
 import { localSigningAxiosClient } from "./client";
-import type { CheckHealthResponse, USBInfoResponse } from "@/types/LocalSign";
+import type {
+  CheckHealthResponse,
+  SignPDFCMSPayload,
+  USBInfoResponse,
+} from "@/types/LocalSign";
 
 export const checkLocalSigningService = async (): Promise<
   BaseResponse<CheckHealthResponse>
@@ -23,5 +27,12 @@ export const getCertificate = async (params: {
   const res = await localSigningAxiosClient.get(`/certificates`, {
     params,
   });
+  return res.data;
+};
+
+export const signPdfCms = async (
+  payload: SignPDFCMSPayload,
+): Promise<BaseResponse<null>> => {
+  const res = await localSigningAxiosClient.post("/sign-pdf-cms", payload);
   return res.data;
 };
