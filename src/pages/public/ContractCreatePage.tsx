@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { FiCheck, FiPlus, FiTrash2 } from "react-icons/fi";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
+import { toast } from "@/hooks/useToast";
 import { useCreateContract } from "@/hooks/data/useContractHooks";
 import type {
   CreateContractPayload,
@@ -40,40 +41,6 @@ const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
     mst: "0315127257",
     ownerName: "Ông Nguyễn Thành Trung",
     role: "Giám Đốc",
-  },
-];
-
-const INITIAL_PARTNER: PartnerCompanyInfoPayload = {
-  companyName: "CÔNG TY CỔ PHẦN NHÀ THUỐC MINH AN",
-  address: "15 Nguyễn Trãi, Phường Bến Thành, Quận 1, TP Hồ Chí Minh",
-  phone: "02839998888",
-  email: "purchase@minhan-pharma.vn",
-  bankInfo: "987654321 Ngân hàng VietTest - Chi nhánh Sài Gòn",
-  mst: "0308888888",
-  ownerName: "Bà Trần Thị Minh An",
-  role: "Giám đốc mua hàng",
-};
-
-const INITIAL_PRODUCTS: ProductRow[] = [
-  {
-    id: crypto.randomUUID(),
-    productName: "Gel rửa tay khô Picare SafeClean 500ml",
-    price: "125000",
-  },
-  {
-    id: crypto.randomUUID(),
-    productName: "Dung dịch sát khuẩn bề mặt MediShield 1L",
-    price: "189000",
-  },
-  {
-    id: crypto.randomUUID(),
-    productName: "Khẩu trang y tế 4 lớp HealthMask Pro hộp 50 cái",
-    price: "72000",
-  },
-  {
-    id: crypto.randomUUID(),
-    productName: "Viên bổ sung vitamin C Zinc Plus lọ 60 viên",
-    price: "145500",
   },
 ];
 
@@ -191,16 +158,26 @@ function TextareaInput({
   );
 }
 
+function isEmpty(value: string) {
+  return !value.trim();
+}
+
 export default function ContractCreatePage() {
   const createContractMutation = useCreateContract();
   const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(0);
   const [partnerCompanyInfo, setPartnerCompanyInfo] =
-    useState<PartnerCompanyInfoPayload>(INITIAL_PARTNER);
-  const [contractDueDate, setContractDueDate] = useState("2028-06-30");
-  const [contractUrl, setContractUrl] = useState(
-    "https://example.com/contracts/minh-an-test-contract.pdf",
-  );
-  const [products, setProducts] = useState<ProductRow[]>(INITIAL_PRODUCTS);
+    useState<PartnerCompanyInfoPayload>({
+      companyName: "",
+      address: "",
+      phone: "",
+      email: "",
+      bankInfo: "",
+      mst: "",
+      ownerName: "",
+      role: "",
+    });
+  const [contractDueDate, setContractDueDate] = useState("");
+  const [products, setProducts] = useState<ProductRow[]>([]);
   const [lastPayload, setLastPayload] = useState<CreateContractPayload | null>(
     null,
   );
@@ -242,12 +219,47 @@ export default function ContractCreatePage() {
     setProducts((prev) => prev.filter((product) => product.id !== id));
   };
 
+  const validateForm = (): string | null => {
+    if (isEmpty(contractDueDate)) {
+      return "Vui lòng chọn ngày hết hạn hợp đồng.";
+    }
+
+    const missingPartnerFields = PARTNER_FIELDS.filter((field) =>
+      isEmpty(partnerCompanyInfo[field.key]),
+    );
+
+    if (missingPartnerFields.length > 0) {
+      return `Vui lòng nhập đầy đủ thông tin đối tác: ${missingPartnerFields
+        .map((field) => field.label.toLowerCase())
+        .join(", ")}.`;
+    }
+
+    if (products.length === 0) {
+      return "Vui lòng thêm ít nhất một sản phẩm.";
+    }
+
+    const invalidProductIndex = products.findIndex((product) => {
+      const price = Number(product.price);
+      return (
+        isEmpty(product.productName) ||
+        isEmpty(product.price) ||
+        !Number.isFinite(price) ||
+        price <= 0
+      );
+    });
+
+    if (invalidProductIndex >= 0) {
+      return `Dòng sản phẩm ${invalidProductIndex + 1} chưa hợp lệ. Vui lòng nhập tên và giá lớn hơn 0.`;
+    }
+
+    return null;
+  };
+
   const buildPayload = (): CreateContractPayload => ({
     ownerCompanyInfo,
     partnerCompanyInfo,
     contractDueDate,
     contractType: "digital",
-    contractUrl,
     details: products
       .filter((product) => product.productName.trim() && product.price.trim())
       .map((product) => ({
@@ -260,12 +272,27 @@ export default function ContractCreatePage() {
     event.preventDefault();
     if (isSubmitting) return;
 
+    const validationError = validateForm();
+    if (validationError) {
+      toast.error("Thiếu dữ liệu", validationError);
+      return;
+    }
+
     const payload = buildPayload();
     const response = await createContractMutation.mutateAsync(payload);
 
-    if (response.success) {
-      setLastPayload(payload);
+    if (!response.success) {
+      return;
     }
+
+    const previewUrl = response.data?.previewUrl;
+    if (!previewUrl) {
+      toast.error("Thiếu dữ liệu phản hồi", "API không trả về `previewUrl`.");
+      return;
+    }
+
+    setLastPayload(payload);
+    window.location.assign(previewUrl);
   };
 
   return (
@@ -289,7 +316,7 @@ export default function ContractCreatePage() {
           <section className="border-b border-white/10 py-6">
             <SectionTitle>Thông tin hợp đồng</SectionTitle>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <FieldLabel>Ngày hết hạn</FieldLabel>
                 <TextInput
@@ -297,17 +324,6 @@ export default function ContractCreatePage() {
                   type="date"
                   value={contractDueDate}
                   onChange={setContractDueDate}
-                  required
-                />
-              </div>
-              <div>
-                <FieldLabel>URL hợp đồng</FieldLabel>
-                <TextInput
-                  id="contract-url"
-                  type="url"
-                  value={contractUrl}
-                  onChange={setContractUrl}
-                  placeholder="https://example.com/contracts/file.pdf"
                   required
                 />
               </div>
@@ -420,51 +436,56 @@ export default function ContractCreatePage() {
               </button>
             </div>
 
-            <div className="flex flex-col gap-3">
-              {products.map((product, index) => (
-                <div
-                  key={product.id}
-                  className="grid grid-cols-1 gap-3 border border-white/10 p-3 md:grid-cols-[1fr_180px_40px]"
-                >
-                  <div>
-                    <FieldLabel>Sản phẩm {index + 1}</FieldLabel>
-                    <TextInput
-                      id={`product-name-${product.id}`}
-                      value={product.productName}
-                      onChange={(value) =>
-                        updateProduct(product.id, "productName", value)
-                      }
-                      placeholder="Tên sản phẩm"
-                      required
-                    />
+            {products.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {products.map((product, index) => (
+                  <div
+                    key={product.id}
+                    className="grid grid-cols-1 gap-3 border border-white/10 p-3 md:grid-cols-[1fr_180px_40px]"
+                  >
+                    <div>
+                      <FieldLabel>Sản phẩm {index + 1}</FieldLabel>
+                      <TextInput
+                        id={`product-name-${product.id}`}
+                        value={product.productName}
+                        onChange={(value) =>
+                          updateProduct(product.id, "productName", value)
+                        }
+                        placeholder="Tên sản phẩm"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Giá</FieldLabel>
+                      <TextInput
+                        id={`product-price-${product.id}`}
+                        type="number"
+                        value={product.price}
+                        onChange={(value) =>
+                          updateProduct(product.id, "price", value)
+                        }
+                        placeholder="0"
+                        required
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <button
+                        type="button"
+                        onClick={() => removeProduct(product.id)}
+                        className="flex h-11 w-10 items-center justify-center rounded-lg border border-white/10 bg-transparent text-white/45 transition-all hover:border-red-400/40 hover:text-red-300"
+                        aria-label="Xóa sản phẩm"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <FieldLabel>Giá</FieldLabel>
-                    <TextInput
-                      id={`product-price-${product.id}`}
-                      type="number"
-                      value={product.price}
-                      onChange={(value) =>
-                        updateProduct(product.id, "price", value)
-                      }
-                      placeholder="0"
-                      required
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <button
-                      type="button"
-                      onClick={() => removeProduct(product.id)}
-                      disabled={products.length === 1}
-                      className="flex h-11 w-10 items-center justify-center rounded-lg border border-white/10 bg-transparent text-white/45 transition-all hover:border-red-400/40 hover:text-red-300 disabled:pointer-events-none disabled:opacity-30"
-                      aria-label="Xóa sản phẩm"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-white/10 px-4 py-8 text-center text-sm text-white/35">
+                Chưa có sản phẩm nào. Bấm thêm sản phẩm để bắt đầu.
+              </div>
+            )}
           </section>
 
           <div className="flex flex-col items-center gap-3 py-6">

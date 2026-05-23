@@ -1,6 +1,7 @@
 import type { BaseResponse } from "@/types/ApiResponse";
 import { hubAxiosClient } from "./client";
 import type {
+  Contract,
   CreateContractPayload,
   CreateContractResponse,
   SigningSessionPayload,
@@ -22,5 +23,12 @@ export const createSigningSession = async (
     `/api/v1/contracts/${contractId}/signing-sessions`,
     payload,
   );
+  return res.data;
+};
+
+export const getContractDetail = async (
+  contractId: string,
+): Promise<BaseResponse<Contract>> => {
+  const res = await hubAxiosClient.get(`/api/v1/contracts/${contractId}`);
   return res.data;
 };

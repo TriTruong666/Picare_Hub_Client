@@ -3,7 +3,6 @@ export type CreateContractPayload = {
   partnerCompanyInfo: PartnerCompanyInfoPayload;
   contractDueDate: string;
   contractType: "digital" | "default";
-  contractUrl: string;
   details: ContractDetailPayload[];
 };
 

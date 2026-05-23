@@ -1,11 +1,34 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ContractService from "@/apis/contract.service";
-import { toast } from "../useToast";
 import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
 import type {
   CreateContractPayload,
   SigningSessionPayload,
 } from "@/types/Contract";
+import { useFetch, useSuspenseFetch } from "../useQuery";
+import { toast } from "../useToast";
+
+/**
+ * Hook lấy chi tiết hợp đồng
+ */
+export function useContractDetail(contractId: string) {
+  return useFetch(
+    ["contracts", contractId],
+    () => ContractService.getContractDetail(contractId),
+    {
+      enabled: !!contractId,
+    },
+  );
+}
+
+/**
+ * Hook lấy chi tiết hợp đồng (Suspense version)
+ */
+export function useSuspenseContractDetail(contractId: string) {
+  return useSuspenseFetch(["contracts", contractId], () =>
+    ContractService.getContractDetail(contractId),
+  );
+}
 
 /**
  * Hook tạo hợp đồng mới
