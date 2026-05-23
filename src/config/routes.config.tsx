@@ -7,6 +7,7 @@ import LoginPage from "@/pages/public/LoginPage";
 import LoginClientPage from "@/pages/public/LoginClientPage";
 import LoginHubPage from "@/pages/public/LoginHubPage";
 import ContractCreatePage from "@/pages/public/ContractCreatePage";
+import ContractEditPage from "@/pages/public/ContractEditPage";
 import ContractPreviewPage from "@/pages/public/ContractPreviewPage";
 import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
 import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
@@ -46,6 +47,10 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
   {
     path: PATHS.CONTRACT_CREATE,
     element: <ContractCreatePage />,
+  },
+  {
+    path: PATHS.CONTRACT_EDIT,
+    element: <ContractEditPage />,
   },
   {
     path: PATHS.CONTRACT_PREVIEW,

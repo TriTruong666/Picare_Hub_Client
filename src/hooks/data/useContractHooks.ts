@@ -2,11 +2,28 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ContractService from "@/apis/contract.service";
 import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
 import type {
+  ContractStatus,
   CreateContractPayload,
   SigningSessionPayload,
 } from "@/types/Contract";
 import { useFetch, useSuspenseFetch } from "../useQuery";
 import { toast } from "../useToast";
+
+type ContractListParams = {
+  page: number;
+  limit: number;
+  search: string;
+  status: ContractStatus;
+};
+
+/**
+ * Hook lấy danh sách hợp đồng
+ */
+export function useContractList(params: ContractListParams) {
+  return useFetch(["contracts", "list", params], () =>
+    ContractService.getContractList(params),
+  );
+}
 
 /**
  * Hook lấy chi tiết hợp đồng

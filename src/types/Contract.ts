@@ -36,7 +36,8 @@ export type PartnerCompanyInfoPayload = {
 
 export type ContractType = "digital" | "default";
 
-export type ContractDocumentStatus =
+export type ContractStatus =
+  | "draft"
   | "unsigned"
   | "owner_signed"
   | "completed";
@@ -58,7 +59,6 @@ export type ContractDocument = {
   id: number;
   contractDocumentId: string;
   version: number;
-  status: ContractDocumentStatus;
   fileUrl: string;
   fileHash: string;
   createdAt: string;
@@ -100,6 +100,7 @@ export type Contract = {
   contractUrl: string;
   createdAt: string;
   updatedAt: string;
+  status: ContractStatus;
   details: ContractDetail[];
   documents: ContractDocument[];
   signatures: ContractSignature[];

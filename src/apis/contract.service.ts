@@ -1,4 +1,4 @@
-import type { BaseResponse } from "@/types/ApiResponse";
+import type { BasePaginatedResponse, BaseResponse } from "@/types/ApiResponse";
 import { hubAxiosClient } from "./client";
 import type {
   Contract,
@@ -30,5 +30,24 @@ export const getContractDetail = async (
   contractId: string,
 ): Promise<BaseResponse<Contract>> => {
   const res = await hubAxiosClient.get(`/api/v1/contracts/${contractId}`);
+  return res.data;
+};
+
+export const getContractList = async (params: {
+  page: number;
+  limit: number;
+  search: string;
+  status: "draft" | "unsigned" | "owner_signed" | "completed";
+}): Promise<BasePaginatedResponse<Contract[]>> => {
+  const res = await hubAxiosClient.get("/api/v1/contracts", { params });
+  return res.data;
+};
+
+export const publishDraftContract = async (
+  contractId: string,
+): Promise<BaseResponse<null>> => {
+  const res = await hubAxiosClient.post(
+    `/api/v1/contracts/${contractId}/publish-unsigned`,
+  );
   return res.data;
 };

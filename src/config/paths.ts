@@ -5,10 +5,11 @@
 export const PATHS = {
   // Public Paths
   HOME: "/",
-  LOGIN: "/login",            // Trang chọn client hub
+  LOGIN: "/login", // Trang chọn client hub
   LOGIN_CLIENT: "/login/client", // Form đăng nhập cho client cụ thể
-  LOGIN_HUB: "/login/hub",       // Trang đăng nhập Hub chung (centered)
+  LOGIN_HUB: "/login/hub", // Trang đăng nhập Hub chung (centered)
   CONTRACT_CREATE: "/contracts/create",
+  CONTRACT_EDIT: "/contracts/:contractId/edit",
   CONTRACT_PREVIEW: "/contracts/:contractId/preview",
 
   // Private Paths (Dashboard)
