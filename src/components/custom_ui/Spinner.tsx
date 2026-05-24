@@ -5,7 +5,7 @@ export const Spinner = ({
   color = "primary",
 }: {
   size?: "sm" | "md" | "lg";
-  color?: "primary" | "white";
+  color?: "primary" | "white" | "black";
 }) => {
   const sizeClasses = {
     sm: "h-4 w-4 border",
@@ -16,6 +16,7 @@ export const Spinner = ({
   const colorClasses = {
     primary: "border-primary/30 border-t-primary",
     white: "border-white/30 border-t-white",
+    black: "border-black/20 border-t-black",
   };
 
   return (

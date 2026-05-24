@@ -1,3 +1,11 @@
+export type UpdateContractPayload = {
+  ownerCompanyInfo: OwnerCompanyInfoPayload;
+  partnerCompanyInfo: PartnerCompanyInfoPayload;
+  contractDueDate: string;
+  contractType: "digital" | "default";
+  details: ContractDetailPayload[];
+};
+
 export type CreateContractPayload = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
@@ -97,13 +105,13 @@ export type Contract = {
   contractDueDate: string;
   contractChecksum: string;
   contractType: ContractType;
-  contractUrl: string;
+  contractUrl: string | null;
   createdAt: string;
   updatedAt: string;
   status: ContractStatus;
-  details: ContractDetail[];
-  documents: ContractDocument[];
-  signatures: ContractSignature[];
+  details?: ContractDetail[];
+  documents?: ContractDocument[];
+  signatures?: ContractSignature[];
 };
 
 export type CreateContractResponse = {

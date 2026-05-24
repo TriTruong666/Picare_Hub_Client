@@ -8,13 +8,16 @@ import {
   FiPlus,
   FiTrash2,
 } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { ContractDraftHistoryPanel } from "@/components/contracts/ContractDraftHistoryPanel";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { PATHS } from "@/config/paths";
 import { toast } from "@/hooks/useToast";
-import { useCreateContract } from "@/hooks/data/useContractHooks";
+import {
+  useCreateContract,
+  useUpdateContract,
+} from "@/hooks/data/useContractHooks";
 import type {
   Contract,
   CreateContractPayload,
@@ -175,6 +178,10 @@ function isEmpty(value: string) {
   return !value.trim();
 }
 
+function getPreviewPath(contractId: string) {
+  return PATHS.CONTRACT_PREVIEW.replace(":contractId", contractId);
+}
+
 export function ContractFormPage({
   mode = "create",
   initialContract,
@@ -182,7 +189,9 @@ export function ContractFormPage({
   mode?: ContractFormMode;
   initialContract?: Contract;
 }) {
+  const navigate = useNavigate();
   const createContractMutation = useCreateContract();
+  const updateContractMutation = useUpdateContract();
   const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(0);
   const [partnerCompanyInfo, setPartnerCompanyInfo] =
     useState<PartnerCompanyInfoPayload>({
@@ -203,8 +212,10 @@ export function ContractFormPage({
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const ownerCompanyInfo = OWNER_TEMPLATES[selectedOwnerIndex];
-  const isSubmitting = createContractMutation.isPending;
   const isEditMode = mode === "edit";
+  const isSubmitting = isEditMode
+    ? updateContractMutation.isPending
+    : createContractMutation.isPending;
 
   useEffect(() => {
     if (!initialContract) return;
@@ -219,7 +230,7 @@ export function ContractFormPage({
     setPartnerCompanyInfo(initialContract.partnerCompanyInfo);
     setContractDueDate(initialContract.contractDueDate.slice(0, 10));
     setProducts(
-      initialContract.details.map((detail) => ({
+      (initialContract.details ?? []).map((detail) => ({
         id: detail.contractDetailId || crypto.randomUUID(),
         productName: detail.productName,
         price: String(detail.price),
@@ -321,6 +332,21 @@ export function ContractFormPage({
     }
 
     const payload = buildPayload();
+
+    if (isEditMode && initialContract) {
+      const response = await updateContractMutation.mutateAsync({
+        contractId: initialContract.contractId,
+        data: payload,
+      });
+
+      if (!response.success) {
+        return;
+      }
+
+      navigate(getPreviewPath(initialContract.contractId));
+      return;
+    }
+
     const response = await createContractMutation.mutateAsync(payload);
 
     if (!response.success) {
@@ -368,15 +394,9 @@ export function ContractFormPage({
             </Link>
             <h1 className="text-center text-2xl font-medium text-white md:text-3xl">
               {isEditMode
-                ? "Chỉnh sửa hợp đồng điện tử - Picare Việt Nam"
+                ? `Hợp đồng số ${initialContract?.contractNumber || initialContract?.contractId}`
                 : "Hệ thống tạo hợp đồng điện tử - Picare Việt Nam"}
             </h1>
-            {isEditMode && initialContract ? (
-              <p className="mt-2 text-sm text-white/45">
-                Đang chỉnh sửa bản nháp{" "}
-                {initialContract.contractNumber || initialContract.contractId}
-              </p>
-            ) : null}
           </header>
 
           <motion.div
@@ -569,17 +589,31 @@ export function ContractFormPage({
             </section>
 
             <div className="flex flex-col items-center gap-3 py-6">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="group relative inline-flex h-12 min-w-56 items-center justify-center overflow-hidden rounded-full bg-white px-6 text-sm font-medium text-black shadow-[0_16px_45px_rgba(0,0,0,0.38)] transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white/95 hover:shadow-[0_22px_60px_rgba(0,0,0,0.46)] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:translate-y-0 disabled:bg-white/45 disabled:text-black/50 disabled:shadow-none"
-              >
-                <span className="absolute inset-x-6 top-0 h-px bg-linear-to-r from-transparent via-black/25 to-transparent opacity-50" />
-                <span className="flex items-center justify-center gap-2.5">
-                  {isSubmitting ? <Spinner size="sm" color="primary" /> : null}
-                  {isEditMode ? "Tạo hợp đồng từ bản nháp" : "Tạo hợp đồng"}
-                </span>
-              </button>
+              <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="group relative inline-flex h-12 min-w-56 items-center justify-center overflow-hidden rounded-full bg-white px-6 text-sm font-medium text-black shadow-[0_16px_45px_rgba(0,0,0,0.38)] transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white/95 hover:shadow-[0_22px_60px_rgba(0,0,0,0.46)] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:translate-y-0 disabled:bg-white/45 disabled:text-black/50 disabled:shadow-none"
+                >
+                  <span className="absolute inset-x-6 top-0 h-px bg-linear-to-r from-transparent via-black/25 to-transparent opacity-50" />
+                  <span className="flex items-center justify-center gap-2.5">
+                    {isSubmitting ? <Spinner size="sm" color="black" /> : null}
+                    {isEditMode ? "Chỉnh sửa" : "Tạo hợp đồng"}
+                  </span>
+                </button>
+
+                {isEditMode && initialContract ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate(getPreviewPath(initialContract.contractId))
+                    }
+                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-white/[0.07] px-6 text-sm font-medium text-white/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white/[0.11] hover:text-white active:translate-y-0 active:scale-[0.98]"
+                  >
+                    Xem Preview hợp đồng
+                  </button>
+                ) : null}
+              </div>
 
               {lastPayload ? (
                 <p className="text-xs text-white/50">

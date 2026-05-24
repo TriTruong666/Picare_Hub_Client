@@ -5,6 +5,7 @@ import type {
   ContractStatus,
   CreateContractPayload,
   SigningSessionPayload,
+  UpdateContractPayload,
 } from "@/types/Contract";
 import { useFetch, useSuspenseFetch } from "../useQuery";
 import { toast } from "../useToast";
@@ -74,6 +75,63 @@ export function useCreateContract() {
 /**
  * Hook tạo phiên ký cho hợp đồng
  */
+/**
+ * Hook cập nhật hợp đồng nháp
+ */
+export function useUpdateContract() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      contractId,
+      data,
+    }: {
+      contractId: string;
+      data: UpdateContractPayload;
+    }) => ContractService.updateContract(contractId, data),
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã cập nhật hợp đồng");
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts", variables.contractId],
+        });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+/**
+ * Hook xuất bản hợp đồng nháp sang trạng thái chờ ký
+ */
+export function usePublishDraftContract() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (contractId: string) =>
+      ContractService.publishDraftContract(contractId),
+    onSuccess: (data, contractId) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã xuất bản hợp đồng nháp");
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({ queryKey: ["contracts", contractId] });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
 export function useCreateSigningSession() {
   const queryClient = useQueryClient();
 

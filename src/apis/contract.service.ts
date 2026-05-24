@@ -6,6 +6,7 @@ import type {
   CreateContractResponse,
   SigningSessionPayload,
   SigningSessionResponse,
+  UpdateContractPayload,
 } from "@/types/Contract";
 
 export const createContract = async (
@@ -48,6 +49,17 @@ export const publishDraftContract = async (
 ): Promise<BaseResponse<null>> => {
   const res = await hubAxiosClient.post(
     `/api/v1/contracts/${contractId}/publish-unsigned`,
+  );
+  return res.data;
+};
+
+export const updateContract = async (
+  contractId: string,
+  payload: UpdateContractPayload,
+): Promise<BaseResponse<null>> => {
+  const res = await hubAxiosClient.put(
+    `/api/v1/contracts/${contractId}`,
+    payload,
   );
   return res.data;
 };

@@ -1,8 +1,15 @@
 import { motion } from "framer-motion";
-import { useParams } from "react-router-dom";
+import { FiEdit3, FiPenTool } from "react-icons/fi";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
-import { useContractDetail } from "@/hooks/data/useContractHooks";
+import { Tooltip } from "@/components/custom_ui/Tooltip";
+import { PATHS } from "@/config/paths";
+import {
+  useContractDetail,
+  useCreateSigningSession,
+} from "@/hooks/data/useContractHooks";
+import { toast } from "@/hooks/useToast";
 import type {
   Contract,
   ContractDetail,
@@ -14,6 +21,10 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("vi-VN", {
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function getEditPath(contractId: string) {
+  return PATHS.CONTRACT_EDIT.replace(":contractId", contractId);
 }
 
 function formatDate(value?: string) {
@@ -46,7 +57,7 @@ function getVietnameseDate(value?: string) {
 
 function ArticleTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mt-12 text-[13px] font-medium uppercase tracking-[0.12em] text-white/80">
+    <h2 className="mt-12 text-[13px] font-medium tracking-[0.12em] text-white/80 uppercase">
       {children}
     </h2>
   );
@@ -70,7 +81,7 @@ function PartySection({
 }) {
   return (
     <section className="mt-8">
-      <h3 className="text-[15px] font-medium uppercase text-white">{title}</h3>
+      <h3 className="text-[15px] font-medium text-white uppercase">{title}</h3>
       <div className="mt-3 space-y-1">
         <FieldLine label="Tên công ty" value={party.companyName} />
         <FieldLine label="Địa chỉ" value={party.address} />
@@ -100,7 +111,7 @@ function ClauseList({ items }: { items: string[] }) {
 function ProductList({ details }: { details: ContractDetail[] }) {
   return (
     <div className="mt-5 divide-y divide-white/10 border-y border-white/10">
-      <div className="grid grid-cols-[42px_1fr_130px] gap-4 py-3 text-[11px] uppercase tracking-[0.12em] text-white/35">
+      <div className="grid grid-cols-[42px_1fr_130px] gap-4 py-3 text-[11px] tracking-[0.12em] text-white/35 uppercase">
         <span>STT</span>
         <span>Sản phẩm</span>
         <span className="text-right">Giá</span>
@@ -112,7 +123,7 @@ function ProductList({ details }: { details: ContractDetail[] }) {
         >
           <span className="text-white/35">{index + 1}</span>
           <span className="text-white/82">{item.productName}</span>
-          <span className="text-right tabular-nums text-white/62">
+          <span className="text-right text-white/62 tabular-nums">
             {formatCurrency(item.price)}
           </span>
         </div>
@@ -121,23 +132,17 @@ function ProductList({ details }: { details: ContractDetail[] }) {
   );
 }
 
-function SignatureBlock({
-  title,
-  name,
-}: {
-  title: string;
-  name: string;
-}) {
+function SignatureBlock({ title, name }: { title: string; name: string }) {
   return (
     <div className="text-center">
-      <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-white/80">
+      <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">
         {title}
       </p>
       <p className="mt-2 text-[12px] text-white/35">
         Ký, đóng dấu, ghi rõ họ và tên
       </p>
       <div className="h-32" />
-      <p className="text-[14px] font-medium uppercase text-white">{name}</p>
+      <p className="text-[14px] font-medium text-white uppercase">{name}</p>
     </div>
   );
 }
@@ -157,7 +162,7 @@ function ContractDocument({ contract }: { contract: Contract }) {
     >
       <header className="grid gap-8 border-b border-white/10 pb-10 md:grid-cols-[1fr_1.15fr]">
         <div>
-          <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-white/80">
+          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">
             {owner.companyName}
           </p>
           <p className="mt-3 text-[13px] text-white/35">
@@ -165,7 +170,7 @@ function ContractDocument({ contract }: { contract: Contract }) {
           </p>
         </div>
         <div className="text-left md:text-center">
-          <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-white/80">
+          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">
             Cộng hòa xã hội chủ nghĩa Việt Nam
           </p>
           <p className="mt-1 text-[13px] text-white/62">
@@ -176,7 +181,7 @@ function ContractDocument({ contract }: { contract: Contract }) {
 
       <section className="pt-14 text-center">
         <p className="text-[13px] text-white/35">Hôm nay, {signedDate}</p>
-        <h1 className="mt-7 text-4xl font-medium uppercase tracking-[0.03em] text-white">
+        <h1 className="mt-7 text-4xl font-medium tracking-[0.03em] text-white uppercase">
           Hợp đồng nguyên tắc
         </h1>
         <p className="mt-3 text-[15px] text-white/62">
@@ -197,9 +202,9 @@ function ContractDocument({ contract }: { contract: Contract }) {
       </section>
 
       <p className="mt-10 text-[14px] leading-7 text-white/62">
-        Hôm nay tại văn phòng công ty, hai bên gồm có các đại diện dưới đây
-        cùng thống nhất ký hợp đồng nguyên tắc bán hàng theo các điều khoản
-        trong văn bản này.
+        Hôm nay tại văn phòng công ty, hai bên gồm có các đại diện dưới đây cùng
+        thống nhất ký hợp đồng nguyên tắc bán hàng theo các điều khoản trong văn
+        bản này.
       </p>
 
       <PartySection title="Bên bán (Bên A)" party={owner} />
@@ -211,7 +216,7 @@ function ContractDocument({ contract }: { contract: Contract }) {
           Bên A đồng ý bán cho Bên B các sản phẩm do Bên A đăng ký, sản xuất
           hoặc phân phối. Danh mục sản phẩm và giá trị được xác nhận như sau:
         </p>
-        <ProductList details={contract.details} />
+        <ProductList details={contract.details ?? []} />
         <ClauseList
           items={[
             "Số lượng sản phẩm được quy định chi tiết tại từng đơn đặt hàng của Bên B.",
@@ -232,7 +237,9 @@ function ContractDocument({ contract }: { contract: Contract }) {
       </section>
 
       <section>
-        <ArticleTitle>Điều 3: Trách nhiệm và quyền lợi của các bên</ArticleTitle>
+        <ArticleTitle>
+          Điều 3: Trách nhiệm và quyền lợi của các bên
+        </ArticleTitle>
         <p className="mt-4 text-[14px] font-medium text-white/82">
           1. Trách nhiệm của Bên A
         </p>
@@ -302,10 +309,101 @@ function ContractDocument({ contract }: { contract: Contract }) {
   );
 }
 
+function DockButton({
+  label,
+  icon,
+  onClick,
+  disabled,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Tooltip content={label}>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className="group flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.07] text-white/70 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white hover:text-black active:translate-y-0 active:scale-95 disabled:pointer-events-none disabled:opacity-40"
+        aria-label={label}
+      >
+        <span className="text-[18px] transition duration-250 ease-out group-hover:scale-105">
+          {icon}
+        </span>
+      </button>
+    </Tooltip>
+  );
+}
+
+function ContractActionDock({ contract }: { contract: Contract }) {
+  const navigate = useNavigate();
+  const signingSessionMutation = useCreateSigningSession();
+
+  const handleSign = async () => {
+    const signerEmail = contract.ownerCompanyInfo.email;
+    const signerName = contract.ownerCompanyInfo.ownerName;
+
+    if (!signerEmail || !signerName) {
+      toast.error(
+        "Thiếu thông tin ký",
+        "Hợp đồng chưa có email hoặc tên người đại diện bên ký.",
+      );
+      return;
+    }
+
+    const response = await signingSessionMutation.mutateAsync({
+      contractId: contract.contractId,
+      data: {
+        signerType: "owner",
+        signerEmail,
+        signerName,
+      },
+    });
+
+    const localSignUrl = response.data?.localSignUrl;
+    if (response.success && localSignUrl) {
+      window.location.assign(localSignUrl);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
+      className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+    >
+      <DockButton
+        label="Ký hợp đồng"
+        icon={
+          signingSessionMutation.isPending ? (
+            <Spinner size="sm" color="white" />
+          ) : (
+            <FiPenTool />
+          )
+        }
+        onClick={handleSign}
+        disabled={signingSessionMutation.isPending}
+      />
+      <DockButton
+        label="Chỉnh sửa hợp đồng"
+        icon={<FiEdit3 />}
+        onClick={() => navigate(getEditPath(contract.contractId))}
+      />
+    </motion.div>
+  );
+}
+
 export default function ContractPreviewPage() {
   const { contractId = "" } = useParams();
-  const { data: contract, isLoading, isError, refetch } =
-    useContractDetail(contractId);
+  const {
+    data: contract,
+    isLoading,
+    isError,
+    refetch,
+  } = useContractDetail(contractId);
 
   if (isLoading) {
     return (
@@ -341,6 +439,7 @@ export default function ContractPreviewPage() {
   return (
     <main className="dashboard-theme min-h-screen bg-black px-5 py-10 text-white md:px-8">
       <ContractDocument contract={contract} />
+      <ContractActionDock contract={contract} />
     </main>
   );
 }

@@ -3,17 +3,13 @@ import { motion } from "framer-motion";
 import { FiChevronRight, FiClock, FiFileText, FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
-import { formatDate, formatPrice } from "@/common/format";
+import { formatDate } from "@/common/format";
 import { PATHS } from "@/config/paths";
 import { useContractList } from "@/hooks/data/useContractHooks";
 import type { Contract } from "@/types/Contract";
 
 function getEditPath(contractId: string) {
   return PATHS.CONTRACT_EDIT.replace(":contractId", contractId);
-}
-
-function getContractTotal(contract: Contract) {
-  return contract.details.reduce((total, detail) => total + detail.price, 0);
 }
 
 export function ContractDraftHistoryPanel({
@@ -122,10 +118,22 @@ export function ContractDraftHistoryPanel({
                         "Chưa có tên đối tác"}
                     </p>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/40">
-                      <span>{formatDate(contract.contractDueDate)}</span>
-                      <span>{formatPrice(getContractTotal(contract))}</span>
-                      <span>{contract.details.length} sản phẩm</span>
+                    <div className="mt-3 space-y-1.5 text-xs leading-5 text-white/40">
+                      <p className="truncate">
+                        {contract.partnerCompanyInfo.ownerName ||
+                          "Chưa có người đại diện"}
+                        {contract.partnerCompanyInfo.role
+                          ? ` · ${contract.partnerCompanyInfo.role}`
+                          : ""}
+                      </p>
+                      <p className="truncate">
+                        MST: {contract.partnerCompanyInfo.mst || "N/A"}
+                      </p>
+                      <p className="truncate">
+                        {contract.partnerCompanyInfo.phone || "Chưa có SĐT"} ·{" "}
+                        {contract.partnerCompanyInfo.email || "Chưa có email"}
+                      </p>
+                      <p>Hết hạn: {formatDate(contract.contractDueDate)}</p>
                     </div>
                   </div>
                 </div>
@@ -133,6 +141,15 @@ export function ContractDraftHistoryPanel({
             );
           })}
         </div>
+      </div>
+      <div className="shrink-0 border-t border-white/10 p-4">
+        <button
+          type="button"
+          onClick={() => navigate(PATHS.CONTRACT_CREATE)}
+          className="inline-flex h-11 w-full items-center justify-center rounded-full bg-white px-5 text-sm font-medium text-black transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white/95 active:translate-y-0 active:scale-[0.98]"
+        >
+          Tạo hợp đồng
+        </button>
       </div>
     </motion.aside>
   );
