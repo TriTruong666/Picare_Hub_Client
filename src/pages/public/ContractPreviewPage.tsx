@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { FiDownload, FiEdit3, FiPenTool } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -41,6 +41,22 @@ function getS3KeyFromUrl(fileUrl?: string | null) {
 function getFileNameFromS3Key(key: string, fallback: string) {
   const fileName = key.split("/").filter(Boolean).at(-1);
   return fileName || fallback;
+}
+
+function getSignatureDisplayName(fullName?: string) {
+  const normalizedName = fullName?.trim();
+  if (!normalizedName) return "";
+
+  const nameWithoutTitle = normalizedName.replace(
+    /^(ong|ông|ba|bà|anh|chị|chi)\s+/i,
+    "",
+  );
+  const lastNamePart = nameWithoutTitle.split(/\s+/).filter(Boolean).at(-1);
+  if (!lastNamePart) return normalizedName;
+
+  return `${lastNamePart.charAt(0).toLocaleUpperCase("vi-VN")}${lastNamePart
+    .slice(1)
+    .toLocaleLowerCase("vi-VN")}`;
 }
 
 function formatDate(value?: string) {
@@ -148,26 +164,121 @@ function ProductList({ details }: { details: ContractDetail[] }) {
   );
 }
 
-function SignatureBlock({ title, name }: { title: string; name: string }) {
+function AnimatedSignature({
+  name,
+  shouldAnimate,
+}: {
+  name: string;
+  shouldAnimate: boolean;
+}) {
+  const prefersReducedMotion = useReducedMotion();
+  const canAnimate = shouldAnimate && !prefersReducedMotion;
+
   return (
-    <div className="text-center">
+    <div className="relative mx-auto flex h-32 w-full max-w-[260px] items-center justify-center overflow-hidden">
+      <motion.div
+        key={`${name}-${shouldAnimate ? "animated" : "static"}`}
+        initial={canAnimate ? { clipPath: "inset(0 100% 0 0)" } : false}
+        animate={{ clipPath: "inset(0 0% 0 0)" }}
+        transition={{ duration: 1.45, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 text-[56px] leading-none font-normal text-white drop-shadow-[0_0_22px_rgba(255,255,255,0.2)]"
+        style={{
+          fontFamily:
+            '"Segoe Script", "Brush Script MT", "Lucida Handwriting", cursive',
+        }}
+      >
+        {name}
+      </motion.div>
+
+      <svg
+        viewBox="0 0 260 92"
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-3 mx-auto h-[92px] w-full text-white/75"
+      >
+        <motion.path
+          d="M26 66 C64 82, 105 77, 132 61 S188 39, 229 58"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          initial={canAnimate ? { pathLength: 0, opacity: 0 } : false}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 1.1, delay: canAnimate ? 0.72 : 0 }}
+        />
+      </svg>
+
+      <motion.span
+        aria-hidden="true"
+        initial={canAnimate ? { x: -115, opacity: 0 } : false}
+        animate={{ x: 116, opacity: canAnimate ? [0, 1, 1, 0] : 0 }}
+        transition={{ duration: 1.35, ease: "easeInOut" }}
+        className="absolute top-8 h-10 w-1 rotate-12 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.75)]"
+      />
+    </div>
+  );
+}
+
+function SignatureBlock({
+  title,
+  name,
+  isSigned,
+  shouldAnimate,
+  signatureRef,
+}: {
+  title: string;
+  name: string;
+  isSigned?: boolean;
+  shouldAnimate?: boolean;
+  signatureRef?: React.Ref<HTMLDivElement>;
+}) {
+  const signatureName = getSignatureDisplayName(name);
+  return (
+    <div ref={signatureRef} className="relative text-center">
       <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">
         {title}
       </p>
       <p className="mt-2 text-[12px] text-white/35">
         Ký, đóng dấu, ghi rõ họ và tên
       </p>
-      <div className="h-32" />
+      {isSigned && signatureName ? (
+        <AnimatedSignature
+          name={signatureName}
+          shouldAnimate={Boolean(shouldAnimate)}
+        />
+      ) : (
+        <div className="h-32" />
+      )}
+
+      {isSigned ? (
+        <motion.p
+          initial={shouldAnimate ? { opacity: 0, y: 6 } : false}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: shouldAnimate ? 1.05 : 0 }}
+          className="mb-2 text-[11px] font-medium tracking-[0.16em] text-emerald-200/80 uppercase"
+        >
+          Đã ký số
+        </motion.p>
+      ) : null}
       <p className="text-[14px] font-medium text-white uppercase">{name}</p>
     </div>
   );
 }
 
-function ContractDocument({ contract }: { contract: Contract }) {
+function ContractDocument({
+  contract,
+  ownerSignatureRef,
+  ownerSignatureRevealKey,
+}: {
+  contract: Contract;
+  ownerSignatureRef?: React.Ref<HTMLDivElement>;
+  ownerSignatureRevealKey?: number;
+}) {
   const owner = contract.ownerCompanyInfo;
   const partner = contract.partnerCompanyInfo;
   const signedDate = getVietnameseDate(contract.createdAt);
   const dueDate = formatDate(contract.contractDueDate);
+  const hasOwnerSigned =
+    contract.status === "owner_signed" || contract.status === "completed";
 
   return (
     <motion.article
@@ -318,7 +429,13 @@ function ContractDocument({ contract }: { contract: Contract }) {
       </section>
 
       <section className="mt-20 grid gap-12 border-t border-white/10 pt-12 md:grid-cols-2">
-        <SignatureBlock title="Đại diện Bên A" name={owner.ownerName} />
+        <SignatureBlock
+          title="Đại diện Bên A"
+          name={owner.ownerName}
+          isSigned={hasOwnerSigned || Boolean(ownerSignatureRevealKey)}
+          shouldAnimate={Boolean(ownerSignatureRevealKey)}
+          signatureRef={ownerSignatureRef}
+        />
         <SignatureBlock title="Đại diện Bên B" name={partner.ownerName} />
       </section>
     </motion.article>
@@ -353,10 +470,18 @@ function DockButton({
   );
 }
 
-function ContractActionDock({ contract }: { contract: Contract }) {
+function ContractActionDock({
+  contract,
+  onSigned,
+}: {
+  contract: Contract;
+  onSigned: () => void;
+}) {
   const navigate = useNavigate();
   const downloadMutation = useDownloadS3Asset();
   const [signingContract, setSigningContract] = useState<Contract | null>(null);
+  const canSignContract =
+    contract.status === "draft" || contract.status === "unsigned";
 
   const handleDownloadContract = () => {
     const key = getS3KeyFromUrl(contract.contractUrl);
@@ -386,11 +511,13 @@ function ContractActionDock({ contract }: { contract: Contract }) {
         transition={{ duration: 0.22, ease: "easeOut" }}
         className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
       >
-        <DockButton
-          label="Ký hợp đồng"
-          icon={<FiPenTool />}
-          onClick={() => setSigningContract(contract)}
-        />
+        {canSignContract ? (
+          <DockButton
+            label="Ký hợp đồng"
+            icon={<FiPenTool />}
+            onClick={() => setSigningContract(contract)}
+          />
+        ) : null}
         {contract.status === "draft" ? (
           <DockButton
             label="Chỉnh sửa hợp đồng"
@@ -411,6 +538,7 @@ function ContractActionDock({ contract }: { contract: Contract }) {
       <ContractSigningModal
         contract={signingContract}
         onClose={() => setSigningContract(null)}
+        onSigned={onSigned}
       />
     </>
   );
@@ -418,12 +546,32 @@ function ContractActionDock({ contract }: { contract: Contract }) {
 
 export default function ContractPreviewPage() {
   const { contractId = "" } = useParams();
+  const ownerSignatureRef = useRef<HTMLDivElement>(null);
+  const [ownerSignatureRevealKey, setOwnerSignatureRevealKey] = useState(0);
   const {
     data: contract,
     isLoading,
     isError,
     refetch,
   } = useContractDetail(contractId);
+
+  useEffect(() => {
+    if (!ownerSignatureRevealKey) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      ownerSignatureRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [ownerSignatureRevealKey]);
+
+  const handleSigned = () => {
+    void refetch();
+    setOwnerSignatureRevealKey((current) => current + 1);
+  };
 
   if (isLoading) {
     return (
@@ -458,8 +606,12 @@ export default function ContractPreviewPage() {
 
   return (
     <main className="dashboard-theme min-h-screen bg-black px-5 py-10 text-white md:px-8">
-      <ContractDocument contract={contract} />
-      <ContractActionDock contract={contract} />
+      <ContractDocument
+        contract={contract}
+        ownerSignatureRef={ownerSignatureRef}
+        ownerSignatureRevealKey={ownerSignatureRevealKey}
+      />
+      <ContractActionDock contract={contract} onSigned={handleSigned} />
     </main>
   );
 }

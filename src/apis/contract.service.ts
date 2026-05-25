@@ -4,6 +4,8 @@ import type {
   Contract,
   CreateContractPayload,
   CreateContractResponse,
+  SigningCompletePayload,
+  SigningCompleteResponse,
   SigningSessionPayload,
   SigningSessionResponse,
   UpdateContractPayload,
@@ -22,6 +24,18 @@ export const createSigningSession = async (
 ): Promise<BaseResponse<SigningSessionResponse>> => {
   const res = await hubAxiosClient.post(
     `/api/v1/contracts/${contractId}/signing-sessions`,
+    payload,
+  );
+  return res.data;
+};
+
+export const completeSigningSession = async (
+  payload: SigningCompletePayload,
+  contractId: string,
+  contractSignatureId: string,
+): Promise<BaseResponse<SigningCompleteResponse>> => {
+  const res = await hubAxiosClient.post(
+    `/api/v1/contracts/${contractId}/signing-sessions/${contractSignatureId}/complete`,
     payload,
   );
   return res.data;
@@ -49,6 +63,24 @@ export const publishDraftContract = async (
 ): Promise<BaseResponse<null>> => {
   const res = await hubAxiosClient.post(
     `/api/v1/contracts/${contractId}/publish-unsigned`,
+  );
+  return res.data;
+};
+
+export const publishOwnerSignedContract = async (
+  contractId: string,
+): Promise<BaseResponse<null>> => {
+  const res = await hubAxiosClient.post(
+    `/api/v1/contracts/${contractId}/publish-owner-signed`,
+  );
+  return res.data;
+};
+
+export const publishCompleteContract = async (
+  contractId: string,
+): Promise<BaseResponse<null>> => {
+  const res = await hubAxiosClient.post(
+    `/api/v1/contracts/${contractId}/publish-completed`,
   );
   return res.data;
 };

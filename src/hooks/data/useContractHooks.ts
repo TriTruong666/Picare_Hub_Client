@@ -4,6 +4,7 @@ import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
 import type {
   ContractStatus,
   CreateContractPayload,
+  SigningCompletePayload,
   SigningSessionPayload,
   UpdateContractPayload,
 } from "@/types/Contract";
@@ -15,6 +16,10 @@ type ContractListParams = {
   limit: number;
   search?: string;
   status?: ContractStatus;
+};
+
+type MutationToastOptions = {
+  showSuccessToast?: boolean;
 };
 
 /**
@@ -110,15 +115,18 @@ export function useUpdateContract() {
 /**
  * Hook xuất bản hợp đồng nháp sang trạng thái chờ ký
  */
-export function usePublishDraftContract() {
+export function usePublishDraftContract(options?: MutationToastOptions) {
   const queryClient = useQueryClient();
+  const { showSuccessToast = true } = options ?? {};
 
   return useMutation({
     mutationFn: (contractId: string) =>
       ContractService.publishDraftContract(contractId),
     onSuccess: (data, contractId) => {
       if (data.success) {
-        toast.success("Thành công", "Đã xuất bản hợp đồng nháp");
+        if (showSuccessToast) {
+          toast.success("Thành công", "Đã xuất bản hợp đồng nháp");
+        }
         queryClient.invalidateQueries({ queryKey: ["contracts"] });
         queryClient.invalidateQueries({ queryKey: ["contracts", contractId] });
       } else {
@@ -132,8 +140,9 @@ export function usePublishDraftContract() {
   });
 }
 
-export function useCreateSigningSession() {
+export function useCreateSigningSession(options?: MutationToastOptions) {
   const queryClient = useQueryClient();
+  const { showSuccessToast = true } = options ?? {};
 
   return useMutation({
     mutationFn: ({
@@ -145,7 +154,98 @@ export function useCreateSigningSession() {
     }) => ContractService.createSigningSession(data, contractId),
     onSuccess: (data, variables) => {
       if (data.success) {
-        toast.success("Thành công", "Đã tạo phiên ký");
+        if (showSuccessToast) {
+          toast.success("Thành công", "Đã tạo phiên ký");
+        }
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts", variables.contractId],
+        });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+export function usePublishOwnerSignedContract(options?: MutationToastOptions) {
+  const queryClient = useQueryClient();
+  const { showSuccessToast = true } = options ?? {};
+
+  return useMutation({
+    mutationFn: (contractId: string) =>
+      ContractService.publishOwnerSignedContract(contractId),
+    onSuccess: (data, contractId) => {
+      if (data.success) {
+        if (showSuccessToast) {
+          toast.success("Hoàn tất", "Hợp đồng đã được ký số thành công");
+        }
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({ queryKey: ["contracts", contractId] });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+export function usePublishCompleteContract(options?: MutationToastOptions) {
+  const queryClient = useQueryClient();
+  const { showSuccessToast = true } = options ?? {};
+
+  return useMutation({
+    mutationFn: (contractId: string) =>
+      ContractService.publishCompleteContract(contractId),
+    onSuccess: (data, contractId) => {
+      if (data.success) {
+        if (showSuccessToast) {
+          toast.success("Hoàn tất", "Hợp đồng đã hoàn tất đầy đủ chữ ký");
+        }
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({ queryKey: ["contracts", contractId] });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+export function useCompleteSigningSession(options?: MutationToastOptions) {
+  const queryClient = useQueryClient();
+  const { showSuccessToast = true } = options ?? {};
+
+  return useMutation({
+    mutationFn: ({
+      contractId,
+      contractSignatureId,
+      data,
+    }: {
+      contractId: string;
+      contractSignatureId: string;
+      data: SigningCompletePayload;
+    }) =>
+      ContractService.completeSigningSession(
+        data,
+        contractId,
+        contractSignatureId,
+      ),
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        if (showSuccessToast) {
+          toast.success("Hoàn tất", "Hợp đồng đã được ký số thành công");
+        }
         queryClient.invalidateQueries({ queryKey: ["contracts"] });
         queryClient.invalidateQueries({
           queryKey: ["contracts", variables.contractId],

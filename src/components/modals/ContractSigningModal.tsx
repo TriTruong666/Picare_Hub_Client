@@ -13,7 +13,9 @@ import { HiOutlineX } from "react-icons/hi";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
 import {
+  useCompleteSigningSession,
   useCreateSigningSession,
+  usePublishOwnerSignedContract,
   usePublishDraftContract,
 } from "@/hooks/data/useContractHooks";
 import {
@@ -34,11 +36,13 @@ import type { BaseResponse } from "@/types/ApiResponse";
 type ContractSigningModalProps = {
   contract: Contract | null;
   onClose: () => void;
+  onSigned?: () => void;
 };
 
 type ContractSigningFormProps = {
   contract: Contract;
   onClose: () => void;
+  onSigned?: () => void;
 };
 
 const LOCAL_SIGN_APP_DOWNLOAD_URL =
@@ -564,13 +568,25 @@ function PinSigningModal({
   );
 }
 
-function ContractSigningForm({ contract, onClose }: ContractSigningFormProps) {
+function ContractSigningForm({
+  contract,
+  onClose,
+  onSigned,
+}: ContractSigningFormProps) {
   const checkLocalSigningMutation = useCheckLocalSigningService();
   const getUSBInfoMutation = useGetUSBInfoMutation();
   const getCertificateMutation = useGetCertificateMutation();
-  const signPdfCmsMutation = useSignPdfCms();
-  const publishDraftMutation = usePublishDraftContract();
-  const signingSessionMutation = useCreateSigningSession();
+  const signPdfCmsMutation = useSignPdfCms({ showSuccessToast: false });
+  const publishDraftMutation = usePublishDraftContract({
+    showSuccessToast: false,
+  });
+  const signingSessionMutation = useCreateSigningSession({
+    showSuccessToast: false,
+  });
+  const completeSigningSessionMutation = useCompleteSigningSession({
+    showSuccessToast: false,
+  });
+  const publishOwnerSignedMutation = usePublishOwnerSignedContract();
 
   const [signerName, setSignerName] = useState(
     contract.ownerCompanyInfo.ownerName || "",
@@ -599,7 +615,9 @@ function ContractSigningForm({ contract, onClose }: ContractSigningFormProps) {
     getCertificateMutation.isPending ||
     signPdfCmsMutation.isPending ||
     publishDraftMutation.isPending ||
-    signingSessionMutation.isPending;
+    signingSessionMutation.isPending ||
+    completeSigningSessionMutation.isPending ||
+    publishOwnerSignedMutation.isPending;
 
   const handleClose = () => {
     if (isSubmitting) return;
@@ -701,10 +719,11 @@ function ContractSigningForm({ contract, onClose }: ContractSigningFormProps) {
     });
 
     const hashToSign = sessionResponse.data?.hashToSign;
-    if (!sessionResponse.success || !hashToSign) {
+    const contractSignatureId = sessionResponse.data?.contractSignatureId;
+    if (!sessionResponse.success || !hashToSign || !contractSignatureId) {
       toast.error(
         "Không thể tạo phiên ký",
-        "Phiên ký chưa có dữ liệu hash để ký số.",
+        "Phiên ký chưa có đủ dữ liệu để ký số.",
       );
       return;
     }
@@ -716,10 +735,48 @@ function ContractSigningForm({ contract, onClose }: ContractSigningFormProps) {
       certificateId: selectedCertificate.certificateId,
     });
 
-    if (!signResponse.success) {
+    const signedData = signResponse.data;
+    if (
+      !signResponse.success ||
+      !signedData?.signatureHex ||
+      !signedData.certificatePem ||
+      !signedData.certificateSerial ||
+      !signedData.certificateSubject ||
+      !signedData.certificateIssuer ||
+      !signedData.vendor
+    ) {
+      toast.error(
+        "Không thể hoàn tất ký số",
+        "Ứng dụng ký số chưa trả đủ dữ liệu chữ ký.",
+      );
       return;
     }
 
+    const completeResponse = await completeSigningSessionMutation.mutateAsync({
+      contractId: contract.contractId,
+      contractSignatureId,
+      data: {
+        signatureHex: signedData.signatureHex,
+        certificatePem: signedData.certificatePem,
+        certificateSerial: signedData.certificateSerial,
+        certificateIssuer: signedData.certificateIssuer,
+        certificateSubject: signedData.certificateSubject,
+        vendor: signedData.vendor,
+      },
+    });
+
+    if (!completeResponse.success) {
+      return;
+    }
+
+    const publishOwnerSignedResponse =
+      await publishOwnerSignedMutation.mutateAsync(contract.contractId);
+
+    if (!publishOwnerSignedResponse.success) {
+      return;
+    }
+
+    onSigned?.();
     setIsPinModalOpen(false);
     onClose();
   };
@@ -892,7 +949,9 @@ function ContractSigningForm({ contract, onClose }: ContractSigningFormProps) {
             isSigning={
               publishDraftMutation.isPending ||
               signingSessionMutation.isPending ||
-              signPdfCmsMutation.isPending
+              signPdfCmsMutation.isPending ||
+              completeSigningSessionMutation.isPending ||
+              publishOwnerSignedMutation.isPending
             }
             onClose={() => setIsPinModalOpen(false)}
             onPinChange={setPin}
@@ -907,6 +966,7 @@ function ContractSigningForm({ contract, onClose }: ContractSigningFormProps) {
 export default function ContractSigningModal({
   contract,
   onClose,
+  onSigned,
 }: ContractSigningModalProps) {
   return (
     <AnimatePresence>
@@ -915,6 +975,7 @@ export default function ContractSigningModal({
           key={contract.contractId}
           contract={contract}
           onClose={onClose}
+          onSigned={onSigned}
         />
       )}
     </AnimatePresence>

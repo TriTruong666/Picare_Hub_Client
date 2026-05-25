@@ -143,7 +143,17 @@ export type SigningCompletePayload = {
   signatureHex: string;
   certificatePem: string;
   certificateSerial: string;
-  certificaateIssuer: string;
+  certificateIssuer: string;
   certificateSubject: string;
   vendor: string;
+};
+
+export type SigningCompleteResponse = {
+  contractId: string;
+  contractSignatureId: string;
+  signedDocumentId: string;
+  signedPdfHash: string;
+  signedPdfUrl: string;
+  documentVersion: number;
+  status: ContractStatus;
 };

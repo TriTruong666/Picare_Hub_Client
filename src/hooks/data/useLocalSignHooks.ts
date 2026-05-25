@@ -5,6 +5,10 @@ import { useFetch, useSuspenseFetch } from "../useQuery";
 import { toast } from "../useToast";
 import type { SignPDFCMSPayload } from "@/types/LocalSign";
 
+type MutationToastOptions = {
+  showSuccessToast?: boolean;
+};
+
 /**
  * Hook kiểm tra trạng thái local signing service
  */
@@ -100,12 +104,16 @@ export function useSuspenseCertificate(params: {
 /**
  * Hook ký PDF CMS bằng USB token
  */
-export function useSignPdfCms() {
+export function useSignPdfCms(options?: MutationToastOptions) {
+  const { showSuccessToast = true } = options ?? {};
+
   return useMutation({
     mutationFn: (data: SignPDFCMSPayload) => LocalSignService.signPdfCms(data),
     onSuccess: (data) => {
       if (data.success) {
-        toast.success("Thành công", "Ký số PDF thành công");
+        if (showSuccessToast) {
+          toast.success("Thành công", "Ký số PDF thành công");
+        }
       } else {
         toast.error(
           "Thất bại",
