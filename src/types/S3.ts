@@ -56,3 +56,13 @@ export type S3Folder = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type CreateS3FolderPayload = {
+  name: string;
+  description: string;
+};
+
+export type UpdateS3FolderPayload = {
+  name: string;
+  description: string;
+};

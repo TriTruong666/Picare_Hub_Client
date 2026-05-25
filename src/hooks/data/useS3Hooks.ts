@@ -1,7 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as S3Service from "@/apis/s3.service";
 import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
-import type { GetPresignedURLRequest, UploadS3Request } from "@/types/S3";
+import type {
+  CreateS3FolderPayload,
+  GetPresignedURLRequest,
+  UploadS3Request,
+} from "@/types/S3";
 import { useFetch } from "../useQuery";
 import { toast } from "../useToast";
 
@@ -96,6 +100,30 @@ export function useS3Assets(params: {
  */
 export function useS3Folders() {
   return useFetch(["s3-folders"], () => S3Service.getS3Folders());
+}
+
+/**
+ * Hook tạo folder S3
+ */
+export function useCreateS3Folder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateS3FolderPayload) =>
+      S3Service.createS3Folder(payload),
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã tạo thư mục mới");
+        queryClient.invalidateQueries({ queryKey: ["s3-folders"] });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
 }
 
 /**

@@ -602,9 +602,9 @@ function StorageTable({
   onUpload: () => void;
   pagination: ReactNode;
 }) {
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
+      <div className="flex min-h-100 flex-col items-center justify-center py-10">
         <Spinner size="lg" />
         <p className="mt-4 text-sm font-medium text-gray-500">
           Đang tải dữ liệu...
@@ -633,17 +633,6 @@ function StorageTable({
 
   return (
     <div className="relative">
-      {isFetching && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/50 backdrop-blur-[1px] dark:bg-black/20">
-          <div className="flex flex-col items-center gap-2 rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
-            <Spinner size="md" />
-            <span className="text-xs font-medium text-gray-500">
-              Đang cập nhật...
-            </span>
-          </div>
-        </div>
-      )}
-
       <div className="overflow-x-auto">
         <table className="w-full min-w-[850px] table-fixed border-collapse border-x border-t border-gray-400 text-left dark:border-white/10">
           <thead>

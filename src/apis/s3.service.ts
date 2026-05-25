@@ -1,9 +1,11 @@
 import type { BasePaginatedResponse, BaseResponse } from "@/types/ApiResponse";
 import type {
+  CreateS3FolderPayload,
   GetPresignedURLRequest,
   GetPresignedURLResponse,
   S3Asset,
   S3Folder,
+  UpdateS3FolderPayload,
   UploadS3Request,
   UploadS3Response,
 } from "@/types/S3";
@@ -43,6 +45,13 @@ export async function getS3Assets(params: {
   return res.data;
 }
 
+export async function downloadS3AssetByKey(
+  key: string,
+): Promise<BaseResponse<null>> {
+  const res = await hubAxiosClient.get(`/api/v1/s3/download/${key}`);
+  return res.data;
+}
+
 export async function getS3Folders(): Promise<
   BasePaginatedResponse<S3Folder[]>
 > {
@@ -50,9 +59,20 @@ export async function getS3Folders(): Promise<
   return res.data;
 }
 
-export async function downloadS3AssetByKey(
-  key: string,
+export async function createS3Folder(
+  payload: CreateS3FolderPayload,
 ): Promise<BaseResponse<null>> {
-  const res = await hubAxiosClient.get(`/api/v1/s3/download/${key}`);
+  const res = await hubAxiosClient.post("/api/v1/s3-folders", payload);
+  return res.data;
+}
+
+export async function updateS3Folder(
+  payload: UpdateS3FolderPayload,
+  folderId: string,
+): Promise<BaseResponse<null>> {
+  const res = await hubAxiosClient.put(
+    `/api/v1/s3-folders/${folderId}`,
+    payload,
+  );
   return res.data;
 }

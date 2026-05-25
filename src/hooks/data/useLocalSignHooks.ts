@@ -15,6 +15,15 @@ export function useLocalSigningServiceHealth() {
 }
 
 /**
+ * Hook kiểm tra thủ công trạng thái local signing service
+ */
+export function useCheckLocalSigningService() {
+  return useMutation({
+    mutationFn: () => LocalSignService.checkLocalSigningService(),
+  });
+}
+
+/**
  * Hook kiểm tra trạng thái local signing service (Suspense version)
  */
 export function useSuspenseLocalSigningServiceHealth() {

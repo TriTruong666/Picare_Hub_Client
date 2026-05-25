@@ -9,7 +9,7 @@ import type {
 export const checkLocalSigningService = async (): Promise<
   BaseResponse<CheckHealthResponse>
 > => {
-  const res = await localSigningAxiosClient.get("/health");
+  const res = await localSigningAxiosClient.get("/health", { timeout: 3000 });
   return res.data;
 };
 
