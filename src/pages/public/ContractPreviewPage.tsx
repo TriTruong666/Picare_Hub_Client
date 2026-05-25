@@ -1,15 +1,13 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { FiEdit3, FiPenTool } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
+import ContractSigningModal from "@/components/modals/ContractSigningModal";
 import { PATHS } from "@/config/paths";
-import {
-  useContractDetail,
-  useCreateSigningSession,
-} from "@/hooks/data/useContractHooks";
-import { toast } from "@/hooks/useToast";
+import { useContractDetail } from "@/hooks/data/useContractHooks";
 import type {
   Contract,
   ContractDetail,
@@ -339,60 +337,35 @@ function DockButton({
 
 function ContractActionDock({ contract }: { contract: Contract }) {
   const navigate = useNavigate();
-  const signingSessionMutation = useCreateSigningSession();
-
-  const handleSign = async () => {
-    const signerEmail = contract.ownerCompanyInfo.email;
-    const signerName = contract.ownerCompanyInfo.ownerName;
-
-    if (!signerEmail || !signerName) {
-      toast.error(
-        "Thiếu thông tin ký",
-        "Hợp đồng chưa có email hoặc tên người đại diện bên ký.",
-      );
-      return;
-    }
-
-    const response = await signingSessionMutation.mutateAsync({
-      contractId: contract.contractId,
-      data: {
-        signerType: "owner",
-        signerEmail,
-        signerName,
-      },
-    });
-
-    const localSignUrl = response.data?.localSignUrl;
-    if (response.success && localSignUrl) {
-      window.location.assign(localSignUrl);
-    }
-  };
+  const [signingContract, setSigningContract] = useState<Contract | null>(null);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 18, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.22, ease: "easeOut" }}
-      className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
-    >
-      <DockButton
-        label="Ký hợp đồng"
-        icon={
-          signingSessionMutation.isPending ? (
-            <Spinner size="sm" color="white" />
-          ) : (
-            <FiPenTool />
-          )
-        }
-        onClick={handleSign}
-        disabled={signingSessionMutation.isPending}
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 18, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+        className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+      >
+        <DockButton
+          label="Ký hợp đồng"
+          icon={<FiPenTool />}
+          onClick={() => setSigningContract(contract)}
+        />
+        {contract.status === "draft" ? (
+          <DockButton
+            label="Chỉnh sửa hợp đồng"
+            icon={<FiEdit3 />}
+            onClick={() => navigate(getEditPath(contract.contractId))}
+          />
+        ) : null}
+      </motion.div>
+
+      <ContractSigningModal
+        contract={signingContract}
+        onClose={() => setSigningContract(null)}
       />
-      <DockButton
-        label="Chỉnh sửa hợp đồng"
-        icon={<FiEdit3 />}
-        onClick={() => navigate(getEditPath(contract.contractId))}
-      />
-    </motion.div>
+    </>
   );
 }
 

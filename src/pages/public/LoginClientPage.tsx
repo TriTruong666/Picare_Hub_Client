@@ -6,6 +6,10 @@ import loginMockup from "@/assets/images/login_mockup.jpeg";
 import { useHubClients } from "@/hooks/data/useHubClientHooks";
 import { useNavigate } from "react-router-dom";
 import { PATHS } from "@/config/paths";
+import {
+  DIGITAL_CONTRACT_CLIENT_ID,
+  STATIC_HUB_CLIENTS,
+} from "@/constants/staticHubClients";
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
 function ClientCard({ client, index }: { client: HubClient; index: number }) {
@@ -15,9 +19,16 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
   const [mockupSrc, setMockupSrc] = useState(preferredMockup);
 
   const handleAccess = () => {
-    if (isActive) {
-      navigate(`${PATHS.LOGIN_CLIENT}?clientId=${client.clientId}`);
+    if (!isActive) {
+      return;
     }
+
+    if (client.clientId === DIGITAL_CONTRACT_CLIENT_ID) {
+      navigate(client.clientInternalUrl || PATHS.CONTRACT_CREATE);
+      return;
+    }
+
+    navigate(`${PATHS.LOGIN_CLIENT}?clientId=${client.clientId}`);
   };
 
   return (
@@ -101,19 +112,19 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
 function ClientSkeleton() {
   return (
     <div className="relative flex flex-col border-r border-b border-white/[0.07] bg-[#050505]">
-      <div className="aspect-video w-full animate-pulse border-b border-white/[0.07] bg-white/[0.03]" />
+      <div className="aspect-video w-full animate-pulse border-b border-white/[0.07] bg-white/3" />
       <div className="flex flex-1 flex-col space-y-4 px-6 py-6">
         <div className="h-5 w-32 animate-pulse rounded-full bg-white/5" />
         <div className="space-y-2">
-          <div className="h-3 w-full animate-pulse rounded-full bg-white/[0.03]" />
-          <div className="h-3 w-2/3 animate-pulse rounded-full bg-white/[0.03]" />
+          <div className="h-3 w-full animate-pulse rounded-full bg-white/3" />
+          <div className="h-3 w-2/3 animate-pulse rounded-full bg-white/3" />
         </div>
         <div className="mt-auto flex items-center justify-between pt-6">
           <div className="flex gap-2">
             <div className="h-5 w-14 animate-pulse border border-white/5 bg-white/1" />
-            <div className="h-5 w-14 animate-pulse border border-white/[0.05] bg-white/1" />
+            <div className="h-5 w-14 animate-pulse border border-white/5 bg-white/1" />
           </div>
-          <div className="h-8 w-24 animate-pulse border border-white/[0.05] bg-white/[0.01]" />
+          <div className="h-8 w-24 animate-pulse border border-white/5 bg-white/1" />
         </div>
       </div>
     </div>
@@ -123,7 +134,7 @@ function ClientSkeleton() {
 // ─── Empty Placeholder ────────────────────────────────────────────────────────
 function EmptyCard() {
   return (
-    <div className="relative min-h-[400px] border-r border-b border-white/[0.07] bg-transparent" />
+    <div className="relative min-h-100 border-r border-b border-white/[0.07] bg-transparent" />
   );
 }
 
@@ -134,7 +145,7 @@ export default function LoginClientPage() {
     status: "active",
   });
 
-  const clientList = clients || [];
+  const clientList = [...(clients || []), ...STATIC_HUB_CLIENTS];
   const minSlots = 6;
   const placeholders = Math.max(0, minSlots - clientList.length);
 

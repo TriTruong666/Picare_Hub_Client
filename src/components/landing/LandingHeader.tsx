@@ -15,6 +15,7 @@ import { useHubClients } from "@/hooks/data/useHubClientHooks";
 import type { HubClient } from "@/types/HubClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/data/useAuthHooks";
+import { STATIC_HUB_CLIENTS } from "@/constants/staticHubClients";
 
 export default function LandingHeader() {
   const [activeTab, setActiveTab] = useState("Giới thiệu");
@@ -59,7 +60,7 @@ export default function LandingHeader() {
   });
 
   const totalPages = fullResponse?.pagination?.totalPages || 1;
-  const displayedItems = hubClients || [];
+  const displayedItems = [...(hubClients || []), ...STATIC_HUB_CLIENTS];
 
   const nextMore = () => {
     setCurrentPage((prev) => (prev + 1) % totalPages);
