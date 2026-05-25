@@ -36,7 +36,18 @@ export function useSuspenseLocalSigningServiceHealth() {
  * Hook lấy thông tin USB token
  */
 export function useUSBInfo() {
-  return useFetch(["local-sign", "tokens"], () => LocalSignService.getUSBInfo());
+  return useFetch(["local-sign", "tokens"], () =>
+    LocalSignService.getUSBInfo(),
+  );
+}
+
+/**
+ * Hook quét USB token thủ công
+ */
+export function useGetUSBInfoMutation() {
+  return useMutation({
+    mutationFn: () => LocalSignService.getUSBInfo(),
+  });
 }
 
 /**
@@ -62,6 +73,16 @@ export function useCertificate(params: {
       enabled: !!params.certificateId && !!params.vendor,
     },
   );
+}
+
+/**
+ * Hook lấy certificate thủ công
+ */
+export function useGetCertificateMutation() {
+  return useMutation({
+    mutationFn: (params: { certificateId: string; vendor: string }) =>
+      LocalSignService.getCertificate(params),
+  });
 }
 
 /**

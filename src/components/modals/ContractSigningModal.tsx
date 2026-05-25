@@ -2,9 +2,10 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  FiAlertTriangle,
   FiCheckCircle,
+  FiCreditCard,
   FiDownload,
+  FiLock,
   FiPenTool,
   FiRefreshCw,
 } from "react-icons/fi";
@@ -15,10 +16,19 @@ import {
   useCreateSigningSession,
   usePublishDraftContract,
 } from "@/hooks/data/useContractHooks";
-import { useCheckLocalSigningService } from "@/hooks/data/useLocalSignHooks";
+import {
+  useCheckLocalSigningService,
+  useGetCertificateMutation,
+  useGetUSBInfoMutation,
+  useSignPdfCms,
+} from "@/hooks/data/useLocalSignHooks";
 import { toast } from "@/hooks/useToast";
 import type { Contract } from "@/types/Contract";
-import type { CheckHealthResponse } from "@/types/LocalSign";
+import type {
+  CertificateResponse,
+  CheckHealthResponse,
+  USBInfoResponse,
+} from "@/types/LocalSign";
 import type { BaseResponse } from "@/types/ApiResponse";
 
 type ContractSigningModalProps = {
@@ -56,6 +66,15 @@ function isLocalSigningServiceReady(
   );
 }
 
+function isAvailableToken(token: USBInfoResponse) {
+  return (
+    token.available !== false &&
+    !!token.token &&
+    Array.isArray(token.certificates) &&
+    token.certificates.length > 0
+  );
+}
+
 function LocalSignAppGuideModal({
   isChecking,
   onRetry,
@@ -80,15 +99,12 @@ function LocalSignAppGuideModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 12 }}
         transition={{ type: "spring", duration: 0.35 }}
-        className="dashboard-theme relative flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_90px_rgba(0,0,0,0.75)]"
+        className="dashboard-theme relative flex max-h-[calc(100vh-2rem)] min-h-0 w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_90px_rgba(0,0,0,0.75)]"
       >
-        <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.04] px-6 py-5">
+        <div className="flex shrink-0 items-start justify-between gap-5 border-b border-white/10 px-6 py-5 md:px-8 md:py-7">
           <div>
-            <p className="text-[10px] font-semibold tracking-[0.24em] text-indigo-300 uppercase">
-              Thông báo ký số
-            </p>
-            <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
-              Cần cài đặt hoặc mở ứng dụng ký số Picare
+            <h2 className="mt-3 text-lg leading-tight font-semibold tracking-tight text-white">
+              Cần phần mềm Picare Sign Helper
             </h2>
           </div>
 
@@ -101,67 +117,223 @@ function LocalSignAppGuideModal({
           </button>
         </div>
 
-        <div className="max-h-[74vh] overflow-y-auto px-6 py-6">
-          <div className="mb-6 rounded-xl border border-indigo-400/20 bg-indigo-500/10 px-4 py-5 text-center">
-            <pre className="overflow-hidden text-[9px] leading-[1.05] font-bold tracking-[-0.02em] text-indigo-100 sm:text-[11px] md:text-xs">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5 md:px-8 md:py-7">
+          <article className="mx-auto max-w-2xl">
+            <pre className="mb-7 overflow-hidden border-white/10 py-5 text-center text-[9px] leading-[1.05] font-bold tracking-[-0.02em] text-white/80 sm:text-[11px] md:text-xs">
               {PICAREVN_ASCII}
             </pre>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-white/70">
-              Picare Digital Sign Helper là ứng dụng hỗ trợ ký số trên máy tính
-              Windows. Ứng dụng giúp Picare nhận USB Token của bạn và mở bước ký
-              hợp đồng ngay trên máy đang sử dụng.
-            </p>
-          </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <section className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
-              <p className="text-sm font-semibold text-white">
-                1. Tải ứng dụng
+            <section>
+              <h3 className="text-base font-semibold text-white">
+                Ứng dụng này dùng để làm gì?
+              </h3>
+              <p className="mt-3 text-[15px] leading-7 text-white/72">
+                <strong className="font-semibold text-white">
+                  Picare Digital Sign Helper
+                </strong>{" "}
+                là ứng dụng chạy trên Windows, giúp Picare kết nối với{" "}
+                <strong className="font-semibold text-white">
+                  USB Token ký số
+                </strong>{" "}
+                của bạn. Khi ứng dụng đang chạy, hệ thống có thể mở bước ký hợp
+                đồng và dùng USB Token để hoàn tất chữ ký số.
               </p>
-              <p className="mt-2 text-xs leading-relaxed text-white/55">
-                Bấm nút tải bên dưới và lưu file cài đặt về máy tính Windows.
-              </p>
-            </section>
-
-            <section className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
-              <p className="text-sm font-semibold text-white">
-                2. Cài đặt ứng dụng
-              </p>
-              <p className="mt-2 text-xs leading-relaxed text-white/55">
-                Mở file cài đặt, chọn đồng ý khi Windows hỏi quyền, sau đó làm
-                theo các bước hiển thị trên màn hình.
-              </p>
-            </section>
-
-            <section className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
-              <p className="text-sm font-semibold text-white">3. Quay lại ký</p>
-              <p className="mt-2 text-xs leading-relaxed text-white/55">
-                Cắm USB Token, đảm bảo phần mềm USB Token của nhà cung cấp đã
-                sẵn sàng, rồi bấm kiểm tra lại.
-              </p>
-            </section>
-          </div>
-
-          <div className="mt-5 rounded-xl border border-amber-300/20 bg-amber-300/8 p-4">
-            <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-300/10 text-amber-100">
-                <FiAlertTriangle />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-amber-50">
-                  Các file và thiết bị cần có
+              <div className="mt-5 border-l border-white/20 pl-5">
+                <p className="text-sm leading-7 font-medium text-white/85">
+                  Cần làm trước khi ký: cài ứng dụng, mở ứng dụng, cắm USB
+                  Token, rồi bấm kiểm tra lại.
                 </p>
-                <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-amber-100/75">
-                  <li>File cài đặt: Picare Digital Sign Helper.</li>
-                  <li>USB Token ký số đang dùng cho doanh nghiệp.</li>
-                  <li>Phần mềm USB Token từ nhà cung cấp chữ ký số.</li>
-                </ul>
               </div>
-            </div>
-          </div>
+              <div className="mt-5 space-y-3 text-sm leading-7 text-white/60">
+                <p>
+                  Ứng dụng là{" "}
+                  <strong className="font-semibold text-white/85">
+                    cầu nối cục bộ
+                  </strong>{" "}
+                  giữa trình duyệt, hệ thống Picare và USB Token, giúp thao tác
+                  ký số diễn ra trực tiếp trên máy người dùng.
+                </p>
+                <p>
+                  Dịch vụ chạy ngầm dưới dạng{" "}
+                  <strong className="font-semibold text-white/85">
+                    Windows Service
+                  </strong>
+                  , tự khởi động cùng hệ thống và chỉ lắng nghe trên địa chỉ nội
+                  bộ của máy.
+                </p>
+                <p>
+                  Cửa sổ trạng thái, nếu có, chỉ dùng để kiểm tra dịch vụ và
+                  không phải tiến trình xử lý ký số chính.
+                </p>
+                <p>
+                  Mọi thao tác ký số được xử lý trực tiếp tại thiết bị nội bộ
+                  của người dùng, thông qua driver USB Token đã cài trên
+                  Windows.
+                </p>
+              </div>
+            </section>
+
+            <section className="mt-8 border-t border-white/10 pt-7">
+              <h3 className="text-base font-semibold text-white">
+                Thông tin bảo mật và pháp lý
+              </h3>
+              <div className="mt-4 border-l border-white/20 pl-5">
+                <p className="text-sm leading-7 font-medium text-white/85">
+                  Ứng dụng không lưu mã PIN và không sao chép khóa bí mật khỏi
+                  USB Token.
+                </p>
+              </div>
+              <div className="mt-5 space-y-3 text-sm leading-7 text-white/60">
+                <p>
+                  Ứng dụng{" "}
+                  <strong className="font-semibold text-white/85">
+                    không thu thập, không lưu trữ và không gửi mã PIN
+                  </strong>{" "}
+                  ra bên ngoài.
+                </p>
+                <p>
+                  <strong className="font-semibold text-white/85">
+                    Khóa bí mật không rời khỏi USB Token
+                  </strong>{" "}
+                  và không được sao chép bởi ứng dụng.
+                </p>
+                <p>
+                  Chứng thư số chỉ được đọc để phục vụ thao tác ký số hợp lệ
+                  theo yêu cầu từ hệ thống được ủy quyền.
+                </p>
+                <p>
+                  Ứng dụng chỉ xử lý yêu cầu từ phần mềm Picare hoặc hệ thống
+                  tích hợp đã được cấu hình hợp lệ.
+                </p>
+                <p>
+                  Dữ liệu ký số được xử lý theo từng phiên yêu cầu, không tự ý
+                  tạo, sửa, gửi hoặc phát sinh giao dịch ngoài phạm vi nghiệp
+                  vụ.
+                </p>
+                <p>
+                  Người dùng chịu trách nhiệm bảo vệ USB Token, mã PIN, tài
+                  khoản đăng nhập và quyền truy cập máy tính.
+                </p>
+                <p>
+                  Việc sử dụng chữ ký số cần tuân thủ quy định pháp luật Việt
+                  Nam hiện hành và chính sách của đơn vị phát hành chứng thư số.
+                </p>
+                <p>
+                  Không sử dụng ứng dụng cho hành vi giả mạo, trái phép, vượt
+                  quyền hoặc ngoài phạm vi nghiệp vụ đã được cấp phép.
+                </p>
+                <p>
+                  Nếu chạy bằng Windows Service, cửa sổ CMD chỉ dùng để theo dõi
+                  và có thể tắt.
+                </p>
+              </div>
+            </section>
+
+            <section className="mt-8 border-t border-white/10 pt-7">
+              <h3 className="text-base font-semibold text-white">
+                Nếu bạn chưa cài ứng dụng
+              </h3>
+              <div className="mt-4 space-y-3 text-sm leading-7 text-white/60">
+                <p>
+                  <strong className="mr-2 text-white">1.</strong>Bấm nút{" "}
+                  <strong className="font-semibold text-white">
+                    tải ứng dụng
+                  </strong>{" "}
+                  ở cuối thông báo này để tải file cài đặt về máy tính.
+                </p>
+                <p>
+                  <strong className="mr-2 text-white">2.</strong>Mở file vừa
+                  tải, chọn đồng ý khi Windows hỏi quyền cài đặt, rồi làm theo
+                  các bước hiển thị trên màn hình.
+                </p>
+                <p>
+                  <strong className="mr-2 text-white">3.</strong>Sau khi cài
+                  xong,{" "}
+                  <strong className="font-semibold text-white">
+                    cắm USB Token ký số
+                  </strong>{" "}
+                  vào máy và quay lại màn hình này để kiểm tra lại.
+                </p>
+              </div>
+            </section>
+
+            <section className="mt-8 border-t border-white/10 pt-7">
+              <h3 className="text-base font-semibold text-white">
+                Nếu bạn đã cài nhưng quên bật ứng dụng
+              </h3>
+              <div className="mt-4 space-y-3 text-sm leading-7 text-white/60">
+                <p>
+                  <strong className="mr-2 text-white">1.</strong>Mở ứng dụng{" "}
+                  <strong className="font-semibold text-white">
+                    Picare Digital Sign Helper
+                  </strong>{" "}
+                  trên máy tính Windows.
+                </p>
+                <p>
+                  <strong className="mr-2 text-white">2.</strong>
+                  <strong className="font-semibold text-white">
+                    Giữ ứng dụng đang chạy
+                  </strong>{" "}
+                  trong lúc ký hợp đồng. Nếu Windows có hỏi quyền truy cập, hãy
+                  chọn cho phép.
+                </p>
+                <p>
+                  <strong className="mr-2 text-white">3.</strong>Cắm USB Token
+                  và đảm bảo phần mềm USB Token của nhà cung cấp chữ ký số đã
+                  sẵn sàng.
+                </p>
+                <p>
+                  <strong className="mr-2 text-white">4.</strong>Quay lại đây và
+                  bấm{" "}
+                  <strong className="font-semibold text-white">
+                    kiểm tra lại
+                  </strong>
+                  . Khi ứng dụng hoạt động, bạn có thể tiếp tục xác nhận ký.
+                </p>
+              </div>
+            </section>
+
+            <section className="mt-8 border-t border-white/10 pt-7">
+              <h3 className="text-base font-semibold text-white">
+                Những thứ cần chuẩn bị
+              </h3>
+              <div className="mt-4 space-y-3 text-sm leading-7 text-white/60">
+                <p>
+                  <strong className="font-semibold text-white/85">
+                    File cài đặt:
+                  </strong>{" "}
+                  Picare Digital Sign Helper.
+                </p>
+                <p>
+                  <strong className="font-semibold text-white/85">
+                    Thiết bị:
+                  </strong>{" "}
+                  USB Token ký số đang dùng cho doanh nghiệp.
+                </p>
+                <p>
+                  <strong className="font-semibold text-white/85">
+                    Phần mềm đi kèm:
+                  </strong>{" "}
+                  phần mềm USB Token từ nhà cung cấp chữ ký số của bạn.
+                </p>
+              </div>
+            </section>
+
+            <section className="mt-8 border-t border-white/10 pt-7">
+              <h3 className="text-base font-semibold text-white">
+                Nếu bạn không biết tải ở đâu
+              </h3>
+              <p className="mt-4 text-sm leading-7 text-white/60">
+                Bấm nút tải ứng dụng bên dưới. Đường dẫn tải:
+              </p>
+              <p className="mt-3 border-l border-white/15 pl-4 text-sm leading-6 break-all text-white/45">
+                {LOCAL_SIGN_APP_DOWNLOAD_URL}
+              </p>
+            </section>
+          </article>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-white/10 bg-white/[0.04] p-6 sm:flex-row sm:justify-end">
+        <div className="flex shrink-0 flex-col gap-3 border-white/10 px-6 py-4 sm:flex-row sm:justify-end md:px-8 md:py-6">
           <button
             type="button"
             onClick={onClose}
@@ -173,7 +345,7 @@ function LocalSignAppGuideModal({
             href={LOCAL_SIGN_APP_DOWNLOAD_URL}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95"
+            className="flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-95"
           >
             <FiDownload size={15} />
             Tải ứng dụng
@@ -193,8 +365,210 @@ function LocalSignAppGuideModal({
   );
 }
 
+function TokenSelectionModal({
+  tokens,
+  isLoading,
+  onSelect,
+  onClose,
+}: {
+  tokens: USBInfoResponse[];
+  isLoading: boolean;
+  onSelect: (token: USBInfoResponse) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[320] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/70 backdrop-blur-md"
+      />
+
+      <motion.div
+        initial={{ scale: 0.96, opacity: 0, y: 12 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.96, opacity: 0, y: 12 }}
+        transition={{ type: "spring", duration: 0.35 }}
+        className="dashboard-theme relative flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_90px_rgba(0,0,0,0.75)]"
+      >
+        <div className="flex items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
+          <div>
+            <h2 className="text-base font-semibold text-white">
+              Chọn USB Token ký số
+            </h2>
+            <p className="mt-1 text-[12px] leading-6 text-white/45">
+              Hệ thống chỉ hiển thị các token đang khả dụng trên máy này.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-2 text-white/45 transition hover:bg-white/10 hover:text-white"
+          >
+            <HiOutlineX className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="max-h-[60vh] overflow-y-auto p-6">
+          {tokens.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-sm font-medium text-white">
+                Không phát hiện USB Token khả dụng
+              </p>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-white/45">
+                Vui lòng cắm USB Token, mở phần mềm token của nhà cung cấp rồi
+                thử lại.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {tokens.map((token) => {
+                const certificate = token.certificates?.[0];
+
+                return (
+                  <button
+                    key={`${token.vendor}-${token.token?.serialNumber || token.label}`}
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => onSelect(token)}
+                    className="group w-full rounded-xl border border-white/10 p-4 text-left transition hover:border-white/25 hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 text-white/60">
+                        <FiCreditCard />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-white">
+                          {token.label}
+                        </p>
+                        <p className="mt-1 truncate text-xs text-white/45">
+                          {token.token?.label || "USB Token"}
+                        </p>
+                        <p className="mt-2 line-clamp-2 text-xs leading-5 text-white/40">
+                          {certificate?.label || "Chứng thư số khả dụng"}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function PinSigningModal({
+  token,
+  certificate,
+  pin,
+  isSigning,
+  onPinChange,
+  onSubmit,
+  onClose,
+}: {
+  token: USBInfoResponse;
+  certificate: CertificateResponse | null;
+  pin: string;
+  isSigning: boolean;
+  onPinChange: (pin: string) => void;
+  onSubmit: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[330] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => !isSigning && onClose()}
+        className="absolute inset-0 bg-black/70 backdrop-blur-md"
+      />
+
+      <motion.div
+        initial={{ scale: 0.96, opacity: 0, y: 12 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.96, opacity: 0, y: 12 }}
+        transition={{ type: "spring", duration: 0.35 }}
+        className="dashboard-theme relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_90px_rgba(0,0,0,0.75)]"
+      >
+        <div className="flex items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
+          <div>
+            <h2 className="text-base font-semibold text-white">
+              Nhập mã PIN USB Token
+            </h2>
+            <p className="mt-1 text-[11px] leading-6 text-white/45">
+              Mã PIN chỉ được gửi tới ứng dụng ký số local trên máy của bạn.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            disabled={isSigning}
+            onClick={onClose}
+            className="rounded-lg p-2 text-white/45 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <HiOutlineX className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-5 p-6">
+          <div className="border-l border-white/15 pl-4">
+            <p className="text-sm font-semibold text-white">{token.label}</p>
+            <p className="mt-1 text-xs leading-5 text-white/45">
+              {certificate?.label || token.certificates?.[0]?.label}
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+              Mã PIN
+            </label>
+            <input
+              type="password"
+              value={pin}
+              disabled={isSigning}
+              onChange={(event) => onPinChange(event.target.value)}
+              placeholder="Nhập mã PIN USB Token"
+              className="h-11 w-full rounded-lg border border-white/10 bg-white/[0.06] px-4 text-sm text-white transition-all outline-none placeholder:text-white/25 hover:border-white/20 hover:bg-white/[0.08] focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
+          <button
+            type="button"
+            disabled={isSigning}
+            onClick={onClose}
+            className="rounded-lg px-4 py-2 text-sm text-white/60 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            disabled={isSigning || !pin.trim()}
+            onClick={onSubmit}
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSigning ? <Spinner size="sm" /> : <FiLock size={14} />}
+            Ký hợp đồng
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function ContractSigningForm({ contract, onClose }: ContractSigningFormProps) {
   const checkLocalSigningMutation = useCheckLocalSigningService();
+  const getUSBInfoMutation = useGetUSBInfoMutation();
+  const getCertificateMutation = useGetCertificateMutation();
+  const signPdfCmsMutation = useSignPdfCms();
   const publishDraftMutation = usePublishDraftContract();
   const signingSessionMutation = useCreateSigningSession();
 
@@ -205,9 +579,25 @@ function ContractSigningForm({ contract, onClose }: ContractSigningFormProps) {
     contract.ownerCompanyInfo.email || "",
   );
   const [isLocalAppGuideOpen, setIsLocalAppGuideOpen] = useState(false);
+  const [availableTokens, setAvailableTokens] = useState<USBInfoResponse[]>([]);
+  const [isTokenSelectionOpen, setIsTokenSelectionOpen] = useState(false);
+  const [selectedToken, setSelectedToken] = useState<USBInfoResponse | null>(
+    null,
+  );
+  const [selectedCertificate, setSelectedCertificate] =
+    useState<CertificateResponse | null>(null);
+  const [pin, setPin] = useState("");
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [pendingSigner, setPendingSigner] = useState<{
+    name: string;
+    email: string;
+  } | null>(null);
 
   const isSubmitting =
     checkLocalSigningMutation.isPending ||
+    getUSBInfoMutation.isPending ||
+    getCertificateMutation.isPending ||
+    signPdfCmsMutation.isPending ||
     publishDraftMutation.isPending ||
     signingSessionMutation.isPending;
 
@@ -226,6 +616,112 @@ function ContractSigningForm({ contract, onClose }: ContractSigningFormProps) {
       setIsLocalAppGuideOpen(true);
       return false;
     }
+  };
+
+  const scanAvailableTokens = async () => {
+    const tokenResponse = await getUSBInfoMutation.mutateAsync();
+
+    if (!tokenResponse.success) {
+      toast.error(
+        "Không thể quét USB Token",
+        tokenResponse.message || "Vui lòng kiểm tra lại ứng dụng ký số local.",
+      );
+      return [];
+    }
+
+    const tokens = (tokenResponse.data || []).filter(isAvailableToken);
+    setAvailableTokens(tokens);
+
+    if (tokens.length === 0) {
+      toast.error(
+        "Không phát hiện USB Token",
+        "Vui lòng cắm USB Token và đảm bảo phần mềm token của nhà cung cấp đã sẵn sàng.",
+      );
+    }
+
+    return tokens;
+  };
+
+  const handleSelectToken = async (token: USBInfoResponse) => {
+    const certificateId = token.certificates?.[0]?.certificateId;
+
+    if (!certificateId) {
+      toast.error(
+        "Không có chứng thư số",
+        "USB Token này chưa có chứng thư số khả dụng để ký hợp đồng.",
+      );
+      return;
+    }
+
+    const certificateResponse = await getCertificateMutation.mutateAsync({
+      vendor: token.vendor,
+      certificateId,
+    });
+
+    if (!certificateResponse.success || !certificateResponse.data) {
+      toast.error(
+        "Không lấy được chứng thư số",
+        certificateResponse.message ||
+          "Vui lòng kiểm tra USB Token và thử lại.",
+      );
+      return;
+    }
+
+    setSelectedToken(token);
+    setSelectedCertificate(certificateResponse.data);
+    setPin("");
+    setIsTokenSelectionOpen(false);
+    setIsPinModalOpen(true);
+  };
+
+  const handleConfirmPin = async () => {
+    if (!selectedToken || !selectedCertificate || !pendingSigner) return;
+
+    const normalizedPin = pin.trim();
+    if (!normalizedPin) {
+      toast.error("Thiếu mã PIN", "Vui lòng nhập mã PIN USB Token.");
+      return;
+    }
+
+    const publishResponse = await publishDraftMutation.mutateAsync(
+      contract.contractId,
+    );
+
+    if (!publishResponse.success) {
+      return;
+    }
+
+    const sessionResponse = await signingSessionMutation.mutateAsync({
+      contractId: contract.contractId,
+      data: {
+        signerType: "owner",
+        signerEmail: pendingSigner.email,
+        signerName: pendingSigner.name,
+      },
+    });
+
+    const hashToSign = sessionResponse.data?.hashToSign;
+    if (!sessionResponse.success || !hashToSign) {
+      toast.error(
+        "Không thể tạo phiên ký",
+        "Phiên ký chưa có dữ liệu hash để ký số.",
+      );
+      return;
+    }
+
+    const signResponse = await signPdfCmsMutation.mutateAsync({
+      hash: hashToSign,
+      pin: normalizedPin,
+      vendor: selectedToken.vendor,
+      certificateId: selectedCertificate.certificateId,
+    });
+
+    if (!signResponse.success) {
+      return;
+    }
+
+    setIsPinModalOpen(false);
+    onClose();
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -250,35 +746,13 @@ function ContractSigningForm({ contract, onClose }: ContractSigningFormProps) {
       return;
     }
 
-    const publishResponse = await publishDraftMutation.mutateAsync(
-      contract.contractId,
-    );
-
-    if (!publishResponse.success) {
-      return;
-    }
-
-    const sessionResponse = await signingSessionMutation.mutateAsync({
-      contractId: contract.contractId,
-      data: {
-        signerType: "owner",
-        signerEmail: normalizedEmail,
-        signerName: normalizedName,
-      },
+    setPendingSigner({
+      name: normalizedName,
+      email: normalizedEmail,
     });
 
-    const localSignUrl = sessionResponse.data?.localSignUrl;
-    if (sessionResponse.success && localSignUrl) {
-      window.location.assign(localSignUrl);
-      return;
-    }
-
-    if (sessionResponse.success && !localSignUrl) {
-      toast.error(
-        "Thiếu đường dẫn ký",
-        "Phiên ký đã được tạo nhưng không có đường dẫn ký cục bộ.",
-      );
-    }
+    const tokens = await scanAvailableTokens();
+    setIsTokenSelectionOpen(tokens.length > 0);
   };
 
   return (
@@ -394,6 +868,35 @@ function ContractSigningForm({ contract, onClose }: ContractSigningFormProps) {
             isChecking={checkLocalSigningMutation.isPending}
             onClose={() => setIsLocalAppGuideOpen(false)}
             onRetry={ensureLocalSigningReady}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isTokenSelectionOpen && (
+          <TokenSelectionModal
+            tokens={availableTokens}
+            isLoading={getCertificateMutation.isPending}
+            onClose={() => setIsTokenSelectionOpen(false)}
+            onSelect={handleSelectToken}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isPinModalOpen && selectedToken && (
+          <PinSigningModal
+            token={selectedToken}
+            certificate={selectedCertificate}
+            pin={pin}
+            isSigning={
+              publishDraftMutation.isPending ||
+              signingSessionMutation.isPending ||
+              signPdfCmsMutation.isPending
+            }
+            onClose={() => setIsPinModalOpen(false)}
+            onPinChange={setPin}
+            onSubmit={handleConfirmPin}
           />
         )}
       </AnimatePresence>

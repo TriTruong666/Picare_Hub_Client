@@ -5,6 +5,7 @@ import {
   FiArrowLeft,
   FiCheck,
   FiClock,
+  FiSearch,
   FiPlus,
   FiTrash2,
 } from "react-icons/fi";
@@ -18,6 +19,7 @@ import {
   useCreateContract,
   useUpdateContract,
 } from "@/hooks/data/useContractHooks";
+import { useTaxPayerLookup } from "@/hooks/data/useTaxPayerHooks";
 import type {
   Contract,
   CreateContractPayload,
@@ -110,6 +112,10 @@ const PARTNER_FIELDS: {
   },
 ];
 
+const PARTNER_DETAIL_FIELDS = PARTNER_FIELDS.filter(
+  (field) => field.key !== "mst",
+);
+
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
     <label className="mb-1.5 block text-[11px] text-white/40">{children}</label>
@@ -192,6 +198,7 @@ export function ContractFormPage({
   const navigate = useNavigate();
   const createContractMutation = useCreateContract();
   const updateContractMutation = useUpdateContract();
+  const taxPayerLookupMutation = useTaxPayerLookup();
   const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(0);
   const [partnerCompanyInfo, setPartnerCompanyInfo] =
     useState<PartnerCompanyInfoPayload>({
@@ -210,6 +217,10 @@ export function ContractFormPage({
     null,
   );
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isPartnerFormVisible, setIsPartnerFormVisible] = useState(
+    Boolean(initialContract),
+  );
+  const [taxLookupMessage, setTaxLookupMessage] = useState("");
 
   const ownerCompanyInfo = OWNER_TEMPLATES[selectedOwnerIndex];
   const isEditMode = mode === "edit";
@@ -228,6 +239,8 @@ export function ContractFormPage({
 
     setSelectedOwnerIndex(ownerIndex >= 0 ? ownerIndex : 0);
     setPartnerCompanyInfo(initialContract.partnerCompanyInfo);
+    setIsPartnerFormVisible(true);
+    setTaxLookupMessage("");
     setContractDueDate(initialContract.contractDueDate.slice(0, 10));
     setProducts(
       (initialContract.details ?? []).map((detail) => ({
@@ -243,6 +256,63 @@ export function ContractFormPage({
       ...prev,
       [key]: value,
     }));
+
+    if (key === "mst") {
+      setTaxLookupMessage("");
+      if (!isEditMode) {
+        setIsPartnerFormVisible(false);
+      }
+    }
+  };
+
+  const handleTaxLookup = async () => {
+    const mst = partnerCompanyInfo.mst.trim();
+
+    if (!mst) {
+      toast.error("Thiếu mã số thuế", "Vui lòng nhập mã số thuế đối tác.");
+      return;
+    }
+
+    try {
+      const taxPayer = await taxPayerLookupMutation.mutateAsync(mst);
+
+      if (!taxPayer?.taxID) {
+        setTaxLookupMessage("Không tìm thấy mã số thuế này.");
+        return;
+      }
+
+      if (taxPayer.status !== "NNT đang hoạt động") {
+        toast.error(
+          "Mã số thuế không hoạt động",
+          `Trạng thái hiện tại: ${taxPayer.status || "Không xác định"}. Vui lòng kiểm tra lại hoặc nhập mã số thuế khác.`,
+        );
+        setTaxLookupMessage(
+          "Mã số thuế này không ở trạng thái đang hoạt động.",
+        );
+        setIsPartnerFormVisible(false);
+        return;
+      }
+
+      setPartnerCompanyInfo((prev) => ({
+        ...prev,
+        mst: taxPayer.taxID || mst,
+        companyName: taxPayer.name || prev.companyName,
+        address: taxPayer.address || prev.address,
+      }));
+      setTaxLookupMessage(
+        "Đã tìm thấy thông tin doanh nghiệp. Vui lòng bổ sung các thông tin còn thiếu.",
+      );
+      setIsPartnerFormVisible(true);
+    } catch {
+      setTaxLookupMessage(
+        "Không tìm thấy mã số thuế này. Bạn có thể nhập thông tin đối tác thủ công.",
+      );
+    }
+  };
+
+  const handleManualPartnerInput = () => {
+    setTaxLookupMessage("Đang nhập thông tin đối tác thủ công.");
+    setIsPartnerFormVisible(true);
   };
 
   const updateProduct = (
@@ -489,37 +559,94 @@ export function ContractFormPage({
             <section className="border-b border-white/10 py-6">
               <SectionTitle>Công ty đối tác</SectionTitle>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {PARTNER_FIELDS.map((field) => (
-                  <div
-                    key={field.key}
-                    className={field.multiline ? "md:col-span-2" : ""}
-                  >
-                    <FieldLabel>{field.label}</FieldLabel>
-                    {field.multiline ? (
-                      <TextareaInput
-                        id={`partner-${field.key}`}
-                        value={partnerCompanyInfo[field.key]}
-                        onChange={(value) =>
-                          updatePartnerField(field.key, value)
-                        }
-                        placeholder={field.placeholder}
-                        required
-                      />
-                    ) : (
+              <div className="space-y-5">
+                <div>
+                  <FieldLabel>Mã số thuế</FieldLabel>
+                  <div className="flex flex-col gap-3 md:flex-row">
+                    <div className="min-w-0 flex-1">
                       <TextInput
-                        id={`partner-${field.key}`}
-                        type={field.key === "email" ? "email" : "text"}
-                        value={partnerCompanyInfo[field.key]}
-                        onChange={(value) =>
-                          updatePartnerField(field.key, value)
-                        }
-                        placeholder={field.placeholder}
+                        id="partner-mst"
+                        value={partnerCompanyInfo.mst}
+                        onChange={(value) => updatePartnerField("mst", value)}
+                        placeholder="Nhập mã số thuế đối tác"
                         required
                       />
-                    )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleTaxLookup}
+                      disabled={taxPayerLookupMutation.isPending}
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 px-4 text-sm font-medium text-white/75 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {taxPayerLookupMutation.isPending ? (
+                        <Spinner size="sm" />
+                      ) : (
+                        <FiSearch />
+                      )}
+                      Kiểm tra
+                    </button>
                   </div>
-                ))}
+
+                  {taxLookupMessage ? (
+                    <div className="mt-3 flex flex-col gap-3 text-[12px] text-white/45 md:flex-row md:items-center md:justify-between">
+                      <p>{taxLookupMessage}</p>
+                      {!isPartnerFormVisible ? (
+                        <button
+                          type="button"
+                          onClick={handleManualPartnerInput}
+                          className="w-fit rounded-lg border border-white/10 px-4 py-2 text-xs font-medium text-white/70 transition hover:border-white/25 hover:text-white"
+                        >
+                          Nhập tay
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <p className="mt-3 text-[12px] text-white/35">
+                      Nhập mã số thuế rồi bấm kiểm tra để tự điền tên công ty và
+                      địa chỉ nếu có dữ liệu.
+                    </p>
+                  )}
+                </div>
+
+                {isPartnerFormVisible ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.22 }}
+                    className="grid grid-cols-1 gap-4 md:grid-cols-2"
+                  >
+                    {PARTNER_DETAIL_FIELDS.map((field) => (
+                      <div
+                        key={field.key}
+                        className={field.multiline ? "md:col-span-2" : ""}
+                      >
+                        <FieldLabel>{field.label}</FieldLabel>
+                        {field.multiline ? (
+                          <TextareaInput
+                            id={`partner-${field.key}`}
+                            value={partnerCompanyInfo[field.key]}
+                            onChange={(value) =>
+                              updatePartnerField(field.key, value)
+                            }
+                            placeholder={field.placeholder}
+                            required
+                          />
+                        ) : (
+                          <TextInput
+                            id={`partner-${field.key}`}
+                            type={field.key === "email" ? "email" : "text"}
+                            value={partnerCompanyInfo[field.key]}
+                            onChange={(value) =>
+                              updatePartnerField(field.key, value)
+                            }
+                            placeholder={field.placeholder}
+                            required
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </motion.div>
+                ) : null}
               </div>
             </section>
 

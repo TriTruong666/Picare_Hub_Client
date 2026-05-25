@@ -10,5 +10,5 @@ export const hubAxiosClient = axios.create({
 
 export const localSigningAxiosClient = axios.create({
   baseURL: local_signing_url,
-  withCredentials: true,
+  withCredentials: false,
 });

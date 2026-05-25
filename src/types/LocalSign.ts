@@ -8,9 +8,11 @@ export type CheckHealthResponse = {
 export type USBInfoResponse = {
   vendor: string;
   label: string;
-  driverPath: string;
-  token: USBToken;
-  certificates: USBCertificate[];
+  available?: boolean;
+  error?: string;
+  driverPath?: string;
+  token?: USBToken;
+  certificates?: USBCertificate[];
 };
 
 type USBToken = {
@@ -45,4 +47,15 @@ export type SignPDFCMSPayload = {
   pin: string;
   vendor: string;
   certificateId: string;
+};
+
+export type SignPDFCMSResponse = {
+  signatureHex?: string;
+  signatureFormat?: string;
+  vendor?: string;
+  certificateId?: string;
+  certificatePem?: string;
+  certificateSerial?: string;
+  certificateSubject?: string;
+  certificateIssuer?: string;
 };

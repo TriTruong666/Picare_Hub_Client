@@ -2,6 +2,8 @@ import type { BaseResponse } from "@/types/ApiResponse";
 import { localSigningAxiosClient } from "./client";
 import type {
   CheckHealthResponse,
+  CertificateResponse,
+  SignPDFCMSResponse,
   SignPDFCMSPayload,
   USBInfoResponse,
 } from "@/types/LocalSign";
@@ -23,8 +25,8 @@ export const getUSBInfo = async (): Promise<
 export const getCertificate = async (params: {
   certificateId: string;
   vendor: string;
-}): Promise<BaseResponse<string>> => {
-  const res = await localSigningAxiosClient.get(`/certificates`, {
+}): Promise<BaseResponse<CertificateResponse>> => {
+  const res = await localSigningAxiosClient.get(`/certificate`, {
     params,
   });
   return res.data;
@@ -32,7 +34,7 @@ export const getCertificate = async (params: {
 
 export const signPdfCms = async (
   payload: SignPDFCMSPayload,
-): Promise<BaseResponse<null>> => {
+): Promise<BaseResponse<SignPDFCMSResponse>> => {
   const res = await localSigningAxiosClient.post("/sign-pdf-cms", payload);
   return res.data;
 };
