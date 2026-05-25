@@ -37,8 +37,8 @@ export const getContractDetail = async (
 export const getContractList = async (params: {
   page: number;
   limit: number;
-  search: string;
-  status: "draft" | "unsigned" | "owner_signed" | "completed";
+  search?: string;
+  status?: "draft" | "unsigned" | "owner_signed" | "completed" | null;
 }): Promise<BasePaginatedResponse<Contract[]>> => {
   const res = await hubAxiosClient.get("/api/v1/contracts", { params });
   return res.data;

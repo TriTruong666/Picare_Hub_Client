@@ -13,8 +13,8 @@ import { toast } from "../useToast";
 type ContractListParams = {
   page: number;
   limit: number;
-  search: string;
-  status: ContractStatus;
+  search?: string;
+  status?: ContractStatus;
 };
 
 /**

@@ -6,13 +6,37 @@ import { useNavigate } from "react-router-dom";
 import { formatDate } from "@/common/format";
 import { PATHS } from "@/config/paths";
 import { useContractList } from "@/hooks/data/useContractHooks";
-import type { Contract } from "@/types/Contract";
+import type { ContractStatus } from "@/types/Contract";
 
 function getEditPath(contractId: string) {
   return PATHS.CONTRACT_EDIT.replace(":contractId", contractId);
 }
 
-export function ContractDraftHistoryPanel({
+function getPreviewPath(contractId: string) {
+  return PATHS.CONTRACT_PREVIEW.replace(":contractId", contractId);
+}
+
+const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
+  draft: "Bản nháp",
+  unsigned: "Chờ ký",
+  owner_signed: "Chủ sở hữu đã ký",
+  completed: "Hoàn tất",
+};
+
+const CONTRACT_STATUS_STYLES: Record<ContractStatus, string> = {
+  draft: "border-white/15 bg-white/8 text-white/75",
+  unsigned: "border-amber-300/25 bg-amber-300/10 text-amber-100",
+  owner_signed: "border-indigo-300/25 bg-indigo-400/10 text-indigo-100",
+  completed: "border-emerald-300/25 bg-emerald-400/10 text-emerald-100",
+};
+
+function getContractDestination(contractId: string, status: ContractStatus) {
+  return status === "draft"
+    ? getEditPath(contractId)
+    : getPreviewPath(contractId);
+}
+
+export function ContractHistoryPanel({
   activeContractId,
   isOpen,
   onClose,
@@ -22,10 +46,7 @@ export function ContractDraftHistoryPanel({
   onClose: () => void;
 }) {
   const navigate = useNavigate();
-  const params = useMemo(
-    () => ({ page: 1, limit: 20, search: "", status: "draft" as const }),
-    [],
-  );
+  const params = useMemo(() => ({ page: 1, limit: 20, search: "" }), []);
   const { data: contracts = [], isLoading, isError } = useContractList(params);
 
   return (
@@ -42,11 +63,9 @@ export function ContractDraftHistoryPanel({
             <FiClock />
           </span>
           <div>
-            <h2 className="text-sm font-medium text-white">
-              Lịch sử hợp đồng nháp
-            </h2>
+            <h2 className="text-sm font-medium text-white">Lịch sử hợp đồng</h2>
             <p className="mt-1 text-xs text-white/40">
-              Chọn bản nháp để chỉnh sửa.
+              Theo dõi tất cả trạng thái hợp đồng.
             </p>
           </div>
         </div>
@@ -70,28 +89,35 @@ export function ContractDraftHistoryPanel({
 
         {isError ? (
           <div className="px-5 py-8 text-sm text-red-200/80">
-            Không thể tải danh sách hợp đồng nháp.
+            Không thể tải danh sách hợp đồng.
           </div>
         ) : null}
 
-        {!isLoading && !isError && contracts.length === 0 ? (
+        {!isLoading && !isError && contracts?.length === 0 ? (
           <div className="px-5 py-8 text-sm text-white/35">
-            Chưa có hợp đồng nháp nào.
+            Chưa có hợp đồng nào.
           </div>
         ) : null}
 
         <div>
-          {contracts.map((contract) => {
+          {contracts?.map((contract) => {
             const active = activeContractId === contract.contractId;
 
             return (
               <button
                 key={contract.contractId}
                 type="button"
-                onClick={() => navigate(getEditPath(contract.contractId))}
+                onClick={() =>
+                  navigate(
+                    getContractDestination(
+                      contract.contractId,
+                      contract.status,
+                    ),
+                  )
+                }
                 className={`group w-full border-b px-5 py-4 text-left transition ${
                   active
-                    ? "border-white/15 bg-white/[0.06]"
+                    ? "border-white/15 bg-white/6"
                     : "border-white/10 hover:bg-white/[0.035]"
                 }`}
               >
@@ -108,9 +134,18 @@ export function ContractDraftHistoryPanel({
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
-                      <p className="truncate text-sm font-medium text-white">
-                        {contract.contractNumber || contract.contractId}
-                      </p>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-white">
+                          {contract.contractNumber || contract.contractId}
+                        </p>
+                        <span
+                          className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-[9px] font-semibold tracking-wide uppercase ${
+                            CONTRACT_STATUS_STYLES[contract.status]
+                          }`}
+                        >
+                          {CONTRACT_STATUS_LABELS[contract.status]}
+                        </span>
+                      </div>
                       <FiChevronRight className="mt-0.5 shrink-0 text-white/25 transition-transform group-hover:translate-x-0.5 group-hover:text-white/55" />
                     </div>
                     <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/45">

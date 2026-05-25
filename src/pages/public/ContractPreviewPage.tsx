@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FiEdit3, FiPenTool } from "react-icons/fi";
+import { FiDownload, FiEdit3, FiPenTool } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
@@ -8,6 +8,8 @@ import { Tooltip } from "@/components/custom_ui/Tooltip";
 import ContractSigningModal from "@/components/modals/ContractSigningModal";
 import { PATHS } from "@/config/paths";
 import { useContractDetail } from "@/hooks/data/useContractHooks";
+import { useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
+import { toast } from "@/hooks/useToast";
 import type {
   Contract,
   ContractDetail,
@@ -23,6 +25,22 @@ function formatCurrency(value: number) {
 
 function getEditPath(contractId: string) {
   return PATHS.CONTRACT_EDIT.replace(":contractId", contractId);
+}
+
+function getS3KeyFromUrl(fileUrl?: string | null) {
+  if (!fileUrl) return "";
+
+  try {
+    const url = new URL(fileUrl);
+    return decodeURIComponent(url.pathname.replace(/^\/+/, ""));
+  } catch {
+    return decodeURIComponent(fileUrl.replace(/^\/+/, ""));
+  }
+}
+
+function getFileNameFromS3Key(key: string, fallback: string) {
+  const fileName = key.split("/").filter(Boolean).at(-1);
+  return fileName || fallback;
 }
 
 function formatDate(value?: string) {
@@ -337,7 +355,28 @@ function DockButton({
 
 function ContractActionDock({ contract }: { contract: Contract }) {
   const navigate = useNavigate();
+  const downloadMutation = useDownloadS3Asset();
   const [signingContract, setSigningContract] = useState<Contract | null>(null);
+
+  const handleDownloadContract = () => {
+    const key = getS3KeyFromUrl(contract.contractUrl);
+
+    if (!key) {
+      toast.error(
+        "Không thể tải hợp đồng",
+        "Hợp đồng chưa có đường dẫn tập tin để tải xuống.",
+      );
+      return;
+    }
+
+    downloadMutation.mutate({
+      key,
+      originalName: getFileNameFromS3Key(
+        key,
+        `${contract.contractNumber || contract.contractId}.pdf`,
+      ),
+    });
+  };
 
   return (
     <>
@@ -357,6 +396,14 @@ function ContractActionDock({ contract }: { contract: Contract }) {
             label="Chỉnh sửa hợp đồng"
             icon={<FiEdit3 />}
             onClick={() => navigate(getEditPath(contract.contractId))}
+          />
+        ) : null}
+        {contract.status !== "draft" ? (
+          <DockButton
+            label="Tải hợp đồng"
+            icon={<FiDownload />}
+            onClick={handleDownloadContract}
+            disabled={downloadMutation.isPending}
           />
         ) : null}
       </motion.div>

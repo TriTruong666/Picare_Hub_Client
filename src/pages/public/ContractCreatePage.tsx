@@ -10,7 +10,7 @@ import {
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 
-import { ContractDraftHistoryPanel } from "@/components/contracts/ContractDraftHistoryPanel";
+import { ContractHistoryPanel } from "@/components/contracts/ContractHistoryPanel";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { PATHS } from "@/config/paths";
 import { toast } from "@/hooks/useToast";
@@ -628,7 +628,7 @@ export function ContractFormPage({
           </motion.div>
         </form>
       </div>
-      <ContractDraftHistoryPanel
+      <ContractHistoryPanel
         activeContractId={initialContract?.contractId}
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
