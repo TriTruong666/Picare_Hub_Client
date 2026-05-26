@@ -11,6 +11,7 @@ export const PATHS = {
   CONTRACT_CREATE: "/contracts/create",
   CONTRACT_EDIT: "/contracts/:contractId/edit",
   CONTRACT_PREVIEW: "/contracts/:contractId/preview",
+  PARTNER_SIGN: "/partner/sign/:contractId",
 
   // Private Paths (Dashboard)
   DASHBOARD: {

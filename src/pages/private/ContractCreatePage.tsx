@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { FormEvent, ReactNode, useEffect, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FiArrowLeft,
@@ -576,7 +576,7 @@ export function ContractFormPage({
                       type="button"
                       onClick={handleTaxLookup}
                       disabled={taxPayerLookupMutation.isPending}
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 px-4 text-sm font-medium text-white/75 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 px-4 text-[12px] font-medium text-white/75 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {taxPayerLookupMutation.isPending ? (
                         <Spinner size="sm" />

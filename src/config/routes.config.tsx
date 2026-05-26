@@ -13,6 +13,7 @@ import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
 import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
 import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
 import HubClientDashboardPage from "@/pages/private/HubClientDashboardPage";
+import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
 import { PATHS } from "./paths";
 
 export interface RouteConfig {
@@ -43,6 +44,10 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
   {
     path: PATHS.LOGIN_HUB,
     element: <LoginHubPage />,
+  },
+  {
+    path: PATHS.PARTNER_SIGN,
+    element: <ContractPartnerSignPage />,
   },
 ];
 

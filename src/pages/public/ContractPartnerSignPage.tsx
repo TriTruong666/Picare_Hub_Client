@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { FiDownload, FiEdit3, FiMail, FiPenTool } from "react-icons/fi";
-import { HiOutlineX } from "react-icons/hi";
-import { useNavigate, useParams } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
+import { FiDownload, FiPenTool } from "react-icons/fi";
+import { useParams } from "react-router-dom";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
-import ContractSigningModal from "@/components/modals/ContractSigningModal";
-import { PATHS } from "@/config/paths";
 import { useContractDetail } from "@/hooks/data/useContractHooks";
-import { useSendMailTemplate } from "@/hooks/data/useMailHooks";
 import { useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
 import { toast } from "@/hooks/useToast";
 import type {
@@ -23,18 +19,6 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("vi-VN", {
     maximumFractionDigits: 0,
   }).format(value);
-}
-
-function getEditPath(contractId: string) {
-  return PATHS.CONTRACT_EDIT.replace(":contractId", contractId);
-}
-
-function getPreviewPath(contractId: string) {
-  return PATHS.CONTRACT_PREVIEW.replace(":contractId", contractId);
-}
-
-function getAbsoluteUrl(path: string) {
-  return `${window.location.origin}${path}`;
 }
 
 function getS3KeyFromUrl(fileUrl?: string | null) {
@@ -242,10 +226,12 @@ function AnimatedSignature({
           delay: canAnimate ? 0.42 : 0,
           ease: [0.22, 1, 0.36, 1],
         }}
-        className="relative z-10 text-[58px] leading-none text-white drop-shadow-[0_0_18px_rgba(255,255,255,0.14)] select-none"
+        className="relative z-10 text-[58px] leading-none font-light text-white drop-shadow-[0_0_18px_rgba(255,255,255,0.14)] select-none"
         style={{
           fontFamily: signatureFontFamily,
-          fontWeight: 300,
+          fontWeight: 400,
+          letterSpacing: "-0.01em",
+          textShadow: "0 1px 0 rgba(255,255,255,0.08)",
         }}
       >
         {displayName}
@@ -303,237 +289,10 @@ function SignatureBlock({
   );
 }
 
-type PartnerMailForm = {
-  to: string;
-  subject: string;
-  title: string;
-  intro: string;
-  message: string;
-  actionUrl: string;
-  replyTo: string;
-};
-
-function createPartnerMailForm(contract: Contract): PartnerMailForm {
-  const partner = contract.partnerCompanyInfo;
-  const owner = contract.ownerCompanyInfo;
-  const partnerSignUrl = getAbsoluteUrl(
-    PATHS.PARTNER_SIGN.replace(":contractId", contract.contractId),
-  );
-
-  return {
-    to: partner.email || "",
-    subject: `Hợp đồng ${contract.contractNumber} đã sẵn sàng để xem và ký`,
-    title: "Hợp đồng đã được ký bởi bên bán",
-    intro: `Kính gửi ${partner.companyName || "Quý đối tác"},`,
-    message: `${owner.companyName} đã hoàn tất chữ ký số cho hợp đồng ${contract.contractNumber}. Vui lòng kiểm tra nội dung hợp đồng và tiếp tục xử lý theo quy trình của bên mua.`,
-    actionUrl: partnerSignUrl,
-    replyTo: owner.email || "",
-  };
-}
-
-function SendPartnerMailModal({
-  contract,
-  isOpen,
-  onClose,
-}: {
-  contract: Contract;
-  isOpen: boolean;
-  onClose: () => void;
-}) {
-  const sendMailMutation = useSendMailTemplate();
-  const [form, setForm] = useState<PartnerMailForm>(() =>
-    createPartnerMailForm(contract),
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      setForm(createPartnerMailForm(contract));
-    }
-  }, [contract, isOpen]);
-
-  const isSending = sendMailMutation.isPending;
-
-  const updateField = (field: keyof PartnerMailForm, value: string) => {
-    setForm((current) => ({ ...current, [field]: value }));
-  };
-
-  const handleSend = async () => {
-    const normalizedTo = form.to.trim();
-    const normalizedSubject = form.subject.trim();
-    const normalizedActionUrl = form.actionUrl.trim();
-
-    if (!normalizedTo || !normalizedSubject || !normalizedActionUrl) {
-      toast.error(
-        "Thiếu thông tin gửi mail",
-        "Vui lòng kiểm tra email đối tác, tiêu đề và đường dẫn hợp đồng.",
-      );
-      return;
-    }
-
-    const response = await sendMailMutation.mutateAsync({
-      to: normalizedTo,
-      subject: normalizedSubject,
-      title: form.title.trim() || normalizedSubject,
-      intro: form.intro.trim(),
-      bodyLines: form.message
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean),
-      actionLabel: "Xem hợp đồng",
-      actionUrl: normalizedActionUrl,
-      footer:
-        "Email này được gửi từ hệ thống Picare Hub. Vui lòng không chia sẻ đường dẫn nếu không có thẩm quyền.",
-      replyTo: form.replyTo.trim() || contract.ownerCompanyInfo.email || "",
-    });
-
-    if (response.success) {
-      onClose();
-    }
-  };
-
-  return (
-    <AnimatePresence>
-      {isOpen ? (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => !isSending && onClose()}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          />
-
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ type: "spring", duration: 0.3 }}
-            className="dashboard-theme relative flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl"
-          >
-            <div className="flex items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] p-6">
-              <div>
-                <h2 className="text-base font-semibold text-white">
-                  Gửi mail cho đối tác
-                </h2>
-                <p className="mt-1 text-xs leading-5 text-white/45">
-                  Kiểm tra nội dung trước khi gửi hợp đồng đã ký cho bên mua.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                disabled={isSending}
-                onClick={onClose}
-                className="rounded-lg p-2 text-white/45 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <HiOutlineX className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="max-h-[70vh] space-y-4 overflow-y-auto p-6">
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Email đối tác
-                </span>
-                <input
-                  type="email"
-                  value={form.to}
-                  disabled={isSending}
-                  onChange={(event) => updateField("to", event.target.value)}
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Tiêu đề
-                </span>
-                <input
-                  value={form.subject}
-                  disabled={isSending}
-                  onChange={(event) =>
-                    updateField("subject", event.target.value)
-                  }
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Lời mở đầu
-                </span>
-                <input
-                  value={form.intro}
-                  disabled={isSending}
-                  onChange={(event) => updateField("intro", event.target.value)}
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Nội dung
-                </span>
-                <textarea
-                  value={form.message}
-                  disabled={isSending}
-                  rows={5}
-                  onChange={(event) =>
-                    updateField("message", event.target.value)
-                  }
-                  className="w-full resize-none border-b border-white/10 bg-transparent py-2 text-sm leading-6 text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Link hợp đồng
-                </span>
-                <input
-                  value={form.actionUrl}
-                  disabled={isSending}
-                  onChange={(event) =>
-                    updateField("actionUrl", event.target.value)
-                  }
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
-            </div>
-
-            <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
-              <button
-                type="button"
-                disabled={isSending}
-                onClick={onClose}
-                className="rounded-lg px-4 py-2 text-sm text-white/60 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                disabled={isSending}
-                onClick={handleSend}
-                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isSending ? <Spinner size="sm" /> : <FiMail size={14} />}
-                Gửi mail
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      ) : null}
-    </AnimatePresence>
-  );
-}
-
 function ContractDocument({
   contract,
-  ownerSignatureRef,
-  ownerSignatureRevealKey,
 }: {
   contract: Contract;
-  ownerSignatureRef?: React.Ref<HTMLDivElement>;
-  ownerSignatureRevealKey?: number;
 }) {
   const owner = contract.ownerCompanyInfo;
   const partner = contract.partnerCompanyInfo;
@@ -694,10 +453,7 @@ function ContractDocument({
         <SignatureBlock
           title="Đại diện Bên A"
           name={owner.ownerName}
-          isSigned={hasOwnerSigned || Boolean(ownerSignatureRevealKey)}
-          shouldAnimate={Boolean(ownerSignatureRevealKey)}
-          revealKey={ownerSignatureRevealKey}
-          signatureRef={ownerSignatureRef}
+          isSigned={hasOwnerSigned}
         />
         <SignatureBlock title="Đại diện Bên B" name={partner.ownerName} />
       </section>
@@ -735,18 +491,10 @@ function DockButton({
 
 function ContractActionDock({
   contract,
-  onSigned,
 }: {
   contract: Contract;
-  onSigned: () => void;
 }) {
-  const navigate = useNavigate();
   const downloadMutation = useDownloadS3Asset();
-  const [signingContract, setSigningContract] = useState<Contract | null>(null);
-  const [isSendMailOpen, setIsSendMailOpen] = useState(false);
-  const canSignContract =
-    contract.status === "draft" || contract.status === "unsigned";
-  const canSendPartnerMail = contract.status === "owner_signed";
 
   const handleDownloadContract = () => {
     const key = getS3KeyFromUrl(contract.contractUrl);
@@ -768,88 +516,71 @@ function ContractActionDock({
     });
   };
 
+  const handleDownloadAttachment = () => {
+    // If contract has other documents, download the first one, otherwise download contractUrl with fallback name
+    const docKey =
+      contract.documents && contract.documents.length > 0
+        ? getS3KeyFromUrl(contract.documents[0].fileUrl)
+        : null;
+
+    const finalKey = docKey || getS3KeyFromUrl(contract.contractUrl);
+
+    if (!finalKey) {
+      toast.error(
+        "Không thể tải tài liệu đính kèm",
+        "Không tìm thấy tài liệu đính kèm phù hợp.",
+      );
+      return;
+    }
+
+    downloadMutation.mutate({
+      key: finalKey,
+      originalName: docKey
+        ? getFileNameFromS3Key(docKey, "tai-lieu-dinh-kem.pdf")
+        : `Phu-luc-${contract.contractNumber || contract.contractId}.pdf`,
+    });
+  };
+
+  const handleSignPlaceholder = () => {
+    toast.info("Tính năng đang phát triển", "Hệ thống đang thiết lập cổng kết nối ký số cho đối tác.");
+  };
+
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0, y: 18, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.22, ease: "easeOut" }}
-        className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
-      >
-        {canSignContract ? (
-          <DockButton
-            label="Ký hợp đồng"
-            icon={<FiPenTool />}
-            onClick={() => setSigningContract(contract)}
-          />
-        ) : null}
-        {contract.status === "draft" ? (
-          <DockButton
-            label="Chỉnh sửa hợp đồng"
-            icon={<FiEdit3 />}
-            onClick={() => navigate(getEditPath(contract.contractId))}
-          />
-        ) : null}
-        {contract.status !== "draft" ? (
-          <DockButton
-            label="Tải hợp đồng"
-            icon={<FiDownload />}
-            onClick={handleDownloadContract}
-            disabled={downloadMutation.isPending}
-          />
-        ) : null}
-        {canSendPartnerMail ? (
-          <DockButton
-            label="Gửi mail cho đối tác"
-            icon={<FiMail />}
-            onClick={() => setIsSendMailOpen(true)}
-          />
-        ) : null}
-      </motion.div>
-
-      <ContractSigningModal
-        contract={signingContract}
-        onClose={() => setSigningContract(null)}
-        onSigned={onSigned}
+    <motion.div
+      initial={{ opacity: 0, y: 18, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
+      className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+    >
+      <DockButton
+        label="Tải hợp đồng"
+        icon={<FiDownload />}
+        onClick={handleDownloadContract}
+        disabled={downloadMutation.isPending}
       />
-
-      <SendPartnerMailModal
-        contract={contract}
-        isOpen={isSendMailOpen}
-        onClose={() => setIsSendMailOpen(false)}
+      <DockButton
+        label="Tải tài liệu đính kèm"
+        icon={<FiDownload className="rotate-180 text-indigo-400" />}
+        onClick={handleDownloadAttachment}
+        disabled={downloadMutation.isPending}
       />
-    </>
+      <DockButton
+        label="Ký hợp đồng"
+        icon={<FiPenTool className="text-emerald-400" />}
+        onClick={handleSignPlaceholder}
+      />
+    </motion.div>
   );
 }
 
-export default function ContractPreviewPage() {
+export default function ContractPartnerSignPage() {
   const { contractId = "" } = useParams();
-  const ownerSignatureRef = useRef<HTMLDivElement>(null);
-  const [ownerSignatureRevealKey, setOwnerSignatureRevealKey] = useState(0);
   const {
     data: contract,
     isLoading,
     isError,
     refetch,
   } = useContractDetail(contractId);
-
-  useEffect(() => {
-    if (!ownerSignatureRevealKey) return;
-
-    const frameId = window.requestAnimationFrame(() => {
-      ownerSignatureRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    });
-
-    return () => window.cancelAnimationFrame(frameId);
-  }, [ownerSignatureRevealKey]);
-
-  const handleSigned = () => {
-    void refetch();
-    setOwnerSignatureRevealKey((current) => current + 1);
-  };
 
   if (isLoading) {
     return (
@@ -868,7 +599,7 @@ export default function ContractPreviewPage() {
         <div className="max-w-md text-center">
           <h1 className="text-xl font-medium">Không tải được hợp đồng</h1>
           <p className="mt-3 text-sm leading-6 text-white/45">
-            Vui lòng kiểm tra lại mã hợp đồng hoặc thử tải lại trang.
+            Vui lòng kiểm tra lại mã hợp đồng hoặc liên hệ với đối tác gửi link.
           </p>
           <button
             type="button"
@@ -882,14 +613,30 @@ export default function ContractPreviewPage() {
     );
   }
 
+  // Strictly restrict access if status is not owner_signed
+  if (contract.status !== "owner_signed") {
+    return (
+      <main className="dashboard-theme flex min-h-screen items-center justify-center bg-black px-6 text-white">
+        <div className="max-w-md text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-red-400">
+            <FiPenTool size={24} />
+          </div>
+          <h1 className="mt-6 text-xl font-semibold text-white">Liên kết không hợp lệ hoặc đã hết hạn</h1>
+          <p className="mt-3 text-sm leading-6 text-white/45">
+            Đường dẫn ký hợp đồng này chỉ mở khi bên bán đã ký số và trạng thái hợp đồng là chờ bên mua ký.
+          </p>
+          <p className="mt-1 text-xs text-white/30">
+            Trạng thái hiện tại: <span className="font-medium text-white/50">{contract.status}</span>
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="dashboard-theme min-h-screen bg-black px-5 py-10 text-white md:px-8">
-      <ContractDocument
-        contract={contract}
-        ownerSignatureRef={ownerSignatureRef}
-        ownerSignatureRevealKey={ownerSignatureRevealKey}
-      />
-      <ContractActionDock contract={contract} onSigned={handleSigned} />
+      <ContractDocument contract={contract} />
+      <ContractActionDock contract={contract} />
     </main>
   );
 }
