@@ -199,7 +199,7 @@ export const uploadHandwrittenSignature = async (
   payload: HandwrittenSignaturePayload,
 ): Promise<BaseResponse<null>> => {
   const res = await hubAxiosClient.post(
-    `/api/v1/contracts/${contractId}/handwritten-signature`,
+    `/api/v1/contracts/${contractId}/handwritten-signatures`,
     payload,
     getPartnerTokenRequestConfig(token),
   );

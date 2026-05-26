@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import SignatureCanvas from "react-signature-canvas";
 import { FiRotateCcw } from "react-icons/fi";
@@ -28,9 +28,39 @@ export default function HandwrittenSignatureModal({
   onSigned,
 }: HandwrittenSignatureModalProps) {
   const signatureRef = useRef<SignatureCanvas | null>(null);
+  const canvasWrapRef = useRef<HTMLDivElement | null>(null);
   const uploadMutation = useUploadHandwrittenSignature();
   const [strokeCount, setStrokeCount] = useState(0);
+  const [canvasSize, setCanvasSize] = useState({ width: 760, height: 280 });
   const isSubmitting = uploadMutation.isPending;
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const syncCanvasSize = () => {
+      const width = canvasWrapRef.current?.clientWidth;
+      if (!width) return;
+
+      setCanvasSize({
+        width: Math.round(width),
+        height: 280,
+      });
+      signatureRef.current?.clear();
+      setStrokeCount(0);
+    };
+
+    const animationFrame = window.requestAnimationFrame(syncCanvasSize);
+    const resizeObserver = new ResizeObserver(syncCanvasSize);
+
+    if (canvasWrapRef.current) {
+      resizeObserver.observe(canvasWrapRef.current);
+    }
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      resizeObserver.disconnect();
+    };
+  }, [isOpen]);
 
   const handleClear = () => {
     signatureRef.current?.clear();
@@ -91,7 +121,8 @@ export default function HandwrittenSignatureModal({
                   Ký tay xác nhận
                 </h2>
                 <p className="mt-1 text-xs leading-5 text-white/45">
-                  Chữ ký này sẽ được lưu làm chữ ký cá nhân của bên mua trong hợp đồng.
+                  Chữ ký này sẽ được lưu làm chữ ký cá nhân của bên mua trong
+                  hợp đồng.
                 </p>
               </div>
               <button
@@ -107,23 +138,26 @@ export default function HandwrittenSignatureModal({
             <div className="grid gap-6 p-6 lg:grid-cols-[220px_1fr]">
               <dl className="space-y-4 text-sm">
                 <div>
-                  <dt className="text-[11px] font-medium tracking-[0.12em] text-white/35 uppercase">
+                  <dt className="text-[11px] font-medium text-white/35 uppercase">
                     Người ký
                   </dt>
                   <dd className="mt-1 leading-6 text-white/82">{signerName}</dd>
                 </div>
                 <div>
-                  <dt className="text-[11px] font-medium tracking-[0.12em] text-white/35 uppercase">
+                  <dt className="text-[11px] font-medium text-white/35 uppercase">
                     Email
                   </dt>
-                  <dd className="mt-1 break-all leading-6 text-white/62">
+                  <dd className="mt-1 leading-6 break-all text-white/62">
                     {signerEmail || "-"}
                   </dd>
                 </div>
               </dl>
 
               <div>
-                <div className="relative overflow-hidden rounded-xl border border-white/10 bg-[#f7f2e9]">
+                <div
+                  ref={canvasWrapRef}
+                  className="relative overflow-hidden rounded-xl border border-white/10 bg-[#f7f2e9]"
+                >
                   <SignatureCanvas
                     ref={signatureRef}
                     penColor="#101010"
@@ -133,8 +167,8 @@ export default function HandwrittenSignatureModal({
                     clearOnResize={false}
                     onEnd={() => setStrokeCount((count) => count + 1)}
                     canvasProps={{
-                      width: 760,
-                      height: 280,
+                      width: canvasSize.width,
+                      height: canvasSize.height,
                       className: "block h-[280px] w-full touch-none",
                     }}
                   />
