@@ -45,7 +45,7 @@ const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
     phone: "0983139320",
     email: "cskh@trunghanh.com",
     bankInfo: "204550429 Ngân hàng Á Châu  Chi Nhánh Bắc Hải TP HCM",
-    mst: "0319999999",
+    mst: "0312717755",
     ownerName: "Bà Lê Thị Bích Hạnh",
     role: "Giám Đốc",
   },

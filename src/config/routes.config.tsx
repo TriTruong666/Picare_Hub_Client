@@ -6,9 +6,9 @@ import LandingPage from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/public/LoginPage";
 import LoginClientPage from "@/pages/public/LoginClientPage";
 import LoginHubPage from "@/pages/public/LoginHubPage";
-import ContractCreatePage from "@/pages/public/ContractCreatePage";
-import ContractEditPage from "@/pages/public/ContractEditPage";
-import ContractPreviewPage from "@/pages/public/ContractPreviewPage";
+import ContractCreatePage from "@/pages/private/ContractCreatePage";
+import ContractEditPage from "@/pages/private/ContractEditPage";
+import ContractPreviewPage from "@/pages/private/ContractPreviewPage";
 import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
 import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
 import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
@@ -43,18 +43,6 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
   {
     path: PATHS.LOGIN_HUB,
     element: <LoginHubPage />,
-  },
-  {
-    path: PATHS.CONTRACT_CREATE,
-    element: <ContractCreatePage />,
-  },
-  {
-    path: PATHS.CONTRACT_EDIT,
-    element: <ContractEditPage />,
-  },
-  {
-    path: PATHS.CONTRACT_PREVIEW,
-    element: <ContractPreviewPage />,
   },
 ];
 
@@ -94,6 +82,21 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     label: "Hub Clients",
     icon: FiGrid,
     showInSidebar: true,
+  },
+  {
+    path: PATHS.CONTRACT_CREATE,
+    element: <ContractCreatePage />,
+    showInSidebar: false,
+  },
+  {
+    path: PATHS.CONTRACT_EDIT,
+    element: <ContractEditPage />,
+    showInSidebar: false,
+  },
+  {
+    path: PATHS.CONTRACT_PREVIEW,
+    element: <ContractPreviewPage />,
+    showInSidebar: false,
   },
 ];
 

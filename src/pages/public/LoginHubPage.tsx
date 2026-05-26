@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { FiEye, FiEyeOff, FiArrowRight, FiGrid, FiX } from "react-icons/fi";
 import logo from "@/assets/images/logo.png";
 import { useLogin } from "@/hooks/data/useAuthHooks";
@@ -10,8 +10,21 @@ import { useAuth } from "@/hooks/useAuth";
 import { PATHS } from "@/config/paths";
 import { toast } from "@/hooks/useToast";
 
+function getSafeRedirectPath(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return PATHS.HOME;
+  }
+
+  if (value.startsWith(PATHS.LOGIN_HUB)) {
+    return PATHS.HOME;
+  }
+
+  return value;
+}
+
 export default function LoginHubPage() {
   const { isAuthenticated } = useAuth();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -20,6 +33,7 @@ export default function LoginHubPage() {
 
   const loginMutation = useLogin();
   const queryClient = useQueryClient();
+  const redirectPath = getSafeRedirectPath(searchParams.get("redirect"));
 
   const projects = [
     { name: "Picare CRM", desc: "Quản lý khách hàng chuyên sâu" },
@@ -39,7 +53,7 @@ export default function LoginHubPage() {
             toast.success("Đăng nhập thành công", "Chào mừng quay trở lại Picare Hub!");
             await queryClient.refetchQueries({ queryKey: ["auth", "me"] });
             // Full refresh / redirection to clean up query states
-            window.location.href = PATHS.HOME;
+            window.location.href = redirectPath;
           } else {
             setIsSubmitting(false);
           }
@@ -50,7 +64,7 @@ export default function LoginHubPage() {
   };
 
   if (isAuthenticated) {
-    return <Navigate to={PATHS.HOME} replace />;
+    return <Navigate to={redirectPath} replace />;
   }
 
   return (

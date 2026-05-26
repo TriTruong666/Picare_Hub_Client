@@ -2,11 +2,13 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import PublicRoutes from "./PublicRoutes";
 import { PATHS } from "@/config/paths";
 import PrivateRoutes from "./PrivateRoutes";
+import PrivateContractRoutes from "./PrivateContractRoutes";
 
 export default function AppRouter() {
   return (
     <Routes>
       <Route path="/dashboard/*" element={<PrivateRoutes />} />
+      <Route path="/contracts/*" element={<PrivateContractRoutes />} />
 
       {/* Public Routes (Landing, Login, etc.) */}
       <Route path="/*" element={<PublicRoutes />} />

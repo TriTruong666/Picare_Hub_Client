@@ -1,24 +1,29 @@
+import { Navigate, useLocation } from "react-router-dom";
+
+import { PATHS } from "@/config/paths";
 import { useAuth } from "@/hooks/useAuth";
 import { FullScreenSpinner } from "../custom_ui/Spinner";
 
-const HUB_UI_URL = import.meta.env.VITE_HUB_UI_URL || "https://hub.picare.vn";
-
 /**
  * Bảo vệ các private routes.
- * Nếu chưa đăng nhập → redirect sang trang login.
- * Nếu đã đăng nhập → render children bình thường.
+ * Nếu chưa đăng nhập, chuyển về LoginHubPage kèm redirect về link đang mở.
  */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return <FullScreenSpinner />;
   }
 
   if (!isAuthenticated) {
-    // Chuyển hướng sang Hub để đăng nhập
-    window.location.href = `${HUB_UI_URL}/login?redirect=${encodeURIComponent(window.location.href)}`;
-    return <FullScreenSpinner />;
+    const redirect = `${location.pathname}${location.search}${location.hash}`;
+    return (
+      <Navigate
+        to={`${PATHS.LOGIN_HUB}?redirect=${encodeURIComponent(redirect)}`}
+        replace
+      />
+    );
   }
 
   return <>{children}</>;

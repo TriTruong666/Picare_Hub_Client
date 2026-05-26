@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { FiDownload, FiEdit3, FiPenTool } from "react-icons/fi";
+﻿import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { FiDownload, FiEdit3, FiMail, FiPenTool } from "react-icons/fi";
+import { HiOutlineX } from "react-icons/hi";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
@@ -8,6 +9,7 @@ import { Tooltip } from "@/components/custom_ui/Tooltip";
 import ContractSigningModal from "@/components/modals/ContractSigningModal";
 import { PATHS } from "@/config/paths";
 import { useContractDetail } from "@/hooks/data/useContractHooks";
+import { useSendMailTemplate } from "@/hooks/data/useMailHooks";
 import { useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
 import { toast } from "@/hooks/useToast";
 import type {
@@ -25,6 +27,14 @@ function formatCurrency(value: number) {
 
 function getEditPath(contractId: string) {
   return PATHS.CONTRACT_EDIT.replace(":contractId", contractId);
+}
+
+function getPreviewPath(contractId: string) {
+  return PATHS.CONTRACT_PREVIEW.replace(":contractId", contractId);
+}
+
+function getAbsoluteUrl(path: string) {
+  return `${window.location.origin}${path}`;
 }
 
 function getS3KeyFromUrl(fileUrl?: string | null) {
@@ -264,6 +274,227 @@ function SignatureBlock({
   );
 }
 
+type PartnerMailForm = {
+  to: string;
+  subject: string;
+  title: string;
+  intro: string;
+  message: string;
+  actionUrl: string;
+  replyTo: string;
+};
+
+function createPartnerMailForm(contract: Contract): PartnerMailForm {
+  const partner = contract.partnerCompanyInfo;
+  const owner = contract.ownerCompanyInfo;
+  const previewUrl = getAbsoluteUrl(getPreviewPath(contract.contractId));
+
+  return {
+    to: partner.email || "",
+    subject: `Hợp đồng ${contract.contractNumber} đã sẵn sàng để xem và ký`,
+    title: "Hợp đồng đã được ký bởi bên bán",
+    intro: `Kính gửi ${partner.companyName || "Quý đối tác"},`,
+    message: `${owner.companyName} đã hoàn tất chữ ký số cho hợp đồng ${contract.contractNumber}. Vui lòng kiểm tra nội dung hợp đồng và tiếp tục xử lý theo quy trình của bên mua.`,
+    actionUrl: previewUrl,
+    replyTo: owner.email || "",
+  };
+}
+
+function SendPartnerMailModal({
+  contract,
+  isOpen,
+  onClose,
+}: {
+  contract: Contract;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const sendMailMutation = useSendMailTemplate();
+  const [form, setForm] = useState<PartnerMailForm>(() =>
+    createPartnerMailForm(contract),
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      setForm(createPartnerMailForm(contract));
+    }
+  }, [contract, isOpen]);
+
+  const isSending = sendMailMutation.isPending;
+
+  const updateField = (field: keyof PartnerMailForm, value: string) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSend = async () => {
+    const normalizedTo = form.to.trim();
+    const normalizedSubject = form.subject.trim();
+    const normalizedActionUrl = form.actionUrl.trim();
+
+    if (!normalizedTo || !normalizedSubject || !normalizedActionUrl) {
+      toast.error(
+        "Thiếu thông tin gửi mail",
+        "Vui lòng kiểm tra email đối tác, tiêu đề và đường dẫn hợp đồng.",
+      );
+      return;
+    }
+
+    const response = await sendMailMutation.mutateAsync({
+      to: normalizedTo,
+      subject: normalizedSubject,
+      title: form.title.trim() || normalizedSubject,
+      intro: form.intro.trim(),
+      bodyLines: form.message
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean),
+      actionLabel: "Xem hợp đồng",
+      actionUrl: normalizedActionUrl,
+      footer:
+        "Email này được gửi từ hệ thống Picare Hub. Vui lòng không chia sẻ đường dẫn nếu không có thẩm quyền.",
+      replyTo: form.replyTo.trim() || contract.ownerCompanyInfo.email || "",
+    });
+
+    if (response.success) {
+      onClose();
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen ? (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !isSending && onClose()}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ type: "spring", duration: 0.3 }}
+            className="dashboard-theme relative flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+          >
+            <div className="flex items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] p-6">
+              <div>
+                <h2 className="text-base font-semibold text-white">
+                  Gửi mail cho đối tác
+                </h2>
+                <p className="mt-1 text-xs leading-5 text-white/45">
+                  Kiểm tra nội dung trước khi gửi hợp đồng đã ký cho bên mua.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                disabled={isSending}
+                onClick={onClose}
+                className="rounded-lg p-2 text-white/45 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <HiOutlineX className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="max-h-[70vh] space-y-4 overflow-y-auto p-6">
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Email đối tác
+                </span>
+                <input
+                  type="email"
+                  value={form.to}
+                  disabled={isSending}
+                  onChange={(event) => updateField("to", event.target.value)}
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white outline-none transition focus:border-white/35 disabled:opacity-50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Tiêu đề
+                </span>
+                <input
+                  value={form.subject}
+                  disabled={isSending}
+                  onChange={(event) =>
+                    updateField("subject", event.target.value)
+                  }
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white outline-none transition focus:border-white/35 disabled:opacity-50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Lời mở đầu
+                </span>
+                <input
+                  value={form.intro}
+                  disabled={isSending}
+                  onChange={(event) => updateField("intro", event.target.value)}
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white outline-none transition focus:border-white/35 disabled:opacity-50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Nội dung
+                </span>
+                <textarea
+                  value={form.message}
+                  disabled={isSending}
+                  rows={5}
+                  onChange={(event) =>
+                    updateField("message", event.target.value)
+                  }
+                  className="w-full resize-none border-b border-white/10 bg-transparent py-2 text-sm leading-6 text-white outline-none transition focus:border-white/35 disabled:opacity-50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Link hợp đồng
+                </span>
+                <input
+                  value={form.actionUrl}
+                  disabled={isSending}
+                  onChange={(event) =>
+                    updateField("actionUrl", event.target.value)
+                  }
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white outline-none transition focus:border-white/35 disabled:opacity-50"
+                />
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
+              <button
+                type="button"
+                disabled={isSending}
+                onClick={onClose}
+                className="rounded-lg px-4 py-2 text-sm text-white/60 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                disabled={isSending}
+                onClick={handleSend}
+                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSending ? <Spinner size="sm" /> : <FiMail size={14} />}
+                Gửi mail
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
 function ContractDocument({
   contract,
   ownerSignatureRef,
@@ -321,9 +552,9 @@ function ContractDocument({
         <ArticleTitle>Căn cứ ký kết</ArticleTitle>
         <ClauseList
           items={[
-            "Căn cứ Bộ Luật Dân sự và các quy định pháp luật hiện hành của nước Cộng hòa Xã hội Chủ nghĩa Việt Nam.",
-            "Căn cứ Luật Thương mại và nhu cầu giao dịch hàng hóa giữa hai bên.",
-            "Căn cứ vào khả năng cung ứng của Bên A và nhu cầu mua hàng của Bên B.",
+            "Căn cứ Bộ Luật Dân sự số 33/2005/QH ngày 14/06/2005 của Quốc hội nước CHXHCN Việt Nam;",
+            "Căn cứ Luật Thương Mại số 36/2005/QH ngày 14/06/2005 của Quốc hội nước CHXHCN Việt Nam",
+            "Căn cứ vào khả năng và nhu cầu của hai bên",
           ]}
         />
       </section>
@@ -480,8 +711,10 @@ function ContractActionDock({
   const navigate = useNavigate();
   const downloadMutation = useDownloadS3Asset();
   const [signingContract, setSigningContract] = useState<Contract | null>(null);
+  const [isSendMailOpen, setIsSendMailOpen] = useState(false);
   const canSignContract =
     contract.status === "draft" || contract.status === "unsigned";
+  const canSendPartnerMail = contract.status === "owner_signed";
 
   const handleDownloadContract = () => {
     const key = getS3KeyFromUrl(contract.contractUrl);
@@ -533,12 +766,25 @@ function ContractActionDock({
             disabled={downloadMutation.isPending}
           />
         ) : null}
+        {canSendPartnerMail ? (
+          <DockButton
+            label="Gửi mail cho đối tác"
+            icon={<FiMail />}
+            onClick={() => setIsSendMailOpen(true)}
+          />
+        ) : null}
       </motion.div>
 
       <ContractSigningModal
         contract={signingContract}
         onClose={() => setSigningContract(null)}
         onSigned={onSigned}
+      />
+
+      <SendPartnerMailModal
+        contract={contract}
+        isOpen={isSendMailOpen}
+        onClose={() => setIsSendMailOpen(false)}
       />
     </>
   );

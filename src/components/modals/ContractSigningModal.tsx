@@ -1,5 +1,5 @@
-import type { FormEvent } from "react";
-import { useState } from "react";
+﻿import type { FormEvent } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   FiCheckCircle,
@@ -55,10 +55,6 @@ const PICAREVN_ASCII = String.raw`
 |  __/ | | |___ / ___ \|  _ <| |___   \ V / | |\  |
 |_|   |___\____/_/   \_\_| \_\_____|   \_/  |_| \_|
 `;
-
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
 
 function isLocalSigningServiceReady(
   response: BaseResponse<CheckHealthResponse>,
@@ -588,12 +584,6 @@ function ContractSigningForm({
   });
   const publishOwnerSignedMutation = usePublishOwnerSignedContract();
 
-  const [signerName, setSignerName] = useState(
-    contract.ownerCompanyInfo.ownerName || "",
-  );
-  const [signerEmail, setSignerEmail] = useState(
-    contract.ownerCompanyInfo.email || "",
-  );
   const [isLocalAppGuideOpen, setIsLocalAppGuideOpen] = useState(false);
   const [availableTokens, setAvailableTokens] = useState<USBInfoResponse[]>([]);
   const [isTokenSelectionOpen, setIsTokenSelectionOpen] = useState(false);
@@ -604,10 +594,20 @@ function ContractSigningForm({
     useState<CertificateResponse | null>(null);
   const [pin, setPin] = useState("");
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
-  const [pendingSigner, setPendingSigner] = useState<{
-    name: string;
-    email: string;
-  } | null>(null);
+  const pendingSigner = useMemo(
+    () => ({
+      name:
+        contract.ownerCompanyInfo.companyName?.trim() ||
+        contract.ownerCompanyInfo.ownerName?.trim() ||
+        "",
+      email: contract.ownerCompanyInfo.email?.trim() || "",
+    }),
+    [
+      contract.ownerCompanyInfo.companyName,
+      contract.ownerCompanyInfo.email,
+      contract.ownerCompanyInfo.ownerName,
+    ],
+  );
 
   const isSubmitting =
     checkLocalSigningMutation.isPending ||
@@ -693,7 +693,7 @@ function ContractSigningForm({
   };
 
   const handleConfirmPin = async () => {
-    if (!selectedToken || !selectedCertificate || !pendingSigner) return;
+    if (!selectedToken || !selectedCertificate) return;
 
     const normalizedPin = pin.trim();
     if (!normalizedPin) {
@@ -785,16 +785,19 @@ function ContractSigningForm({
     event.preventDefault();
     if (isSubmitting) return;
 
-    const normalizedName = signerName.trim();
-    const normalizedEmail = signerEmail.trim();
-
-    if (!normalizedName) {
-      toast.error("Thiếu tên người ký", "Vui lòng nhập họ tên người ký.");
+    if (!pendingSigner.name) {
+      toast.error(
+        "Thiếu thông tin công ty ký",
+        "Vui lòng cập nhật tên công ty của bên sở hữu trước khi tạo phiên ký.",
+      );
       return;
     }
 
-    if (!isValidEmail(normalizedEmail)) {
-      toast.error("Email không hợp lệ", "Vui lòng nhập email người ký hợp lệ.");
+    if (!pendingSigner.email) {
+      toast.error(
+        "Thiếu email công ty ký",
+        "Vui lòng cập nhật email công ty của bên sở hữu trước khi tạo phiên ký.",
+      );
       return;
     }
 
@@ -802,11 +805,6 @@ function ContractSigningForm({
     if (!isLocalSigningReady) {
       return;
     }
-
-    setPendingSigner({
-      name: normalizedName,
-      email: normalizedEmail,
-    });
 
     const tokens = await scanAvailableTokens();
     setIsTokenSelectionOpen(tokens.length > 0);
@@ -831,13 +829,13 @@ function ContractSigningForm({
           onSubmit={handleSubmit}
           className="dashboard-theme relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl"
         >
-          <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.04] p-6">
+          <div className="flex items-center justify-between border-white/10 bg-white/[0.04] p-6">
             <div>
               <h2 className="text-base font-semibold text-white">
                 Ký hợp đồng
               </h2>
               <p className="mt-1 text-xs text-white/45">
-                Nhập thông tin người ký để tạo phiên ký hợp đồng.
+                Xác nhận thông tin công ty ký trước khi tạo phiên ký hợp đồng.
               </p>
             </div>
 
@@ -851,38 +849,44 @@ function ContractSigningForm({
             </button>
           </div>
 
-          <div className="space-y-4 p-6">
+          <div className="space-y-5 px-6 pb-4">
             <div>
-              <label className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                Họ tên người ký
-              </label>
-              <input
-                value={signerName}
-                onChange={(event) => setSignerName(event.target.value)}
-                disabled={isSubmitting}
-                placeholder="Nguyễn Văn A"
-                className="h-10 w-full rounded-lg border border-white/10 bg-white/[0.06] px-4 text-sm text-white transition-all outline-none placeholder:text-white/25 hover:border-white/20 hover:bg-white/[0.08] focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-40"
-              />
+              <dl className="mt-4 divide-y divide-white/8 border-white/10">
+                <div className="grid grid-cols-[112px_1fr] gap-4 py-3">
+                  <dt className="text-xs text-white/40">Công ty</dt>
+                  <dd className="text-right text-sm font-medium text-white">
+                    {pendingSigner.name || "-"}
+                  </dd>
+                </div>
+
+                <div className="grid grid-cols-[112px_1fr] gap-4 py-3">
+                  <dt className="text-xs text-white/40">Mã số thuế</dt>
+                  <dd className="text-right text-[13px] text-white/75">
+                    {contract.ownerCompanyInfo.mst || "-"}
+                  </dd>
+                </div>
+
+                <div className="grid grid-cols-[112px_1fr] gap-4 py-3">
+                  <dt className="text-xs text-white/40">Người đại diện</dt>
+                  <dd className="text-right text-[13px] text-white/75">
+                    {contract.ownerCompanyInfo.ownerName || "-"}
+                  </dd>
+                </div>
+
+                <div className="grid grid-cols-[112px_1fr] gap-4 py-3">
+                  <dt className="text-xs text-white/40">Email</dt>
+                  <dd className="text-right text-[13px] text-white/75">
+                    {pendingSigner.email || "-"}
+                  </dd>
+                </div>
+              </dl>
             </div>
 
-            <div>
-              <label className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                Email người ký
-              </label>
-              <input
-                type="email"
-                value={signerEmail}
-                onChange={(event) => setSignerEmail(event.target.value)}
-                disabled={isSubmitting}
-                placeholder="email@congty.com"
-                className="h-10 w-full rounded-lg border border-white/10 bg-white/[0.06] px-4 text-sm text-white transition-all outline-none placeholder:text-white/25 hover:border-white/20 hover:bg-white/[0.08] focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-40"
-              />
-            </div>
-
-            <div className="flex items-center gap-2 rounded-lg border border-amber-300/15 bg-amber-300/8 px-3 py-2 text-xs font-medium text-amber-100">
+            <div className="flex items-start gap-2 border-l border-amber-200/25 pl-3 text-xs leading-5 font-medium text-amber-100">
               <FiCheckCircle className="shrink-0 text-amber-200/80" />
               <span>
-                Sau khi xác nhận ký, hợp đồng sẽ được xuất bản và không thể
+                Phiên ký này sẽ dùng tên công ty và email công ty của bên sở
+                hữu. Sau khi xác nhận ký, hợp đồng sẽ được xuất bản và không thể
                 chỉnh sửa.
               </span>
             </div>
