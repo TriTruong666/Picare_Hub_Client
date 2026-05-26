@@ -75,6 +75,22 @@ function isAvailableToken(token: USBInfoResponse) {
   );
 }
 
+function getPendingOwnerSignature(contract: Contract) {
+  return contract.signatures
+    ?.filter(
+      (signature) =>
+        signature.signerType === "owner" &&
+        signature.status === "pending" &&
+        !!signature.contractSignatureId &&
+        !!signature.preparedPdfHash &&
+        !signature.signedPdfUrl,
+    )
+    .sort(
+      (current, next) =>
+        new Date(next.createdAt).getTime() - new Date(current.createdAt).getTime(),
+    )[0];
+}
+
 function LocalSignAppGuideModal({
   isChecking,
   onRetry,
@@ -594,6 +610,10 @@ function ContractSigningForm({
     useState<CertificateResponse | null>(null);
   const [pin, setPin] = useState("");
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [activeSigningSession, setActiveSigningSession] = useState<{
+    contractSignatureId: string;
+    hashToSign: string;
+  } | null>(null);
   const pendingSigner = useMemo(
     () => ({
       name:
@@ -688,6 +708,15 @@ function ContractSigningForm({
     setSelectedToken(token);
     setSelectedCertificate(certificateResponse.data);
     setPin("");
+    const pendingOwnerSignature = getPendingOwnerSignature(contract);
+    setActiveSigningSession(
+      pendingOwnerSignature
+        ? {
+            contractSignatureId: pendingOwnerSignature.contractSignatureId,
+            hashToSign: pendingOwnerSignature.preparedPdfHash,
+          }
+        : null,
+    );
     setIsTokenSelectionOpen(false);
     setIsPinModalOpen(true);
   };
@@ -701,35 +730,57 @@ function ContractSigningForm({
       return;
     }
 
-    const publishResponse = await publishDraftMutation.mutateAsync(
-      contract.contractId,
-    );
+    let signingSession = activeSigningSession;
 
-    if (!publishResponse.success) {
-      return;
+    if (!signingSession) {
+      const pendingOwnerSignature = getPendingOwnerSignature(contract);
+      if (pendingOwnerSignature) {
+        signingSession = {
+          contractSignatureId: pendingOwnerSignature.contractSignatureId,
+          hashToSign: pendingOwnerSignature.preparedPdfHash,
+        };
+      }
     }
 
-    const sessionResponse = await signingSessionMutation.mutateAsync({
-      contractId: contract.contractId,
-      data: {
-        signerType: "owner",
-        signerEmail: pendingSigner.email,
-        signerName: pendingSigner.name,
-      },
-    });
+    if (!signingSession) {
+      if (contract.status === "draft") {
+        const publishResponse = await publishDraftMutation.mutateAsync(
+          contract.contractId,
+        );
 
-    const hashToSign = sessionResponse.data?.hashToSign;
-    const contractSignatureId = sessionResponse.data?.contractSignatureId;
-    if (!sessionResponse.success || !hashToSign || !contractSignatureId) {
-      toast.error(
-        "Không thể tạo phiên ký",
-        "Phiên ký chưa có đủ dữ liệu để ký số.",
-      );
-      return;
+        if (!publishResponse.success) {
+          return;
+        }
+      }
+
+      const sessionResponse = await signingSessionMutation.mutateAsync({
+        contractId: contract.contractId,
+        data: {
+          signerType: "owner",
+          signerEmail: pendingSigner.email,
+          signerName: pendingSigner.name,
+        },
+      });
+
+      const hashToSign = sessionResponse.data?.hashToSign;
+      const contractSignatureId = sessionResponse.data?.contractSignatureId;
+      if (!sessionResponse.success || !hashToSign || !contractSignatureId) {
+        toast.error(
+          "Không thể tạo phiên ký",
+          "Phiên ký chưa có đủ dữ liệu để ký số.",
+        );
+        return;
+      }
+
+      signingSession = {
+        contractSignatureId,
+        hashToSign,
+      };
+      setActiveSigningSession(signingSession);
     }
 
     const signResponse = await signPdfCmsMutation.mutateAsync({
-      hash: hashToSign,
+      hash: signingSession.hashToSign,
       pin: normalizedPin,
       vendor: selectedToken.vendor,
       certificateId: selectedCertificate.certificateId,
@@ -754,7 +805,7 @@ function ContractSigningForm({
 
     const completeResponse = await completeSigningSessionMutation.mutateAsync({
       contractId: contract.contractId,
-      contractSignatureId,
+      contractSignatureId: signingSession.contractSignatureId,
       data: {
         signatureHex: signedData.signatureHex,
         certificatePem: signedData.certificatePem,
@@ -777,6 +828,7 @@ function ContractSigningForm({
     }
 
     onSigned?.();
+    setActiveSigningSession(null);
     setIsPinModalOpen(false);
     onClose();
   };

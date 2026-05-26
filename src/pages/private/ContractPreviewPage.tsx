@@ -177,52 +177,84 @@ function ProductList({ details }: { details: ContractDetail[] }) {
 function AnimatedSignature({
   name,
   shouldAnimate,
+  revealKey,
 }: {
   name: string;
   shouldAnimate: boolean;
+  revealKey?: number;
 }) {
   const prefersReducedMotion = useReducedMotion();
   const canAnimate = shouldAnimate && !prefersReducedMotion;
+  const signatureFontFamily =
+    '"Parisienne", "Great Vibes", "Segoe Script", "Snell Roundhand", cursive';
 
   return (
-    <div className="relative mx-auto flex h-32 w-full max-w-[260px] items-center justify-center overflow-hidden">
+    <div className="relative mx-auto flex h-36 w-full max-w-[300px] items-center justify-center overflow-hidden">
+      <motion.svg
+        viewBox="0 0 300 120"
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full"
+      >
+        <motion.path
+          d="M28 76 C62 42, 90 28, 114 48 S154 84, 184 54 S226 30, 258 58"
+          fill="none"
+          stroke="rgba(255,255,255,0.84)"
+          strokeWidth="2.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={canAnimate ? { pathLength: 0, opacity: 0 } : false}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 0.95, ease: [0.22, 1, 0.36, 1] }}
+        />
+      </motion.svg>
+
       <motion.div
-        key={`${name}-${shouldAnimate ? "animated" : "static"}`}
-        initial={canAnimate ? { clipPath: "inset(0 100% 0 0)" } : false}
-        animate={{ clipPath: "inset(0 0% 0 0)" }}
-        transition={{ duration: 1.45, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 text-[56px] leading-none font-normal text-white drop-shadow-[0_0_22px_rgba(255,255,255,0.2)]"
+        key={`${name}-${revealKey ?? 0}-${shouldAnimate ? "animated" : "static"}`}
+        initial={
+          canAnimate
+            ? { opacity: 0, y: 12, scale: 0.98, rotate: -2, filter: "blur(7px)" }
+            : false
+        }
+        animate={{
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          rotate: 0,
+          filter: "blur(0px)",
+        }}
+        transition={{
+          duration: 0.62,
+          delay: canAnimate ? 0.42 : 0,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="relative z-10 select-none text-[58px] leading-none font-normal text-white drop-shadow-[0_0_18px_rgba(255,255,255,0.14)]"
         style={{
-          fontFamily:
-            '"Segoe Script", "Brush Script MT", "Lucida Handwriting", cursive',
+          fontFamily: signatureFontFamily,
+          letterSpacing: "0.01em",
+          textShadow: "0 1px 0 rgba(255,255,255,0.08)",
         }}
       >
         {name}
       </motion.div>
 
-      <svg
-        viewBox="0 0 260 92"
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-3 mx-auto h-[92px] w-full text-white/75"
-      >
-        <motion.path
-          d="M26 66 C64 82, 105 77, 132 61 S188 39, 229 58"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          initial={canAnimate ? { pathLength: 0, opacity: 0 } : false}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 1.1, delay: canAnimate ? 0.72 : 0 }}
-        />
-      </svg>
-
       <motion.span
         aria-hidden="true"
-        initial={canAnimate ? { x: -115, opacity: 0 } : false}
-        animate={{ x: 116, opacity: canAnimate ? [0, 1, 1, 0] : 0 }}
-        transition={{ duration: 1.35, ease: "easeInOut" }}
-        className="absolute top-8 h-10 w-1 rotate-12 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.75)]"
+        initial={
+          canAnimate ? { x: -122, y: 18, opacity: 0, rotate: -12 } : false
+        }
+        animate={
+          canAnimate
+            ? {
+                x: [-122, -54, 8, 78, 116],
+                y: [18, -6, 8, -4, 12],
+                opacity: [0, 1, 1, 1, 0],
+                rotate: [-12, 16, -8, 10, -4],
+                scale: [0.75, 1, 1, 1, 0.82],
+              }
+            : { opacity: 0 }
+        }
+        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute top-8 z-20 h-3 w-3 rounded-full bg-white shadow-[0_0_22px_rgba(255,255,255,0.85)]"
       />
     </div>
   );
@@ -233,12 +265,14 @@ function SignatureBlock({
   name,
   isSigned,
   shouldAnimate,
+  revealKey,
   signatureRef,
 }: {
   title: string;
   name: string;
   isSigned?: boolean;
   shouldAnimate?: boolean;
+  revealKey?: number;
   signatureRef?: React.Ref<HTMLDivElement>;
 }) {
   const signatureName = getSignatureDisplayName(name);
@@ -254,6 +288,7 @@ function SignatureBlock({
         <AnimatedSignature
           name={signatureName}
           shouldAnimate={Boolean(shouldAnimate)}
+          revealKey={revealKey}
         />
       ) : (
         <div className="h-32" />
@@ -665,6 +700,7 @@ function ContractDocument({
           name={owner.ownerName}
           isSigned={hasOwnerSigned || Boolean(ownerSignatureRevealKey)}
           shouldAnimate={Boolean(ownerSignatureRevealKey)}
+          revealKey={ownerSignatureRevealKey}
           signatureRef={ownerSignatureRef}
         />
         <SignatureBlock title="Đại diện Bên B" name={partner.ownerName} />

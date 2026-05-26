@@ -50,7 +50,7 @@ export type ContractStatus =
   | "owner_signed"
   | "completed";
 
-export type ContractSignatureStatus = "signed";
+export type ContractSignatureStatus = "pending" | "signed";
 export type ContractSignerType = "owner" | "partner";
 export type ContractSigningMethod = "pdf_byte_range";
 
@@ -85,15 +85,17 @@ export type ContractSignature = {
   preparedPdfHash: string;
   byteRange: number[];
   signatureLength: number;
-  certificateSerial: string;
-  certificateSubject: string;
-  certificateIssuer: string;
-  vendor: string;
-  signedPdfHash: string;
-  signedPdfUrl: string;
-  signedAt: string;
+  certificateSerial: string | null;
+  certificateSubject: string | null;
+  certificateIssuer: string | null;
+  vendor: string | null;
+  signedPdfHash: string | null;
+  signedPdfUrl: string | null;
+  signedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  handwrittenSignatureImageUrl: string | null;
+  handwrittenSignatureImageKey: string | null;
 };
 
 export type Contract = {
@@ -156,4 +158,22 @@ export type SigningCompleteResponse = {
   signedPdfUrl: string;
   documentVersion: number;
   status: ContractStatus;
+};
+
+export type UpdatePartnerSignTypePayload = {
+  signerType: "individual" | "organization";
+};
+
+export type UploadIndividualCredentialPayload = {
+  first_identification_image: string;
+  second_identification_image: string;
+};
+
+export type UploadOrganizationCredentialPayload = {
+  business_license: string;
+  power_of_attorney_image?: string | null;
+};
+
+export type HandwrittenSignaturePayload = {
+  signerType: "individual" | "organization";
 };
