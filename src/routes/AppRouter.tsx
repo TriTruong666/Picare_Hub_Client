@@ -3,11 +3,13 @@ import PublicRoutes from "./PublicRoutes";
 import { PATHS } from "@/config/paths";
 import PrivateRoutes from "./PrivateRoutes";
 import PrivateContractRoutes from "./PrivateContractRoutes";
+import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
 
 export default function AppRouter() {
   return (
     <Routes>
       <Route path="/dashboard/*" element={<PrivateRoutes />} />
+      <Route path="/contracts/:contractId/sign-partner" element={<ContractPartnerSignPage />} />
       <Route path="/contracts/*" element={<PrivateContractRoutes />} />
 
       {/* Public Routes (Landing, Login, etc.) */}

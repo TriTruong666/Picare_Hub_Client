@@ -309,16 +309,16 @@ type PartnerMailForm = {
   title: string;
   intro: string;
   message: string;
-  actionUrl: string;
   replyTo: string;
 };
+
+function getPartnerSignUrl(contractId: string) {
+  return getAbsoluteUrl(PATHS.PARTNER_SIGN.replace(":contractId", contractId));
+}
 
 function createPartnerMailForm(contract: Contract): PartnerMailForm {
   const partner = contract.partnerCompanyInfo;
   const owner = contract.ownerCompanyInfo;
-  const partnerSignUrl = getAbsoluteUrl(
-    PATHS.PARTNER_SIGN.replace(":contractId", contract.contractId),
-  );
 
   return {
     to: partner.email || "",
@@ -326,7 +326,6 @@ function createPartnerMailForm(contract: Contract): PartnerMailForm {
     title: "Hợp đồng đã được ký bởi bên bán",
     intro: `Kính gửi ${partner.companyName || "Quý đối tác"},`,
     message: `${owner.companyName} đã hoàn tất chữ ký số cho hợp đồng ${contract.contractNumber}. Vui lòng kiểm tra nội dung hợp đồng và tiếp tục xử lý theo quy trình của bên mua.`,
-    actionUrl: partnerSignUrl,
     replyTo: owner.email || "",
   };
 }
@@ -360,12 +359,12 @@ function SendPartnerMailModal({
   const handleSend = async () => {
     const normalizedTo = form.to.trim();
     const normalizedSubject = form.subject.trim();
-    const normalizedActionUrl = form.actionUrl.trim();
+    const actionUrl = getPartnerSignUrl(contract.contractId);
 
-    if (!normalizedTo || !normalizedSubject || !normalizedActionUrl) {
+    if (!normalizedTo || !normalizedSubject) {
       toast.error(
         "Thiếu thông tin gửi mail",
-        "Vui lòng kiểm tra email đối tác, tiêu đề và đường dẫn hợp đồng.",
+        "Vui lòng kiểm tra email đối tác và tiêu đề.",
       );
       return;
     }
@@ -380,7 +379,7 @@ function SendPartnerMailModal({
         .map((line) => line.trim())
         .filter(Boolean),
       actionLabel: "Xem hợp đồng",
-      actionUrl: normalizedActionUrl,
+      actionUrl,
       footer:
         "Email này được gửi từ hệ thống Picare Hub. Vui lòng không chia sẻ đường dẫn nếu không có thẩm quyền.",
       replyTo: form.replyTo.trim() || contract.ownerCompanyInfo.email || "",
@@ -485,19 +484,6 @@ function SendPartnerMailModal({
                 />
               </label>
 
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Link hợp đồng
-                </span>
-                <input
-                  value={form.actionUrl}
-                  disabled={isSending}
-                  onChange={(event) =>
-                    updateField("actionUrl", event.target.value)
-                  }
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
             </div>
 
             <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">

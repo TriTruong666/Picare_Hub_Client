@@ -177,3 +177,10 @@ export type UploadOrganizationCredentialPayload = {
 export type HandwrittenSignaturePayload = {
   signerType: "individual" | "organization";
 };
+
+export type GenSignLinkResponse = {
+  contractId: string;
+  partnerEmail: string;
+  token: string;
+  signingUrl: string;
+};

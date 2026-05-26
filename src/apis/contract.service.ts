@@ -4,6 +4,7 @@ import type {
   Contract,
   CreateContractPayload,
   CreateContractResponse,
+  GenSignLinkResponse,
   SigningCompletePayload,
   SigningCompleteResponse,
   SigningSessionPayload,
@@ -92,6 +93,15 @@ export const updateContract = async (
   const res = await hubAxiosClient.put(
     `/api/v1/contracts/${contractId}`,
     payload,
+  );
+  return res.data;
+};
+
+export const generateSignLink = async (
+  contractId: string,
+): Promise<BaseResponse<GenSignLinkResponse>> => {
+  const res = await hubAxiosClient.get(
+    `api/v1/contracts/${contractId}/signing-link`,
   );
   return res.data;
 };
