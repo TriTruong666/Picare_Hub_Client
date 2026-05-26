@@ -98,6 +98,98 @@ export type ContractSignature = {
   handwrittenSignatureImageKey: string | null;
 };
 
+export type IndividualCredentialAddressEntities = {
+  ward?: string | null;
+  street?: string | null;
+  district?: string | null;
+  province?: string | null;
+};
+
+export type IndividualCredentialOcrResponse<TData> = {
+  data: TData[];
+  errorCode: number;
+  errorMessage: string;
+};
+
+export type IndividualCredentialFrontOcrData = {
+  id?: string | null;
+  dob?: string | null;
+  doe?: string | null;
+  sex?: string | null;
+  home?: string | null;
+  name?: string | null;
+  type?: string | null;
+  address?: string | null;
+  id_prob?: string | null;
+  dob_prob?: string | null;
+  doe_prob?: string | null;
+  sex_prob?: string | null;
+  type_new?: string | null;
+  home_prob?: string | null;
+  name_prob?: string | null;
+  nationality?: string | null;
+  address_prob?: string | null;
+  overall_score?: string | null;
+  address_entities?: IndividualCredentialAddressEntities | null;
+  nationality_prob?: string | null;
+  number_of_name_lines?: string | null;
+};
+
+export type IndividualCredentialBackOcrData = {
+  doe?: string | null;
+  mrz?: string[] | null;
+  pob?: string | null;
+  type?: string | null;
+  address?: string | null;
+  doe_prob?: string | null;
+  features?: string | null;
+  mrz_prob?: string | null;
+  pob_prob?: string | null;
+  type_new?: string | null;
+  issue_loc?: string | null;
+  issue_date?: string | null;
+  mrz_details?: {
+    id?: string | null;
+    dob?: string | null;
+    doe?: string | null;
+    sex?: string | null;
+    name?: string | null;
+    nationality?: string | null;
+  } | null;
+  address_prob?: string | null;
+  features_prob?: string | null;
+  overall_score?: string | null;
+  issue_loc_prob?: string | null;
+  issue_date_prob?: string | null;
+};
+
+export type IndividualCredential = {
+  dob?: string | null;
+  doe?: string | null;
+  ocr?: {
+    first?: IndividualCredentialOcrResponse<IndividualCredentialFrontOcrData> | null;
+    second?: IndividualCredentialOcrResponse<IndividualCredentialBackOcrData> | null;
+  } | null;
+  sex?: string | null;
+  home?: string | null;
+  name?: string | null;
+  type?: string | null;
+  address?: string | null;
+  features?: string | null;
+  religion?: string | null;
+  type_new?: string | null;
+  ethnicity?: string | null;
+  issue_loc?: string | null;
+  issue_date?: string | null;
+  nationality?: string | null;
+  credentialId?: string | null;
+  address_entities?: IndividualCredentialAddressEntities | null;
+  first_identification_image?: string | null;
+  second_identification_image?: string | null;
+  first_identification_image_key?: string | null;
+  second_identification_image_key?: string | null;
+};
+
 export type Contract = {
   id: number;
   contractId: string;
@@ -111,6 +203,8 @@ export type Contract = {
   createdAt: string;
   updatedAt: string;
   status: ContractStatus;
+  individualCredential?: IndividualCredential | null;
+  organizationCredential?: unknown | null;
   details?: ContractDetail[];
   documents?: ContractDocument[];
   signatures?: ContractSignature[];
@@ -165,8 +259,8 @@ export type UpdatePartnerSignTypePayload = {
 };
 
 export type UploadIndividualCredentialPayload = {
-  first_identification_image: string;
-  second_identification_image: string;
+  first_identification_image: File;
+  second_identification_image: File;
 };
 
 export type UploadOrganizationCredentialPayload = {

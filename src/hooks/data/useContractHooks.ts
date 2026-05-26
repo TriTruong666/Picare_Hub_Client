@@ -6,6 +6,7 @@ import type {
   CreateContractPayload,
   UpdatePartnerSignTypePayload,
   UploadIndividualCredentialPayload,
+  HandwrittenSignaturePayload,
   SigningCompletePayload,
   SigningSessionPayload,
   UpdateContractPayload,
@@ -249,6 +250,45 @@ export function useUploadIndividualCredential(options?: MutationToastOptions) {
       if (data.success) {
         if (showSuccessToast) {
           toast.success("Thành công", "Đã tải lên CCCD");
+        }
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts", variables.contractId],
+        });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+export function useUploadHandwrittenSignature(options?: MutationToastOptions) {
+  const queryClient = useQueryClient();
+  const { showSuccessToast = true } = options ?? {};
+
+  return useMutation({
+    mutationFn: ({
+      contractId,
+      partnerToken,
+      data,
+    }: {
+      contractId: string;
+      partnerToken: string;
+      data: HandwrittenSignaturePayload;
+    }) =>
+      ContractService.uploadHandwrittenSignature(
+        contractId,
+        partnerToken,
+        data,
+      ),
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        if (showSuccessToast) {
+          toast.success("Thành công", "Đã lưu chữ ký tay");
         }
         queryClient.invalidateQueries({ queryKey: ["contracts"] });
         queryClient.invalidateQueries({

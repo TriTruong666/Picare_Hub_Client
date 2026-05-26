@@ -155,10 +155,27 @@ export const uploadIndividualCredential = async (
   token: string,
   payload: UploadIndividualCredentialPayload,
 ): Promise<BaseResponse<null>> => {
+  const formData = new FormData();
+  formData.append(
+    "first_identification_image",
+    payload.first_identification_image,
+  );
+  formData.append(
+    "second_identification_image",
+    payload.second_identification_image,
+  );
+  const requestConfig = getPartnerTokenRequestConfig(token);
+
   const res = await hubAxiosClient.post(
-    `/api/v1/contracts/${contractId}/individual-credentials`,
-    payload,
-    getPartnerTokenRequestConfig(token),
+    `/api/v1/contracts/${contractId}/individual-credential`,
+    formData,
+    {
+      ...requestConfig,
+      headers: {
+        ...requestConfig?.headers,
+        "Content-Type": "multipart/form-data",
+      },
+    },
   );
   return res.data;
 };
@@ -169,7 +186,7 @@ export const uploadOrganizationCredential = async (
   payload: UploadOrganizationCredentialPayload,
 ): Promise<BaseResponse<null>> => {
   const res = await hubAxiosClient.post(
-    `/api/v1/contracts/${contractId}/organization-credentials`,
+    `/api/v1/contracts/${contractId}/organization-credential`,
     payload,
     getPartnerTokenRequestConfig(token),
   );

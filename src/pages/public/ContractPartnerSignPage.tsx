@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { FiDownload, FiPenTool } from "react-icons/fi";
+import { FiPenTool } from "react-icons/fi";
 import { useParams, useSearchParams } from "react-router-dom";
+import HandwrittenSignatureModal from "@/components/modals/HandwrittenSignatureModal";
 import IndividualCredentialUploadModal from "@/components/modals/IndividualCredentialUploadModal";
 import PartnerSignTypeModal from "@/components/modals/PartnerSignTypeModal";
 import type { PartnerSignType } from "@/components/modals/PartnerSignTypeModal";
@@ -20,6 +21,40 @@ import type {
   OwnerCompanyInfoPayload,
   PartnerCompanyInfoPayload,
 } from "@/types/Contract";
+
+function normalizeLegalName(value?: string | null) {
+  return (value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .replace(/^(ong|ba|anh|chi|co|chu)\s+/i, "")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase();
+}
+
+function getIndividualCredentialName(contract: Contract) {
+  return (
+    contract.individualCredential?.name ||
+    contract.individualCredential?.ocr?.first?.data?.[0]?.name ||
+    ""
+  );
+}
+
+function isCredentialNameMatched(contract: Contract) {
+  const credentialName = normalizeLegalName(
+    getIndividualCredentialName(contract),
+  );
+  const partnerOwnerName = normalizeLegalName(
+    contract.partnerCompanyInfo.ownerName,
+  );
+
+  if (!credentialName || !partnerOwnerName) {
+    return true;
+  }
+
+  return credentialName === partnerOwnerName;
+}
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("vi-VN", {
@@ -295,11 +330,7 @@ function SignatureBlock({
   );
 }
 
-function ContractDocument({
-  contract,
-}: {
-  contract: Contract;
-}) {
+function ContractDocument({ contract }: { contract: Contract }) {
   const owner = contract.ownerCompanyInfo;
   const partner = contract.partnerCompanyInfo;
   const signedDate = getVietnameseDate(contract.createdAt);
@@ -495,6 +526,109 @@ function DockButton({
   );
 }
 
+function LegalNameMismatchModal({
+  isOpen,
+  credentialName,
+  contractName,
+  onClose,
+  onContinue,
+  onReupload,
+}: {
+  isOpen: boolean;
+  credentialName: string;
+  contractName: string;
+  onClose: () => void;
+  onContinue: () => void;
+  onReupload: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {isOpen ? (
+        <div className="fixed inset-0 z-[320] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          />
+
+          <motion.div
+            initial={{ scale: 0.96, opacity: 0, y: 10 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.96, opacity: 0, y: 10 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="dashboard-theme relative w-full max-w-xl overflow-hidden rounded-2xl border border-amber-300/18 bg-[#0b0b0b] text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+          >
+            <div className="border-b border-white/10 bg-amber-300/[0.06] px-6 py-5">
+              <p className="text-[11px] font-medium text-amber-200/75 uppercase">
+                Cảnh báo pháp lý
+              </p>
+              <h2 className="mt-2 text-lg font-semibold text-white">
+                Tên trên CCCD không trùng người đại diện hợp đồng
+              </h2>
+            </div>
+
+            <div className="space-y-5 p-6">
+              <p className="text-sm leading-6 text-white/62">
+                Việc tiếp tục ký khi thông tin định danh không khớp có thể làm
+                phát sinh rủi ro về thẩm quyền ký, giá trị chứng minh danh tính
+                và hiệu lực pháp lý của hợp đồng nếu có tranh chấp.
+              </p>
+
+              <dl className="divide-y divide-white/10 border-y border-white/10">
+                <div className="grid gap-1 py-3 sm:grid-cols-[150px_1fr]">
+                  <dt className="text-xs text-white/35">Tên trên CCCD</dt>
+                  <dd className="text-sm text-white/82">
+                    {credentialName || "-"}
+                  </dd>
+                </div>
+                <div className="grid gap-1 py-3 sm:grid-cols-[150px_1fr]">
+                  <dt className="text-xs text-white/35">
+                    Người đại diện hợp đồng
+                  </dt>
+                  <dd className="text-sm text-white/82">
+                    {contractName || "-"}
+                  </dd>
+                </div>
+              </dl>
+
+              <p className="text-xs leading-5 text-amber-100/58">
+                Chỉ tiếp tục nếu bên ký xác nhận mình có đầy đủ thẩm quyền đại
+                diện và chịu trách nhiệm với chữ ký này.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
+              <button
+                type="button"
+                onClick={onReupload}
+                className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/70 transition hover:border-white/25 hover:bg-white/10 hover:text-white"
+              >
+                Upload lại CCCD
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-lg px-4 py-2 text-sm text-white/60 transition hover:bg-white/10 hover:text-white"
+              >
+                Kiểm tra lại
+              </button>
+              <button
+                type="button"
+                onClick={onContinue}
+                className="rounded-lg bg-amber-200 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-100"
+              >
+                Tiếp tục ký
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
 function ContractActionDock({
   contract,
   partnerToken,
@@ -502,13 +636,43 @@ function ContractActionDock({
 }: {
   contract: Contract;
   partnerToken?: string;
-  onCredentialUploaded?: () => void;
+  onCredentialUploaded?: () => void | Promise<void>;
 }) {
   const downloadMutation = useDownloadS3Asset();
   const updatePartnerSignTypeMutation = useUpdatePartnerSignType();
   const [isSignTypeModalOpen, setIsSignTypeModalOpen] = useState(false);
   const [isIndividualCredentialOpen, setIsIndividualCredentialOpen] =
     useState(false);
+  const [isNameMismatchOpen, setIsNameMismatchOpen] = useState(false);
+  const [isHandwrittenSignatureOpen, setIsHandwrittenSignatureOpen] =
+    useState(false);
+  const [forceCredentialUploadMode, setForceCredentialUploadMode] =
+    useState(false);
+  const credentialName = getIndividualCredentialName(contract);
+  const signatureSignerName =
+    credentialName || contract.partnerCompanyInfo.ownerName;
+
+  const openHandwrittenSignatureFlow = () => {
+    setIsIndividualCredentialOpen(false);
+    setIsNameMismatchOpen(false);
+    setIsHandwrittenSignatureOpen(true);
+  };
+
+  const handleCredentialContinue = () => {
+    if (isCredentialNameMatched(contract)) {
+      openHandwrittenSignatureFlow();
+      return;
+    }
+
+    setIsIndividualCredentialOpen(false);
+    setIsNameMismatchOpen(true);
+  };
+
+  const handleReuploadCredentialFromWarning = () => {
+    setIsNameMismatchOpen(false);
+    setForceCredentialUploadMode(true);
+    setIsIndividualCredentialOpen(true);
+  };
 
   const handleDownloadContract = () => {
     const key = getS3KeyFromUrl(contract.contractUrl);
@@ -529,6 +693,8 @@ function ContractActionDock({
       ),
     });
   };
+
+  void handleDownloadContract;
 
   const handleSignTypeConfirm = async (type: PartnerSignType) => {
     if (!partnerToken) {
@@ -582,9 +748,32 @@ function ContractActionDock({
       <IndividualCredentialUploadModal
         contractId={contract.contractId}
         partnerToken={partnerToken}
+        credential={contract.individualCredential}
         isOpen={isIndividualCredentialOpen}
         onClose={() => setIsIndividualCredentialOpen(false)}
         onUploaded={onCredentialUploaded}
+        onContinue={handleCredentialContinue}
+        forceUploadMode={forceCredentialUploadMode}
+        onForceUploadModeConsumed={() => setForceCredentialUploadMode(false)}
+      />
+
+      <LegalNameMismatchModal
+        isOpen={isNameMismatchOpen}
+        credentialName={credentialName}
+        contractName={contract.partnerCompanyInfo.ownerName}
+        onClose={() => setIsNameMismatchOpen(false)}
+        onContinue={openHandwrittenSignatureFlow}
+        onReupload={handleReuploadCredentialFromWarning}
+      />
+
+      <HandwrittenSignatureModal
+        contractId={contract.contractId}
+        partnerToken={partnerToken}
+        signerName={signatureSignerName}
+        signerEmail={contract.partnerCompanyInfo.email}
+        isOpen={isHandwrittenSignatureOpen}
+        onClose={() => setIsHandwrittenSignatureOpen(false)}
+        onSigned={onCredentialUploaded}
       />
     </>
   );
@@ -640,12 +829,16 @@ export default function ContractPartnerSignPage() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-red-400">
             <FiPenTool size={24} />
           </div>
-          <h1 className="mt-6 text-xl font-semibold text-white">Liên kết không hợp lệ hoặc đã hết hạn</h1>
+          <h1 className="mt-6 text-xl font-semibold text-white">
+            Liên kết không hợp lệ hoặc đã hết hạn
+          </h1>
           <p className="mt-3 text-sm leading-6 text-white/45">
-            Đường dẫn ký hợp đồng này chỉ mở khi bên bán đã ký số và trạng thái hợp đồng là chờ bên mua ký.
+            Đường dẫn ký hợp đồng này chỉ mở khi bên bán đã ký số và trạng thái
+            hợp đồng là chờ bên mua ký.
           </p>
           <p className="mt-1 text-xs text-white/30">
-            Trạng thái hiện tại: <span className="font-medium text-white/50">{contract.status}</span>
+            Trạng thái hiện tại:{" "}
+            <span className="font-medium text-white/50">{contract.status}</span>
           </p>
         </div>
       </main>
@@ -658,11 +851,10 @@ export default function ContractPartnerSignPage() {
       <ContractActionDock
         contract={contract}
         partnerToken={partnerToken}
-        onCredentialUploaded={() => {
-          void refetch();
+        onCredentialUploaded={async () => {
+          await refetch();
         }}
       />
     </main>
   );
 }
-
