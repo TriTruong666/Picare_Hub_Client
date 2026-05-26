@@ -4,6 +4,8 @@ import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
 import type {
   ContractStatus,
   CreateContractPayload,
+  UpdatePartnerSignTypePayload,
+  UploadIndividualCredentialPayload,
   SigningCompletePayload,
   SigningSessionPayload,
   UpdateContractPayload,
@@ -34,10 +36,10 @@ export function useContractList(params: ContractListParams) {
 /**
  * Hook lấy chi tiết hợp đồng
  */
-export function useContractDetail(contractId: string) {
+export function useContractDetail(contractId: string, partnerToken?: string) {
   return useFetch(
-    ["contracts", contractId],
-    () => ContractService.getContractDetail(contractId),
+    ["contracts", contractId, partnerToken],
+    () => ContractService.getContractDetail(contractId, partnerToken),
     {
       enabled: !!contractId,
     },
@@ -47,9 +49,12 @@ export function useContractDetail(contractId: string) {
 /**
  * Hook lấy chi tiết hợp đồng (Suspense version)
  */
-export function useSuspenseContractDetail(contractId: string) {
-  return useSuspenseFetch(["contracts", contractId], () =>
-    ContractService.getContractDetail(contractId),
+export function useSuspenseContractDetail(
+  contractId: string,
+  partnerToken?: string,
+) {
+  return useSuspenseFetch(["contracts", contractId, partnerToken], () =>
+    ContractService.getContractDetail(contractId, partnerToken),
   );
 }
 
@@ -148,14 +153,102 @@ export function useCreateSigningSession(options?: MutationToastOptions) {
     mutationFn: ({
       contractId,
       data,
+      partnerToken,
     }: {
       contractId: string;
       data: SigningSessionPayload;
-    }) => ContractService.createSigningSession(data, contractId),
+      partnerToken?: string;
+    }) =>
+      ContractService.createSigningSession(data, contractId, partnerToken),
     onSuccess: (data, variables) => {
       if (data.success) {
         if (showSuccessToast) {
           toast.success("Thành công", "Đã tạo phiên ký");
+        }
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts", variables.contractId],
+        });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+export function useGenerateSignLink() {
+  return useMutation({
+    mutationFn: (contractId: string) =>
+      ContractService.generateSignLink(contractId),
+    onSuccess: (data) => {
+      if (!data.success) {
+        toast.error(
+          "Tháº¥t báº¡i",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lá»—i", getApiErrorMessage(err)),
+  });
+}
+
+export function useUpdatePartnerSignType(options?: MutationToastOptions) {
+  const queryClient = useQueryClient();
+  const { showSuccessToast = true } = options ?? {};
+
+  return useMutation({
+    mutationFn: ({
+      contractId,
+      data,
+      partnerToken,
+    }: {
+      contractId: string;
+      data: UpdatePartnerSignTypePayload;
+      partnerToken?: string;
+    }) => ContractService.updatePartnerSignType(contractId, data, partnerToken),
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        if (showSuccessToast) {
+          toast.success("Thành công", "Đã chọn hình thức ký");
+        }
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts", variables.contractId],
+        });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+export function useUploadIndividualCredential(options?: MutationToastOptions) {
+  const queryClient = useQueryClient();
+  const { showSuccessToast = true } = options ?? {};
+
+  return useMutation({
+    mutationFn: ({
+      contractId,
+      partnerToken,
+      data,
+    }: {
+      contractId: string;
+      partnerToken: string;
+      data: UploadIndividualCredentialPayload;
+    }) =>
+      ContractService.uploadIndividualCredential(contractId, partnerToken, data),
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        if (showSuccessToast) {
+          toast.success("Thành công", "Đã tải lên CCCD");
         }
         queryClient.invalidateQueries({ queryKey: ["contracts"] });
         queryClient.invalidateQueries({
@@ -202,15 +295,22 @@ export function usePublishCompleteContract(options?: MutationToastOptions) {
   const { showSuccessToast = true } = options ?? {};
 
   return useMutation({
-    mutationFn: (contractId: string) =>
-      ContractService.publishCompleteContract(contractId),
-    onSuccess: (data, contractId) => {
+    mutationFn: ({
+      contractId,
+      partnerToken,
+    }: {
+      contractId: string;
+      partnerToken?: string;
+    }) => ContractService.publishCompleteContract(contractId, partnerToken),
+    onSuccess: (data, variables) => {
       if (data.success) {
         if (showSuccessToast) {
           toast.success("Hoàn tất", "Hợp đồng đã hoàn tất đầy đủ chữ ký");
         }
         queryClient.invalidateQueries({ queryKey: ["contracts"] });
-        queryClient.invalidateQueries({ queryKey: ["contracts", contractId] });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts", variables.contractId],
+        });
       } else {
         toast.error(
           "Thất bại",
@@ -231,15 +331,18 @@ export function useCompleteSigningSession(options?: MutationToastOptions) {
       contractId,
       contractSignatureId,
       data,
+      partnerToken,
     }: {
       contractId: string;
       contractSignatureId: string;
       data: SigningCompletePayload;
+      partnerToken?: string;
     }) =>
       ContractService.completeSigningSession(
         data,
         contractId,
         contractSignatureId,
+        partnerToken,
       ),
     onSuccess: (data, variables) => {
       if (data.success) {

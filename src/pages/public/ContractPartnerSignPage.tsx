@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { FiDownload, FiPenTool } from "react-icons/fi";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
+import IndividualCredentialUploadModal from "@/components/modals/IndividualCredentialUploadModal";
+import PartnerSignTypeModal from "@/components/modals/PartnerSignTypeModal";
+import type { PartnerSignType } from "@/components/modals/PartnerSignTypeModal";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
-import { useContractDetail } from "@/hooks/data/useContractHooks";
+import {
+  useContractDetail,
+  useUpdatePartnerSignType,
+} from "@/hooks/data/useContractHooks";
 import { useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
 import { toast } from "@/hooks/useToast";
 import type {
@@ -491,10 +497,18 @@ function DockButton({
 
 function ContractActionDock({
   contract,
+  partnerToken,
+  onCredentialUploaded,
 }: {
   contract: Contract;
+  partnerToken?: string;
+  onCredentialUploaded?: () => void;
 }) {
   const downloadMutation = useDownloadS3Asset();
+  const updatePartnerSignTypeMutation = useUpdatePartnerSignType();
+  const [isSignTypeModalOpen, setIsSignTypeModalOpen] = useState(false);
+  const [isIndividualCredentialOpen, setIsIndividualCredentialOpen] =
+    useState(false);
 
   const handleDownloadContract = () => {
     const key = getS3KeyFromUrl(contract.contractUrl);
@@ -516,71 +530,76 @@ function ContractActionDock({
     });
   };
 
-  const handleDownloadAttachment = () => {
-    // If contract has other documents, download the first one, otherwise download contractUrl with fallback name
-    const docKey =
-      contract.documents && contract.documents.length > 0
-        ? getS3KeyFromUrl(contract.documents[0].fileUrl)
-        : null;
-
-    const finalKey = docKey || getS3KeyFromUrl(contract.contractUrl);
-
-    if (!finalKey) {
-      toast.error(
-        "Không thể tải tài liệu đính kèm",
-        "Không tìm thấy tài liệu đính kèm phù hợp.",
-      );
+  const handleSignTypeConfirm = async (type: PartnerSignType) => {
+    if (!partnerToken) {
+      toast.error("Thiếu token", "Đường dẫn ký không hợp lệ hoặc đã hết hạn.");
       return;
     }
 
-    downloadMutation.mutate({
-      key: finalKey,
-      originalName: docKey
-        ? getFileNameFromS3Key(docKey, "tai-lieu-dinh-kem.pdf")
-        : `Phu-luc-${contract.contractNumber || contract.contractId}.pdf`,
+    const response = await updatePartnerSignTypeMutation.mutateAsync({
+      contractId: contract.contractId,
+      partnerToken,
+      data: { signerType: type },
     });
-  };
 
-  const handleSignPlaceholder = () => {
-    toast.info("Tính năng đang phát triển", "Hệ thống đang thiết lập cổng kết nối ký số cho đối tác.");
+    if (!response.success) {
+      return;
+    }
+
+    setIsSignTypeModalOpen(false);
+    if (type === "individual") {
+      setIsIndividualCredentialOpen(true);
+      return;
+    }
+    // TODO: organization (USB token) flow
+    toast.info(
+      "Ký số – Sắp ra mắt",
+      "Luồng này đang được xây dựng, sẽ sớm hoạt động.",
+    );
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 18, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.22, ease: "easeOut" }}
-      className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
-    >
-      <DockButton
-        label="Tải hợp đồng"
-        icon={<FiDownload />}
-        onClick={handleDownloadContract}
-        disabled={downloadMutation.isPending}
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 18, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+        className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+      >
+        <DockButton
+          label="Ký hợp đồng"
+          icon={<FiPenTool className="text-emerald-400" />}
+          onClick={() => setIsSignTypeModalOpen(true)}
+        />
+      </motion.div>
+
+      <PartnerSignTypeModal
+        isOpen={isSignTypeModalOpen}
+        onClose={() => setIsSignTypeModalOpen(false)}
+        onConfirm={handleSignTypeConfirm}
       />
-      <DockButton
-        label="Tải tài liệu đính kèm"
-        icon={<FiDownload className="rotate-180 text-indigo-400" />}
-        onClick={handleDownloadAttachment}
-        disabled={downloadMutation.isPending}
+
+      <IndividualCredentialUploadModal
+        contractId={contract.contractId}
+        partnerToken={partnerToken}
+        isOpen={isIndividualCredentialOpen}
+        onClose={() => setIsIndividualCredentialOpen(false)}
+        onUploaded={onCredentialUploaded}
       />
-      <DockButton
-        label="Ký hợp đồng"
-        icon={<FiPenTool className="text-emerald-400" />}
-        onClick={handleSignPlaceholder}
-      />
-    </motion.div>
+    </>
   );
 }
 
 export default function ContractPartnerSignPage() {
   const { contractId = "" } = useParams();
+  const [searchParams] = useSearchParams();
+  const partnerToken = searchParams.get("token")?.trim() || undefined;
   const {
     data: contract,
     isLoading,
     isError,
     refetch,
-  } = useContractDetail(contractId);
+  } = useContractDetail(contractId, partnerToken);
 
   if (isLoading) {
     return (
@@ -636,7 +655,14 @@ export default function ContractPartnerSignPage() {
   return (
     <main className="dashboard-theme min-h-screen bg-black px-5 py-10 text-white md:px-8">
       <ContractDocument contract={contract} />
-      <ContractActionDock contract={contract} />
+      <ContractActionDock
+        contract={contract}
+        partnerToken={partnerToken}
+        onCredentialUploaded={() => {
+          void refetch();
+        }}
+      />
     </main>
   );
 }
+

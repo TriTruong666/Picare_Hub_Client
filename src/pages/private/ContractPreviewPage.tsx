@@ -8,7 +8,10 @@ import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import ContractSigningModal from "@/components/modals/ContractSigningModal";
 import { PATHS } from "@/config/paths";
-import { useContractDetail } from "@/hooks/data/useContractHooks";
+import {
+  useContractDetail,
+  useGenerateSignLink,
+} from "@/hooks/data/useContractHooks";
 import { useSendMailTemplate } from "@/hooks/data/useMailHooks";
 import { useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
 import { toast } from "@/hooks/useToast";
@@ -312,10 +315,6 @@ type PartnerMailForm = {
   replyTo: string;
 };
 
-function getPartnerSignUrl(contractId: string) {
-  return getAbsoluteUrl(PATHS.PARTNER_SIGN.replace(":contractId", contractId));
-}
-
 function createPartnerMailForm(contract: Contract): PartnerMailForm {
   const partner = contract.partnerCompanyInfo;
   const owner = contract.ownerCompanyInfo;
@@ -340,6 +339,7 @@ function SendPartnerMailModal({
   onClose: () => void;
 }) {
   const sendMailMutation = useSendMailTemplate();
+  const generateSignLinkMutation = useGenerateSignLink();
   const [form, setForm] = useState<PartnerMailForm>(() =>
     createPartnerMailForm(contract),
   );
@@ -350,7 +350,8 @@ function SendPartnerMailModal({
     }
   }, [contract, isOpen]);
 
-  const isSending = sendMailMutation.isPending;
+  const isSending =
+    sendMailMutation.isPending || generateSignLinkMutation.isPending;
 
   const updateField = (field: keyof PartnerMailForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -359,13 +360,20 @@ function SendPartnerMailModal({
   const handleSend = async () => {
     const normalizedTo = form.to.trim();
     const normalizedSubject = form.subject.trim();
-    const actionUrl = getPartnerSignUrl(contract.contractId);
 
     if (!normalizedTo || !normalizedSubject) {
       toast.error(
         "Thiếu thông tin gửi mail",
         "Vui lòng kiểm tra email đối tác và tiêu đề.",
       );
+      return;
+    }
+
+    const signLinkResponse = await generateSignLinkMutation.mutateAsync(
+      contract.contractId,
+    );
+
+    if (!signLinkResponse.success || !signLinkResponse.data?.signingUrl) {
       return;
     }
 
@@ -379,7 +387,7 @@ function SendPartnerMailModal({
         .map((line) => line.trim())
         .filter(Boolean),
       actionLabel: "Xem hợp đồng",
-      actionUrl,
+      actionUrl: signLinkResponse.data.signingUrl,
       footer:
         "Email này được gửi từ hệ thống Picare Hub. Vui lòng không chia sẻ đường dẫn nếu không có thẩm quyền.",
       replyTo: form.replyTo.trim() || contract.ownerCompanyInfo.email || "",

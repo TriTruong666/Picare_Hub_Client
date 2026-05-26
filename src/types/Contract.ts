@@ -176,6 +176,9 @@ export type UploadOrganizationCredentialPayload = {
 
 export type HandwrittenSignaturePayload = {
   signerType: "individual" | "organization";
+  signerName: string;
+  signerEmail: string;
+  signature_image: string;
 };
 
 export type GenSignLinkResponse = {
