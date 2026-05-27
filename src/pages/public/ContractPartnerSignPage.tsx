@@ -686,7 +686,10 @@ function ContractActionDock({
 }: {
   contract: Contract;
   partnerToken?: string;
-  onCredentialUploaded?: () => Contract | undefined | Promise<Contract | undefined>;
+  onCredentialUploaded?: () =>
+    | Contract
+    | undefined
+    | Promise<Contract | undefined>;
 }) {
   const downloadMutation = useDownloadS3Asset();
   const updatePartnerSignTypeMutation = useUpdatePartnerSignType();
@@ -732,9 +735,7 @@ function ContractActionDock({
     setIsIndividualCredentialOpen(true);
   };
 
-  const handleOrganizationCredentialContinue = (
-    nextContract?: Contract,
-  ) => {
+  const handleOrganizationCredentialContinue = (nextContract?: Contract) => {
     setIsIndividualCredentialOpen(false);
     setIsNameMismatchOpen(false);
     setIsHandwrittenSignatureOpen(false);
@@ -928,14 +929,6 @@ export default function ContractPartnerSignPage() {
       );
       return;
     }
-
-    downloadMutation.mutate({
-      key,
-      originalName: getFileNameFromS3Key(
-        key,
-        `${contract.contractNumber || contract.contractId}.pdf`,
-      ),
-    });
   };
 
   // Strictly restrict access if status is not owner_signed

@@ -67,14 +67,13 @@ export function useSuspenseUSBInfo() {
  * Hook lấy certificate theo certificateId và vendor
  */
 export function useCertificate(params: {
-  certificateId: string;
   vendor: string;
 }) {
   return useFetch(
     ["local-sign", "certificate", params],
     () => LocalSignService.getCertificate(params),
     {
-      enabled: !!params.certificateId && !!params.vendor,
+      enabled: !!params.vendor,
     },
   );
 }
@@ -84,8 +83,7 @@ export function useCertificate(params: {
  */
 export function useGetCertificateMutation() {
   return useMutation({
-    mutationFn: (params: { certificateId: string; vendor: string }) =>
-      LocalSignService.getCertificate(params),
+    mutationFn: (params: { vendor: string }) => LocalSignService.getCertificate(params),
   });
 }
 
@@ -93,7 +91,6 @@ export function useGetCertificateMutation() {
  * Hook lấy certificate theo certificateId và vendor (Suspense version)
  */
 export function useSuspenseCertificate(params: {
-  certificateId: string;
   vendor: string;
 }) {
   return useSuspenseFetch(["local-sign", "certificate", params], () =>

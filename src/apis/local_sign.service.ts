@@ -23,9 +23,8 @@ export const getUSBInfo = async (): Promise<
 };
 
 export const getCertificate = async (params: {
-  certificateId: string;
   vendor: string;
-}): Promise<BaseResponse<CertificateResponse>> => {
+}): Promise<BaseResponse<CertificateResponse[]>> => {
   const res = await localSigningAxiosClient.get(`/certificate`, {
     params,
   });

@@ -22,12 +22,15 @@ type USBToken = {
   serialNumber: string;
 };
 
-type USBCertificate = {
+export type USBCertificate = {
   certificateId: string;
   label: string;
   serialHex: string;
   subjectHex: string;
   issuerHex: string;
+  notBefore: string;
+  notAfter: string;
+  isExpired: boolean;
 };
 
 export type CertificateResponse = {
@@ -40,6 +43,9 @@ export type CertificateResponse = {
   subjectHex: string;
   issuerHex: string;
   serialHex: string;
+  notBefore: string;
+  notAfter: string;
+  isExpired: boolean;
 };
 
 export type SignPDFCMSPayload = {

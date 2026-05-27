@@ -76,6 +76,23 @@ function isAvailableToken(token: USBInfoResponse) {
   );
 }
 
+function formatCertificateDate(value?: string) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 function getPendingPartnerSignature(contract: Contract) {
   return contract.signatures
     ?.filter(
@@ -88,7 +105,8 @@ function getPendingPartnerSignature(contract: Contract) {
     )
     .sort(
       (current, next) =>
-        new Date(next.createdAt).getTime() - new Date(current.createdAt).getTime(),
+        new Date(next.createdAt).getTime() -
+        new Date(current.createdAt).getTime(),
     )[0];
 }
 
@@ -480,6 +498,120 @@ function TokenSelectionModal({
   );
 }
 
+function CertificateSelectionModal({
+  token,
+  certificates,
+  isLoading,
+  onSelect,
+  onClose,
+}: {
+  token: USBInfoResponse;
+  certificates: CertificateResponse[];
+  isLoading: boolean;
+  onSelect: (certificate: CertificateResponse) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[325] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/70 backdrop-blur-md"
+      />
+
+      <motion.div
+        initial={{ scale: 0.96, opacity: 0, y: 12 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.96, opacity: 0, y: 12 }}
+        transition={{ type: "spring", duration: 0.35 }}
+        className="dashboard-theme relative flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_90px_rgba(0,0,0,0.75)]"
+      >
+        <div className="flex items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
+          <div>
+            <h2 className="text-base font-semibold text-white">
+              Chọn chứng thư số
+            </h2>
+            <p className="mt-1 text-[12px] leading-6 text-white/45">
+              {token.label} đang có {certificates.length} chứng thư số khả dụng.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-2 text-white/45 transition hover:bg-white/10 hover:text-white"
+          >
+            <HiOutlineX className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="max-h-[60vh] overflow-y-auto p-6">
+          {certificates.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-sm font-medium text-white">
+                Không có chứng thư số khả dụng
+              </p>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-white/45">
+                USB Token này chưa có chứng thư số dùng được để ký hợp đồng.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {certificates.map((certificate) => (
+                <button
+                  key={`${certificate.vendor}-${certificate.certificateId}`}
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => onSelect(certificate)}
+                  className={`group w-full rounded-xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                    certificate.isExpired
+                      ? "border-red-400/25 bg-red-500/[0.06] hover:border-red-300/40 hover:bg-red-500/[0.1]"
+                      : "border-white/10 hover:border-white/25 hover:bg-white/[0.04]"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-white/60 ${
+                        certificate.isExpired
+                          ? "border-red-400/25 text-red-200/80"
+                          : "border-white/10"
+                      }`}
+                    >
+                      <FiCreditCard />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold text-white">
+                          {certificate.label || "Chứng thư số"}
+                        </p>
+                      </div>
+                      <p className="mt-2 text-xs leading-5 text-white/45">
+                        Serial: {certificate.serialHex || "-"}
+                      </p>
+                      <p
+                        className={`mt-1 text-xs leading-5 ${
+                          certificate.isExpired
+                            ? "text-red-100/80"
+                            : "text-white/40"
+                        }`}
+                      >
+                        Thời hạn: {formatCertificateDate(certificate.notBefore)}{" "}
+                        - {formatCertificateDate(certificate.notAfter)}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function PinSigningModal({
   token,
   certificate,
@@ -602,6 +734,11 @@ function ContractOrganizationSigningForm({
   const [isLocalAppGuideOpen, setIsLocalAppGuideOpen] = useState(false);
   const [availableTokens, setAvailableTokens] = useState<USBInfoResponse[]>([]);
   const [isTokenSelectionOpen, setIsTokenSelectionOpen] = useState(false);
+  const [availableCertificates, setAvailableCertificates] = useState<
+    CertificateResponse[]
+  >([]);
+  const [isCertificateSelectionOpen, setIsCertificateSelectionOpen] =
+    useState(false);
   const [selectedToken, setSelectedToken] = useState<USBInfoResponse | null>(
     null,
   );
@@ -679,9 +816,7 @@ function ContractOrganizationSigningForm({
   };
 
   const handleSelectToken = async (token: USBInfoResponse) => {
-    const certificateId = token.certificates?.[0]?.certificateId;
-
-    if (!certificateId) {
+    if (!token.certificates?.length) {
       toast.error(
         "Không có chứng thư số",
         "USB Token này chưa có chứng thư số khả dụng để ký hợp đồng.",
@@ -691,10 +826,11 @@ function ContractOrganizationSigningForm({
 
     const certificateResponse = await getCertificateMutation.mutateAsync({
       vendor: token.vendor,
-      certificateId,
     });
 
-    if (!certificateResponse.success || !certificateResponse.data) {
+    const certificates = certificateResponse.data || [];
+
+    if (!certificateResponse.success) {
       toast.error(
         "Không lấy được chứng thư số",
         certificateResponse.message ||
@@ -704,8 +840,10 @@ function ContractOrganizationSigningForm({
     }
 
     setSelectedToken(token);
-    setSelectedCertificate(certificateResponse.data);
+    setSelectedCertificate(null);
+    setAvailableCertificates(certificates);
     setPin("");
+    setIsPinModalOpen(false);
     const pendingPartnerSignature = getPendingPartnerSignature(contract);
     setActiveSigningSession(
       pendingPartnerSignature
@@ -716,6 +854,35 @@ function ContractOrganizationSigningForm({
         : null,
     );
     setIsTokenSelectionOpen(false);
+
+    if (certificates.length === 0) {
+      toast.error(
+        "KhÃ´ng cÃ³ chá»©ng thÆ° sá»‘",
+        "USB Token nÃ y chÆ°a cÃ³ chá»©ng thÆ° sá»‘ kháº£ dá»¥ng Ä‘á»ƒ kÃ½ há»£p Ä‘á»“ng.",
+      );
+      return;
+    }
+
+    setIsCertificateSelectionOpen(true);
+  };
+
+  const handleSelectCertificate = (
+    token: USBInfoResponse,
+    certificate: CertificateResponse,
+  ) => {
+    setSelectedToken(token);
+    setSelectedCertificate(certificate);
+    setPin("");
+    const pendingPartnerSignature = getPendingPartnerSignature(contract);
+    setActiveSigningSession(
+      pendingPartnerSignature
+        ? {
+            contractSignatureId: pendingPartnerSignature.contractSignatureId,
+            hashToSign: pendingPartnerSignature.preparedPdfHash,
+          }
+        : null,
+    );
+    setIsCertificateSelectionOpen(false);
     setIsPinModalOpen(true);
   };
 
@@ -981,6 +1148,20 @@ function ContractOrganizationSigningForm({
             isLoading={getCertificateMutation.isPending}
             onClose={() => setIsTokenSelectionOpen(false)}
             onSelect={handleSelectToken}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isCertificateSelectionOpen && selectedToken && (
+          <CertificateSelectionModal
+            token={selectedToken}
+            certificates={availableCertificates}
+            isLoading={false}
+            onClose={() => setIsCertificateSelectionOpen(false)}
+            onSelect={(certificate) =>
+              handleSelectCertificate(selectedToken, certificate)
+            }
           />
         )}
       </AnimatePresence>
