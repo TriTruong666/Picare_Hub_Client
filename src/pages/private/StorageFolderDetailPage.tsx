@@ -385,7 +385,7 @@ function StorageGridSection({
             onClick={onLoadMore}
             disabled={isFetching}
             className={clsx(
-              "btn-secondary min-w-50 gap-3 rounded-xl border-gray-300 bg-white py-3 text-xs shadow-sm transition-all hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10",
+              "btn-secondary gap-3 rounded-xl border-gray-300 bg-white py-3 text-xs shadow-sm transition-all hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10",
               isFetching && "cursor-not-allowed opacity-50",
             )}
           >

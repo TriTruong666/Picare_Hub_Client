@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { FiPenTool } from "react-icons/fi";
+import { FiCheckCircle, FiDownload, FiPenTool } from "react-icons/fi";
 import { useParams, useSearchParams } from "react-router-dom";
+import picareLogoDark from "@/assets/images/picare_logo_dark.png";
 import HandwrittenSignatureModal from "@/components/modals/HandwrittenSignatureModal";
 import IndividualCredentialUploadModal from "@/components/modals/IndividualCredentialUploadModal";
 import OrganizationCredentialUploadModal from "@/components/modals/OrganizationCredentialUploadModal";
@@ -30,10 +31,6 @@ const CONTRACT_STATUS_LABELS: Record<string, string> = {
   owner_signed: "Chủ sở hữu đã ký",
   completed: "Hoàn tất",
 };
-
-function getContractStatusLabel(status: string) {
-  return CONTRACT_STATUS_LABELS[status] || status;
-}
 
 function normalizeLegalName(value?: string | null) {
   return (value || "")
@@ -171,12 +168,12 @@ function PartySection({
     <section className="mt-8">
       <h3 className="text-[15px] font-medium text-white uppercase">{title}</h3>
       <div className="mt-3 space-y-1">
-        <FieldLine label="Tên công ty" value={party.companyName} />
-        <FieldLine label="Địa chỉ" value={party.address} />
-        <FieldLine label="Điện thoại" value={party.phone} />
-        <FieldLine label="Email" value={party.email} />
-        <FieldLine label="Tài khoản" value={party.bankInfo} />
-        <FieldLine label="Mã số thuế" value={party.mst} />
+        <FieldLine label="Tên công ty" value={party?.companyName || ""} />
+        <FieldLine label="Địa chỉ" value={party?.address || ""} />
+        <FieldLine label="Điện thoại" value={party?.phone || ""} />
+        <FieldLine label="Email" value={party?.email || ""} />
+        <FieldLine label="Tài khoản" value={party?.bankInfo || ""} />
+        <FieldLine label="Mã số thuế" value={party?.mst || ""} />
         <FieldLine label="Đại diện" value={party.ownerName} />
         <FieldLine label="Chức vụ" value={party.role} />
       </div>
@@ -193,43 +190,6 @@ function ClauseList({ items }: { items: string[] }) {
         </p>
       ))}
     </div>
-  );
-}
-
-function ContractCompletedScreen({
-  contract,
-  onDownload,
-}: {
-  contract: Contract;
-  onDownload: () => void;
-}) {
-  return (
-    <main className="dashboard-theme flex min-h-screen items-center justify-center bg-black px-6 text-white">
-      <div className="w-full max-w-3xl text-center">
-        <div className="mx-auto flex h-52 w-full max-w-2xl items-center justify-center">
-          <img
-            src={picareLogoLight}
-            alt="Picare"
-            className="h-full w-full object-contain"
-          />
-        </div>
-        <h1 className="mt-8 text-2xl font-semibold text-white">
-          Hợp đồng đã hoàn tất
-        </h1>
-        <p className="mt-3 text-sm leading-6 text-white/45">
-          Trạng thái hiện tại: {getContractStatusLabel(contract.status)}.
-        </p>
-        <div className="mt-8 flex justify-center">
-          <button
-            type="button"
-            onClick={onDownload}
-            className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
-          >
-            Tải hợp đồng
-          </button>
-        </div>
-      </div>
-    </main>
   );
 }
 
@@ -695,6 +655,81 @@ function LegalNameMismatchModal({
   );
 }
 
+function ContractCompletionModal({
+  isOpen,
+  onClose,
+  onDownload,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onDownload: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {isOpen ? (
+        <div className="fixed inset-0 z-[340] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+          />
+
+          <motion.div
+            initial={{ scale: 0.96, opacity: 0, y: 14 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.96, opacity: 0, y: 14 }}
+            transition={{ duration: 0.24, ease: "easeOut" }}
+            className="dashboard-theme relative w-full max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-black text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+          >
+            <div className="flex flex-col items-center px-8 pt-8 text-center">
+              <img
+                src={picareLogoDark}
+                alt="Picare"
+                className="h-auto w-full max-w-[260px] object-contain"
+              />
+
+              <h2 className="mt-1 text-[20px] leading-7 font-semibold text-white">
+                Hợp đồng đã được ký thành công
+              </h2>
+
+              <p className="mt-3 max-w-[420px] text-[13px] leading-6 text-white/62">
+                Việc ký kết đã được ghi nhận trên hệ thống. Hợp đồng có giá trị
+                pháp lý theo nội dung đã xác nhận và được lưu trữ để đối chiếu
+                khi cần.
+              </p>
+
+              <p className="mt-4 max-w-[390px] text-[12px] leading-6 text-white/42">
+                Bạn có thể tải bản hợp đồng hoàn chỉnh để lưu hồ sơ nội bộ hoặc
+                sử dụng cho các mục đích đối chiếu sau này.
+              </p>
+            </div>
+
+            <div className="mt-7 flex flex-wrap justify-center gap-3 border-t border-white/10 bg-white/[0.03] px-7 py-5">
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm text-white/62 transition hover:bg-white/10 hover:text-white"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                onClick={onDownload}
+                className="inline-flex h-10 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-black transition hover:bg-white/90"
+              >
+                <FiDownload size={14} />
+                Tải hợp đồng
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
 function ContractActionDock({
   contract,
   partnerToken,
@@ -719,8 +754,7 @@ function ContractActionDock({
     useState(false);
   const [isOrganizationSigningOpen, setIsOrganizationSigningOpen] =
     useState(false);
-  const [forceCredentialUploadMode, setForceCredentialUploadMode] =
-    useState(false);
+  const canPartnerSign = contract.status === "owner_signed";
   const credentialName = getIndividualCredentialName(contract);
   const signatureSignerName =
     credentialName || contract.partnerCompanyInfo.ownerName;
@@ -747,7 +781,6 @@ function ContractActionDock({
 
   const handleReuploadCredentialFromWarning = () => {
     setIsNameMismatchOpen(false);
-    setForceCredentialUploadMode(true);
     setIsIndividualCredentialOpen(true);
   };
 
@@ -778,8 +811,6 @@ function ContractActionDock({
       ),
     });
   };
-
-  void handleDownloadContract;
 
   const handleSignTypeConfirm = async (type: PartnerSignType) => {
     if (!partnerToken) {
@@ -828,11 +859,21 @@ function ContractActionDock({
         transition={{ duration: 0.22, ease: "easeOut" }}
         className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
       >
-        <DockButton
-          label="Ký hợp đồng"
-          icon={<FiPenTool className="text-emerald-400" />}
-          onClick={() => setIsSignTypeModalOpen(true)}
-        />
+        {contract.status !== "draft" ? (
+          <DockButton
+            label="Tải hợp đồng"
+            icon={<FiDownload />}
+            onClick={handleDownloadContract}
+            disabled={downloadMutation.isPending}
+          />
+        ) : null}
+        {canPartnerSign ? (
+          <DockButton
+            label="Ký hợp đồng"
+            icon={<FiPenTool className="text-emerald-400" />}
+            onClick={() => setIsSignTypeModalOpen(true)}
+          />
+        ) : null}
       </motion.div>
 
       <PartnerSignTypeModal
@@ -844,13 +885,10 @@ function ContractActionDock({
       <IndividualCredentialUploadModal
         contractId={contract.contractId}
         partnerToken={partnerToken}
-        credential={contract.individualCredential}
         isOpen={isIndividualCredentialOpen}
         onClose={() => setIsIndividualCredentialOpen(false)}
         onUploaded={onCredentialUploaded}
         onContinue={handleCredentialContinue}
-        forceUploadMode={forceCredentialUploadMode}
-        onForceUploadModeConsumed={() => setForceCredentialUploadMode(false)}
       />
 
       <OrganizationCredentialUploadModal
@@ -896,9 +934,11 @@ function ContractActionDock({
 export default function ContractPartnerSignPage() {
   const { contractId = "" } = useParams();
   const [searchParams] = useSearchParams();
+  const downloadMutation = useDownloadS3Asset();
   const partnerSignatureRef = useRef<HTMLDivElement>(null);
   const [partnerSignatureRevealKey, setPartnerSignatureRevealKey] = useState(0);
-  const previousStatusRef = useRef<string>();
+  const previousStatusRef = useRef<string | undefined>(undefined);
+  const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(true);
   const partnerToken = searchParams.get("token")?.trim() || undefined;
   const {
     data: contract,
@@ -929,6 +969,7 @@ export default function ContractPartnerSignPage() {
       contract.status === "completed"
     ) {
       setPartnerSignatureRevealKey((current) => current + 1);
+      setIsCompletionModalOpen(true);
     }
 
     previousStatusRef.current = contract.status;
@@ -975,6 +1016,14 @@ export default function ContractPartnerSignPage() {
       );
       return;
     }
+
+    downloadMutation.mutate({
+      key,
+      originalName: getFileNameFromS3Key(
+        key,
+        `${contract.contractNumber || contract.contractId}.pdf`,
+      ),
+    });
   };
 
   // Strictly restrict access if status is not owner_signed or completed
@@ -1008,16 +1057,21 @@ export default function ContractPartnerSignPage() {
         partnerSignatureRef={partnerSignatureRef}
         partnerSignatureRevealKey={partnerSignatureRevealKey}
       />
-      {contract.status === "owner_signed" ? (
+      {contract.status === "owner_signed" || contract.status === "completed" ? (
         <ContractActionDock
           contract={contract}
           partnerToken={partnerToken}
           onCredentialUploaded={async () => {
             const response = await refetch();
-            return response.data;
+            return response?.data;
           }}
         />
       ) : null}
+      <ContractCompletionModal
+        isOpen={isCompletionModalOpen}
+        onClose={() => setIsCompletionModalOpen(false)}
+        onDownload={handleDownloadContract}
+      />
     </main>
   );
 }

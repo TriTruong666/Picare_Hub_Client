@@ -136,12 +136,12 @@ function PartySection({
     <section className="mt-8">
       <h3 className="text-[15px] font-medium text-white uppercase">{title}</h3>
       <div className="mt-3 space-y-1">
-        <FieldLine label="Tên công ty" value={party.companyName} />
-        <FieldLine label="Địa chỉ" value={party.address} />
-        <FieldLine label="Điện thoại" value={party.phone} />
-        <FieldLine label="Email" value={party.email} />
-        <FieldLine label="Tài khoản" value={party.bankInfo} />
-        <FieldLine label="Mã số thuế" value={party.mst} />
+        <FieldLine label="Tên công ty" value={party?.companyName || ""} />
+        <FieldLine label="Địa chỉ" value={party?.address || ""} />
+        <FieldLine label="Điện thoại" value={party?.phone || ""} />
+        <FieldLine label="Email" value={party?.email || ""} />
+        <FieldLine label="Tài khoản" value={party?.bankInfo || ""} />
+        <FieldLine label="Mã số thuế" value={party?.mst || ""} />
         <FieldLine label="Đại diện" value={party.ownerName} />
         <FieldLine label="Chức vụ" value={party.role} />
       </div>
@@ -321,9 +321,9 @@ function createPartnerMailForm(contract: Contract): PartnerMailForm {
 
   return {
     to: partner.email || "",
-    subject: `Hợp đồng ${contract.contractNumber} đã sẵn sàng để xem và ký`,
-    title: "Hợp đồng đã được ký bởi bên bán",
-    intro: `Kính gửi ${partner.companyName || "Quý đối tác"},`,
+    subject: `Hợp đồng nguyên tắc ${contract.contractNumber} đã sẵn sàng để xem và ký`,
+    title: `Hợp đồng đã được ký bởi ${owner.companyName}`,
+    intro: `Kính gửi ${partner.companyName || `${partner.ownerName || "Quý đối tác"}`},`,
     message: `${owner.companyName} đã hoàn tất chữ ký số cho hợp đồng ${contract.contractNumber}. Vui lòng kiểm tra nội dung hợp đồng và tiếp tục xử lý theo quy trình của bên mua.`,
     replyTo: owner.email || "",
   };
@@ -389,7 +389,7 @@ function SendPartnerMailModal({
       actionLabel: "Xem hợp đồng",
       actionUrl: signLinkResponse.data.signingUrl,
       footer:
-        "Email này được gửi từ hệ thống Picare Hub. Vui lòng không chia sẻ đường dẫn nếu không có thẩm quyền.",
+        "Email này được gửi tự động từ hệ thống của công ty Picare Việt Nam. Vui lòng không chia sẻ đường dẫn nếu không có thẩm quyền.",
       replyTo: form.replyTo.trim() || contract.ownerCompanyInfo.email || "",
     });
 
@@ -833,7 +833,7 @@ export default function ContractPreviewPage() {
   const partnerSignatureRef = useRef<HTMLDivElement>(null);
   const [ownerSignatureRevealKey, setOwnerSignatureRevealKey] = useState(0);
   const [partnerSignatureRevealKey, setPartnerSignatureRevealKey] = useState(0);
-  const previousStatusRef = useRef<string>();
+  const previousStatusRef = useRef<string>(null);
   const {
     data: contract,
     isLoading,

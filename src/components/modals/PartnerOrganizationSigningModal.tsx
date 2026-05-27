@@ -857,8 +857,8 @@ function ContractOrganizationSigningForm({
 
     if (certificates.length === 0) {
       toast.error(
-        "KhÃ´ng cÃ³ chá»©ng thÆ° sá»‘",
-        "USB Token nÃ y chÆ°a cÃ³ chá»©ng thÆ° sá»‘ kháº£ dá»¥ng Ä‘á»ƒ kÃ½ há»£p Ä‘á»“ng.",
+        "Không có chứng thư số",
+        "USB Token này chưa có chứng thư số khả dụng để ký hợp đồng.",
       );
       return;
     }
@@ -1208,3 +1208,4 @@ export default function ContractOrganizationSigningModal({
     </AnimatePresence>
   );
 }
+

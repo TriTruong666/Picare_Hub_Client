@@ -119,7 +119,7 @@ function LocalSignAppGuideModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[320] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-320 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -511,7 +511,7 @@ function CertificateSelectionModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[325] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-325 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -566,7 +566,7 @@ function CertificateSelectionModal({
                   onClick={() => onSelect(certificate)}
                   className={`group w-full rounded-xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
                     certificate.isExpired
-                      ? "border-red-400/25 bg-red-500/6 hover:border-red-300/40 hover:bg-red-500/[0.1]"
+                      ? "border-red-400/25 bg-red-500/6 hover:border-red-300/40 hover:bg-red-500/10"
                       : "border-white/10 hover:border-white/25 hover:bg-white/4"
                   }`}
                 >
@@ -629,7 +629,7 @@ function PinSigningModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[330] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-330 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -683,12 +683,12 @@ function PinSigningModal({
               disabled={isSigning}
               onChange={(event) => onPinChange(event.target.value)}
               placeholder="Nhập mã PIN USB Token"
-              className="h-11 w-full rounded-lg border border-white/10 bg-white/[0.06] px-4 text-sm text-white transition-all outline-none placeholder:text-white/25 hover:border-white/20 hover:bg-white/[0.08] focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+              className="h-11 w-full rounded-lg border border-white/10 bg-white/6 px-4 text-sm text-white transition-all outline-none placeholder:text-white/25 hover:border-white/20 hover:bg-white/8 focus:border-indigo-400/50 focus:bg-white/8 focus:ring-2 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-40"
             />
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
+        <div className="flex justify-end gap-3 border-t border-white/10 bg-white/4 p-6">
           <button
             type="button"
             disabled={isSigning}

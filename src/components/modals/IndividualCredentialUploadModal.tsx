@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  FiExternalLink,
   FiImage,
   FiTrash2,
   FiUploadCloud,
@@ -11,81 +10,26 @@ import { HiOutlineX } from "react-icons/hi";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { useUploadIndividualCredential } from "@/hooks/data/useContractHooks";
 import { toast } from "@/hooks/useToast";
-import type { Contract, IndividualCredential } from "@/types/Contract";
-
-type CredentialSide = "front" | "back";
+import type { Contract } from "@/types/Contract";
 
 type SelectedImage = {
   file: File;
   previewUrl: string;
 };
 
+type CredentialSide = "front" | "back";
+
 type IndividualCredentialUploadModalProps = {
   contractId: string;
   partnerToken?: string;
-  credential?: IndividualCredential | null;
   isOpen: boolean;
   onClose: () => void;
   onUploaded?: () => Contract | undefined | Promise<Contract | undefined>;
   onContinue?: (contract?: Contract) => void;
-  forceUploadMode?: boolean;
-  onForceUploadModeConsumed?: () => void;
 };
 
 function isImageFile(file: File) {
   return file.type.startsWith("image/");
-}
-
-function getCredentialFrontData(credential?: IndividualCredential | null) {
-  return credential?.ocr?.first?.data?.[0] ?? null;
-}
-
-function getS3ViewUrl(key?: string | null) {
-  if (!key) return "";
-  const baseUrl = import.meta.env.VITE_HUB_API_URL || "";
-  return `${baseUrl}/api/v1/s3/view/${key}`;
-}
-
-function CredentialInfoLine({
-  label,
-  value,
-}: {
-  label: string;
-  value?: string | null;
-}) {
-  return (
-    <div className="grid gap-1 border-b border-white/8 py-3 sm:grid-cols-[140px_1fr] sm:gap-5">
-      <dt className="text-[11px] font-medium text-white/35 uppercase">
-        {label}
-      </dt>
-      <dd className="text-sm leading-6 text-white/82">{value || "-"}</dd>
-    </div>
-  );
-}
-
-function CredentialImageAction({
-  label,
-  s3Key,
-}: {
-  label: string;
-  s3Key?: string | null;
-}) {
-  const viewUrl = getS3ViewUrl(s3Key);
-
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-white/8 py-3 last:border-b-0">
-      <p className="text-sm text-white/72">{label}</p>
-      <button
-        type="button"
-        disabled={!viewUrl}
-        onClick={() => window.open(viewUrl, "_blank", "noopener,noreferrer")}
-        className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-white/70 transition hover:border-white/25 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
-      >
-        <FiExternalLink size={13} />
-        Xem ảnh
-      </button>
-    </div>
-  );
 }
 
 function CredentialDropZone({
@@ -192,28 +136,15 @@ function CredentialDropZone({
 export default function IndividualCredentialUploadModal({
   contractId,
   partnerToken,
-  credential,
   isOpen,
   onClose,
   onUploaded,
   onContinue,
-  forceUploadMode,
-  onForceUploadModeConsumed,
 }: IndividualCredentialUploadModalProps) {
   const uploadMutation = useUploadIndividualCredential();
   const [frontImage, setFrontImage] = useState<SelectedImage | null>(null);
   const [backImage, setBackImage] = useState<SelectedImage | null>(null);
-  const [isUpdatingExisting, setIsUpdatingExisting] = useState(false);
   const isUploading = uploadMutation.isPending;
-  const hasCredential = Boolean(credential);
-  const shouldShowCredentialInfo = hasCredential && !isUpdatingExisting;
-  const frontOcr = getCredentialFrontData(credential);
-
-  useEffect(() => {
-    if (!isOpen || !forceUploadMode) return;
-    setIsUpdatingExisting(true);
-    onForceUploadModeConsumed?.();
-  }, [forceUploadMode, isOpen, onForceUploadModeConsumed]);
 
   const setImage = (side: CredentialSide, file: File) => {
     const image = { file, previewUrl: URL.createObjectURL(file) };
@@ -229,7 +160,11 @@ export default function IndividualCredentialUploadModal({
   const resetUploadState = () => {
     setFrontImage(null);
     setBackImage(null);
-    setIsUpdatingExisting(false);
+  };
+
+  const handleReupload = () => {
+    if (isUploading) return;
+    resetUploadState();
   };
 
   const handleClose = () => {
@@ -295,9 +230,7 @@ export default function IndividualCredentialUploadModal({
                   Xác thực danh tính
                 </h2>
                 <p className="mt-1 text-xs leading-5 text-white/45">
-                  {hasCredential
-                    ? "Thông tin đã được nhận diện từ CMND/CCCD đã tải lên."
-                    : "Vui lòng tải lên mặt trước và mặt sau CMND/CCCD."}
+                  Vui lòng tải lên mặt trước và mặt sau CMND/CCCD.
                 </p>
               </div>
               <button
@@ -310,66 +243,24 @@ export default function IndividualCredentialUploadModal({
               </button>
             </div>
 
-            {shouldShowCredentialInfo ? (
-              <div className="space-y-2 p-6">
-                <dl>
-                  <CredentialInfoLine
-                    label="Số CCCD"
-                    value={credential?.credentialId || frontOcr?.id}
-                  />
-                  <CredentialInfoLine
-                    label="Họ và tên"
-                    value={credential?.name || frontOcr?.name}
-                  />
-                  <CredentialInfoLine
-                    label="Ngày sinh"
-                    value={credential?.dob || frontOcr?.dob}
-                  />
-                  <CredentialInfoLine
-                    label="Giới tính"
-                    value={credential?.sex || frontOcr?.sex}
-                  />
-                  <CredentialInfoLine
-                    label="Địa chỉ"
-                    value={credential?.address || frontOcr?.address}
-                  />
-                  <CredentialInfoLine
-                    label="Quê quán"
-                    value={credential?.home || frontOcr?.home}
-                  />
-                </dl>
-
-                <div className="border-white/10">
-                  <CredentialImageAction
-                    label="Mặt trước CCCD"
-                    s3Key={credential?.first_identification_image_key}
-                  />
-                  <CredentialImageAction
-                    label="Mặt sau CCCD"
-                    s3Key={credential?.second_identification_image_key}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="grid gap-4 p-6 md:grid-cols-2">
-                <CredentialDropZone
-                  label="Mặt trước CCCD"
-                  description="Ảnh rõ số CCCD, họ tên và ngày sinh."
-                  image={frontImage}
-                  disabled={isUploading}
-                  onSelect={(file) => setImage("front", file)}
-                  onRemove={() => removeImage("front")}
-                />
-                <CredentialDropZone
-                  label="Mặt sau CCCD"
-                  description="Ảnh rõ ngày cấp, nơi cấp và mã bảo mật."
-                  image={backImage}
-                  disabled={isUploading}
-                  onSelect={(file) => setImage("back", file)}
-                  onRemove={() => removeImage("back")}
-                />
-              </div>
-            )}
+            <div className="grid gap-4 p-6 md:grid-cols-2">
+              <CredentialDropZone
+                label="Mặt trước CCCD"
+                description="Ảnh rõ số CCCD, họ tên và ngày sinh."
+                image={frontImage}
+                disabled={isUploading}
+                onSelect={(file) => setImage("front", file)}
+                onRemove={() => removeImage("front")}
+              />
+              <CredentialDropZone
+                label="Mặt sau CCCD"
+                description="Ảnh rõ ngày cấp, nơi cấp và mã bảo mật."
+                image={backImage}
+                disabled={isUploading}
+                onSelect={(file) => setImage("back", file)}
+                onRemove={() => removeImage("back")}
+              />
+            </div>
 
             <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
               <button
@@ -378,38 +269,25 @@ export default function IndividualCredentialUploadModal({
                 onClick={handleClose}
                 className="rounded-lg px-4 py-2 text-sm text-white/60 transition hover:bg-white/10 hover:text-white disabled:opacity-40"
               >
-                {hasCredential ? "Đóng" : "Hủy"}
+                Hủy
               </button>
-              {shouldShowCredentialInfo ? (
-                <>
-                  <button
-                    type="button"
-                    disabled={isUploading}
-                    onClick={() => setIsUpdatingExisting(true)}
-                    className="rounded-lg border border-white/10 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/25 hover:bg-white/10 hover:text-white disabled:opacity-50"
-                  >
-                    Upload lại
-                  </button>
-                <button
-                  type="button"
-                  disabled={isUploading}
-                  onClick={() => onContinue?.()}
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90 disabled:opacity-50"
-                >
-                  Tiếp theo
-                </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  disabled={isUploading}
-                  onClick={handleSubmit}
-                  className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90 disabled:opacity-50"
-                >
-                  {isUploading ? <Spinner size="sm" color="black" /> : null}
-                  Tiếp tục
-                </button>
-              )}
+              <button
+                type="button"
+                disabled={isUploading || (!frontImage && !backImage)}
+                onClick={handleReupload}
+                className="rounded-lg border border-white/10 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/25 hover:bg-white/10 hover:text-white disabled:opacity-40"
+              >
+                Upload lại
+              </button>
+              <button
+                type="button"
+                disabled={isUploading}
+                onClick={handleSubmit}
+                className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90 disabled:opacity-50"
+              >
+                {isUploading ? <Spinner size="sm" color="black" /> : null}
+                Tiếp tục
+              </button>
             </div>
           </motion.div>
         </div>
