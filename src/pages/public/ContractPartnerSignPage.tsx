@@ -4,6 +4,8 @@ import { FiPenTool } from "react-icons/fi";
 import { useParams, useSearchParams } from "react-router-dom";
 import HandwrittenSignatureModal from "@/components/modals/HandwrittenSignatureModal";
 import IndividualCredentialUploadModal from "@/components/modals/IndividualCredentialUploadModal";
+import OrganizationCredentialUploadModal from "@/components/modals/OrganizationCredentialUploadModal";
+import PartnerOrganizationSigningModal from "@/components/modals/PartnerOrganizationSigningModal";
 import PartnerSignTypeModal from "@/components/modals/PartnerSignTypeModal";
 import type { PartnerSignType } from "@/components/modals/PartnerSignTypeModal";
 
@@ -21,6 +23,17 @@ import type {
   OwnerCompanyInfoPayload,
   PartnerCompanyInfoPayload,
 } from "@/types/Contract";
+
+const CONTRACT_STATUS_LABELS: Record<string, string> = {
+  draft: "Bản nháp",
+  unsigned: "Chờ ký",
+  owner_signed: "Chủ sở hữu đã ký",
+  completed: "Hoàn tất",
+};
+
+function getContractStatusLabel(status: string) {
+  return CONTRACT_STATUS_LABELS[status] || status;
+}
 
 function normalizeLegalName(value?: string | null) {
   return (value || "")
@@ -180,6 +193,43 @@ function ClauseList({ items }: { items: string[] }) {
         </p>
       ))}
     </div>
+  );
+}
+
+function ContractCompletedScreen({
+  contract,
+  onDownload,
+}: {
+  contract: Contract;
+  onDownload: () => void;
+}) {
+  return (
+    <main className="dashboard-theme flex min-h-screen items-center justify-center bg-black px-6 text-white">
+      <div className="w-full max-w-3xl text-center">
+        <div className="mx-auto flex h-52 w-full max-w-2xl items-center justify-center">
+          <img
+            src={picareLogoLight}
+            alt="Picare"
+            className="h-full w-full object-contain"
+          />
+        </div>
+        <h1 className="mt-8 text-2xl font-semibold text-white">
+          Hợp đồng đã hoàn tất
+        </h1>
+        <p className="mt-3 text-sm leading-6 text-white/45">
+          Trạng thái hiện tại: {getContractStatusLabel(contract.status)}.
+        </p>
+        <div className="mt-8 flex justify-center">
+          <button
+            type="button"
+            onClick={onDownload}
+            className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+          >
+            Tải hợp đồng
+          </button>
+        </div>
+      </div>
+    </main>
   );
 }
 
@@ -646,6 +696,10 @@ function ContractActionDock({
   const [isNameMismatchOpen, setIsNameMismatchOpen] = useState(false);
   const [isHandwrittenSignatureOpen, setIsHandwrittenSignatureOpen] =
     useState(false);
+  const [isOrganizationCredentialOpen, setIsOrganizationCredentialOpen] =
+    useState(false);
+  const [isOrganizationSigningOpen, setIsOrganizationSigningOpen] =
+    useState(false);
   const [forceCredentialUploadMode, setForceCredentialUploadMode] =
     useState(false);
   const credentialName = getIndividualCredentialName(contract);
@@ -655,6 +709,8 @@ function ContractActionDock({
   const openHandwrittenSignatureFlow = () => {
     setIsIndividualCredentialOpen(false);
     setIsNameMismatchOpen(false);
+    setIsOrganizationCredentialOpen(false);
+    setIsOrganizationSigningOpen(false);
     setIsHandwrittenSignatureOpen(true);
   };
 
@@ -674,6 +730,16 @@ function ContractActionDock({
     setIsNameMismatchOpen(false);
     setForceCredentialUploadMode(true);
     setIsIndividualCredentialOpen(true);
+  };
+
+  const handleOrganizationCredentialContinue = (
+    nextContract?: Contract,
+  ) => {
+    setIsIndividualCredentialOpen(false);
+    setIsNameMismatchOpen(false);
+    setIsHandwrittenSignatureOpen(false);
+    setIsOrganizationCredentialOpen(false);
+    setIsOrganizationSigningOpen(true);
   };
 
   const handleDownloadContract = () => {
@@ -715,6 +781,11 @@ function ContractActionDock({
     }
 
     setIsSignTypeModalOpen(false);
+    setIsIndividualCredentialOpen(false);
+    setIsNameMismatchOpen(false);
+    setIsHandwrittenSignatureOpen(false);
+    setIsOrganizationCredentialOpen(false);
+    setIsOrganizationSigningOpen(false);
     if (type === "individual") {
       if (contract.individualCredential) {
         handleCredentialContinue();
@@ -723,11 +794,13 @@ function ContractActionDock({
       setIsIndividualCredentialOpen(true);
       return;
     }
-    // TODO: organization (USB token) flow
-    toast.info(
-      "Ký số – Sắp ra mắt",
-      "Luồng này đang được xây dựng, sẽ sớm hoạt động.",
-    );
+
+    if (contract.organizationCredential) {
+      setIsOrganizationSigningOpen(true);
+      return;
+    }
+
+    setIsOrganizationCredentialOpen(true);
   };
 
   return (
@@ -763,6 +836,15 @@ function ContractActionDock({
         onForceUploadModeConsumed={() => setForceCredentialUploadMode(false)}
       />
 
+      <OrganizationCredentialUploadModal
+        contractId={contract.contractId}
+        partnerToken={partnerToken}
+        isOpen={isOrganizationCredentialOpen}
+        onClose={() => setIsOrganizationCredentialOpen(false)}
+        onUploaded={onCredentialUploaded}
+        onContinue={handleOrganizationCredentialContinue}
+      />
+
       <LegalNameMismatchModal
         isOpen={isNameMismatchOpen}
         credentialName={credentialName}
@@ -780,6 +862,15 @@ function ContractActionDock({
         isOpen={isHandwrittenSignatureOpen}
         onClose={() => setIsHandwrittenSignatureOpen(false)}
         onSigned={onCredentialUploaded}
+      />
+
+      <PartnerOrganizationSigningModal
+        contract={isOrganizationSigningOpen ? contract : null}
+        partnerToken={partnerToken}
+        onClose={() => setIsOrganizationSigningOpen(false)}
+        onSigned={async () => {
+          await onCredentialUploaded?.();
+        }}
       />
     </>
   );
@@ -826,6 +917,26 @@ export default function ContractPartnerSignPage() {
       </main>
     );
   }
+
+  const handleDownloadContract = () => {
+    const key = getS3KeyFromUrl(contract.contractUrl);
+
+    if (!key) {
+      toast.error(
+        "Không thể tải hợp đồng",
+        "Hợp đồng chưa có đường dẫn tập tin để tải xuống.",
+      );
+      return;
+    }
+
+    downloadMutation.mutate({
+      key,
+      originalName: getFileNameFromS3Key(
+        key,
+        `${contract.contractNumber || contract.contractId}.pdf`,
+      ),
+    });
+  };
 
   // Strictly restrict access if status is not owner_signed
   if (contract.status !== "owner_signed") {

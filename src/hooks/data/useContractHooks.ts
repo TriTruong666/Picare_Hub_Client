@@ -4,12 +4,13 @@ import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
 import type {
   ContractStatus,
   CreateContractPayload,
-  UpdatePartnerSignTypePayload,
-  UploadIndividualCredentialPayload,
   HandwrittenSignaturePayload,
   SigningCompletePayload,
   SigningSessionPayload,
   UpdateContractPayload,
+  UpdatePartnerSignTypePayload,
+  UploadIndividualCredentialPayload,
+  UploadOrganizationCredentialPayload,
 } from "@/types/Contract";
 import { useFetch, useSuspenseFetch } from "../useQuery";
 import { toast } from "../useToast";
@@ -250,6 +251,47 @@ export function useUploadIndividualCredential(options?: MutationToastOptions) {
       if (data.success) {
         if (showSuccessToast) {
           toast.success("Thành công", "Đã tải lên CCCD");
+        }
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts", variables.contractId],
+        });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+export function useUploadOrganizationCredential(
+  options?: MutationToastOptions,
+) {
+  const queryClient = useQueryClient();
+  const { showSuccessToast = true } = options ?? {};
+
+  return useMutation({
+    mutationFn: ({
+      contractId,
+      partnerToken,
+      data,
+    }: {
+      contractId: string;
+      partnerToken: string;
+      data: UploadOrganizationCredentialPayload;
+    }) =>
+      ContractService.uploadOrganizationCredential(
+        contractId,
+        partnerToken,
+        data,
+      ),
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        if (showSuccessToast) {
+          toast.success("Thành công", "Đã tải lên thông tin tổ chức");
         }
         queryClient.invalidateQueries({ queryKey: ["contracts"] });
         queryClient.invalidateQueries({

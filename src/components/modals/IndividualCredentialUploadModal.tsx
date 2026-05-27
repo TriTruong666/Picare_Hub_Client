@@ -393,7 +393,7 @@ export default function IndividualCredentialUploadModal({
                 <button
                   type="button"
                   disabled={isUploading}
-                  onClick={onContinue}
+                  onClick={() => onContinue?.()}
                   className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90 disabled:opacity-50"
                 >
                   Tiếp theo

@@ -185,10 +185,26 @@ export const uploadOrganizationCredential = async (
   token: string,
   payload: UploadOrganizationCredentialPayload,
 ): Promise<BaseResponse<null>> => {
+  const formData = new FormData();
+  formData.append("business_license", payload.business_license);
+  if (payload.power_of_attorney_image) {
+    formData.append(
+      "power_of_attorney_image",
+      payload.power_of_attorney_image,
+    );
+  }
+  const requestConfig = getPartnerTokenRequestConfig(token);
+
   const res = await hubAxiosClient.post(
     `/api/v1/contracts/${contractId}/organization-credential`,
-    payload,
-    getPartnerTokenRequestConfig(token),
+    formData,
+    {
+      ...requestConfig,
+      headers: {
+        ...requestConfig?.headers,
+        "Content-Type": "multipart/form-data",
+      },
+    },
   );
   return res.data;
 };
