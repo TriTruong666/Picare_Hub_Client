@@ -566,8 +566,8 @@ function CertificateSelectionModal({
                   onClick={() => onSelect(certificate)}
                   className={`group w-full rounded-xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
                     certificate.isExpired
-                      ? "border-red-400/25 bg-red-500/[0.06] hover:border-red-300/40 hover:bg-red-500/[0.1]"
-                      : "border-white/10 hover:border-white/25 hover:bg-white/[0.04]"
+                      ? "border-red-400/25 bg-red-500/6 hover:border-red-300/40 hover:bg-red-500/[0.1]"
+                      : "border-white/10 hover:border-white/25 hover:bg-white/4"
                   }`}
                 >
                   <div className="flex items-start gap-3">

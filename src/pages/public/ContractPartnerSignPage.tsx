@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { FiPenTool } from "react-icons/fi";
 import { useParams, useSearchParams } from "react-router-dom";
@@ -380,13 +380,22 @@ function SignatureBlock({
   );
 }
 
-function ContractDocument({ contract }: { contract: Contract }) {
+function ContractDocument({
+  contract,
+  partnerSignatureRef,
+  partnerSignatureRevealKey,
+}: {
+  contract: Contract;
+  partnerSignatureRef?: React.Ref<HTMLDivElement>;
+  partnerSignatureRevealKey?: number;
+}) {
   const owner = contract.ownerCompanyInfo;
   const partner = contract.partnerCompanyInfo;
   const signedDate = getVietnameseDate(contract.createdAt);
   const dueDate = formatDate(contract.contractDueDate);
   const hasOwnerSigned =
     contract.status === "owner_signed" || contract.status === "completed";
+  const hasPartnerSigned = contract.status === "completed";
 
   return (
     <motion.article
@@ -542,7 +551,14 @@ function ContractDocument({ contract }: { contract: Contract }) {
           name={owner.ownerName}
           isSigned={hasOwnerSigned}
         />
-        <SignatureBlock title="Đại diện Bên B" name={partner.ownerName} />
+        <SignatureBlock
+          title="Đại diện Bên B"
+          name={partner.ownerName}
+          isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)}
+          shouldAnimate={Boolean(partnerSignatureRevealKey)}
+          revealKey={partnerSignatureRevealKey}
+          signatureRef={partnerSignatureRef}
+        />
       </section>
     </motion.article>
   );
@@ -880,6 +896,9 @@ function ContractActionDock({
 export default function ContractPartnerSignPage() {
   const { contractId = "" } = useParams();
   const [searchParams] = useSearchParams();
+  const partnerSignatureRef = useRef<HTMLDivElement>(null);
+  const [partnerSignatureRevealKey, setPartnerSignatureRevealKey] = useState(0);
+  const previousStatusRef = useRef<string>();
   const partnerToken = searchParams.get("token")?.trim() || undefined;
   const {
     data: contract,
@@ -887,6 +906,33 @@ export default function ContractPartnerSignPage() {
     isError,
     refetch,
   } = useContractDetail(contractId, partnerToken);
+
+  useEffect(() => {
+    if (!partnerSignatureRevealKey) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      partnerSignatureRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [partnerSignatureRevealKey]);
+
+  useEffect(() => {
+    if (!contract) return;
+
+    if (
+      previousStatusRef.current &&
+      previousStatusRef.current !== "completed" &&
+      contract.status === "completed"
+    ) {
+      setPartnerSignatureRevealKey((current) => current + 1);
+    }
+
+    previousStatusRef.current = contract.status;
+  }, [contract]);
 
   if (isLoading) {
     return (
@@ -931,8 +977,8 @@ export default function ContractPartnerSignPage() {
     }
   };
 
-  // Strictly restrict access if status is not owner_signed
-  if (contract.status !== "owner_signed") {
+  // Strictly restrict access if status is not owner_signed or completed
+  if (contract.status !== "owner_signed" && contract.status !== "completed") {
     return (
       <main className="dashboard-theme flex min-h-screen items-center justify-center bg-black px-6 text-white">
         <div className="max-w-md text-center">
@@ -957,15 +1003,24 @@ export default function ContractPartnerSignPage() {
 
   return (
     <main className="dashboard-theme min-h-screen bg-black px-5 py-10 text-white md:px-8">
-      <ContractDocument contract={contract} />
-      <ContractActionDock
+      <ContractDocument
         contract={contract}
-        partnerToken={partnerToken}
-        onCredentialUploaded={async () => {
-          const response = await refetch();
-          return response.data;
-        }}
+        partnerSignatureRef={partnerSignatureRef}
+        partnerSignatureRevealKey={partnerSignatureRevealKey}
       />
+      {contract.status === "owner_signed" ? (
+        <ContractActionDock
+          contract={contract}
+          partnerToken={partnerToken}
+          onCredentialUploaded={async () => {
+            const response = await refetch();
+            return response.data;
+          }}
+        />
+      ) : null}
     </main>
   );
 }
+
+
+

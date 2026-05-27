@@ -32,12 +32,12 @@ export type OwnerCompanyInfoPayload = {
 };
 
 export type PartnerCompanyInfoPayload = {
-  companyName: string;
+  companyName: string | null;
   address: string;
   phone: string;
   email: string;
   bankInfo: string;
-  mst: string;
+  mst: string | null;
   ownerName: string;
   role: string;
 };

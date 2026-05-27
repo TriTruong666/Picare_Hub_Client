@@ -36,6 +36,7 @@ type ProductRow = {
 };
 
 type ContractFormMode = "create" | "edit";
+type PartnerEntityType = "individual" | "company";
 
 const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
   {
@@ -113,7 +114,7 @@ const PARTNER_FIELDS: {
 ];
 
 const PARTNER_DETAIL_FIELDS = PARTNER_FIELDS.filter(
-  (field) => field.key !== "mst",
+  (field) => field.key !== "mst" && field.key !== "companyName",
 );
 
 function FieldLabel({ children }: { children: ReactNode }) {
@@ -200,6 +201,8 @@ export function ContractFormPage({
   const updateContractMutation = useUpdateContract();
   const taxPayerLookupMutation = useTaxPayerLookup();
   const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(0);
+  const [partnerEntityType, setPartnerEntityType] =
+    useState<PartnerEntityType>("company");
   const [partnerCompanyInfo, setPartnerCompanyInfo] =
     useState<PartnerCompanyInfoPayload>({
       companyName: "",
@@ -239,6 +242,12 @@ export function ContractFormPage({
 
     setSelectedOwnerIndex(ownerIndex >= 0 ? ownerIndex : 0);
     setPartnerCompanyInfo(initialContract.partnerCompanyInfo);
+    setPartnerEntityType(
+      initialContract.partnerCompanyInfo.mst ||
+        initialContract.partnerCompanyInfo.companyName
+        ? "company"
+        : "individual",
+    );
     setIsPartnerFormVisible(true);
     setTaxLookupMessage("");
     setContractDueDate(initialContract.contractDueDate.slice(0, 10));
@@ -266,7 +275,7 @@ export function ContractFormPage({
   };
 
   const handleTaxLookup = async () => {
-    const mst = partnerCompanyInfo.mst.trim();
+    const mst = (partnerCompanyInfo.mst ?? "").trim();
 
     if (!mst) {
       toast.error("Thiếu mã số thuế", "Vui lòng nhập mã số thuế đối tác.");
@@ -315,6 +324,23 @@ export function ContractFormPage({
     setIsPartnerFormVisible(true);
   };
 
+  const handlePartnerEntityTypeChange = (type: PartnerEntityType) => {
+    setPartnerEntityType(type);
+    setTaxLookupMessage("");
+
+    if (type === "individual") {
+      setIsPartnerFormVisible(true);
+      setPartnerCompanyInfo((prev) => ({
+        ...prev,
+        companyName: "",
+        mst: "",
+      }));
+      return;
+    }
+
+    setIsPartnerFormVisible(isEditMode);
+  };
+
   const updateProduct = (
     id: string,
     key: "productName" | "price",
@@ -347,8 +373,10 @@ export function ContractFormPage({
       return "Vui lòng chọn ngày hết hạn hợp đồng.";
     }
 
-    const missingPartnerFields = PARTNER_FIELDS.filter((field) =>
-      isEmpty(partnerCompanyInfo[field.key]),
+    const requiredPartnerFields =
+      partnerEntityType === "company" ? PARTNER_FIELDS : PARTNER_DETAIL_FIELDS;
+    const missingPartnerFields = requiredPartnerFields.filter((field) =>
+      isEmpty(String(partnerCompanyInfo[field.key] ?? "")),
     );
 
     if (missingPartnerFields.length > 0) {
@@ -380,7 +408,23 @@ export function ContractFormPage({
 
   const buildPayload = (): CreateContractPayload => ({
     ownerCompanyInfo,
-    partnerCompanyInfo,
+    partnerCompanyInfo: {
+      ...partnerCompanyInfo,
+      companyName:
+        partnerEntityType === "company"
+          ? partnerCompanyInfo.companyName?.trim() || ""
+          : null,
+      mst:
+        partnerEntityType === "company"
+          ? partnerCompanyInfo.mst?.trim() || ""
+          : null,
+      address: partnerCompanyInfo.address.trim(),
+      phone: partnerCompanyInfo.phone.trim(),
+      email: partnerCompanyInfo.email.trim(),
+      bankInfo: partnerCompanyInfo.bankInfo.trim(),
+      ownerName: partnerCompanyInfo.ownerName.trim(),
+      role: partnerCompanyInfo.role.trim(),
+    },
     contractDueDate,
     contractType: "digital",
     details: products
@@ -561,12 +605,76 @@ export function ContractFormPage({
 
               <div className="space-y-5">
                 <div>
+                  <FieldLabel>Loại đối tác</FieldLabel>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {[
+                      {
+                        value: "individual" as const,
+                        title: "Cá nhân",
+                        description: "Không cần nhập MST và tên công ty.",
+                      },
+                      {
+                        value: "company" as const,
+                        title: "Công ty",
+                        description:
+                          "Có bước nhập MST và kiểm tra thông tin doanh nghiệp.",
+                      },
+                    ].map((option) => {
+                      const selected = partnerEntityType === option.value;
+
+                      return (
+                        <motion.button
+                          key={option.value}
+                          type="button"
+                          onClick={() =>
+                            handlePartnerEntityTypeChange(option.value)
+                          }
+                          whileHover={{ y: -2 }}
+                          whileTap={{ scale: 0.99 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 420,
+                            damping: 30,
+                          }}
+                          className={`rounded-xl border p-4 text-left transition-all duration-300 ${
+                            selected
+                              ? "border-white/35 bg-white/6"
+                              : "border-white/10 bg-white/2 hover:border-white/20 hover:bg-white/4"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-medium text-white">
+                                {option.title}
+                              </p>
+                              <p className="mt-1 text-xs leading-5 text-white/45">
+                                {option.description}
+                              </p>
+                            </div>
+                            <span
+                              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                                selected
+                                  ? "border-white/45 bg-white text-black"
+                                  : "border-white/15 text-transparent"
+                              }`}
+                            >
+                              <FiCheck className="text-xs" />
+                            </span>
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {partnerEntityType === "company" ? (
+                <div>
                   <FieldLabel>Mã số thuế</FieldLabel>
                   <div className="flex flex-col gap-3 md:flex-row">
                     <div className="min-w-0 flex-1">
                       <TextInput
                         id="partner-mst"
-                        value={partnerCompanyInfo.mst}
+                        value={partnerCompanyInfo.mst ?? ""}
                         onChange={(value) => updatePartnerField("mst", value)}
                         placeholder="Nhập mã số thuế đối tác"
                         required
@@ -607,6 +715,7 @@ export function ContractFormPage({
                     </p>
                   )}
                 </div>
+                ) : null}
 
                 {isPartnerFormVisible ? (
                   <motion.div
@@ -615,7 +724,10 @@ export function ContractFormPage({
                     transition={{ duration: 0.22 }}
                     className="grid grid-cols-1 gap-4 md:grid-cols-2"
                   >
-                    {PARTNER_DETAIL_FIELDS.map((field) => (
+                    {(partnerEntityType === "company"
+                      ? PARTNER_FIELDS.filter((field) => field.key !== "mst")
+                      : PARTNER_DETAIL_FIELDS
+                    ).map((field) => (
                       <div
                         key={field.key}
                         className={field.multiline ? "md:col-span-2" : ""}
@@ -624,7 +736,7 @@ export function ContractFormPage({
                         {field.multiline ? (
                           <TextareaInput
                             id={`partner-${field.key}`}
-                            value={partnerCompanyInfo[field.key]}
+                            value={String(partnerCompanyInfo[field.key] ?? "")}
                             onChange={(value) =>
                               updatePartnerField(field.key, value)
                             }
@@ -635,7 +747,7 @@ export function ContractFormPage({
                           <TextInput
                             id={`partner-${field.key}`}
                             type={field.key === "email" ? "email" : "text"}
-                            value={partnerCompanyInfo[field.key]}
+                            value={String(partnerCompanyInfo[field.key] ?? "")}
                             onChange={(value) =>
                               updatePartnerField(field.key, value)
                             }

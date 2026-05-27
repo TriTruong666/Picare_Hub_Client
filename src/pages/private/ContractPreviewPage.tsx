@@ -524,10 +524,14 @@ function ContractDocument({
   contract,
   ownerSignatureRef,
   ownerSignatureRevealKey,
+  partnerSignatureRef,
+  partnerSignatureRevealKey,
 }: {
   contract: Contract;
   ownerSignatureRef?: React.Ref<HTMLDivElement>;
   ownerSignatureRevealKey?: number;
+  partnerSignatureRef?: React.Ref<HTMLDivElement>;
+  partnerSignatureRevealKey?: number;
 }) {
   const owner = contract.ownerCompanyInfo;
   const partner = contract.partnerCompanyInfo;
@@ -535,6 +539,7 @@ function ContractDocument({
   const dueDate = formatDate(contract.contractDueDate);
   const hasOwnerSigned =
     contract.status === "owner_signed" || contract.status === "completed";
+  const hasPartnerSigned = contract.status === "completed";
 
   return (
     <motion.article
@@ -693,7 +698,14 @@ function ContractDocument({
           revealKey={ownerSignatureRevealKey}
           signatureRef={ownerSignatureRef}
         />
-        <SignatureBlock title="Đại diện Bên B" name={partner.ownerName} />
+        <SignatureBlock
+          title="Đại diện Bên B"
+          name={partner.ownerName}
+          isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)}
+          shouldAnimate={Boolean(partnerSignatureRevealKey)}
+          revealKey={partnerSignatureRevealKey}
+          signatureRef={partnerSignatureRef}
+        />
       </section>
     </motion.article>
   );
@@ -819,7 +831,10 @@ function ContractActionDock({
 export default function ContractPreviewPage() {
   const { contractId = "" } = useParams();
   const ownerSignatureRef = useRef<HTMLDivElement>(null);
+  const partnerSignatureRef = useRef<HTMLDivElement>(null);
   const [ownerSignatureRevealKey, setOwnerSignatureRevealKey] = useState(0);
+  const [partnerSignatureRevealKey, setPartnerSignatureRevealKey] = useState(0);
+  const previousStatusRef = useRef<string>();
   const {
     data: contract,
     isLoading,
@@ -839,6 +854,33 @@ export default function ContractPreviewPage() {
 
     return () => window.cancelAnimationFrame(frameId);
   }, [ownerSignatureRevealKey]);
+
+  useEffect(() => {
+    if (!partnerSignatureRevealKey) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      partnerSignatureRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [partnerSignatureRevealKey]);
+
+  useEffect(() => {
+    if (!contract) return;
+
+    if (
+      previousStatusRef.current &&
+      previousStatusRef.current !== "completed" &&
+      contract.status === "completed"
+    ) {
+      setPartnerSignatureRevealKey((current) => current + 1);
+    }
+
+    previousStatusRef.current = contract.status;
+  }, [contract]);
 
   const handleSigned = () => {
     void refetch();
@@ -882,8 +924,13 @@ export default function ContractPreviewPage() {
         contract={contract}
         ownerSignatureRef={ownerSignatureRef}
         ownerSignatureRevealKey={ownerSignatureRevealKey}
+        partnerSignatureRef={partnerSignatureRef}
+        partnerSignatureRevealKey={partnerSignatureRevealKey}
       />
       <ContractActionDock contract={contract} onSigned={handleSigned} />
     </main>
   );
 }
+
+
+
