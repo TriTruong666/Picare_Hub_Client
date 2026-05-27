@@ -636,7 +636,7 @@ function ContractActionDock({
 }: {
   contract: Contract;
   partnerToken?: string;
-  onCredentialUploaded?: () => void | Promise<void>;
+  onCredentialUploaded?: () => Contract | undefined | Promise<Contract | undefined>;
 }) {
   const downloadMutation = useDownloadS3Asset();
   const updatePartnerSignTypeMutation = useUpdatePartnerSignType();
@@ -658,8 +658,10 @@ function ContractActionDock({
     setIsHandwrittenSignatureOpen(true);
   };
 
-  const handleCredentialContinue = () => {
-    if (isCredentialNameMatched(contract)) {
+  const handleCredentialContinue = (nextContract?: Contract) => {
+    const activeContract = nextContract ?? contract;
+
+    if (isCredentialNameMatched(activeContract)) {
       openHandwrittenSignatureFlow();
       return;
     }
@@ -714,6 +716,10 @@ function ContractActionDock({
 
     setIsSignTypeModalOpen(false);
     if (type === "individual") {
+      if (contract.individualCredential) {
+        handleCredentialContinue();
+        return;
+      }
       setIsIndividualCredentialOpen(true);
       return;
     }
@@ -852,7 +858,8 @@ export default function ContractPartnerSignPage() {
         contract={contract}
         partnerToken={partnerToken}
         onCredentialUploaded={async () => {
-          await refetch();
+          const response = await refetch();
+          return response.data;
         }}
       />
     </main>

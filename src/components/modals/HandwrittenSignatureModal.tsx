@@ -83,7 +83,6 @@ export default function HandwrittenSignatureModal({
       contractId,
       partnerToken,
       data: {
-        signerType: "individual",
         signerName,
         signerEmail,
         signature_image: signatureImage,

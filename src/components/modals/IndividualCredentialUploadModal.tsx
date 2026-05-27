@@ -11,7 +11,7 @@ import { HiOutlineX } from "react-icons/hi";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { useUploadIndividualCredential } from "@/hooks/data/useContractHooks";
 import { toast } from "@/hooks/useToast";
-import type { IndividualCredential } from "@/types/Contract";
+import type { Contract, IndividualCredential } from "@/types/Contract";
 
 type CredentialSide = "front" | "back";
 
@@ -26,8 +26,8 @@ type IndividualCredentialUploadModalProps = {
   credential?: IndividualCredential | null;
   isOpen: boolean;
   onClose: () => void;
-  onUploaded?: () => void | Promise<void>;
-  onContinue?: () => void;
+  onUploaded?: () => Contract | undefined | Promise<Contract | undefined>;
+  onContinue?: (contract?: Contract) => void;
   forceUploadMode?: boolean;
   onForceUploadModeConsumed?: () => void;
 };
@@ -262,10 +262,11 @@ export default function IndividualCredentialUploadModal({
     });
 
     if (response.success) {
-      await onUploaded?.();
+      const refreshedContract = await onUploaded?.();
       setFrontImage(null);
       setBackImage(null);
       setIsUpdatingExisting(false);
+      onContinue?.(refreshedContract);
     }
   };
 
