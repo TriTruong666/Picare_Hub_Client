@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode, Ref } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { FiCheckCircle, FiDownload, FiPenTool } from "react-icons/fi";
 import { useParams, useSearchParams } from "react-router-dom";
@@ -24,6 +25,11 @@ import type {
   OwnerCompanyInfoPayload,
   PartnerCompanyInfoPayload,
 } from "@/types/Contract";
+
+type RefreshedContractHandler = () =>
+  | Contract
+  | undefined
+  | Promise<Contract | undefined>;
 
 const CONTRACT_STATUS_LABELS: Record<string, string> = {
   draft: "Bản nháp",
@@ -140,7 +146,7 @@ function getVietnameseDate(value?: string) {
   ).padStart(2, "0")} năm ${date.getFullYear()}`;
 }
 
-function ArticleTitle({ children }: { children: React.ReactNode }) {
+function ArticleTitle({ children }: { children: ReactNode }) {
   return (
     <h2 className="mt-12 text-[13px] font-medium tracking-[0.12em] text-white/80 uppercase">
       {children}
@@ -304,7 +310,7 @@ function SignatureBlock({
   isSigned?: boolean;
   shouldAnimate?: boolean;
   revealKey?: number;
-  signatureRef?: React.Ref<HTMLDivElement>;
+  signatureRef?: Ref<HTMLDivElement>;
 }) {
   const signatureName = getSignatureDisplayName(name);
   return (
@@ -346,7 +352,7 @@ function ContractDocument({
   partnerSignatureRevealKey,
 }: {
   contract: Contract;
-  partnerSignatureRef?: React.Ref<HTMLDivElement>;
+  partnerSignatureRef?: Ref<HTMLDivElement>;
   partnerSignatureRevealKey?: number;
 }) {
   const owner = contract.ownerCompanyInfo;
@@ -531,7 +537,7 @@ function DockButton({
   disabled,
 }: {
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   onClick: () => void;
   disabled?: boolean;
 }) {
@@ -737,10 +743,7 @@ function ContractActionDock({
 }: {
   contract: Contract;
   partnerToken?: string;
-  onCredentialUploaded?: () =>
-    | Contract
-    | undefined
-    | Promise<Contract | undefined>;
+  onCredentialUploaded?: RefreshedContractHandler;
 }) {
   const downloadMutation = useDownloadS3Asset();
   const updatePartnerSignTypeMutation = useUpdatePartnerSignType();
@@ -938,7 +941,7 @@ export default function ContractPartnerSignPage() {
   const partnerSignatureRef = useRef<HTMLDivElement>(null);
   const [partnerSignatureRevealKey, setPartnerSignatureRevealKey] = useState(0);
   const previousStatusRef = useRef<string | undefined>(undefined);
-  const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(true);
+  const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
   const partnerToken = searchParams.get("token")?.trim() || undefined;
   const {
     data: contract,
