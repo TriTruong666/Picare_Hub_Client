@@ -4,6 +4,7 @@ import type {
   Contract,
   CreateContractPayload,
   CreateContractResponse,
+  DeleteCredentialPayload,
   GenSignLinkResponse,
   HandwrittenSignaturePayload,
   SigningCompletePayload,
@@ -188,10 +189,7 @@ export const uploadOrganizationCredential = async (
   const formData = new FormData();
   formData.append("business_license", payload.business_license);
   if (payload.power_of_attorney_image) {
-    formData.append(
-      "power_of_attorney_image",
-      payload.power_of_attorney_image,
-    );
+    formData.append("power_of_attorney_image", payload.power_of_attorney_image);
   }
   const requestConfig = getPartnerTokenRequestConfig(token);
 
@@ -218,6 +216,17 @@ export const uploadHandwrittenSignature = async (
     `/api/v1/contracts/${contractId}/handwritten-signatures`,
     payload,
     getPartnerTokenRequestConfig(token),
+  );
+  return res.data;
+};
+
+export const deleteCredential = async (
+  contractId: string,
+  token: string,
+  payload: DeleteCredentialPayload,
+): Promise<BaseResponse<null>> => {
+  const res = await hubAxiosClient.delete(
+    `/api/v1/contracts/${contractId}/credential`,
   );
   return res.data;
 };

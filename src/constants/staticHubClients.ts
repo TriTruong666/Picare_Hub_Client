@@ -6,7 +6,7 @@ export const DIGITAL_CONTRACT_CLIENT_ID = "digital-contracts";
 export const STATIC_HUB_CLIENTS: HubClient[] = [
   {
     clientId: DIGITAL_CONTRACT_CLIENT_ID,
-    clientName: "Hợp đồng số",
+    clientName: "Picare E-Contract",
     clientDescription:
       "Tạo, quản lý và ký hợp đồng điện tử tập trung với luồng phê duyệt rõ ràng, lưu trữ an toàn và tra cứu nhanh theo từng đối tác.",
     clientLogoImage: null,

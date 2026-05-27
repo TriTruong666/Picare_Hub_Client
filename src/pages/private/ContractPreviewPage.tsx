@@ -298,7 +298,7 @@ function SignatureBlock({
           transition={{ duration: 0.35, delay: shouldAnimate ? 1.05 : 0 }}
           className="mb-2 text-[11px] font-medium tracking-[0.16em] text-emerald-200/80 uppercase"
         >
-          Đã ký số
+          Đã ký
         </motion.p>
       ) : null}
       <p className="text-[14px] font-medium text-white uppercase">{name}</p>
@@ -491,7 +491,6 @@ function SendPartnerMailModal({
                   className="w-full resize-none border-b border-white/10 bg-transparent py-2 text-sm leading-6 text-white transition outline-none focus:border-white/35 disabled:opacity-50"
                 />
               </label>
-
             </div>
 
             <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
@@ -931,6 +930,3 @@ export default function ContractPreviewPage() {
     </main>
   );
 }
-
-
-

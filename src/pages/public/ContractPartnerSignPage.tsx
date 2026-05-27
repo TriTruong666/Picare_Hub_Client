@@ -372,7 +372,7 @@ function SignatureBlock({
           transition={{ duration: 0.35, delay: shouldAnimate ? 1.05 : 0 }}
           className="mb-2 text-[11px] font-medium tracking-[0.16em] text-emerald-200/80 uppercase"
         >
-          Đã ký số
+          Đã ký
         </motion.p>
       ) : null}
       <p className="text-[14px] font-medium text-white uppercase">{name}</p>
@@ -1021,6 +1021,3 @@ export default function ContractPartnerSignPage() {
     </main>
   );
 }
-
-
-

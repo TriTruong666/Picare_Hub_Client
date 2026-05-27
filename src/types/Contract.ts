@@ -281,3 +281,7 @@ export type GenSignLinkResponse = {
   token: string;
   signingUrl: string;
 };
+
+export type DeleteCredentialPayload = {
+  credentialType: "individual" | "organization";
+};
