@@ -581,7 +581,7 @@ function ContractDocument({
         <ArticleTitle>Căn cứ ký kết</ArticleTitle>
         <ClauseList
           items={[
-            "Căn cứ Bộ Luật Dân sự số 33/2005/QH ngày 14/06/2005 của Quốc hội nước CHXHCN Việt Nam;",
+            "Căn cứ Bộ Luật Dân sự số 33/2005/QH ngày 14/06/2005 của Quốc hội nước CHXHCN Việt Nam",
             "Căn cứ Luật Thương Mại số 36/2005/QH ngày 14/06/2005 của Quốc hội nước CHXHCN Việt Nam",
             "Căn cứ vào khả năng và nhu cầu của hai bên",
           ]}

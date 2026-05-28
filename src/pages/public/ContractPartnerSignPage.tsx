@@ -15,6 +15,7 @@ import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import {
   useContractDetail,
+  useDeleteCredential,
   useUpdatePartnerSignType,
 } from "@/hooks/data/useContractHooks";
 import { useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
@@ -404,7 +405,7 @@ function ContractDocument({
         <ArticleTitle>Căn cứ ký kết</ArticleTitle>
         <ClauseList
           items={[
-            "Căn cứ Bộ Luật Dân sự số 33/2005/QH ngày 14/06/2005 của Quốc hội nước CHXHCN Việt Nam;",
+            "Căn cứ Bộ Luật Dân sự số 33/2005/QH ngày 14/06/2005 của Quốc hội nước CHXHCN Việt Nam",
             "Căn cứ Luật Thương Mại số 36/2005/QH ngày 14/06/2005 của Quốc hội nước CHXHCN Việt Nam",
             "Căn cứ vào khả năng và nhu cầu của hai bên",
           ]}
@@ -747,6 +748,7 @@ function ContractActionDock({
 }) {
   const downloadMutation = useDownloadS3Asset();
   const updatePartnerSignTypeMutation = useUpdatePartnerSignType();
+  const deleteCredentialMutation = useDeleteCredential({ showSuccessToast: false });
   const [isSignTypeModalOpen, setIsSignTypeModalOpen] = useState(false);
   const [isIndividualCredentialOpen, setIsIndividualCredentialOpen] =
     useState(false);
@@ -761,6 +763,32 @@ function ContractActionDock({
   const credentialName = getIndividualCredentialName(contract);
   const signatureSignerName =
     credentialName || contract.partnerCompanyInfo.ownerName;
+
+  useEffect(() => {
+    if (!isIndividualCredentialOpen || !contract.individualCredential) return;
+    handleCredentialContinue(contract);
+  }, [contract, isIndividualCredentialOpen]);
+
+  useEffect(() => {
+    if (!isOrganizationCredentialOpen || !contract.organizationCredential) {
+      return;
+    }
+    handleOrganizationCredentialContinue(contract);
+  }, [contract, isOrganizationCredentialOpen]);
+
+  const cleanupOppositeCredential = async (
+    credentialType: "individual" | "organization",
+  ) => {
+    if (!partnerToken) return true;
+
+    const response = await deleteCredentialMutation.mutateAsync({
+      contractId: contract.contractId,
+      partnerToken,
+      data: { credentialType },
+    });
+
+    return response.success;
+  };
 
   const openHandwrittenSignatureFlow = () => {
     setIsIndividualCredentialOpen(false);
@@ -839,7 +867,7 @@ function ContractActionDock({
     setIsOrganizationSigningOpen(false);
     if (type === "individual") {
       if (contract.individualCredential) {
-        handleCredentialContinue();
+        handleCredentialContinue(contract);
         return;
       }
       setIsIndividualCredentialOpen(true);
@@ -862,7 +890,7 @@ function ContractActionDock({
         transition={{ duration: 0.22, ease: "easeOut" }}
         className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
       >
-        {contract.status !== "draft" ? (
+        {contract.status === "completed" ? (
           <DockButton
             label="Tải hợp đồng"
             icon={<FiDownload />}
@@ -919,7 +947,11 @@ function ContractActionDock({
         signerEmail={contract.partnerCompanyInfo.email}
         isOpen={isHandwrittenSignatureOpen}
         onClose={() => setIsHandwrittenSignatureOpen(false)}
-        onSigned={onCredentialUploaded}
+        onSigned={async () => {
+          const deleted = await cleanupOppositeCredential("organization");
+          if (!deleted) return;
+          await onCredentialUploaded?.();
+        }}
       />
 
       <PartnerOrganizationSigningModal
@@ -927,6 +959,8 @@ function ContractActionDock({
         partnerToken={partnerToken}
         onClose={() => setIsOrganizationSigningOpen(false)}
         onSigned={async () => {
+          const deleted = await cleanupOppositeCredential("individual");
+          if (!deleted) return;
           await onCredentialUploaded?.();
         }}
       />

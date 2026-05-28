@@ -4,6 +4,7 @@ import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
 import type {
   ContractStatus,
   CreateContractPayload,
+  DeleteCredentialPayload,
   HandwrittenSignaturePayload,
   SigningCompletePayload,
   SigningSessionPayload,
@@ -25,6 +26,56 @@ type ContractListParams = {
 type MutationToastOptions = {
   showSuccessToast?: boolean;
 };
+
+function getIndividualCredentialUploadErrorMessage(response: {
+  message?: string | null;
+  details?: unknown;
+}) {
+  const details = response.details as
+    | {
+        payload?: {
+          errorMessage?: string | null;
+          errorCode?: number | string | null;
+        } | null;
+      }
+    | null
+    | undefined;
+
+  const providerMessage = details?.payload?.errorMessage?.trim();
+
+  if (!providerMessage) {
+    return response.message || "Ảnh CCCD không hợp lệ. Vui lòng thử lại.";
+  }
+
+  const normalizedMessage = providerMessage.toLowerCase();
+
+  if (normalizedMessage.includes("unable to find id card in the image")) {
+    return "Ảnh tải lên không chứa CCCD hợp lệ. Vui lòng chụp rõ toàn bộ CCCD và thử lại.";
+  }
+
+  if (
+    normalizedMessage.includes("card is too blurry") ||
+    normalizedMessage.includes("image is blurry")
+  ) {
+    return "Ảnh CCCD bị mờ. Vui lòng chụp lại rõ nét và đủ sáng.";
+  }
+
+  if (
+    normalizedMessage.includes("glare") ||
+    normalizedMessage.includes("reflection")
+  ) {
+    return "Ảnh CCCD bị lóa hoặc phản sáng. Vui lòng chụp lại ở góc khác.";
+  }
+
+  if (
+    normalizedMessage.includes("cropped") ||
+    normalizedMessage.includes("cut off")
+  ) {
+    return "Ảnh CCCD bị cắt mất góc hoặc không đầy đủ. Vui lòng chụp trọn vẹn mặt thẻ.";
+  }
+
+  return providerMessage;
+}
 
 /**
  * Hook lấy danh sách hợp đồng
@@ -76,7 +127,7 @@ export function useCreateContract() {
       } else {
         toast.error(
           "Thất bại",
-          translateErrorMessage(data.error_code, data.message),
+          getIndividualCredentialUploadErrorMessage(data),
         );
       }
     },
@@ -259,7 +310,7 @@ export function useUploadIndividualCredential(options?: MutationToastOptions) {
       } else {
         toast.error(
           "Thất bại",
-          translateErrorMessage(data.error_code, data.message),
+          getIndividualCredentialUploadErrorMessage(data),
         );
       }
     },
@@ -340,6 +391,40 @@ export function useUploadHandwrittenSignature(options?: MutationToastOptions) {
         toast.error(
           "Thất bại",
           translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+export function useDeleteCredential(options?: MutationToastOptions) {
+  const queryClient = useQueryClient();
+  const { showSuccessToast = true } = options ?? {};
+
+  return useMutation({
+    mutationFn: ({
+      contractId,
+      partnerToken,
+      data,
+    }: {
+      contractId: string;
+      partnerToken: string;
+      data: DeleteCredentialPayload;
+    }) => ContractService.deleteCredential(contractId, partnerToken, data),
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        if (showSuccessToast) {
+          toast.success("Thành công", "Đã xóa thông tin xác thực không còn sử dụng");
+        }
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts", variables.contractId],
+        });
+      } else {
+        toast.error(
+          "Thất bại",
+          getIndividualCredentialUploadErrorMessage(data),
         );
       }
     },

@@ -15,7 +15,7 @@ type HandwrittenSignatureModalProps = {
   signerEmail: string;
   isOpen: boolean;
   onClose: () => void;
-  onSigned?: () => void;
+  onSigned?: () => void | Promise<void>;
 };
 
 export default function HandwrittenSignatureModal({
@@ -90,7 +90,7 @@ export default function HandwrittenSignatureModal({
     });
 
     if (response.success) {
-      onSigned?.();
+      await onSigned?.();
       onClose();
     }
   };

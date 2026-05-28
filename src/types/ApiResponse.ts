@@ -2,7 +2,7 @@ export interface BaseResponse<T> {
   success: boolean;
   message: string;
   error_code?: string;
-  details?: string | null;
+  details?: unknown;
   data?: T | null;
 }
 

@@ -225,8 +225,13 @@ export const deleteCredential = async (
   token: string,
   payload: DeleteCredentialPayload,
 ): Promise<BaseResponse<null>> => {
+  const requestConfig = getPartnerTokenRequestConfig(token);
   const res = await hubAxiosClient.delete(
     `/api/v1/contracts/${contractId}/credential`,
+    {
+      ...requestConfig,
+      data: payload,
+    },
   );
   return res.data;
 };

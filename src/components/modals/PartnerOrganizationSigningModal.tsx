@@ -41,14 +41,14 @@ type ContractOrganizationSigningModalProps = {
   contract: Contract | null;
   partnerToken?: string;
   onClose: () => void;
-  onSigned?: () => void;
+  onSigned?: () => void | Promise<void>;
 };
 
 type ContractOrganizationSigningFormProps = {
   contract: Contract;
   partnerToken?: string;
   onClose: () => void;
-  onSigned?: () => void;
+  onSigned?: () => void | Promise<void>;
 };
 
 const LOCAL_SIGN_APP_DOWNLOAD_URL =
@@ -986,6 +986,7 @@ function ContractOrganizationSigningForm({
     if (!signingSession) {
       const sessionResponse = await signingSessionMutation.mutateAsync({
         contractId: contract.contractId,
+        partnerToken,
         data: {
           signerType: "partner",
           signerEmail: pendingSigner.email,
@@ -1037,6 +1038,7 @@ function ContractOrganizationSigningForm({
     const completeResponse = await completeSigningSessionMutation.mutateAsync({
       contractId: contract.contractId,
       contractSignatureId: signingSession.contractSignatureId,
+      partnerToken,
       data: {
         signatureHex: signedData.signatureHex,
         certificatePem: signedData.certificatePem,
@@ -1060,7 +1062,7 @@ function ContractOrganizationSigningForm({
       return;
     }
 
-    onSigned?.();
+    await onSigned?.();
     setActiveSigningSession(null);
     setIsPinModalOpen(false);
     onClose();

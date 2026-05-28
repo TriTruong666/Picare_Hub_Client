@@ -200,7 +200,6 @@ export default function IndividualCredentialUploadModal({
       const refreshedContract = await onUploaded?.();
       setFrontImage(null);
       setBackImage(null);
-      setIsUpdatingExisting(false);
       onContinue?.(refreshedContract);
     }
   };
