@@ -46,7 +46,7 @@ type ContractSigningFormProps = {
 };
 
 const LOCAL_SIGN_APP_DOWNLOAD_URL =
-  "https://drive.google.com/file/d/1Oed-YQl0OAwKlj72ffynibC_cqMpdCuU/view?usp=sharing";
+  "https://drive.google.com/file/d/1N54mH5PjpBdgcJp1f3c7XagRpY4D3ySW/view?usp=sharing";
 
 const PICAREVN_ASCII = String.raw`
  ____  ___ ____    _    ____  _____ __     ___   _
