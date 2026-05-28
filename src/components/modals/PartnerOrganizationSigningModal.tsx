@@ -24,6 +24,11 @@ import {
   useSignPdfCms,
 } from "@/hooks/data/useLocalSignHooks";
 import { toast } from "@/hooks/useToast";
+import huongdan1 from "@/assets/images/huongdan1.jpg";
+import huongdan2 from "@/assets/images/huongdan2.jpg";
+import huongdan3 from "@/assets/images/huongdan3.jpg";
+import huongdan4 from "@/assets/images/huongdan4.jpg";
+import huongdan5 from "@/assets/images/huongdan5.jpg";
 import type { Contract } from "@/types/Contract";
 import type {
   CertificateResponse,
@@ -56,6 +61,27 @@ const PICAREVN_ASCII = String.raw`
 |  __/ | | |___ / ___ \|  _ <| |___   \ V / | |\  |
 |_|   |___\____/_/   \_\_| \_\_____|   \_/  |_| \_|
 `;
+
+function GuideStepIllustration({
+  imageSrc,
+  caption,
+}: {
+  imageSrc: string;
+  caption: string;
+}) {
+  return (
+    <figure className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
+      <img
+        src={imageSrc}
+        alt={caption}
+        className="block max-h-[520px] w-full bg-white object-contain"
+      />
+      <figcaption className="border-t border-white/10 px-4 py-3 text-xs leading-6 text-white/45">
+        {caption}
+      </figcaption>
+    </figure>
+  );
+}
 
 function isLocalSigningServiceReady(
   response: BaseResponse<CheckHealthResponse>,
@@ -212,10 +238,23 @@ function LocalSignAppGuideModal({
               <h3 className="text-base font-semibold text-white">
                 Thông tin bảo mật và pháp lý
               </h3>
-              <div className="mt-4 border-l border-white/20 pl-5">
-                <p className="text-sm leading-7 font-medium text-white/85">
-                  Ứng dụng không lưu mã PIN và không sao chép khóa bí mật khỏi
-                  USB Token.
+              <div className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-500/8 p-4">
+                <p className="text-sm leading-7 font-medium text-emerald-100">
+                  <strong className="font-semibold text-white">
+                    Cam kết quan trọng:
+                  </strong>{" "}
+                  ứng dụng{" "}
+                  <strong className="text-white">không lưu mã PIN</strong>,
+                  <strong className="text-white">
+                    {" "}
+                    không sao chép khóa bí mật
+                  </strong>
+                  ,<strong className="text-white"> không chứa mã độc</strong> và
+                  <strong className="text-white">
+                    {" "}
+                    không tự ý can thiệp dữ liệu ngoài nghiệp vụ ký số
+                  </strong>
+                  .
                 </p>
               </div>
               <div className="mt-5 space-y-3 text-sm leading-7 text-white/60">
@@ -233,6 +272,14 @@ function LocalSignAppGuideModal({
                   và không được sao chép bởi ứng dụng.
                 </p>
                 <p>
+                  Ứng dụng{" "}
+                  <strong className="font-semibold text-white/85">
+                    không chứa mã độc, không cài kèm thành phần ẩn, không tự ý
+                    thu thập dữ liệu ngoài phạm vi cần thiết
+                  </strong>{" "}
+                  để thực hiện ký số cục bộ.
+                </p>
+                <p>
                   Chứng thư số chỉ được đọc để phục vụ thao tác ký số hợp lệ
                   theo yêu cầu từ hệ thống được ủy quyền.
                 </p>
@@ -244,6 +291,14 @@ function LocalSignAppGuideModal({
                   Dữ liệu ký số được xử lý theo từng phiên yêu cầu, không tự ý
                   tạo, sửa, gửi hoặc phát sinh giao dịch ngoài phạm vi nghiệp
                   vụ.
+                </p>
+                <p>
+                  Ứng dụng{" "}
+                  <strong className="font-semibold text-white/85">
+                    không thay đổi nội dung hợp đồng, không đọc file ngoài luồng
+                    ký và không gửi tài liệu lên hệ thống khác
+                  </strong>{" "}
+                  nếu không có yêu cầu hợp lệ từ Picare.
                 </p>
                 <p>
                   Người dùng chịu trách nhiệm bảo vệ USB Token, mã PIN, tài
@@ -276,19 +331,31 @@ function LocalSignAppGuideModal({
                   </strong>{" "}
                   ở cuối thông báo này để tải file cài đặt về máy tính.
                 </p>
+                <GuideStepIllustration
+                  imageSrc={huongdan1}
+                  caption="Bước 1: Bắt đầu Setup file cài đặt"
+                />
                 <p>
                   <strong className="mr-2 text-white">2.</strong>Mở file vừa
                   tải, chọn đồng ý khi Windows hỏi quyền cài đặt, rồi làm theo
                   các bước hiển thị trên màn hình.
                 </p>
+                <GuideStepIllustration
+                  imageSrc={huongdan2}
+                  caption="Bước 2: Lời khuyên cho bạn nên cho hệ thống chạy bằng quyền quản trị (Tick hết)"
+                />
                 <p>
                   <strong className="mr-2 text-white">3.</strong>Sau khi cài
                   xong,{" "}
                   <strong className="font-semibold text-white">
-                    cắm USB Token ký số
-                  </strong>{" "}
-                  vào máy và quay lại màn hình này để kiểm tra lại.
+                    hãy cắm USB vào máy. Hệ thống sẽ chạy ngầm
+                  </strong>
+                  . Sau đó quay lại màn hình này để kiểm tra lại.
                 </p>
+                <GuideStepIllustration
+                  imageSrc={huongdan3}
+                  caption="Bước 3: Hoàn thành Setup và hệ thống đã bắt đầu chạy ngầm"
+                />
               </div>
             </section>
 
@@ -300,18 +367,27 @@ function LocalSignAppGuideModal({
                 <p>
                   <strong className="mr-2 text-white">1.</strong>Mở ứng dụng{" "}
                   <strong className="font-semibold text-white">
-                    Picare Digital Sign Helper
+                    Dịch vụ hỗ trợ ký số Picare
                   </strong>{" "}
                   trên máy tính Windows.
                 </p>
+                <GuideStepIllustration
+                  imageSrc={huongdan4}
+                  caption="Bước 4: mở ứng dụng Dịch vụ hỗ trợ ký số Picare trên Windows."
+                />
                 <p>
                   <strong className="mr-2 text-white">2.</strong>
                   <strong className="font-semibold text-white">
-                    Giữ ứng dụng đang chạy
+                    Đây là console của hệ thống(có thể tắt)
                   </strong>{" "}
-                  trong lúc ký hợp đồng. Nếu Windows có hỏi quyền truy cập, hãy
-                  chọn cho phép.
+                  . Chúng tôi đã setup ban đầu để hệ thống chạy ngầm(default).
+                  Bạn có thể thao tác các lựa chọn trên console bằng cách nhấn
+                  các phím tương đương.
                 </p>
+                <GuideStepIllustration
+                  imageSrc={huongdan5}
+                  caption="Bước 5: Bạn có thể thao tác trên console hoặc tắt đi. Hệ thống đã setup chế độ chạy ngầm!"
+                />
                 <p>
                   <strong className="mr-2 text-white">3.</strong>Cắm USB Token
                   và đảm bảo phần mềm USB Token của nhà cung cấp chữ ký số đã
@@ -1208,4 +1284,3 @@ export default function ContractOrganizationSigningModal({
     </AnimatePresence>
   );
 }
-
