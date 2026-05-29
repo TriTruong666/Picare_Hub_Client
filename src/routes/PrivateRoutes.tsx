@@ -3,6 +3,8 @@ import { AuthGuard } from "@/components/guards/AuthGuard";
 import { PATHS } from "@/config/paths";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
+import ContractDetailDashboardPage from "@/pages/private/ContractDetailDashboardPage";
+import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
 import HubClientCreatePage from "@/pages/private/HubClientCreatePage";
 import HubClientDashboardPage from "@/pages/private/HubClientDashboardPage";
 import HubClientEditPage from "@/pages/private/HubClientEditPage";
@@ -19,6 +21,11 @@ export default function PrivateRoutes() {
           <Route index element={<SummaryDashboardPage />} />
           <Route path="summary" element={<SummaryDashboardPage />} />
           <Route path="accounts" element={<AccountDashboardPage />} />
+          <Route path="contracts" element={<ContractDashboardPage />} />
+          <Route
+            path="contracts/:contractId"
+            element={<ContractDetailDashboardPage />}
+          />
           <Route path="storage" element={<StorageDashboardPage />} />
           <Route path="storage/:folderId" element={<StorageFolderDetailPage />} />
           <Route path="hub-clients" element={<HubClientDashboardPage />} />

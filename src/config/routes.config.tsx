@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
-import { FiArchive, FiLayout, FiUsers, FiGrid } from "react-icons/fi";
+import { FiArchive, FiLayout, FiUsers, FiGrid, FiFileText } from "react-icons/fi";
 import type { Role } from "@/hooks/useAuth";
 import LandingPage from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/public/LoginPage";
 import LoginClientPage from "@/pages/public/LoginClientPage";
 import LoginHubPage from "@/pages/public/LoginHubPage";
 import ContractCreatePage from "@/pages/private/ContractCreatePage";
+import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
 import ContractEditPage from "@/pages/private/ContractEditPage";
 import ContractPreviewPage from "@/pages/private/ContractPreviewPage";
 import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
@@ -72,6 +73,13 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     element: <AccountDashboardPage />,
     label: "T\u00e0i kho\u1ea3n",
     icon: FiUsers,
+    showInSidebar: true,
+  },
+  {
+    path: PATHS.DASHBOARD.CONTRACTS,
+    element: <ContractDashboardPage />,
+    label: "H\u1ee3p \u0111\u1ed3ng",
+    icon: FiFileText,
     showInSidebar: true,
   },
   {
