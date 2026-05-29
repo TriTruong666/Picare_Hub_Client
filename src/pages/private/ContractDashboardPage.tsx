@@ -40,6 +40,10 @@ const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
   completed: "Hoàn tất",
 };
 
+function getPreviewPath(contractId: string) {
+  return PATHS.CONTRACT_PREVIEW.replace(":contractId", contractId);
+}
+
 const CONTRACT_STATUS_BADGE: Record<
   ContractStatus,
   "info" | "warning" | "purple" | "success"
@@ -49,10 +53,6 @@ const CONTRACT_STATUS_BADGE: Record<
   owner_signed: "purple",
   completed: "success",
 };
-
-function getContractDetailPath(contract: Contract) {
-  return PATHS.CONTRACT_DETAIL.replace(":contractId", contract.contractId);
-}
 
 function getContractFileKey(contractUrl?: string | null) {
   const value = contractUrl?.trim();
@@ -105,7 +105,7 @@ export default function ContractDashboardPage() {
             const baseUrl = import.meta.env.VITE_HUB_API_URL;
             window.open(`${baseUrl}/api/v1/s3/view/${key}`, "_blank");
           }}
-          onOpenDetail={(contract) => navigate(getContractDetailPath(contract))}
+          onOpenDetail={(contract) => navigate(getPreviewPath(contract.contractId))}
         />
 
         {pagination ? (
