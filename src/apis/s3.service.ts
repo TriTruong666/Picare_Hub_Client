@@ -76,3 +76,10 @@ export async function updateS3Folder(
   );
   return res.data;
 }
+
+export async function deleteS3Folder(
+  folderId: string,
+): Promise<BaseResponse<null>> {
+  const res = await hubAxiosClient.delete(`/api/v1/s3-folders/${folderId}`);
+  return res.data;
+}

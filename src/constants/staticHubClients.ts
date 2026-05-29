@@ -9,8 +9,10 @@ export const STATIC_HUB_CLIENTS: HubClient[] = [
     clientName: "Picare E-Contract",
     clientDescription:
       "Tạo, quản lý và ký hợp đồng điện tử tập trung với luồng phê duyệt rõ ràng, lưu trữ an toàn và tra cứu nhanh theo từng đối tác.",
-    clientLogoImage: null,
-    clientMockupImage: null,
+    clientLogoImage:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1780040494670_upload1780040494670.png",
+    clientMockupImage:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1780032435040_upload1780032435039.png",
     clientInternalUrl: PATHS.CONTRACT_CREATE,
     clientExternalUrl: PATHS.CONTRACT_CREATE,
     clientStatus: "active",

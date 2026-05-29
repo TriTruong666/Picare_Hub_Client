@@ -53,6 +53,30 @@ const columns = [
   { key: "actions", label: "Thao tác", width: "w-[20%]", align: "center" },
 ] as const;
 
+function getAssetMimeInfo(mimeType: string) {
+  if (mimeType.startsWith("video/")) {
+    return {
+      label: "Video",
+      badgeType: "purple" as const,
+      icon: FiPlayCircle,
+    };
+  }
+
+  if (mimeType.startsWith("image/")) {
+    return {
+      label: "Ảnh",
+      badgeType: "blue" as const,
+      icon: FiImage,
+    };
+  }
+
+  return {
+    label: mimeType.split("/")[1]?.toUpperCase() || "FILE",
+    badgeType: "info" as const,
+    icon: FiImage,
+  };
+}
+
 export default function StorageFolderDetailPage() {
   const { folderId } = useParams<{ folderId: string }>();
 
@@ -493,11 +517,14 @@ function StorageGrid({
 
               <div className="absolute top-4 left-4 flex items-center gap-2">
                 <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
-                  {asset.assetType === "video" ? <FiPlayCircle /> : <FiImage />}
+                  {(() => {
+                    const { icon: Icon } = getAssetMimeInfo(asset.mimeType);
+                    return <Icon />;
+                  })()}
                 </span>
                 <Badge
-                  type={asset.assetType === "video" ? "purple" : "blue"}
-                  value={asset.mimeType.split("/")[1]?.toUpperCase() || "FILE"}
+                  type={getAssetMimeInfo(asset.mimeType).badgeType}
+                  value={getAssetMimeInfo(asset.mimeType).label}
                 />
               </div>
 
@@ -520,7 +547,7 @@ function StorageGrid({
                   />
                   <FileMetaBlock
                     label="Loại"
-                    value={asset.assetType === "video" ? "Video" : "Ảnh"}
+                    value={getAssetMimeInfo(asset.mimeType).label}
                   />
                 </div>
               </div>
@@ -672,10 +699,11 @@ function StorageTable({
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-white">
                             {isPrivate ? (
                               <FiEyeOff />
-                            ) : asset.assetType === "video" ? (
-                              <FiPlayCircle />
                             ) : (
-                              <FiImage />
+                              (() => {
+                                const { icon: Icon } = getAssetMimeInfo(asset.mimeType);
+                                return <Icon />;
+                              })()
                             )}
                           </span>
                           <p className="truncate text-sm font-semibold hover:underline">
@@ -702,14 +730,14 @@ function StorageTable({
 
                   <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
                     <Badge
-                      type={asset.assetType === "video" ? "purple" : "blue"}
-                      value={asset.assetType === "video" ? "Video" : "Ảnh"}
+                      type={getAssetMimeInfo(asset.mimeType).badgeType}
+                      value={getAssetMimeInfo(asset.mimeType).label}
                     />
                   </td>
 
                   <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
                     <span className="text-[13px] font-medium text-gray-600 dark:text-gray-300">
-                      {asset.mimeType.split("/")[1]?.toUpperCase()}
+                      {getAssetMimeInfo(asset.mimeType).label}
                     </span>
                   </td>
 

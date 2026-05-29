@@ -4,6 +4,7 @@ import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
 import type {
   CreateS3FolderPayload,
   GetPresignedURLRequest,
+  UpdateS3FolderPayload,
   UploadS3Request,
 } from "@/types/S3";
 import { useFetch } from "../useQuery";
@@ -115,6 +116,62 @@ export function useCreateS3Folder() {
       if (data.success) {
         toast.success("Thành công", "Đã tạo thư mục mới");
         queryClient.invalidateQueries({ queryKey: ["s3-folders"] });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+/**
+ * Hook cập nhật folder S3
+ */
+export function useUpdateS3Folder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      folderId,
+      payload,
+    }: {
+      folderId: string;
+      payload: UpdateS3FolderPayload;
+    }) => S3Service.updateS3Folder(payload, folderId),
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã cập nhật thư mục");
+        queryClient.invalidateQueries({ queryKey: ["s3-folders"] });
+        queryClient.invalidateQueries({
+          queryKey: ["s3-folder", variables.folderId],
+        });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+/**
+ * Hook xóa folder S3
+ */
+export function useDeleteS3Folder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (folderId: string) => S3Service.deleteS3Folder(folderId),
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã xóa thư mục");
+        queryClient.invalidateQueries({ queryKey: ["s3-folders"] });
+        queryClient.invalidateQueries({ queryKey: ["s3-assets"] });
       } else {
         toast.error(
           "Thất bại",
