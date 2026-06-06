@@ -13,6 +13,7 @@ export const PATHS = {
   CONTRACT_EDIT: "/contracts/:contractId/edit",
   CONTRACT_PREVIEW: "/contracts/:contractId/preview",
   PARTNER_SIGN: "/contracts/:contractId/sign-partner",
+  QR_PRODUCT_GENERATOR: "/qr-products/generator",
 
   // Private Paths (Dashboard)
   DASHBOARD: {

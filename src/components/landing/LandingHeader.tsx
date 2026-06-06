@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { IoBusinessOutline } from "react-icons/io5";
 import logo from "@/assets/images/logo.png";
 import {
@@ -52,15 +52,31 @@ export default function LandingHeader() {
 
   const {
     data: hubClients,
-    fullResponse,
     isLoading,
   } = useHubClients({
-    page: currentPage + 1,
-    limit: 3,
+    limit: 100,
+    status: "active",
   });
 
-  const totalPages = fullResponse?.pagination?.totalPages || 1;
-  const displayedItems = [...(hubClients || []), ...STATIC_HUB_CLIENTS];
+  const mergedClients = useMemo(() => {
+    const seen = new Set<string>();
+
+    return [...STATIC_HUB_CLIENTS, ...(hubClients || [])].filter((client) => {
+      if (seen.has(client.clientId)) {
+        return false;
+      }
+
+      seen.add(client.clientId);
+      return true;
+    });
+  }, [hubClients]);
+
+  const totalPages = Math.max(1, Math.ceil(mergedClients.length / 3));
+  const normalizedPage = currentPage % totalPages;
+  const displayedItems = mergedClients.slice(
+    normalizedPage * 3,
+    normalizedPage * 3 + 3,
+  );
 
   const nextMore = () => {
     setCurrentPage((prev) => (prev + 1) % totalPages);
@@ -217,7 +233,7 @@ export default function LandingHeader() {
                         <div
                           key={i}
                           className={`h-1 rounded-full transition-all duration-300 ${
-                            currentPage === i
+                            normalizedPage === i
                               ? "w-8 bg-white"
                               : "w-2 bg-white/20"
                           }`}

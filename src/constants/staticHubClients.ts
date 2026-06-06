@@ -2,6 +2,7 @@ import { PATHS } from "@/config/paths";
 import type { HubClient } from "@/types/HubClient";
 
 export const DIGITAL_CONTRACT_CLIENT_ID = "digital-contracts";
+export const QR_CODE_GENERATOR_CLIENT_ID = "qr-code-generator";
 
 export const STATIC_HUB_CLIENTS: HubClient[] = [
   {
@@ -15,6 +16,23 @@ export const STATIC_HUB_CLIENTS: HubClient[] = [
       "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1780032435040_upload1780032435039.png",
     clientInternalUrl: PATHS.CONTRACT_CREATE,
     clientExternalUrl: PATHS.CONTRACT_CREATE,
+    clientStatus: "active",
+    allowedRoles: ["admin", "sale_lead", "sale_staff"],
+    note: "Static hub client",
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    clientId: QR_CODE_GENERATOR_CLIENT_ID,
+    clientName: "Picare QR Generator",
+    clientDescription:
+      "Tạo QR Code cho sản phẩm của bạn, có thể tùy chỉnh logo, màu sắc và các thông tin khác.",
+    clientLogoImage:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1780040494670_upload1780040494670.png",
+    clientMockupImage:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1780032435040_upload1780032435039.png",
+    clientInternalUrl: PATHS.QR_PRODUCT_GENERATOR,
+    clientExternalUrl: PATHS.QR_PRODUCT_GENERATOR,
     clientStatus: "active",
     allowedRoles: ["admin", "sale_lead", "sale_staff"],
     note: "Static hub client",

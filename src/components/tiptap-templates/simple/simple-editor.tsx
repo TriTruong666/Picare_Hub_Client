@@ -1,7 +1,12 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
+import {
+  EditorContent,
+  EditorContext,
+  type JSONContent,
+  useEditor,
+} from "@tiptap/react"
 
 // --- Tiptap Core Extensions ---
 import { StarterKit } from "@tiptap/starter-kit"
@@ -68,7 +73,7 @@ import { useCursorVisibility } from "@/hooks/use-cursor-visibility"
 import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle"
 
 // --- Lib ---
-import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
+import { cn, handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
 
 // --- Styles ---
 import "@/components/tiptap-templates/simple/simple-editor.scss"
@@ -79,10 +84,12 @@ const MainToolbarContent = ({
   onHighlighterClick,
   onLinkClick,
   isMobile,
+  showThemeToggle,
 }: {
   onHighlighterClick: () => void
   onLinkClick: () => void
   isMobile: boolean
+  showThemeToggle: boolean
 }) => {
   return (
     <>
@@ -145,11 +152,15 @@ const MainToolbarContent = ({
 
       <Spacer />
 
-      {isMobile && <ToolbarSeparator />}
+      {showThemeToggle ? (
+        <>
+          {isMobile && <ToolbarSeparator />}
 
-      <ToolbarGroup>
-        <ThemeToggle />
-      </ToolbarGroup>
+          <ToolbarGroup>
+            <ThemeToggle />
+          </ToolbarGroup>
+        </>
+      ) : null}
     </>
   )
 }
@@ -183,12 +194,27 @@ const MobileToolbarContent = ({
   </>
 )
 
-export function SimpleEditor() {
+type SimpleEditorProps = {
+  content?: JSONContent
+  showThemeToggle?: boolean
+  wrapperClassName?: string
+  contentClassName?: string
+  editorClassName?: string
+}
+
+export function SimpleEditor({
+  content: initialContent,
+  showThemeToggle = true,
+  wrapperClassName,
+  contentClassName,
+  editorClassName,
+}: SimpleEditorProps = {}) {
   const isMobile = useIsBreakpoint()
   const { height } = useWindowSize()
   const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
     "main"
   )
+  const [toolbarHeight, setToolbarHeight] = useState(0)
   const toolbarRef = useRef<HTMLDivElement>(null)
 
   const editor = useEditor({
@@ -199,7 +225,7 @@ export function SimpleEditor() {
         autocorrect: "off",
         autocapitalize: "off",
         "aria-label": "Main content area, start typing to enter text.",
-        class: "simple-editor",
+        class: cn("simple-editor", editorClassName),
       },
     },
     extensions: [
@@ -228,22 +254,35 @@ export function SimpleEditor() {
         onError: (error) => console.error("Upload failed:", error),
       }),
     ],
-    content,
+    content: initialContent ?? content,
   })
 
   const rect = useCursorVisibility({
     editor,
-    overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
+    overlayHeight: toolbarHeight,
   })
 
   useEffect(() => {
-    if (!isMobile && mobileView !== "main") {
-      setMobileView("main")
+    const toolbarNode = toolbarRef.current
+
+    if (!toolbarNode) return
+
+    const syncToolbarHeight = () => {
+      setToolbarHeight(toolbarNode.getBoundingClientRect().height)
     }
-  }, [isMobile, mobileView])
+
+    syncToolbarHeight()
+
+    const resizeObserver = new ResizeObserver(syncToolbarHeight)
+    resizeObserver.observe(toolbarNode)
+
+    return () => resizeObserver.disconnect()
+  }, [])
+
+  const activeMobileView = isMobile ? mobileView : "main"
 
   return (
-    <div className="simple-editor-wrapper">
+    <div className={cn("simple-editor-wrapper", wrapperClassName)}>
       <EditorContext.Provider value={{ editor }}>
         <Toolbar
           ref={toolbarRef}
@@ -255,15 +294,16 @@ export function SimpleEditor() {
               : {}),
           }}
         >
-          {mobileView === "main" ? (
+          {activeMobileView === "main" ? (
             <MainToolbarContent
               onHighlighterClick={() => setMobileView("highlighter")}
               onLinkClick={() => setMobileView("link")}
               isMobile={isMobile}
+              showThemeToggle={showThemeToggle}
             />
           ) : (
             <MobileToolbarContent
-              type={mobileView === "highlighter" ? "highlighter" : "link"}
+              type={activeMobileView === "highlighter" ? "highlighter" : "link"}
               onBack={() => setMobileView("main")}
             />
           )}
@@ -272,7 +312,7 @@ export function SimpleEditor() {
         <EditorContent
           editor={editor}
           role="presentation"
-          className="simple-editor-content"
+          className={cn("simple-editor-content", contentClassName)}
         />
       </EditorContext.Provider>
     </div>

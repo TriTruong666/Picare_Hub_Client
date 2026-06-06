@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { PATHS } from "@/config/paths";
 import {
   DIGITAL_CONTRACT_CLIENT_ID,
+  QR_CODE_GENERATOR_CLIENT_ID,
   STATIC_HUB_CLIENTS,
 } from "@/constants/staticHubClients";
 
@@ -23,7 +24,10 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       return;
     }
 
-    if (client.clientId === DIGITAL_CONTRACT_CLIENT_ID) {
+    if (
+      client.clientId === DIGITAL_CONTRACT_CLIENT_ID ||
+      client.clientId === QR_CODE_GENERATOR_CLIENT_ID
+    ) {
       navigate(client.clientInternalUrl || PATHS.CONTRACT_CREATE);
       return;
     }

@@ -4,6 +4,8 @@ import { PATHS } from "@/config/paths";
 import PrivateRoutes from "./PrivateRoutes";
 import PrivateContractRoutes from "./PrivateContractRoutes";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
+import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
+import { AuthGuard } from "@/components/guards/AuthGuard";
 
 export default function AppRouter() {
   return (
@@ -11,6 +13,14 @@ export default function AppRouter() {
       <Route path="/dashboard/*" element={<PrivateRoutes />} />
       <Route path="/contracts/:contractId/sign-partner" element={<ContractPartnerSignPage />} />
       <Route path="/contracts/*" element={<PrivateContractRoutes />} />
+      <Route
+        path={PATHS.QR_PRODUCT_GENERATOR}
+        element={
+          <AuthGuard>
+            <QRProductGeneratorPage />
+          </AuthGuard>
+        }
+      />
 
       {/* Public Routes (Landing, Login, etc.) */}
       <Route path="/*" element={<PublicRoutes />} />
