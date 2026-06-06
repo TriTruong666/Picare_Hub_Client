@@ -57,7 +57,7 @@ export function canSetLink(editor: Editor | null): boolean {
   // If the selection is inside an image caption, we can't set a link
   if (isNodeTypeSelected(editor, ["image"], true)) return false
   try {
-    return editor.can().setMark("link")
+    return editor.can().chain().focus().setMark("link").run()
   } catch {
     return false
   }

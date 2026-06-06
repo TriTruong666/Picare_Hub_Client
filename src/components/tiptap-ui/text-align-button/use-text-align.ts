@@ -77,7 +77,13 @@ export function canSetTextAlign(
   )
     return false
 
-  return editor.can().setTextAlign(align)
+  const chain = editor.can().chain().focus()
+
+  if (hasSetTextAlign(chain)) {
+    return chain.setTextAlign(align).run()
+  }
+
+  return false
 }
 
 export function hasSetTextAlign(

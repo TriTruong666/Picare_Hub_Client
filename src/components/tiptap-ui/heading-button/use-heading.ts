@@ -85,8 +85,8 @@ export function canToggle(
 
   if (!turnInto) {
     return level
-      ? editor.can().setNode("heading", { level })
-      : editor.can().setNode("heading")
+      ? editor.can().chain().focus().setNode("heading", { level }).run()
+      : editor.can().chain().focus().setNode("heading").run()
   }
 
   // Ensure selection is in nodes we're allowed to convert
@@ -106,8 +106,10 @@ export function canToggle(
   // Either we can set heading directly on the selection,
   // or we can clear formatting/nodes to arrive at a heading.
   return level
-    ? editor.can().setNode("heading", { level }) || editor.can().clearNodes()
-    : editor.can().setNode("heading") || editor.can().clearNodes()
+    ? editor.can().chain().focus().setNode("heading", { level }).run() ||
+        editor.can().chain().focus().clearNodes().run()
+    : editor.can().chain().focus().setNode("heading").run() ||
+        editor.can().chain().focus().clearNodes().run()
 }
 
 /**

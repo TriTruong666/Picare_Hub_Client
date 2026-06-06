@@ -3,28 +3,28 @@
     --tt-bg-color: transparent;
     --tt-card-bg-color: rgba(255, 255, 255, 0.04);
     --tt-card-border-color: rgba(255, 255, 255, 0.08);
-    --tt-toolbar-bg-color: rgba(8, 8, 10, 0.9);
-    --tt-toolbar-border-color: rgba(255, 255, 255, 0.08);
-    --tt-scrollbar-color: rgba(255, 255, 255, 0.12);
-    --tt-button-default-bg-color: transparent;
-    --tt-button-default-text-color: rgba(255, 255, 255, 0.72);
-    --tt-button-default-icon-color: rgba(255, 255, 255, 0.68);
-    --tt-button-default-icon-sub-color: rgba(255, 255, 255, 0.42);
-    --tt-button-default-dropdown-arrows-color: rgba(255, 255, 255, 0.4);
-    --tt-button-hover-bg-color: rgba(255, 255, 255, 0.06);
-    --tt-button-hover-text-color: rgba(255, 255, 255, 0.92);
-    --tt-button-hover-icon-color: rgba(255, 255, 255, 0.92);
-    --tt-button-hover-icon-sub-color: rgba(255, 255, 255, 0.72);
-    --tt-button-hover-dropdown-arrows-color: rgba(255, 255, 255, 0.72);
-    --tt-button-active-bg-color: rgba(255, 255, 255, 0.1);
+    --tt-toolbar-bg-color: rgba(10, 10, 12, 0.96);
+    --tt-toolbar-border-color: rgba(255, 255, 255, 0.12);
+    --tt-scrollbar-color: rgba(255, 255, 255, 0.18);
+    --tt-button-default-bg-color: rgba(255, 255, 255, 0.04);
+    --tt-button-default-text-color: rgba(255, 255, 255, 0.86);
+    --tt-button-default-icon-color: rgba(255, 255, 255, 0.84);
+    --tt-button-default-icon-sub-color: rgba(255, 255, 255, 0.58);
+    --tt-button-default-dropdown-arrows-color: rgba(255, 255, 255, 0.58);
+    --tt-button-hover-bg-color: rgba(255, 255, 255, 0.1);
+    --tt-button-hover-text-color: rgba(255, 255, 255, 1);
+    --tt-button-hover-icon-color: rgba(255, 255, 255, 1);
+    --tt-button-hover-icon-sub-color: rgba(255, 255, 255, 0.85);
+    --tt-button-hover-dropdown-arrows-color: rgba(255, 255, 255, 0.85);
+    --tt-button-active-bg-color: rgba(255, 255, 255, 0.14);
     --tt-button-active-text-color: #ffffff;
     --tt-button-active-icon-color: #ffffff;
-    --tt-button-active-icon-sub-color: rgba(255, 255, 255, 0.82);
-    --tt-button-active-dropdown-arrows-color: rgba(255, 255, 255, 0.82);
-    --tt-button-active-hover-bg-color: rgba(255, 255, 255, 0.12);
-    --tt-button-disabled-bg-color: transparent;
-    --tt-button-disabled-text-color: rgba(255, 255, 255, 0.25);
-    --tt-button-disabled-icon-color: rgba(255, 255, 255, 0.25);
+    --tt-button-active-icon-sub-color: rgba(255, 255, 255, 0.9);
+    --tt-button-active-dropdown-arrows-color: rgba(255, 255, 255, 0.9);
+    --tt-button-active-hover-bg-color: rgba(255, 255, 255, 0.18);
+    --tt-button-disabled-bg-color: rgba(255, 255, 255, 0.03);
+    --tt-button-disabled-text-color: rgba(255, 255, 255, 0.28);
+    --tt-button-disabled-icon-color: rgba(255, 255, 255, 0.28);
   }
 
   .qr-editor-shell {
@@ -45,6 +45,16 @@
     min-height: 56px;
     padding: 0.6rem 0.75rem;
     backdrop-filter: blur(16px);
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .qr-editor-skin .tiptap-toolbar .tiptap-toolbar-group {
+    gap: 0.25rem;
+  }
+
+  .qr-editor-skin .tiptap-toolbar .tiptap-button {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
   }
 
   .qr-editor-skin .qr-editor-canvas {

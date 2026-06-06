@@ -56,7 +56,7 @@ export function canToggle(
     return false
 
   if (!turnInto) {
-    return editor.can().toggleNode("codeBlock", "paragraph")
+    return editor.can().chain().focus().toggleNode("codeBlock", "paragraph").run()
   }
 
   // Ensure selection is in nodes we're allowed to convert
@@ -76,8 +76,8 @@ export function canToggle(
   // Either we can toggle code block directly on the selection,
   // or we can clear formatting/nodes to arrive at a code block.
   return (
-    editor.can().toggleNode("codeBlock", "paragraph") ||
-    editor.can().clearNodes()
+    editor.can().chain().focus().toggleNode("codeBlock", "paragraph").run() ||
+    editor.can().chain().focus().clearNodes().run()
   )
 }
 

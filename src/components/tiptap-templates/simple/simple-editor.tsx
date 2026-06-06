@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import {
   EditorContent,
   EditorContext,
+  type Editor,
   type JSONContent,
   useEditor,
 } from "@tiptap/react"
@@ -200,6 +201,7 @@ type SimpleEditorProps = {
   wrapperClassName?: string
   contentClassName?: string
   editorClassName?: string
+  onChange?: (payload: { html: string; json: JSONContent; editor: Editor }) => void
 }
 
 export function SimpleEditor({
@@ -208,6 +210,7 @@ export function SimpleEditor({
   wrapperClassName,
   contentClassName,
   editorClassName,
+  onChange,
 }: SimpleEditorProps = {}) {
   const isMobile = useIsBreakpoint()
   const { height } = useWindowSize()
@@ -278,6 +281,25 @@ export function SimpleEditor({
 
     return () => resizeObserver.disconnect()
   }, [])
+
+  useEffect(() => {
+    if (!editor || !onChange) return
+
+    const emitChange = () => {
+      onChange({
+        html: editor.getHTML(),
+        json: editor.getJSON(),
+        editor,
+      })
+    }
+
+    emitChange()
+    editor.on("update", emitChange)
+
+    return () => {
+      editor.off("update", emitChange)
+    }
+  }, [editor, onChange])
 
   const activeMobileView = isMobile ? mobileView : "main"
 

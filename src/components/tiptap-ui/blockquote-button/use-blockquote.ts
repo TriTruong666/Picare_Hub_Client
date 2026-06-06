@@ -56,7 +56,7 @@ export function canToggleBlockquote(
     return false
 
   if (!turnInto) {
-    return editor.can().toggleWrap("blockquote")
+    return editor.can().chain().focus().toggleWrap("blockquote").run()
   }
 
   // Ensure selection is in nodes we're allowed to convert
@@ -75,7 +75,10 @@ export function canToggleBlockquote(
 
   // Either we can wrap in blockquote directly on the selection,
   // or we can clear formatting/nodes to arrive at a blockquote.
-  return editor.can().toggleWrap("blockquote") || editor.can().clearNodes()
+  return (
+    editor.can().chain().focus().toggleWrap("blockquote").run() ||
+    editor.can().chain().focus().clearNodes().run()
+  )
 }
 
 /**

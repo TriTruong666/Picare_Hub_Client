@@ -76,7 +76,7 @@ export function canToggleMark(editor: Editor | null, type: Mark): boolean {
   if (!isMarkInSchema(type, editor) || isNodeTypeSelected(editor, ["image"]))
     return false
 
-  return editor.can().toggleMark(type)
+  return editor.can().chain().focus().toggleMark(type).run()
 }
 
 /**

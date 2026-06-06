@@ -80,11 +80,11 @@ export function canToggleList(
   if (!turnInto) {
     switch (type) {
       case "bulletList":
-        return editor.can().toggleBulletList()
+        return editor.can().chain().focus().toggleBulletList().run()
       case "orderedList":
-        return editor.can().toggleOrderedList()
+        return editor.can().chain().focus().toggleOrderedList().run()
       case "taskList":
-        return editor.can().toggleList("taskList", "taskItem")
+        return editor.can().chain().focus().toggleList("taskList", "taskItem").run()
       default:
         return false
     }
@@ -108,13 +108,19 @@ export function canToggleList(
   // or we can clear formatting/nodes to arrive at a list.
   switch (type) {
     case "bulletList":
-      return editor.can().toggleBulletList() || editor.can().clearNodes()
+      return (
+        editor.can().chain().focus().toggleBulletList().run() ||
+        editor.can().chain().focus().clearNodes().run()
+      )
     case "orderedList":
-      return editor.can().toggleOrderedList() || editor.can().clearNodes()
+      return (
+        editor.can().chain().focus().toggleOrderedList().run() ||
+        editor.can().chain().focus().clearNodes().run()
+      )
     case "taskList":
       return (
-        editor.can().toggleList("taskList", "taskItem") ||
-        editor.can().clearNodes()
+        editor.can().chain().focus().toggleList("taskList", "taskItem").run() ||
+        editor.can().chain().focus().clearNodes().run()
       )
     default:
       return false

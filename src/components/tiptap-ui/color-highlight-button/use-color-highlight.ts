@@ -172,12 +172,12 @@ export function canColorHighlight(
     )
       return false
 
-    return editor.can().setMark("highlight")
+    return editor.can().chain().focus().setMark("highlight").run()
   } else {
     if (!isExtensionAvailable(editor, ["nodeBackground"])) return false
 
     try {
-      return editor.can().toggleNodeBackgroundColor("test")
+      return editor.can().chain().focus().toggleNodeBackgroundColor("test").run()
     } catch {
       return false
     }

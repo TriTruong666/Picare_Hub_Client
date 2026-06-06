@@ -1,101 +1,53 @@
-import type { ReactNode } from "react";
 import type { JSONContent } from "@tiptap/react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { FiArrowLeft } from "react-icons/fi";
 import { Link } from "react-router-dom";
 
+import { Spinner } from "@/components/custom_ui/Spinner";
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
 import { PATHS } from "@/config/paths";
+import { useCreateProductQR } from "@/hooks/data/useProductQRHooks";
+import { toast } from "@/hooks/useToast";
 
 import "./qr-product-generator-page.scss";
 
-function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="mb-5 text-sm font-medium text-white">{children}</h2>;
-}
-
 const editorContent: JSONContent = {
   type: "doc",
-  content: [
-    {
-      type: "heading",
-      attrs: { level: 1 },
-      content: [{ type: "text", text: "Serum phục hồi Picare Bio Reset" }],
-    },
-    {
-      type: "paragraph",
-      content: [
-        {
-          type: "text",
-          text: "Landing QR này dùng để giới thiệu nhanh sản phẩm, truyền tải điểm nổi bật và kéo người dùng sang bước đặt hàng hoặc liên hệ tư vấn.",
-        },
-      ],
-    },
-    {
-      type: "heading",
-      attrs: { level: 3 },
-      content: [{ type: "text", text: "Điểm nhấn chính" }],
-    },
-    {
-      type: "bulletList",
-      content: [
-        {
-          type: "listItem",
-          content: [
-            {
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: "Làm dịu da sau treatment, giảm khô rát và bong tróc.",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: "listItem",
-          content: [
-            {
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: "Công thức dễ tư vấn cho nhà thuốc, clinic và đội sale.",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: "listItem",
-          content: [
-            {
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: "Có thể gắn video hướng dẫn, bảng thành phần và CTA mua hàng.",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      type: "paragraph",
-      content: [
-        { type: "text", text: "CTA đề xuất: " },
-        { type: "text", marks: [{ type: "bold" }], text: "Quét để xem chi tiết" },
-        { type: "text", text: " hoặc " },
-        { type: "text", marks: [{ type: "bold" }], text: "Liên hệ tư vấn ngay" },
-        { type: "text", text: "." },
-      ],
-    },
-  ],
+  content: [],
 };
 
+function isEditorContentEmpty(content: string) {
+  const plainText = content
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .trim();
+
+  return !plainText;
+}
+
 export default function QRProductGeneratorPage() {
+  const createProductQRMutation = useCreateProductQR();
+  const [rawContent, setRawContent] = useState("");
+
+  const handleCreate = async () => {
+    const normalizedContent = rawContent.trim();
+
+    if (!normalizedContent || isEditorContentEmpty(normalizedContent)) {
+      toast.warning("Thiếu nội dung", "Vui lòng nhập nội dung trước khi tạo.");
+      return;
+    }
+
+    const response = await createProductQRMutation.mutateAsync({
+      rawContent: normalizedContent,
+      note: null,
+    });
+
+    if (!response.success) {
+      return;
+    }
+  };
+
   return (
     <main className="qr-generator-page dashboard-theme min-h-screen bg-[#050505] text-white">
       <div className="mx-auto w-full max-w-5xl px-5 py-6 transition-all duration-300 md:px-8 lg:px-10">
@@ -122,8 +74,6 @@ export default function QRProductGeneratorPage() {
             className="flex flex-col"
           >
             <section className="border-b border-white/10 py-6">
-              <SectionTitle>Nội dung landing</SectionTitle>
-
               <div className="qr-editor-skin overflow-hidden border border-white/10 bg-[#080809]">
                 <SimpleEditor
                   content={editorContent}
@@ -131,9 +81,27 @@ export default function QRProductGeneratorPage() {
                   wrapperClassName="qr-editor-shell"
                   contentClassName="qr-editor-content"
                   editorClassName="qr-editor-canvas"
+                  onChange={({ html }) => setRawContent(html)}
                 />
               </div>
             </section>
+
+            <div className="flex flex-col items-center gap-3 py-6">
+              <button
+                type="button"
+                onClick={handleCreate}
+                disabled={createProductQRMutation.isPending}
+                className="group relative inline-flex h-12 min-w-56 items-center justify-center overflow-hidden rounded-full bg-white px-6 text-sm font-medium text-black shadow-[0_16px_45px_rgba(0,0,0,0.38)] transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white/95 hover:shadow-[0_22px_60px_rgba(0,0,0,0.46)] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:translate-y-0 disabled:bg-white/45 disabled:text-black/50 disabled:shadow-none"
+              >
+                <span className="absolute inset-x-6 top-0 h-px bg-linear-to-r from-transparent via-black/25 to-transparent opacity-50" />
+                <span className="flex items-center justify-center gap-2.5">
+                  {createProductQRMutation.isPending ? (
+                    <Spinner size="sm" color="black" />
+                  ) : null}
+                  Tạo
+                </span>
+              </button>
+            </div>
           </motion.div>
         </div>
       </div>
