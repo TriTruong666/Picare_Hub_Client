@@ -1,4 +1,4 @@
-import type { ChangeEvent, DragEvent, RefObject, ReactNode } from "react";
+﻿import type { ChangeEvent, DragEvent, ReactNode } from "react";
 import type { JSONContent } from "@tiptap/react";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -49,25 +49,29 @@ function FieldLabel({ children }: { children: ReactNode }) {
   );
 }
 
-function ProductImageUploadField({
+type ProductImageItem = {
+  id: string;
+  previewUrl: string;
+  file?: File;
+  fileName?: string | null;
+};
+
+function ProductImagesUploadField({
   id,
-  value,
-  fileName,
-  onSelectFile,
-  onClear,
+  images,
+  onAddFiles,
+  onRemoveImage,
   disabled,
 }: {
   id: string;
-  value: string;
-  fileName?: string | null;
-  onSelectFile: (file: File) => void;
-  onClear: () => void;
+  images: ProductImageItem[];
+  onAddFiles: (files: File[]) => void;
+  onRemoveImage: (imageId: string) => void;
   disabled?: boolean;
 }) {
-  const [errorSrc, setErrorSrc] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const hasImage = !!value && errorSrc !== value;
+  const hasImages = images.length > 0;
 
   const openPicker = () => {
     if (disabled) return;
@@ -75,10 +79,10 @@ function ProductImageUploadField({
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files ?? []);
     event.target.value = "";
-    if (!file) return;
-    onSelectFile(file);
+    if (!files.length) return;
+    onAddFiles(files);
   };
 
   const handleDragEnter = (event: DragEvent<HTMLDivElement>) => {
@@ -105,9 +109,12 @@ function ProductImageUploadField({
     if (disabled) return;
     setIsDragging(false);
 
-    const file = event.dataTransfer.files?.[0];
-    if (!file || !file.type.startsWith("image/")) return;
-    onSelectFile(file);
+    const files = Array.from(event.dataTransfer.files ?? []).filter((file) =>
+      file.type.startsWith("image/"),
+    );
+
+    if (!files.length) return;
+    onAddFiles(files);
   };
 
   return (
@@ -117,52 +124,24 @@ function ProductImageUploadField({
         id={id}
         type="file"
         accept="image/*"
+        multiple
         onChange={handleFileChange}
         className="hidden"
         disabled={disabled}
       />
 
-      <div
-        onDragEnter={handleDragEnter}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`group relative min-h-[320px] overflow-hidden border transition-all duration-200 ${
-          hasImage
-            ? "border-black/12 bg-white dark:border-white/10 dark:bg-white/[0.02]"
-            : "border-dashed border-black/12 bg-white hover:border-black/24 hover:bg-white dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20 dark:hover:bg-white/[0.04]"
-        } ${isDragging ? "border-black/30 bg-white dark:border-white/30 dark:bg-white/[0.05]" : ""}`}
-      >
-        {hasImage ? (
-          <>
-            <img
-              src={value}
-              alt="Hình ảnh sản phẩm"
-              className="h-full w-full object-contain p-5"
-              onError={() => setErrorSrc(value)}
-            />
-            <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/72 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-              <button
-                type="button"
-                onClick={openPicker}
-                disabled={disabled}
-                className="flex items-center gap-1.5 border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <FiUpload className="text-xs" />
-                Đổi ảnh
-              </button>
-              <button
-                type="button"
-                onClick={onClear}
-                disabled={disabled}
-                className="flex items-center gap-1.5 border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <FiX className="text-xs" />
-                Bỏ thay đổi
-              </button>
-            </div>
-          </>
-        ) : (
+      {!hasImages ? (
+        <div
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`relative min-h-[320px] overflow-hidden border border-dashed transition-all duration-200 ${
+            isDragging
+              ? "border-black/30 bg-white dark:border-white/30 dark:bg-white/[0.05]"
+              : "border-black/12 bg-white hover:border-black/24 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20"
+          }`}
+        >
           <button
             type="button"
             onClick={openPicker}
@@ -173,35 +152,100 @@ function ProductImageUploadField({
               <FiImage className="text-3xl" />
             </span>
             <span className="text-sm font-medium text-black/88 dark:text-white/82">
-              Kéo thả ảnh sản phẩm vào đây
+              Tải ảnh sản phẩm đầu tiên
             </span>
             <span className="mt-2 max-w-sm text-xs leading-6 text-black/56 dark:text-white/38">
-              Hoặc bấm để chọn file từ máy. Ảnh sẽ được gửi cùng nội dung QR
-              dưới dạng multipart khi lưu.
+              Có thể kéo thả hoặc bấm để chọn. Khi đã có ảnh, khu vực sẽ đổi sang dạng grid để thêm tiếp.
             </span>
             <span className="mt-6 inline-flex items-center gap-2 border border-black/12 bg-black/[0.06] px-4 py-2 text-xs font-medium text-black/78 transition hover:bg-black/[0.1] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/72 dark:hover:bg-white/[0.08]">
               <FiUpload className="text-xs" />
               Chọn ảnh sản phẩm
             </span>
           </button>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-black/84 dark:text-white/84">
+                Bộ ảnh sản phẩm
+              </p>
+              <p className="mt-1 text-[11px] text-black/48 dark:text-white/35">
+                {images.length} ảnh sản phẩm
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={openPicker}
+              disabled={disabled}
+              className="inline-flex h-9 shrink-0 items-center gap-2 border border-black/10 bg-black/[0.04] px-3 text-xs font-medium text-black/70 transition hover:bg-black/[0.08] hover:text-[#111111] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/72 dark:hover:bg-white/[0.08] dark:hover:text-white"
+            >
+              <FiUpload className="text-xs" />
+              Thêm ảnh
+            </button>
+          </div>
 
-      <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-black/48 dark:text-white/35">
-        <span className="truncate">
-          {fileName
-            ? `Đã chọn: ${fileName}`
-            : "Hỗ trợ kéo thả hoặc chọn trực tiếp một ảnh sản phẩm"}
-        </span>
-        <button
-          type="button"
-          onClick={openPicker}
-          disabled={disabled}
-          className="shrink-0 text-black/62 transition hover:text-[#111111] disabled:cursor-not-allowed disabled:opacity-40 dark:text-white/55 dark:hover:text-white"
-        >
-          {hasImage ? "Chọn ảnh khác" : "Chọn ảnh"}
-        </button>
-      </div>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
+            {images.map((image, index) => (
+              <div
+                key={image.id}
+                className="group relative overflow-hidden border border-black/12 bg-white dark:border-white/10 dark:bg-white/[0.02]"
+              >
+                <div className="aspect-square w-full bg-black/[0.02] dark:bg-white/[0.02]">
+                  <img
+                    src={image.previewUrl}
+                    alt={`Product image ${index + 1}`}
+                    className="h-full w-full object-contain p-4"
+                  />
+                </div>
+
+                <div className="absolute inset-0 flex items-center justify-center bg-black/70 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={() => onRemoveImage(image.id)}
+                    disabled={disabled}
+                    className="flex items-center gap-1.5 border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <FiX className="text-xs" />
+                    Xóa ảnh
+                  </button>
+                </div>
+
+                <div className="border-t border-black/8 px-3 py-2 text-[11px] text-black/58 dark:border-white/8 dark:text-white/38">
+                  <span className="block truncate">
+                    {image.fileName || `Ảnh ${index + 1}`}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            <div
+              onDragEnter={handleDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`flex aspect-square overflow-hidden border border-dashed transition-all duration-200 ${
+                isDragging
+                  ? "border-black/30 bg-white dark:border-white/30 dark:bg-white/[0.05]"
+                  : "border-black/12 bg-white hover:border-black/24 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={openPicker}
+                disabled={disabled}
+                className="flex h-full w-full flex-col items-center justify-center px-5 text-center text-black/48 transition-colors hover:text-black/68 disabled:cursor-not-allowed disabled:opacity-40 dark:text-white/35 dark:hover:text-white/55"
+              >
+                <FiUpload className="mb-3 text-xl" />
+                <span className="text-xs font-medium">Thêm ảnh</span>
+                <span className="mt-1 text-[11px] text-black/42 dark:text-white/30">
+                  Kéo thả hoặc chọn
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -221,6 +265,16 @@ function getInitialEditorContent(product?: ProductQR) {
   }
 
   return product.rawContent;
+}
+
+function getInitialProductImages(product?: ProductQR): ProductImageItem[] {
+  return (product?.imageUrl ?? [])
+    .filter(Boolean)
+    .map((previewUrl, index) => ({
+      id: `existing-${product?.productId ?? "new"}-${index}`,
+      previewUrl,
+      fileName: `image-${index + 1}`,
+    }));
 }
 
 function CreatedProductQRModal({
@@ -390,16 +444,15 @@ export function QRProductFormPage({
   const createProductQRMutation = useCreateProductQR();
   const updateProductQRMutation = useUpdateProductQR();
   const deleteProductQRMutation = useDeleteProductQR();
-
-  const imageObjectUrlRef = useRef<string | null>(null);
-
   const [rawContent, setRawContent] = useState(
     initialProduct?.rawContent ?? "",
   );
-  const [productImage, setProductImage] = useState(
-    initialProduct?.imageUrl ?? "",
+  const [productImages, setProductImages] = useState<ProductImageItem[]>(
+    getInitialProductImages(initialProduct),
   );
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const productImagesRef = useRef<ProductImageItem[]>(
+    getInitialProductImages(initialProduct),
+  );
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<ProductQR | null>(null);
   const [successModalHelperText, setSuccessModalHelperText] = useState("");
@@ -411,38 +464,53 @@ export function QRProductFormPage({
     : createProductQRMutation.isPending;
   const isDeleting = deleteProductQRMutation.isPending;
 
-  const revokeObjectUrl = (ref: RefObject<string | null>) => {
-    if (!ref.current) return;
-    URL.revokeObjectURL(ref.current);
-    ref.current = null;
+  const revokeImagePreview = (image: ProductImageItem) => {
+    if (!image.file) return;
+    URL.revokeObjectURL(image.previewUrl);
   };
 
   useEffect(() => {
-    if (!initialProduct) return;
+    setRawContent(initialProduct?.rawContent ?? "");
 
-    revokeObjectUrl(imageObjectUrlRef);
-    setRawContent(initialProduct.rawContent ?? "");
-    setProductImage(initialProduct.imageUrl ?? "");
-    setImageFile(null);
+    setProductImages((currentImages) => {
+      currentImages.forEach(revokeImagePreview);
+      return getInitialProductImages(initialProduct);
+    });
   }, [initialProduct]);
 
   useEffect(() => {
+    productImagesRef.current = productImages;
+  }, [productImages]);
+
+  useEffect(() => {
     return () => {
-      revokeObjectUrl(imageObjectUrlRef);
+      productImagesRef.current.forEach(revokeImagePreview);
     };
   }, []);
 
-  const handleSelectImage = (file: File) => {
-    revokeObjectUrl(imageObjectUrlRef);
-    imageObjectUrlRef.current = URL.createObjectURL(file);
-    setImageFile(file);
-    setProductImage(imageObjectUrlRef.current);
+  const handleAddImages = (files: File[]) => {
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    if (!imageFiles.length) return;
+
+    const nextImages = imageFiles.map((file, index) => ({
+      id: `${file.name}-${file.lastModified}-${index}`,
+      previewUrl: URL.createObjectURL(file),
+      file,
+      fileName: file.name,
+    }));
+
+    setProductImages((currentImages) => [...currentImages, ...nextImages]);
   };
 
-  const handleClearImage = () => {
-    revokeObjectUrl(imageObjectUrlRef);
-    setImageFile(null);
-    setProductImage(initialProduct?.imageUrl ?? "");
+  const handleRemoveImage = (imageId: string) => {
+    setProductImages((currentImages) => {
+      const imageToRemove = currentImages.find((image) => image.id === imageId);
+      if (imageToRemove) {
+        revokeImagePreview(imageToRemove);
+      }
+
+      return currentImages.filter((image) => image.id !== imageId);
+    });
   };
 
   const handleDelete = async () => {
@@ -473,7 +541,7 @@ export function QRProductFormPage({
         productId: initialProduct.productId,
         data: {
           rawContent: normalizedContent,
-          image: imageFile,
+          images: productImages.flatMap((image) => (image.file ? [image.file] : [])),
           note: initialProduct.note ?? null,
         },
       });
@@ -485,7 +553,9 @@ export function QRProductFormPage({
         setCreatedProduct({
           ...initialProduct,
           rawContent: normalizedContent,
-          imageUrl: imageFile ? productImage : initialProduct.imageUrl,
+          imageUrl:
+            response.data?.imageUrl ||
+            productImages.map((image) => image.previewUrl),
           qrImage: response.data?.qrImage || initialProduct.qrImage,
           linkUrl: response.data?.linkUrl || initialProduct.linkUrl,
           jsonContent: response.data?.jsonContent || initialProduct.jsonContent,
@@ -498,7 +568,7 @@ export function QRProductFormPage({
 
     const response = await createProductQRMutation.mutateAsync({
       rawContent: normalizedContent,
-      image: imageFile,
+      images: productImages.flatMap((image) => (image.file ? [image.file] : [])),
       note: null,
     });
 
@@ -567,12 +637,11 @@ export function QRProductFormPage({
           >
             <section className="border-b border-black/10 py-6 dark:border-white/10">
               <div className="mx-auto w-full max-w-[720px]">
-                <ProductImageUploadField
+                <ProductImagesUploadField
                   id="product-qr-image"
-                  value={productImage}
-                  fileName={imageFile?.name}
-                  onSelectFile={handleSelectImage}
-                  onClear={handleClearImage}
+                  images={productImages}
+                  onAddFiles={handleAddImages}
+                  onRemoveImage={handleRemoveImage}
                   disabled={isSubmitting || isDeleting}
                 />
               </div>
@@ -689,3 +758,4 @@ export function QRProductFormPage({
 export default function QRProductGeneratorPage() {
   return <QRProductFormPage />;
 }
+

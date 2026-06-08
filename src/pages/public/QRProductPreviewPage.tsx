@@ -1,10 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FiArrowLeft, FiGlobe, FiMoon, FiSun } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiGlobe,
+  FiMoon,
+  FiShoppingCart,
+  FiSun,
+} from "react-icons/fi";
 import { Link, useParams } from "react-router-dom";
 
 import picareLogoDark from "@/assets/images/picare_logo_dark.png";
 import picareLogoLight from "@/assets/images/picare_logo_light.png";
+import logo from "@/assets/images/logo.png";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { PATHS } from "@/config/paths";
 import { useProductQRDetail } from "@/hooks/data/useProductQRHooks";
@@ -125,6 +132,129 @@ function ProductFactsSection({
   );
 }
 
+function ProductImageCarousel({
+  images,
+  productName,
+}: {
+  images: string[];
+  productName: string;
+}) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const total = images.length;
+
+  useEffect(() => {
+    if (!total) {
+      setActiveIndex(0);
+      return;
+    }
+
+    if (activeIndex > total - 1) {
+      setActiveIndex(0);
+    }
+  }, [activeIndex, total]);
+
+  if (total === 0) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center px-8 text-center">
+        <p className="text-base font-medium text-black/45 dark:text-white/45">
+          Chưa có hình ảnh sản phẩm
+        </p>
+        <p className="mt-3 max-w-[24rem] text-sm leading-6 text-black/35 dark:text-white/32">
+          Nội dung chi tiết vẫn được hiển thị đầy đủ bên dưới để khách hàng tra
+          cứu.
+        </p>
+      </div>
+    );
+  }
+
+  const goToImage = (nextIndex: number) => {
+    if (nextIndex === activeIndex) return;
+    setDirection(nextIndex > activeIndex ? 1 : -1);
+    setActiveIndex(nextIndex);
+  };
+
+  const goToPrevious = () => {
+    setDirection(-1);
+    setActiveIndex((current) => (current - 1 + total) % total);
+  };
+
+  const goToNext = () => {
+    setDirection(1);
+    setActiveIndex((current) => (current + 1) % total);
+  };
+
+  return (
+    <div className="flex h-full flex-col gap-4 sm:gap-5">
+      <div className="relative aspect-[4/5] w-full overflow-hidden sm:aspect-[4/4.6] lg:aspect-[4/4.8]">
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
+          <motion.img
+            key={images[activeIndex]}
+            custom={direction}
+            drag={total > 1 ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.06}
+            onDragEnd={(_, info) => {
+              if (info.offset.x <= -70 || info.velocity.x <= -500) {
+                goToNext();
+                return;
+              }
+
+              if (info.offset.x >= 70 || info.velocity.x >= 500) {
+                goToPrevious();
+              }
+            }}
+            initial={{ opacity: 0, x: direction > 0 ? 56 : -56, scale: 0.992 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: direction > 0 ? -56 : 56, scale: 0.992 }}
+            transition={{
+              x: { type: "spring", stiffness: 280, damping: 30 },
+              opacity: { duration: 0.2 },
+              scale: { duration: 0.22 },
+            }}
+            src={images[activeIndex]}
+            alt={`${productName} ${activeIndex + 1}`}
+            className="h-full w-full cursor-grab object-cover active:cursor-grabbing"
+          />
+        </AnimatePresence>
+      </div>
+
+      {total > 1 ? (
+        <div className="w-full touch-pan-x [scrollbar-width:none] overflow-x-auto overflow-y-visible py-2 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-max items-center gap-3 px-1">
+            {images.map((image, index) => (
+              <button
+                key={`${image}-${index}`}
+                type="button"
+                onClick={() => goToImage(index)}
+                className={`group relative h-16 w-16 shrink-0 overflow-hidden rounded-[20px] transition duration-200 sm:h-20 sm:w-20 ${
+                  index === activeIndex
+                    ? "ring-2 ring-[#111111] ring-offset-2 ring-offset-[#f6f1e8] dark:ring-white dark:ring-offset-[#050505]"
+                    : "opacity-70 hover:opacity-100"
+                }`}
+                aria-label={`Xem ảnh ${index + 1}`}
+              >
+                <img
+                  src={image}
+                  alt={`${productName} thumbnail ${index + 1}`}
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]"
+                />
+                <span
+                  className={`absolute inset-0 transition ${
+                    index === activeIndex
+                      ? "bg-transparent"
+                      : "bg-black/10 dark:bg-black/22"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function ProductPreviewThemeToggle() {
   const [dark, setDark] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -240,7 +370,7 @@ function ProductPreviewThemeToggle() {
 function ProductPreviewContent({ product }: { product: ProductQR }) {
   const info = product.jsonContent;
   const productName = normalizeValue(info.productName) || "Sản phẩm";
-  const heroImage = product.imageUrl || null;
+  const productImages = (product.imageUrl ?? []).filter(Boolean);
   const website = normalizeValue(info.website);
   const manufacturer = normalizeValue(info.manufacturer);
   const marketResponsible = normalizeValue(info.marketResponsible);
@@ -253,8 +383,10 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
   const origin = normalizeValue(info.origin);
   const storage = normalizeValue(info.storage);
   const extraContent = normalizeValue(info.unmappedContent);
+  const sku = normalizeValue(info.sku);
 
   const highlights = [
+    // { label: "SKU", value: sku },
     { label: "Dung tích", value: volume },
     { label: "Hạn dùng", value: shelfLife },
     { label: "Số lô", value: batchNumber },
@@ -284,7 +416,12 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
           </Link>
 
           <div className="pointer-events-none absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2">
-            <span className="font-bricolage text-lg font-medium text-[#111111] dark:text-white sm:text-xl">
+            <img
+              src={logo}
+              alt=""
+              className="h-7 w-7 object-contain sm:h-8 sm:w-8"
+            />
+            <span className="font-bricolage text-base font-medium text-[#111111] sm:text-lg dark:text-white">
               Picare Hub
             </span>
           </div>
@@ -298,8 +435,8 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
                 rel="noreferrer"
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 text-xs font-medium text-black/70 transition hover:border-black/20 hover:text-black dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:text-white"
               >
-                <FiGlobe />
-                Website
+                <FiShoppingCart />
+                Mua hàng
               </a>
             ) : null}
           </div>
@@ -308,26 +445,11 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
         <section className="py-6 sm:py-8 lg:py-12">
           <div className="grid gap-6 lg:grid-cols-[minmax(360px,0.82fr)_minmax(0,1.18fr)] lg:items-start lg:gap-14 xl:grid-cols-[minmax(420px,0.78fr)_minmax(0,1.22fr)] xl:gap-[4.5rem]">
             <div className="order-1">
-              <div className="overflow-hidden border border-black/10 bg-[#fbf8f2] dark:border-white/10 dark:bg-[#0d0d0d]">
-                <div className="aspect-[4/4.8] w-full">
-                  {heroImage ? (
-                    <img
-                      src={heroImage}
-                      alt={productName}
-                      className="h-full w-full object-contain p-6 sm:p-10"
-                    />
-                  ) : (
-                    <div className="flex h-full flex-col items-center justify-center px-8 text-center">
-                      <p className="text-base font-medium text-black/45 dark:text-white/45">
-                        Chưa có hình ảnh sản phẩm
-                      </p>
-                      <p className="mt-3 max-w-[24rem] text-sm leading-6 text-black/35 dark:text-white/32">
-                        Nội dung chi tiết vẫn được hiển thị đầy đủ bên dưới để
-                        khách hàng tra cứu.
-                      </p>
-                    </div>
-                  )}
-                </div>
+              <div className="aspect-[4/4.9] w-full sm:aspect-[4/4.55] lg:aspect-auto lg:min-h-[760px] xl:min-h-[820px]">
+                <ProductImageCarousel
+                  images={productImages}
+                  productName={productName}
+                />
               </div>
             </div>
 

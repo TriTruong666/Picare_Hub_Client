@@ -2,13 +2,13 @@ import type { StringNullableChain } from "lodash";
 
 export type CreateProductQRPayload = {
   rawContent: string;
-  image?: File | null;
+  images?: File[] | null;
   note?: string | null;
 };
 
 export type UpdateProductQRPayload = {
   rawContent: string;
-  image?: File | null;
+  images?: File[] | null;
   note?: string | null;
 };
 
@@ -21,7 +21,7 @@ export type ProductQR = {
   updatedAt: string;
   linkUrl: string;
   qrImage?: string | null;
-  imageUrl?: string | null;
+  imageUrl?: string[] | null;
 };
 
 export type ProductQRJson = {
@@ -44,4 +44,5 @@ export type ProductQRJson = {
   marketResponsible: string;
   usageInstructions: string;
   notificationNumber: string;
+  sku: string;
 };

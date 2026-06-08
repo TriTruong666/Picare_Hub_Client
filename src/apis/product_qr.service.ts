@@ -12,8 +12,10 @@ function buildProductQRFormData(
   const formData = new FormData();
   formData.append("rawContent", payload.rawContent);
 
-  if (payload.image) {
-    formData.append("image", payload.image);
+  if (payload.images?.length) {
+    payload.images.forEach((image) => {
+      formData.append("images", image);
+    });
   }
 
   if (payload.note !== undefined && payload.note !== null) {
