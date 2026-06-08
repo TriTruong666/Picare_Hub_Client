@@ -267,12 +267,14 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
     { label: "Xuất xứ", value: origin },
     { label: "Ngày sản xuất", value: manufacturingDate },
     { label: "Hạn sử dụng", value: expirationDate },
-  ].filter((item): item is { label: string; value: string } => Boolean(item.value));
+  ].filter((item): item is { label: string; value: string } =>
+    Boolean(item.value),
+  );
 
   return (
     <main className="min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
       <div className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-6 lg:px-10 xl:px-12">
-        <header className="flex items-center justify-between border-b border-black/10 py-4 sm:py-5 dark:border-white/10">
+        <header className="relative flex items-center justify-between border-b border-black/10 py-4 sm:py-5 dark:border-white/10">
           <Link
             to={PATHS.HOME}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white/70 text-black/55 transition hover:border-black/20 hover:text-black dark:border-white/10 dark:bg-white/5 dark:text-white/55 dark:hover:text-white"
@@ -280,6 +282,19 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
           >
             <FiArrowLeft />
           </Link>
+
+          <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <img
+              src={picareLogoLight}
+              alt="Picare"
+              className="h-auto w-[8.5rem] dark:hidden sm:w-[9.5rem]"
+            />
+            <img
+              src={picareLogoDark}
+              alt="Picare"
+              className="hidden h-auto w-[8.5rem] dark:block sm:w-[9.5rem]"
+            />
+          </div>
 
           <div className="flex items-center gap-2">
             <ProductPreviewThemeToggle />
@@ -394,24 +409,6 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
           title="Thông tin thêm"
           content={extraContent}
         />
-        <footer className="border-t border-black/10 py-10 dark:border-white/10 sm:py-12">
-          <div className="mx-auto flex max-w-[28rem] flex-col items-center justify-center gap-4 text-center">
-            <img
-              src={picareLogoLight}
-              alt="Picare"
-              className="h-auto w-full max-w-[14rem] dark:hidden"
-            />
-            <img
-              src={picareLogoDark}
-              alt="Picare"
-              className="hidden h-auto w-full max-w-[14rem] dark:block"
-            />
-            <div className="space-y-1 text-sm text-black/52 dark:text-white/52">
-              <p>Copyright © {new Date().getFullYear()} Picare.</p>
-              <p>All rights reserved.</p>
-            </div>
-          </div>
-        </footer>
       </div>
     </main>
   );

@@ -28,9 +28,9 @@ export const STATIC_HUB_CLIENTS: HubClient[] = [
     clientDescription:
       "Tạo QR Code cho sản phẩm của bạn, có thể tùy chỉnh logo, màu sắc và các thông tin khác.",
     clientLogoImage:
-      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1780040494670_upload1780040494670.png",
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1780894621968_upload1780894621967.png",
     clientMockupImage:
-      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1780032435040_upload1780032435039.png",
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1780894621968_upload1780894621967.png",
     clientInternalUrl: PATHS.QR_PRODUCT_GENERATOR,
     clientExternalUrl: PATHS.QR_PRODUCT_GENERATOR,
     clientStatus: "active",

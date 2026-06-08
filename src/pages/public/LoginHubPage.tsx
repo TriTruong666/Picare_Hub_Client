@@ -50,7 +50,10 @@ export default function LoginHubPage() {
       {
         onSuccess: async (res) => {
           if (res.success) {
-            toast.success("Đăng nhập thành công", "Chào mừng quay trở lại Picare Hub!");
+            toast.success(
+              "Đăng nhập thành công",
+              "Chào mừng quay trở lại Picare Hub!",
+            );
             await queryClient.refetchQueries({ queryKey: ["auth", "me"] });
             // Full refresh / redirection to clean up query states
             window.location.href = redirectPath;
@@ -79,15 +82,15 @@ export default function LoginHubPage() {
         initial={{ opacity: 0, y: 20, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-[440px] rounded-2xl border border-white/5 bg-neutral-900/40 p-8 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+        className="relative z-10 w-full max-w-[440px] rounded-2xl border border-white/5 bg-neutral-900/40 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl"
       >
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="mb-8 flex justify-center">
           <Link to="/">
             <img
               src={logo}
               alt="Picare Hub"
-              className="h-10 w-10 object-contain hover:scale-105 transition-transform duration-300"
+              className="h-10 w-10 object-contain transition-transform duration-300 hover:scale-105"
             />
           </Link>
         </div>
@@ -178,7 +181,8 @@ export default function LoginHubPage() {
         </form>
 
         <p className="mt-8 text-center text-[11px] text-white/20">
-          Copyright © 2026 Picare Hub - All rights reserved.
+          Copyright © {new Date().getFullYear()} Picare Hub - All rights
+          reserved.
         </p>
       </motion.div>
 
@@ -224,7 +228,7 @@ export default function LoginHubPage() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowProjects(!showProjects)}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-black shadow-2xl transition-shadow hover:shadow-white/10 cursor-pointer"
+          className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-white text-black shadow-2xl transition-shadow hover:shadow-white/10"
         >
           {showProjects ? <FiX size={22} /> : <FiGrid size={22} />}
         </motion.button>

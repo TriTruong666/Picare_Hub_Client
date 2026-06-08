@@ -357,7 +357,8 @@ export default function LoginPage() {
             transition={{ duration: 1, delay: 1.0 }}
           >
             <p className="text-center text-[11px] text-white/20">
-              Copyright © 2026 Picare Hub - All rights reserved.
+              Copyright © {new Date().getFullYear()} Picare Hub - All rights
+              reserved.
             </p>
           </motion.div>
         </div>

@@ -61,7 +61,7 @@ export default function LandingHeader() {
   const mergedClients = useMemo(() => {
     const seen = new Set<string>();
 
-    return [...STATIC_HUB_CLIENTS, ...(hubClients || [])].filter((client) => {
+    return [...(hubClients || []), ...STATIC_HUB_CLIENTS].filter((client) => {
       if (seen.has(client.clientId)) {
         return false;
       }
