@@ -17,6 +17,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { ProductQRHistoryPanel } from "@/components/product-qr/ProductQRHistoryPanel";
 import { Spinner } from "@/components/custom_ui/Spinner";
+import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
 import { PATHS } from "@/config/paths";
 import {
@@ -42,7 +43,7 @@ function getProductPreviewPath(productId: string) {
 
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <label className="mb-2 block text-[11px] font-medium tracking-[0.18em] text-white/38 uppercase">
+    <label className="mb-2 block text-[11px] font-medium tracking-[0.18em] text-black/38 uppercase dark:text-white/38">
       {children}
     </label>
   );
@@ -128,9 +129,9 @@ function ProductImageUploadField({
         onDrop={handleDrop}
         className={`group relative min-h-[320px] overflow-hidden border transition-all duration-200 ${
           hasImage
-            ? "border-white/10 bg-white/[0.02]"
-            : "border-dashed border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
-        } ${isDragging ? "border-white/30 bg-white/[0.05]" : ""}`}
+            ? "border-black/12 bg-white dark:border-white/10 dark:bg-white/[0.02]"
+            : "border-dashed border-black/12 bg-white hover:border-black/24 hover:bg-white dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20 dark:hover:bg-white/[0.04]"
+        } ${isDragging ? "border-black/30 bg-white dark:border-white/30 dark:bg-white/[0.05]" : ""}`}
       >
         {hasImage ? (
           <>
@@ -166,19 +167,19 @@ function ProductImageUploadField({
             type="button"
             onClick={openPicker}
             disabled={disabled}
-            className="flex h-full w-full flex-col items-center justify-center px-8 py-10 text-center text-white/28 transition-colors hover:text-white/48 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-full w-full flex-col items-center justify-center px-8 py-10 text-center text-black/42 transition-colors hover:text-black/62 disabled:cursor-not-allowed disabled:opacity-40 dark:text-white/28 dark:hover:text-white/48"
           >
-            <span className="mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
+            <span className="mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] dark:border-white/10 dark:bg-white/[0.03]">
               <FiImage className="text-3xl" />
             </span>
-            <span className="text-sm font-medium text-white/82">
+            <span className="text-sm font-medium text-black/88 dark:text-white/82">
               Kéo thả ảnh sản phẩm vào đây
             </span>
-            <span className="mt-2 max-w-sm text-xs leading-6 text-white/38">
+            <span className="mt-2 max-w-sm text-xs leading-6 text-black/56 dark:text-white/38">
               Hoặc bấm để chọn file từ máy. Ảnh sẽ được gửi cùng nội dung QR
               dưới dạng multipart khi lưu.
             </span>
-            <span className="mt-6 inline-flex items-center gap-2 border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-medium text-white/72 transition hover:bg-white/[0.08]">
+            <span className="mt-6 inline-flex items-center gap-2 border border-black/12 bg-black/[0.06] px-4 py-2 text-xs font-medium text-black/78 transition hover:bg-black/[0.1] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/72 dark:hover:bg-white/[0.08]">
               <FiUpload className="text-xs" />
               Chọn ảnh sản phẩm
             </span>
@@ -186,7 +187,7 @@ function ProductImageUploadField({
         )}
       </div>
 
-      <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-white/35">
+      <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-black/48 dark:text-white/35">
         <span className="truncate">
           {fileName
             ? `Đã chọn: ${fileName}`
@@ -196,7 +197,7 @@ function ProductImageUploadField({
           type="button"
           onClick={openPicker}
           disabled={disabled}
-          className="shrink-0 text-white/55 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="shrink-0 text-black/62 transition hover:text-[#111111] disabled:cursor-not-allowed disabled:opacity-40 dark:text-white/55 dark:hover:text-white"
         >
           {hasImage ? "Chọn ảnh khác" : "Chọn ảnh"}
         </button>
@@ -515,12 +516,12 @@ export function QRProductFormPage({
     "";
 
   return (
-    <main className="qr-generator-page dashboard-theme min-h-screen bg-[#050505] text-white">
+    <main className="qr-generator-page dashboard-theme min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
       {!isHistoryOpen ? (
         <button
           type="button"
           onClick={() => setIsHistoryOpen(true)}
-          className="fixed top-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-white text-black shadow-[0_14px_34px_rgba(0,0,0,0.34)] transition duration-250 ease-out hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(0,0,0,0.42)] active:translate-y-0 active:scale-95"
+          className="fixed top-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-[#111111] shadow-[0_14px_34px_rgba(0,0,0,0.14)] transition duration-250 ease-out hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(0,0,0,0.18)] active:translate-y-0 active:scale-95 dark:border-white/10 dark:bg-white dark:text-black dark:shadow-[0_14px_34px_rgba(0,0,0,0.34)] dark:hover:shadow-[0_18px_44px_rgba(0,0,0,0.42)]"
           aria-label="Mở lịch sử QR sản phẩm"
         >
           <FiClock />
@@ -533,23 +534,26 @@ export function QRProductFormPage({
         }`}
       >
         <div className="flex min-w-0 flex-col">
-          <header className="border-b border-white/10 pb-6">
+          <header className="relative border-b border-black/10 pb-6 dark:border-white/10">
             <Link
               to={PATHS.LOGIN}
-              className="group mb-5 inline-flex w-fit items-center gap-2 text-xs font-medium text-white/55 transition duration-200 ease-out hover:text-white"
+              className="group mb-5 inline-flex w-fit items-center gap-2 text-xs font-medium text-black/55 transition duration-200 ease-out hover:text-[#111111] dark:text-white/55 dark:hover:text-white"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.06] transition duration-200 ease-out group-hover:-translate-x-0.5 group-hover:bg-white/[0.1]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.05] transition duration-200 ease-out group-hover:-translate-x-0.5 group-hover:bg-black/[0.08] dark:bg-white/[0.06] dark:group-hover:bg-white/[0.1]">
                 <FiArrowLeft />
               </span>
               <span>Quay về Hub</span>
             </Link>
-            <h1 className="text-center text-2xl font-medium text-white md:text-3xl">
+            <div className="absolute top-0 right-0">
+              <ThemeToggle />
+            </div>
+            <h1 className="text-center text-2xl font-medium text-[#111111] dark:text-white md:text-3xl">
               {isEditMode
                 ? productTitle || "Chỉnh sửa QR sản phẩm"
                 : "Hệ thống soạn nội dung QR sản phẩm - Picare Việt Nam"}
             </h1>
             {isEditMode && initialProduct ? (
-              <p className="mt-3 text-center text-xs text-white/35">
+              <p className="mt-3 text-center text-xs text-black/48 dark:text-white/35">
                 ID: {initialProduct.productId}
               </p>
             ) : null}
@@ -561,7 +565,7 @@ export function QRProductFormPage({
             transition={{ duration: 0.25 }}
             className="flex flex-col"
           >
-            <section className="border-b border-white/10 py-6">
+            <section className="border-b border-black/10 py-6 dark:border-white/10">
               <div className="mx-auto w-full max-w-[720px]">
                 <ProductImageUploadField
                   id="product-qr-image"
@@ -574,7 +578,7 @@ export function QRProductFormPage({
               </div>
 
               {isEditMode && initialProduct ? (
-                <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-white/35">
+                <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-black/48 dark:text-white/35">
                   <span>
                     Tạo lúc:{" "}
                     {new Date(initialProduct.createdAt).toLocaleString("vi-VN")}
@@ -587,8 +591,8 @@ export function QRProductFormPage({
               ) : null}
             </section>
 
-            <section className="border-b border-white/10 py-6">
-              <div className="qr-editor-skin overflow-hidden border border-white/10 bg-[#050505]">
+            <section className="border-b border-black/10 py-6 dark:border-white/10">
+              <div className="qr-editor-skin overflow-hidden border border-black/12 bg-white dark:border-white/10 dark:bg-[#050505]">
                 <SimpleEditor
                   key={initialProduct?.productId ?? "product-qr-create"}
                   content={getInitialEditorContent(initialProduct)}
@@ -631,7 +635,7 @@ export function QRProductFormPage({
                       )
                     }
                     disabled={isDeleting || isSubmitting}
-                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-white/[0.07] px-6 text-sm font-medium text-white/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white/[0.11] hover:text-white active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45"
+                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.08] px-6 text-sm font-medium text-black/84 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.12] hover:text-[#111111] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white"
                   >
                     Preview
                   </button>

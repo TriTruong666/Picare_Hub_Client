@@ -13,6 +13,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { ContractHistoryPanel } from "@/components/contracts/ContractHistoryPanel";
 import { Spinner } from "@/components/custom_ui/Spinner";
+import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 import { PATHS } from "@/config/paths";
 import { toast } from "@/hooks/useToast";
 import {
@@ -119,12 +120,18 @@ const PARTNER_DETAIL_FIELDS = PARTNER_FIELDS.filter(
 
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <label className="mb-1.5 block text-[11px] text-white/40">{children}</label>
+    <label className="mb-1.5 block text-[11px] text-black/40 dark:text-white/40">
+      {children}
+    </label>
   );
 }
 
 function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="mb-5 text-sm font-medium text-white">{children}</h2>;
+  return (
+    <h2 className="mb-5 text-sm font-medium text-[#111111] dark:text-white">
+      {children}
+    </h2>
+  );
 }
 
 function TextInput({
@@ -150,7 +157,7 @@ function TextInput({
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
       required={required}
-      className="h-11 w-full rounded-lg border border-white/10 bg-transparent px-4 text-sm text-white transition-all outline-none placeholder:text-white/25 hover:border-white/20 focus:border-white/30"
+      className="h-11 w-full rounded-lg border border-black/15 bg-white px-4 text-sm text-[#111111] transition-all outline-none placeholder:text-black/35 hover:border-black/25 hover:bg-white focus:border-black/35 dark:border-white/10 dark:bg-transparent dark:text-white dark:placeholder:text-white/25 dark:hover:border-white/20 dark:hover:bg-transparent dark:focus:border-white/30"
     />
   );
 }
@@ -176,7 +183,7 @@ function TextareaInput({
       placeholder={placeholder}
       required={required}
       rows={3}
-      className="w-full resize-none rounded-lg border border-white/10 bg-transparent px-4 py-2.5 text-sm text-white transition-all outline-none placeholder:text-white/25 hover:border-white/20 focus:border-white/30"
+      className="w-full resize-none rounded-lg border border-black/15 bg-white px-4 py-2.5 text-sm text-[#111111] transition-all outline-none placeholder:text-black/35 hover:border-black/25 hover:bg-white focus:border-black/35 dark:border-white/10 dark:bg-transparent dark:text-white dark:placeholder:text-white/25 dark:hover:border-white/20 dark:hover:bg-transparent dark:focus:border-white/30"
     />
   );
 }
@@ -478,12 +485,12 @@ export function ContractFormPage({
   };
 
   return (
-    <main className="dashboard-theme min-h-screen bg-[#050505] text-white">
+    <main className="dashboard-theme min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
       {!isHistoryOpen ? (
         <button
           type="button"
           onClick={() => setIsHistoryOpen(true)}
-          className="fixed top-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-white text-black shadow-[0_14px_34px_rgba(0,0,0,0.34)] transition duration-250 ease-out hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(0,0,0,0.42)] active:translate-y-0 active:scale-95"
+          className="fixed top-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-[#111111] shadow-[0_14px_34px_rgba(0,0,0,0.14)] transition duration-250 ease-out hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(0,0,0,0.18)] active:translate-y-0 active:scale-95 dark:border-white/10 dark:bg-white dark:text-black dark:shadow-[0_14px_34px_rgba(0,0,0,0.34)] dark:hover:shadow-[0_18px_44px_rgba(0,0,0,0.42)]"
           aria-label="Mở lịch sử hợp đồng"
         >
           <FiClock />
@@ -496,17 +503,20 @@ export function ContractFormPage({
         }`}
       >
         <form onSubmit={handleSubmit} className="flex min-w-0 flex-col">
-          <header className="border-b border-white/10 pb-6">
+          <header className="relative border-b border-black/10 pb-6 dark:border-white/10">
             <Link
               to={PATHS.LOGIN}
-              className="group mb-5 inline-flex w-fit items-center gap-2 text-xs font-medium text-white/55 transition duration-200 ease-out hover:text-white"
+              className="group mb-5 inline-flex w-fit items-center gap-2 text-xs font-medium text-black/55 transition duration-200 ease-out hover:text-[#111111] dark:text-white/55 dark:hover:text-white"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.06] transition duration-200 ease-out group-hover:-translate-x-0.5 group-hover:bg-white/[0.1]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.05] transition duration-200 ease-out group-hover:-translate-x-0.5 group-hover:bg-black/[0.08] dark:bg-white/[0.06] dark:group-hover:bg-white/[0.1]">
                 <FiArrowLeft />
               </span>
               <span>Quay về Hub</span>
             </Link>
-            <h1 className="text-center text-2xl font-medium text-white md:text-3xl">
+            <div className="absolute top-0 right-0">
+              <ThemeToggle />
+            </div>
+            <h1 className="text-center text-2xl font-medium text-[#111111] dark:text-white md:text-3xl">
               {isEditMode
                 ? `Hợp đồng số ${initialContract?.contractNumber || initialContract?.contractId}`
                 : "Hệ thống tạo hợp đồng điện tử - Picare Việt Nam"}
@@ -519,7 +529,7 @@ export function ContractFormPage({
             transition={{ duration: 0.25 }}
             className="flex flex-col"
           >
-            <section className="border-b border-white/10 py-6">
+            <section className="border-b border-black/10 py-6 dark:border-white/10">
               <SectionTitle>Thông tin hợp đồng</SectionTitle>
 
               <div className="grid grid-cols-1 gap-4">
@@ -536,7 +546,7 @@ export function ContractFormPage({
               </div>
             </section>
 
-            <section className="border-b border-white/10 py-6">
+            <section className="border-b border-black/10 py-6 dark:border-white/10">
               <SectionTitle>Công ty chủ sở hữu</SectionTitle>
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -557,34 +567,34 @@ export function ContractFormPage({
                       }}
                       className={`relative w-full overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
                         selected
-                          ? "border-white/35 bg-white/6"
-                          : "border-white/10 bg-white/2 hover:border-white/20 hover:bg-white/4"
+                          ? "border-black/30 bg-black/[0.06] dark:border-white/35 dark:bg-white/6"
+                          : "border-black/12 bg-white hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <p
                             className={`text-xs ${
-                              selected ? "text-white/70" : "text-white/40"
+                              selected ? "text-black/78 dark:text-white/70" : "text-black/52 dark:text-white/40"
                             }`}
                           >
                             {template.companyCode}
                           </p>
-                          <h3 className="mt-2 text-sm leading-5 font-medium text-white">
+                          <h3 className="mt-2 text-sm leading-5 font-medium text-[#111111] dark:text-white">
                             {template.companyName}
                           </h3>
                         </div>
                         <span
                           className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
                             selected
-                              ? "border-white/45 bg-white text-black"
-                              : "border-white/15 text-transparent"
+                              ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
+                              : "border-black/15 text-transparent dark:border-white/15"
                           }`}
                         >
                           <FiCheck className="text-xs" />
                         </span>
                       </div>
-                      <div className="mt-4 space-y-2 text-xs leading-5 text-white/45">
+                      <div className="mt-4 space-y-2 text-xs leading-5 text-black/58 dark:text-white/45">
                         <p>{template.address}</p>
                         <p>
                           {template.ownerName} · {template.role}
@@ -600,7 +610,7 @@ export function ContractFormPage({
               </div>
             </section>
 
-            <section className="border-b border-white/10 py-6">
+            <section className="border-b border-black/10 py-6 dark:border-white/10">
               <SectionTitle>Công ty đối tác</SectionTitle>
 
               <div className="space-y-5">
@@ -638,24 +648,24 @@ export function ContractFormPage({
                           }}
                           className={`rounded-xl border p-4 text-left transition-all duration-300 ${
                             selected
-                              ? "border-white/35 bg-white/6"
-                              : "border-white/10 bg-white/2 hover:border-white/20 hover:bg-white/4"
+                              ? "border-black/30 bg-black/[0.06] dark:border-white/35 dark:bg-white/6"
+                              : "border-black/12 bg-white hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div>
-                              <p className="text-sm font-medium text-white">
+                              <p className="text-sm font-medium text-[#111111] dark:text-white">
                                 {option.title}
                               </p>
-                              <p className="mt-1 text-xs leading-5 text-white/45">
+                              <p className="mt-1 text-xs leading-5 text-black/58 dark:text-white/45">
                                 {option.description}
                               </p>
                             </div>
                             <span
                               className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
                                 selected
-                                  ? "border-white/45 bg-white text-black"
-                                  : "border-white/15 text-transparent"
+                                  ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
+                                  : "border-black/15 text-transparent dark:border-white/15"
                               }`}
                             >
                               <FiCheck className="text-xs" />
@@ -684,7 +694,7 @@ export function ContractFormPage({
                       type="button"
                       onClick={handleTaxLookup}
                       disabled={taxPayerLookupMutation.isPending}
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 px-4 text-[12px] font-medium text-white/75 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-black/12 bg-white px-4 text-[12px] font-medium text-black/78 transition hover:border-black/25 hover:text-[#111111] dark:border-white/10 dark:bg-transparent dark:text-white/75 dark:hover:border-white/25 dark:hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {taxPayerLookupMutation.isPending ? (
                         <Spinner size="sm" />
@@ -696,20 +706,20 @@ export function ContractFormPage({
                   </div>
 
                   {taxLookupMessage ? (
-                    <div className="mt-3 flex flex-col gap-3 text-[12px] text-white/45 md:flex-row md:items-center md:justify-between">
+                    <div className="mt-3 flex flex-col gap-3 text-[12px] text-black/58 dark:text-white/45 md:flex-row md:items-center md:justify-between">
                       <p>{taxLookupMessage}</p>
                       {!isPartnerFormVisible ? (
                         <button
                           type="button"
                           onClick={handleManualPartnerInput}
-                          className="w-fit rounded-lg border border-white/10 px-4 py-2 text-xs font-medium text-white/70 transition hover:border-white/25 hover:text-white"
+                          className="w-fit rounded-lg border border-black/12 bg-white px-4 py-2 text-xs font-medium text-black/74 transition hover:border-black/25 hover:text-[#111111] dark:border-white/10 dark:bg-transparent dark:text-white/70 dark:hover:border-white/25 dark:hover:text-white"
                         >
                           Nhập tay
                         </button>
                       ) : null}
                     </div>
                   ) : (
-                    <p className="mt-3 text-[12px] text-white/35">
+                    <p className="mt-3 text-[12px] text-black/48 dark:text-white/35">
                       Nhập mã số thuế rồi bấm kiểm tra để tự điền tên công ty và
                       địa chỉ nếu có dữ liệu.
                     </p>
@@ -762,13 +772,13 @@ export function ContractFormPage({
               </div>
             </section>
 
-            <section className="border-b border-white/10 py-6">
+            <section className="border-b border-black/10 py-6 dark:border-white/10">
               <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <SectionTitle>Danh sách sản phẩm</SectionTitle>
                 <button
                   type="button"
                   onClick={addProduct}
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-white/[0.06] px-4 py-2 text-[12px] text-white/80 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white/[0.1] hover:text-white active:translate-y-0 active:scale-[0.98]"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-black/[0.08] px-4 py-2 text-[12px] text-black/84 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-black/[0.12] hover:text-[#111111] dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/[0.1] dark:hover:text-white active:translate-y-0 active:scale-[0.98]"
                 >
                   <FiPlus className="transition duration-200 group-hover:rotate-90" />
                   Thêm sản phẩm
@@ -780,7 +790,7 @@ export function ContractFormPage({
                   {products.map((product, index) => (
                     <div
                       key={product.id}
-                      className="grid grid-cols-1 gap-3 border border-white/10 p-3 md:grid-cols-[1fr_180px_40px]"
+                      className="grid grid-cols-1 gap-3 border border-black/12 bg-white p-3 dark:border-white/10 dark:bg-transparent md:grid-cols-[1fr_180px_40px]"
                     >
                       <div>
                         <FieldLabel>Sản phẩm {index + 1}</FieldLabel>
@@ -811,7 +821,7 @@ export function ContractFormPage({
                         <button
                           type="button"
                           onClick={() => removeProduct(product.id)}
-                          className="flex h-11 w-10 items-center justify-center rounded-lg border border-white/10 bg-transparent text-white/45 transition-all hover:border-red-400/40 hover:text-red-300"
+                          className="flex h-11 w-10 items-center justify-center rounded-lg border border-black/12 bg-white text-black/54 transition-all hover:border-red-400/40 hover:text-red-500 dark:border-white/10 dark:bg-transparent dark:text-white/45 dark:hover:text-red-300"
                           aria-label="Xóa sản phẩm"
                         >
                           <FiTrash2 />
@@ -821,7 +831,7 @@ export function ContractFormPage({
                   ))}
                 </div>
               ) : (
-                <div className="rounded-lg border border-dashed border-white/10 px-4 py-8 text-center text-sm text-white/35">
+                <div className="rounded-lg border border-dashed border-black/12 bg-white px-4 py-8 text-center text-sm text-black/48 dark:border-white/10 dark:bg-transparent dark:text-white/35">
                   Chưa có sản phẩm nào. Bấm thêm sản phẩm để bắt đầu.
                 </div>
               )}
@@ -847,7 +857,7 @@ export function ContractFormPage({
                     onClick={() =>
                       navigate(getPreviewPath(initialContract.contractId))
                     }
-                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-white/[0.07] px-6 text-sm font-medium text-white/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white/[0.11] hover:text-white active:translate-y-0 active:scale-[0.98]"
+                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.07] px-6 text-sm font-medium text-black/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.11] hover:text-[#111111] dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white active:translate-y-0 active:scale-[0.98]"
                   >
                     Xem Preview hợp đồng
                   </button>
@@ -855,7 +865,7 @@ export function ContractFormPage({
               </div>
 
               {lastPayload ? (
-                <p className="text-xs text-white/50">
+                <p className="text-xs text-black/60 dark:text-white/50">
                   Đã gửi yêu cầu tạo hợp đồng với{" "}
                   <span className="tabular-nums">
                     {lastPayload.details.length}
