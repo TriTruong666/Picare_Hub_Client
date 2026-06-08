@@ -5,6 +5,7 @@ import PrivateRoutes from "./PrivateRoutes";
 import PrivateContractRoutes from "./PrivateContractRoutes";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
 import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
+import QRProductEditPage from "@/pages/private/QRProductEditPage";
 import { AuthGuard } from "@/components/guards/AuthGuard";
 
 export default function AppRouter() {
@@ -18,6 +19,14 @@ export default function AppRouter() {
         element={
           <AuthGuard>
             <QRProductGeneratorPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path={PATHS.QR_PRODUCT_EDIT}
+        element={
+          <AuthGuard>
+            <QRProductEditPage />
           </AuthGuard>
         }
       />

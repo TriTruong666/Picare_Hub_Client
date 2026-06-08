@@ -1,6 +1,9 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { Extension } from "@tiptap/core"
+import { Plugin, PluginKey } from "@tiptap/pm/state"
+import { Decoration, DecorationSet } from "@tiptap/pm/view"
 import {
   EditorContent,
   EditorContext,
@@ -80,6 +83,48 @@ import { cn, handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
 import "@/components/tiptap-templates/simple/simple-editor.scss"
 
 import content from "@/components/tiptap-templates/simple/data/content.json"
+
+const PlaceholderAttributes = Extension.create<{ placeholder?: string }>({
+  name: "placeholderAttributes",
+
+  addOptions() {
+    return {
+      placeholder: undefined,
+    }
+  },
+
+  addProseMirrorPlugins() {
+    const placeholder = this.options.placeholder
+
+    if (!placeholder) return []
+
+    return [
+      new Plugin({
+        key: new PluginKey("placeholderAttributes"),
+        props: {
+          decorations(state) {
+            const decorations: Decoration[] = []
+
+            state.doc.descendants((node, pos) => {
+              if (node.type.name !== "paragraph" || node.content.size > 0) {
+                return
+              }
+
+              decorations.push(
+                Decoration.node(pos, pos + node.nodeSize, {
+                  class: "is-empty",
+                  "data-placeholder": placeholder,
+                })
+              )
+            })
+
+            return DecorationSet.create(state.doc, decorations)
+          },
+        },
+      }),
+    ]
+  },
+})
 
 const MainToolbarContent = ({
   onHighlighterClick,
@@ -196,7 +241,8 @@ const MobileToolbarContent = ({
 )
 
 type SimpleEditorProps = {
-  content?: JSONContent
+  content?: JSONContent | string
+  placeholder?: string
   showThemeToggle?: boolean
   wrapperClassName?: string
   contentClassName?: string
@@ -206,6 +252,7 @@ type SimpleEditorProps = {
 
 export function SimpleEditor({
   content: initialContent,
+  placeholder,
   showThemeToggle = true,
   wrapperClassName,
   contentClassName,
@@ -249,6 +296,7 @@ export function SimpleEditor({
       Superscript,
       Subscript,
       Selection,
+      PlaceholderAttributes.configure({ placeholder }),
       ImageUploadNode.configure({
         accept: "image/*",
         maxSize: MAX_FILE_SIZE,
