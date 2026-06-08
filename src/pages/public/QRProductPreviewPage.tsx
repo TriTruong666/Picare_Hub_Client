@@ -283,17 +283,10 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
             <FiArrowLeft />
           </Link>
 
-          <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <img
-              src={picareLogoLight}
-              alt="Picare"
-              className="h-auto w-[8.5rem] dark:hidden sm:w-[9.5rem]"
-            />
-            <img
-              src={picareLogoDark}
-              alt="Picare"
-              className="hidden h-auto w-[8.5rem] dark:block sm:w-[9.5rem]"
-            />
+          <div className="pointer-events-none absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2">
+            <span className="font-bricolage text-lg font-medium text-[#111111] dark:text-white sm:text-xl">
+              Picare Hub
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
