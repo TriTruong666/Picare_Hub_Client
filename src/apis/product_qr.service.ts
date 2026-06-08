@@ -41,7 +41,7 @@ export const createProductQR = async (
 export const updateProductQR = async (
   id: string,
   payload: UpdateProductQRPayload,
-): Promise<BaseResponse<null>> => {
+): Promise<BaseResponse<ProductQR>> => {
   const res = await hubAxiosClient.put(
     `/api/v1/product-qrs/${id}`,
     buildProductQRFormData(payload),

@@ -24,7 +24,7 @@ export type ProductQR = {
   imageUrl?: string | null;
 };
 
-type ProductQRJson = {
+export type ProductQRJson = {
   uses: string;
   qrUrl: string;
   origin: string;

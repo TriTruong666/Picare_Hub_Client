@@ -36,6 +36,10 @@ const emptyEditorContent: JSONContent = {
 
 type QRProductFormMode = "create" | "edit";
 
+function getProductPreviewPath(productId: string) {
+  return PATHS.QR_PRODUCT_PREVIEW.replace(":productId", productId);
+}
+
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
     <label className="mb-2 block text-[11px] font-medium tracking-[0.18em] text-white/38 uppercase">
@@ -220,9 +224,11 @@ function getInitialEditorContent(product?: ProductQR) {
 
 function CreatedProductQRModal({
   product,
+  helperText,
   onClose,
 }: {
   product: ProductQR;
+  helperText: string;
   onClose: () => void;
 }) {
   const qrImageSrc = product.qrImage || product.jsonContent.qrUrl;
@@ -254,6 +260,10 @@ function CreatedProductQRModal({
               className="mx-auto aspect-square w-full max-w-[280px] object-contain"
             />
           </div>
+
+          <p className="mt-4 max-w-[320px] text-center text-xs leading-6 text-white/45">
+            {helperText}
+          </p>
 
           <a
             href={product.linkUrl}
@@ -298,10 +308,10 @@ function DeleteProductQRModal({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", duration: 0.3 }}
-            className="dashboard-theme relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]"
+            className="dashboard-theme relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#050505] text-white shadow-2xl backdrop-blur-xl"
           >
-            <div className="flex items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            <div className="flex items-center justify-between border-b border-white/10 bg-white/5 p-6">
+              <h2 className="text-base font-semibold text-white">
                 Xóa QR sản phẩm
               </h2>
 
@@ -309,23 +319,23 @@ function DeleteProductQRModal({
                 type="button"
                 disabled={isDeleting}
                 onClick={onClose}
-                className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+                className="rounded-lg p-2 text-white/45 transition hover:bg-white/10 hover:text-white"
               >
                 <HiOutlineX className="h-5 w-5" />
               </button>
             </div>
 
             <div className="flex gap-4 p-6">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-400">
                 <FiAlertTriangle size={24} />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                <p className="text-sm font-semibold text-white">
                   Bạn có chắc chắn muốn xóa QR sản phẩm này?
                 </p>
-                <p className="mt-2 break-all text-sm text-gray-500 dark:text-gray-400">
+                <p className="mt-2 break-all text-sm text-white/45">
                   QR của{" "}
-                  <span className="font-semibold text-gray-900 dark:text-white">
+                  <span className="font-semibold text-white">
                     {product.jsonContent.productName || product.productId}
                   </span>{" "}
                   sẽ bị xóa vĩnh viễn và hành động này không thể hoàn tác.
@@ -333,12 +343,12 @@ function DeleteProductQRModal({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+            <div className="flex justify-end gap-3 border-t border-white/10 bg-white/5 p-6">
               <button
                 type="button"
                 disabled={isDeleting}
                 onClick={onClose}
-                className="rounded-lg px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
+                className="rounded-lg px-4 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
               >
                 Hủy
               </button>
@@ -346,7 +356,7 @@ function DeleteProductQRModal({
                 type="button"
                 disabled={isDeleting}
                 onClick={onConfirm}
-                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-500/25 transition-all hover:bg-red-500 active:scale-95 disabled:opacity-50 dark:bg-red-600 dark:shadow-red-500/10 dark:hover:bg-red-500"
+                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-500/25 transition-all hover:bg-red-500 active:scale-95 disabled:opacity-50"
               >
                 {isDeleting ? (
                   <>
@@ -391,6 +401,7 @@ export function QRProductFormPage({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<ProductQR | null>(null);
+  const [successModalHelperText, setSuccessModalHelperText] = useState("");
   const [productToDelete, setProductToDelete] = useState<ProductQR | null>(null);
 
   const isEditMode = mode === "edit";
@@ -457,7 +468,7 @@ export function QRProductFormPage({
     }
 
     if (isEditMode && initialProduct) {
-      await updateProductQRMutation.mutateAsync({
+      const response = await updateProductQRMutation.mutateAsync({
         productId: initialProduct.productId,
         data: {
           rawContent: normalizedContent,
@@ -465,6 +476,22 @@ export function QRProductFormPage({
           note: initialProduct.note ?? null,
         },
       });
+
+      if (response.success) {
+        setSuccessModalHelperText(
+          "Đây là mã QR và link preview sản phẩm sau khi cập nhật. Bạn có thể quét mã hoặc mở trực tiếp đường dẫn bên dưới.",
+        );
+        setCreatedProduct({
+          ...initialProduct,
+          rawContent: normalizedContent,
+          imageUrl: imageFile ? productImage : initialProduct.imageUrl,
+          qrImage: response.data?.qrImage || initialProduct.qrImage,
+          linkUrl: response.data?.linkUrl || initialProduct.linkUrl,
+          jsonContent: response.data?.jsonContent || initialProduct.jsonContent,
+          updatedAt: response.data?.updatedAt || initialProduct.updatedAt,
+          note: initialProduct.note ?? null,
+        });
+      }
       return;
     }
 
@@ -475,6 +502,9 @@ export function QRProductFormPage({
     });
 
     if (response.success && response.data) {
+      setSuccessModalHelperText(
+        "Đây là mã QR và link preview sản phẩm vừa được tạo. Bạn có thể quét mã hoặc mở trực tiếp đường dẫn bên dưới.",
+      );
       setCreatedProduct(response.data);
     }
   };
@@ -590,6 +620,23 @@ export function QRProductFormPage({
                   </button>
                 ) : null}
 
+                {isEditMode && initialProduct ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.open(
+                        getProductPreviewPath(initialProduct.productId),
+                        "_blank",
+                        "noopener,noreferrer",
+                      )
+                    }
+                    disabled={isDeleting || isSubmitting}
+                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-white/[0.07] px-6 text-sm font-medium text-white/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white/[0.11] hover:text-white active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45"
+                  >
+                    Preview
+                  </button>
+                ) : null}
+
                 <button
                   type="button"
                   onClick={handleSubmit}
@@ -617,7 +664,11 @@ export function QRProductFormPage({
       {createdProduct ? (
         <CreatedProductQRModal
           product={createdProduct}
-          onClose={() => setCreatedProduct(null)}
+          helperText={successModalHelperText}
+          onClose={() => {
+            setCreatedProduct(null);
+            setSuccessModalHelperText("");
+          }}
         />
       ) : null}
 

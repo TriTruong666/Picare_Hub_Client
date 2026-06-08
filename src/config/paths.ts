@@ -14,6 +14,7 @@ export const PATHS = {
   CONTRACT_PREVIEW: "/contracts/:contractId/preview",
   PARTNER_SIGN: "/contracts/:contractId/sign-partner",
   QR_PRODUCT_GENERATOR: "/qr-products/generator",
+  QR_PRODUCT_PREVIEW: "/qr-products/:productId",
   QR_PRODUCT_EDIT: "/qr-products/:productId/edit",
 
   // Private Paths (Dashboard)

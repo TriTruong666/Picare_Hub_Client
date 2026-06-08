@@ -1,4 +1,5 @@
 import { useDeferredValue, useState } from "react";
+import type { ProductQR } from "@/types/QRProduct";
 import { motion } from "framer-motion";
 import {
   FiChevronRight,

@@ -4,6 +4,7 @@ import { PATHS } from "@/config/paths";
 import PrivateRoutes from "./PrivateRoutes";
 import PrivateContractRoutes from "./PrivateContractRoutes";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
+import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
 import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
 import QRProductEditPage from "@/pages/private/QRProductEditPage";
 import { AuthGuard } from "@/components/guards/AuthGuard";
@@ -30,6 +31,7 @@ export default function AppRouter() {
           </AuthGuard>
         }
       />
+      <Route path={PATHS.QR_PRODUCT_PREVIEW} element={<QRProductPreviewPage />} />
 
       {/* Public Routes (Landing, Login, etc.) */}
       <Route path="/*" element={<PublicRoutes />} />
