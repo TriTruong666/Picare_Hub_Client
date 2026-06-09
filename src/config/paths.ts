@@ -5,9 +5,10 @@
 export const PATHS = {
   // Public Paths
   HOME: "/",
-  LOGIN: "/login", // Trang chọn client hub
-  LOGIN_CLIENT: "/login/client", // Form đăng nhập cho client cụ thể
-  LOGIN_HUB: "/login/hub", // Trang đăng nhập Hub chung (centered)
+  MY_PAGE: "/my-page",
+  LOGIN: "/login", // Trang chon client hub
+  LOGIN_CLIENT: "/login/client", // Form dang nhap cho client cu the
+  LOGIN_HUB: "/login/hub", // Trang dang nhap Hub chung (centered)
   CONTRACT_CREATE: "/contracts/create",
   CONTRACT_DETAIL: "/dashboard/contracts/:contractId",
   CONTRACT_EDIT: "/contracts/:contractId/edit",

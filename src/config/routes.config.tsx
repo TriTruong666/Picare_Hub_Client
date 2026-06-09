@@ -6,6 +6,7 @@ import LandingPage from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/public/LoginPage";
 import LoginClientPage from "@/pages/public/LoginClientPage";
 import LoginHubPage from "@/pages/public/LoginHubPage";
+import MyPage from "@/pages/public/MyPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
 import ContractCreatePage from "@/pages/private/ContractCreatePage";
 import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
@@ -48,6 +49,10 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
   {
     path: PATHS.LOGIN_HUB,
     element: <LoginHubPage />,
+  },
+  {
+    path: PATHS.MY_PAGE,
+    element: <MyPage />,
   },
   {
     path: PATHS.PARTNER_SIGN,
