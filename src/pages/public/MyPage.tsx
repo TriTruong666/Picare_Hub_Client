@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import gsap from "gsap";
 import RotatingText, {
@@ -6,7 +6,10 @@ import RotatingText, {
 } from "@/components/reactbit/RotatingText";
 import Beams from "@/components/reactbit/Beams";
 import DarkVeil from "@/components/reactbit/DarkVeil";
+import Masonry from "@/components/reactbit/Masonry";
 import SideRays from "@/components/reactbit/SideRay";
+const INVITATION_MESSAGE =
+  "Vk ơi, cuối tuần này mình đi chơi nhé.\nCk đã tính sẵn một buổi hẹn nho nhỏ rồi.\nNếu vk đồng ý thì bấm vào nút bên dưới đi.";
 
 const PROFILE_IMAGE_SRC = "/quynh-nhu-profile.jpg";
 const FINAL_NODE_TOOLTIP = "Cái cuối sẽ được tiết lộ vào 1 dịp đặc biệt";
@@ -21,17 +24,17 @@ const NICKNAMES = [
 ];
 
 const PROFILE_DETAILS = [
-  { label: "Ngày sinh", value: "08/05/2004" },
-  { label: "Biệt danh", value: "Boo" },
+  { label: "Ngày sinh", value: "05/08/2004" },
+  { label: "Biệt danh", value: "Miboo, Bé heo" },
   {
     label: "Món ăn",
     value:
-      "Matcha latte, ốc len xào dừa, cút lộn xào me, trà sữa Đài Loan trân châu khoai môn và vô vàn món mà ck chưa biết...",
+      "Matcha latte, ốc len xào dừa, cút lộn xào me, mì xào ốc móng tay, đồ Nhật, trà sữa Đài Loan trân châu khoai môn và vô vàn món mà ck chưa biết...",
   },
   {
     label: "Đặc điểm",
     value:
-      "Xinh (nhất thế giới), lỳ như trâu (số 2 không ai số 1), dăm, tướng nét như Sinbad, thích hoa, đánh liqi ngu, đau lưng (già), quả cười đỉnh nhất vn.",
+      "Xinh (nhất thế giới), lỳ như trâu (số 2 không ai số 1), siu dăm (khó nói), tướng nét như Sinbad (trom via), thích hoa, đánh liqi ngu, đau lưng (già), quả cười đỉnh nhất VN.",
   },
 ];
 
@@ -39,6 +42,8 @@ const STAGES = [
   { id: 1, label: "01", name: "Lời chào" },
   { id: 2, label: "02", name: "Quỳnh Như" },
   { id: 3, label: "03", name: "Đặc biệt" },
+  { id: 4, label: "04", name: "Lời mời" },
+  { id: 5, label: "05", name: "Khoảnh khắc" },
 ] as const;
 
 type StageId = (typeof STAGES)[number]["id"];
@@ -50,8 +55,7 @@ const MEMORIES = [
     top: 58,
     left: 10,
     title: "Mốc đầu tiên",
-    body:
-      "Đây là modal đầu tiên của chòm sao. Bạn có thể thay phần text này bằng câu chuyện thật đầu tiên mà hai người muốn giữ lại.",
+    body: "Đây là modal đầu tiên của chòm sao. Bạn có thể thay phần text này bằng câu chuyện thật đầu tiên mà hai người muốn giữ lại.",
     imageSrc: PROFILE_IMAGE_SRC,
   },
   {
@@ -60,8 +64,7 @@ const MEMORIES = [
     top: 38,
     left: 27,
     title: "Mốc thứ hai",
-    body:
-      "Node này chỉ mở sau khi mốc đầu tiên đã được xem xong, để cảm giác như đang lần theo một đường sao thật sự.",
+    body: "Node này chỉ mở sau khi mốc đầu tiên đã được xem xong, để cảm giác như đang lần theo một đường sao thật sự.",
     imageSrc: PROFILE_IMAGE_SRC,
   },
   {
@@ -70,8 +73,7 @@ const MEMORIES = [
     top: 55,
     left: 43,
     title: "Mốc thứ ba",
-    body:
-      "Từng modal có thể là một ký ức, một tấm ảnh, hoặc một đoạn chữ dài hơn khi bạn bắt đầu điền nội dung thật.",
+    body: "Từng modal có thể là một kỷ ức, một tấm ảnh, hoặc một đoạn chữ dài hơn khi bạn bắt đầu điền nội dung thật.",
     imageSrc: PROFILE_IMAGE_SRC,
   },
   {
@@ -80,8 +82,7 @@ const MEMORIES = [
     top: 32,
     left: 59,
     title: "Mốc thứ tư",
-    body:
-      "Đường nối sẽ tiếp tục sáng dần về phía trước. Nhịp mở khóa tuần tự giúp stage này có cảm giác được khám phá thay vì hiện ra một lần.",
+    body: "Đường nối sẽ tiếp tục sáng dần về phía trước. Nhịp mở khóa tuần tự giúp stage này có cảm giác được khám phá thay vì hiện ra một lần.",
     imageSrc: PROFILE_IMAGE_SRC,
   },
   {
@@ -90,8 +91,7 @@ const MEMORIES = [
     top: 50,
     left: 75,
     title: "Mốc thứ năm",
-    body:
-      "Đây là mốc cuối đang mở. Đọc xong modal này thì node thứ sáu mới lộ diện, nhưng vẫn giữ trạng thái khóa đúng như ý đồ.",
+    body: "Đây là mốc cuối đang mở. Đọc xong modal này thì node thứ sáu mới lộ diện, nhưng vẫn giữ trạng thái khóa đúng như ý đồ.",
     imageSrc: PROFILE_IMAGE_SRC,
   },
   {
@@ -118,8 +118,7 @@ const createStars = (
     const top = (Math.sin(seed * 1.13) * 0.5 + 0.5) * 100;
     const left = (Math.cos(seed * 1.71) * 0.5 + 0.5) * 100;
     const size =
-      sizeMin +
-      (Math.sin(seed * 2.41) * 0.5 + 0.5) * (sizeMax - sizeMin);
+      sizeMin + (Math.sin(seed * 2.41) * 0.5 + 0.5) * (sizeMax - sizeMin);
     const opacity =
       opacityMin +
       (Math.cos(seed * 1.97) * 0.5 + 0.5) * (opacityMax - opacityMin);
@@ -135,6 +134,129 @@ const createStars = (
     };
   });
 
+const MASONRY_ITEMS = [
+  {
+    id: "1",
+    img: "https://picsum.photos/id/1015/600/900",
+    url: "https://example.com/one",
+    height: 420,
+  },
+  {
+    id: "2",
+    img: "https://picsum.photos/id/1011/600/750",
+    url: "https://example.com/two",
+    height: 280,
+  },
+  {
+    id: "3",
+    img: "https://picsum.photos/id/1020/600/800",
+    url: "https://example.com/three",
+    height: 520,
+  },
+  {
+    id: "4",
+    img: "https://picsum.photos/id/1025/600/860",
+    url: "https://example.com/four",
+    height: 460,
+  },
+  {
+    id: "5",
+    img: "https://picsum.photos/id/1035/600/700",
+    url: "https://example.com/five",
+    height: 300,
+  },
+  {
+    id: "6",
+    img: "https://picsum.photos/id/1039/600/920",
+    url: "https://example.com/six",
+    height: 560,
+  },
+  {
+    id: "7",
+    img: "https://picsum.photos/id/1040/600/760",
+    url: "https://example.com/seven",
+    height: 360,
+  },
+  {
+    id: "8",
+    img: "https://picsum.photos/id/1043/600/860",
+    url: "https://example.com/eight",
+    height: 480,
+  },
+  {
+    id: "9",
+    img: "https://picsum.photos/id/1050/600/780",
+    url: "https://example.com/nine",
+    height: 340,
+  },
+  {
+    id: "10",
+    img: "https://picsum.photos/id/1067/600/940",
+    url: "https://example.com/ten",
+    height: 580,
+  },
+  {
+    id: "11",
+    img: "https://picsum.photos/id/1074/600/820",
+    url: "https://example.com/eleven",
+    height: 410,
+  },
+  {
+    id: "12",
+    img: "https://picsum.photos/id/1084/600/760",
+    url: "https://example.com/twelve",
+    height: 330,
+  },
+  {
+    id: "13",
+    img: "https://picsum.photos/id/1080/600/930",
+    url: "https://example.com/thirteen",
+    height: 570,
+  },
+  {
+    id: "14",
+    img: "https://picsum.photos/id/1081/600/780",
+    url: "https://example.com/fourteen",
+    height: 350,
+  },
+  {
+    id: "15",
+    img: "https://picsum.photos/id/1082/600/860",
+    url: "https://example.com/fifteen",
+    height: 470,
+  },
+  {
+    id: "16",
+    img: "https://picsum.photos/id/1083/600/900",
+    url: "https://example.com/sixteen",
+    height: 500,
+  },
+  {
+    id: "17",
+    img: "https://picsum.photos/id/1084/600/880",
+    url: "https://example.com/seventeen",
+    height: 455,
+  },
+  {
+    id: "18",
+    img: "https://picsum.photos/id/1085/600/760",
+    url: "https://example.com/eighteen",
+    height: 320,
+  },
+  {
+    id: "19",
+    img: "https://picsum.photos/id/1081/600/980",
+    url: "https://example.com/nineteen",
+    height: 600,
+  },
+  {
+    id: "20",
+    img: "https://picsum.photos/id/1077/600/840",
+    url: "https://example.com/twenty",
+    height: 430,
+  },
+] as const;
+
 export default function MyPage() {
   const [activeStage, setActiveStage] = useState<StageId>(1);
   const [transitionTargetStage, setTransitionTargetStage] =
@@ -144,21 +266,47 @@ export default function MyPage() {
   const [openMemoryId, setOpenMemoryId] = useState<number | null>(null);
   const [visibleMemoryCount, setVisibleMemoryCount] = useState(1);
   const [visibleLineCount, setVisibleLineCount] = useState(1);
+  const [unlockedStage, setUnlockedStage] = useState<StageId>(1);
+  const [isInvitationComplete, setIsInvitationComplete] = useState(false);
+  const [hasAcceptedInvitation, setHasAcceptedInvitation] = useState(false);
+  const [invitationTypingSession, setInvitationTypingSession] = useState(0);
+  const [galleryTypingSession, setGalleryTypingSession] = useState(0);
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const overlayTextRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const stageThreeSceneRef = useRef<HTMLDivElement>(null);
+  const stageFourAreaRef = useRef<HTMLDivElement>(null);
+  const invitationTextRef = useRef<HTMLSpanElement>(null);
+  const galleryTextRef = useRef<HTMLSpanElement>(null);
+  const noButtonRef = useRef<HTMLButtonElement>(null);
   const activeLineRef = useRef<SVGLineElement>(null);
   const nameRotatingTextRef = useRef<RotatingTextRef>(null);
   const transitionCleanupRef = useRef<gsap.core.Timeline | null>(null);
   const closeModalButtonRef = useRef<HTMLButtonElement>(null);
   const memoryTimeoutRef = useRef<number | null>(null);
+  const inviteTypingTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const galleryTypingTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
   const activeStageIndex = useMemo(
     () => STAGES.findIndex((stage) => stage.id === activeStage),
     [activeStage],
   );
+  const visibleStages = useMemo(
+    () => STAGES.filter((stage) => stage.id <= unlockedStage),
+    [unlockedStage],
+  );
+  const canAdvanceFromCurrentStage = useMemo(() => {
+    if (activeStage === 3) {
+      return visibleMemoryCount >= 5;
+    }
+
+    if (activeStage === 4) {
+      return false;
+    }
+
+    return activeStage < STAGES.length;
+  }, [activeStage, visibleMemoryCount]);
   const farStars = useMemo(() => createStars(230, 0.5, 1.5, 0.14, 0.5), []);
   const midStars = useMemo(() => createStars(95, 0.9, 2.4, 0.2, 0.7), []);
   const nearStars = useMemo(() => createStars(34, 1.5, 3.8, 0.3, 0.88), []);
@@ -282,6 +430,8 @@ export default function MyPage() {
       if (memoryTimeoutRef.current) {
         window.clearTimeout(memoryTimeoutRef.current);
       }
+      inviteTypingTimelineRef.current?.kill();
+      galleryTypingTimelineRef.current?.kill();
     };
   }, []);
 
@@ -321,11 +471,128 @@ export default function MyPage() {
     });
   }, [activeStage, animatedLineSegment]);
 
+  useEffect(() => {
+    inviteTypingTimelineRef.current?.kill();
+    inviteTypingTimelineRef.current = null;
+
+    const textElement = invitationTextRef.current;
+    if (activeStage !== 4 || invitationTypingSession === 0 || !textElement) {
+      return;
+    }
+
+    textElement.textContent = "";
+    setIsInvitationComplete(false);
+    setHasAcceptedInvitation(false);
+    if (noButtonRef.current) {
+      gsap.set(noButtonRef.current, { x: 0, y: 0 });
+    }
+
+    // if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    //   textElement.textContent = INVITATION_MESSAGE;
+    //   setIsInvitationComplete(true);
+    //   return;
+    // }
+
+    const typingProgress = { value: 0 };
+    const timeline = gsap.timeline({
+      delay: 0.45,
+      onComplete: () => {
+        textElement.textContent = INVITATION_MESSAGE;
+        setIsInvitationComplete(true);
+        inviteTypingTimelineRef.current = null;
+      },
+    });
+
+    timeline.to(typingProgress, {
+      value: INVITATION_MESSAGE.length,
+      duration: 6.2,
+      ease: "none",
+      onUpdate: () => {
+        textElement.textContent = INVITATION_MESSAGE.slice(
+          0,
+          Math.floor(typingProgress.value),
+        );
+      },
+    });
+    inviteTypingTimelineRef.current = timeline;
+
+    return () => {
+      timeline.kill();
+      inviteTypingTimelineRef.current = null;
+    };
+  }, [activeStage, invitationTypingSession]);
+
+  useEffect(() => {
+    galleryTypingTimelineRef.current?.kill();
+    galleryTypingTimelineRef.current = null;
+
+    const textElement = galleryTextRef.current;
+    const galleryMessage = "Chúc Miboo của anh tất cả ♡";
+    if (activeStage !== 5 || galleryTypingSession === 0 || !textElement) {
+      return;
+    }
+
+    textElement.textContent = "";
+
+    const typingProgress = { value: 0 };
+    const timeline = gsap.timeline({
+      delay: 0.18,
+      onComplete: () => {
+        textElement.textContent = galleryMessage;
+        galleryTypingTimelineRef.current = null;
+      },
+    });
+
+    timeline.to(typingProgress, {
+      value: galleryMessage.length,
+      duration: 2.9,
+      ease: "none",
+      onUpdate: () => {
+        textElement.textContent = galleryMessage.slice(
+          0,
+          Math.floor(typingProgress.value),
+        );
+      },
+    });
+
+    galleryTypingTimelineRef.current = timeline;
+
+    return () => {
+      timeline.kill();
+      galleryTypingTimelineRef.current = null;
+    };
+  }, [activeStage, galleryTypingSession]);
+
+  useEffect(() => {
+    if (activeStage === 2) {
+      setUnlockedStage((current) => (current < 2 ? 2 : current));
+      return;
+    }
+
+    if (activeStage === 3) {
+      setUnlockedStage((current) => {
+        if (visibleMemoryCount >= 5) {
+          return current < 4 ? 4 : current;
+        }
+
+        return current < 3 ? 3 : current;
+      });
+      return;
+    }
+
+    if (activeStage === 5) {
+      setUnlockedStage((current) => (current < 5 ? 5 : current));
+    }
+  }, [activeStage, visibleMemoryCount]);
+
   const closeMemoryModal = () => {
     if (!activeMemory) return;
 
     setOpenMemoryId(null);
-    if (activeMemory.id === visibleMemoryCount && activeMemory.id < MEMORIES.length) {
+    if (
+      activeMemory.id === visibleMemoryCount &&
+      activeMemory.id < MEMORIES.length
+    ) {
       const nextId = activeMemory.id + 1;
       setVisibleLineCount(nextId);
       if (memoryTimeoutRef.current) {
@@ -384,8 +651,23 @@ export default function MyPage() {
     );
   };
 
+  const getNextStageId = (stage: StageId): StageId => {
+    const nextStage = STAGES.find((item) => item.id === stage + 1);
+    return nextStage?.id ?? stage;
+  };
+
   const handleStageChange = (nextStage: StageId) => {
-    if (nextStage === activeStage || isTransitioning) {
+    const movingBackward = nextStage < activeStage;
+    const isSequentialNext = nextStage === activeStage + 1;
+    const canOpenStage =
+      nextStage <= unlockedStage ||
+      (isSequentialNext && canAdvanceFromCurrentStage);
+
+    if (
+      nextStage === activeStage ||
+      isTransitioning ||
+      (!movingBackward && !canOpenStage)
+    ) {
       return;
     }
 
@@ -422,6 +704,12 @@ export default function MyPage() {
               opacity: 0,
             });
             setIsTransitioning(false);
+            if (nextStage === 4) {
+              setInvitationTypingSession((session) => session + 1);
+            }
+            if (nextStage === 5) {
+              setGalleryTypingSession((session) => session + 1);
+            }
           },
         });
 
@@ -493,6 +781,53 @@ export default function MyPage() {
         0.08,
       )
       .to({}, { duration: 0.18 });
+  };
+
+  const moveNoButton = (pointerX?: number, pointerY?: number) => {
+    const button = noButtonRef.current;
+
+    if (!button) return;
+
+    const buttonRect = button.getBoundingClientRect();
+    const paddingX = Math.max(buttonRect.width / 2 + 24, 72);
+    const paddingY = Math.max(buttonRect.height / 2 + 24, 64);
+    const currentCenterX = buttonRect.left + buttonRect.width / 2;
+    const currentCenterY = buttonRect.top + buttonRect.height / 2;
+    const currentX = Number(gsap.getProperty(button, "x")) || 0;
+    const currentY = Number(gsap.getProperty(button, "y")) || 0;
+    let targetX = currentCenterX;
+    let targetY = currentCenterY;
+
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      const candidateX =
+        paddingX +
+        Math.random() * Math.max(window.innerWidth - paddingX * 2, 1);
+      const candidateY =
+        paddingY +
+        Math.random() * Math.max(window.innerHeight - paddingY * 2, 1);
+      const distanceFromCurrent = Math.hypot(
+        candidateX - currentCenterX,
+        candidateY - currentCenterY,
+      );
+      const distanceFromPointer =
+        typeof pointerX === "number" && typeof pointerY === "number"
+          ? Math.hypot(candidateX - pointerX, candidateY - pointerY)
+          : Number.POSITIVE_INFINITY;
+
+      targetX = candidateX;
+      targetY = candidateY;
+      if (distanceFromCurrent > 260 && distanceFromPointer > 220) break;
+    }
+
+    const nextX = currentX + targetX - currentCenterX;
+    const nextY = currentY + targetY - currentCenterY;
+    gsap.to(button, {
+      x: nextX,
+      y: nextY,
+      duration: 0.42,
+      ease: "power4.out",
+      overwrite: true,
+    });
   };
 
   const renderStage = () => {
@@ -577,7 +912,7 @@ export default function MyPage() {
             <div className="order-2 flex flex-col gap-7 lg:order-1">
               <div className="space-y-3">
                 <p className="font-ephesis text-[clamp(2.7rem,5vw,4.2rem)] leading-none text-[#f6d2df]/88">
-                  Boo
+                  Miboo
                 </p>
                 <h2 className="font-over text-[66px] leading-[0.88] text-white">
                   Nguyễn Quỳnh Như
@@ -608,13 +943,13 @@ export default function MyPage() {
             <div className="order-1 lg:order-2">
               <div className="relative mx-auto w-full max-w-[34rem]">
                 <div className="absolute -inset-6 rounded-[2.4rem] bg-[radial-gradient(circle_at_top_left,rgba(246,210,223,0.2),transparent_50%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.12),transparent_45%)] blur-2xl" />
-                <div className="absolute left-0 top-0 h-full w-px bg-white/10" />
-                <div className="absolute bottom-0 right-0 h-px w-full bg-white/10" />
+                <div className="absolute top-0 left-0 h-full w-px bg-white/10" />
+                <div className="absolute right-0 bottom-0 h-px w-full bg-white/10" />
 
                 {imageFailed ? (
                   <div className="relative flex aspect-[4/5] items-end overflow-hidden rounded-[2rem] border border-white/8 bg-[linear-gradient(160deg,rgba(255,241,246,0.14),rgba(255,255,255,0.04))] px-7 py-8">
-                    <div className="absolute -left-10 top-6 h-28 w-28 rounded-full bg-[#f6d2df]/16 blur-3xl" />
-                    <div className="absolute -bottom-8 right-4 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+                    <div className="absolute top-6 -left-10 h-28 w-28 rounded-full bg-[#f6d2df]/16 blur-3xl" />
+                    <div className="absolute right-4 -bottom-8 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
                     <div className="relative">
                       <p className="font-ephesis text-5xl leading-none text-[#f6d2df]">
                         Quỳnh Như
@@ -630,6 +965,128 @@ export default function MyPage() {
                   />
                 )}
               </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    if (activeStage === 4) {
+      return (
+        <section className="relative min-h-screen overflow-hidden px-6">
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(246,210,223,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.08),transparent_24%),linear-gradient(180deg,#050505_0%,#0d0a0d_52%,#050505_100%)]" />
+          <div className="pointer-events-none absolute inset-x-0 top-[14%] -z-10 mx-auto h-44 w-[78vw] max-w-5xl rounded-full bg-[#f6d2df]/10 blur-3xl" />
+
+          <div
+            ref={contentRef}
+            className="absolute inset-0 flex items-center justify-center px-6 text-center"
+          >
+            <div className="w-full max-w-6xl">
+              <p className="font-ephesis text-[clamp(1.6rem,2.8vw,2.55rem)] leading-[1.24] whitespace-pre-line text-white/92">
+                <span ref={invitationTextRef} />
+                <span
+                  aria-hidden="true"
+                  className={`text-[#f6d2df] ${
+                    isInvitationComplete ? "animate-pulse opacity-70" : ""
+                  }`}
+                >
+                  {"\u2060|"}
+                </span>
+              </p>
+            </div>
+
+            <div
+              ref={stageFourAreaRef}
+              className={`absolute inset-0 z-20 transition-all duration-700 ${
+                isInvitationComplete
+                  ? "translate-y-0 opacity-100"
+                  : "pointer-events-none translate-y-5 opacity-0"
+              }`}
+              onMouseMove={(event) => {
+                const button = noButtonRef.current;
+                if (!button) return;
+
+                const rect = button.getBoundingClientRect();
+                const dx = event.clientX - (rect.left + rect.width / 2);
+                const dy = event.clientY - (rect.top + rect.height / 2);
+
+                if (Math.hypot(dx, dy) < 110) {
+                  moveNoButton(event.clientX, event.clientY);
+                }
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setHasAcceptedInvitation(true);
+                  setUnlockedStage((current) => (current < 5 ? 5 : current));
+                  handleStageChange(5);
+                }}
+                className="absolute top-[75%] left-[calc(50%_-_7rem)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#f6d2df]/30 bg-[#f6d2df]/12 px-8 py-3 text-sm text-[#f9dfea] shadow-[0_12px_40px_rgba(246,210,223,0.08)] transition duration-300 hover:-translate-y-[55%] hover:bg-[#f6d2df]/20"
+              >
+                Đồng ý
+              </button>
+
+              <button
+                ref={noButtonRef}
+                type="button"
+                onMouseEnter={(event) =>
+                  moveNoButton(event.clientX, event.clientY)
+                }
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  moveNoButton(event.clientX, event.clientY);
+                }}
+                onFocus={() => moveNoButton()}
+                className="absolute top-[75%] left-[calc(50%_+_7rem)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/12 bg-white/6 px-8 py-3 text-sm text-white/72 backdrop-blur-md"
+              >
+                Không
+              </button>
+            </div>
+
+            <p
+              className={`absolute top-[84%] left-1/2 -translate-x-1/2 text-sm text-[#f6d2df]/78 transition-all duration-500 ${
+                hasAcceptedInvitation
+                  ? "translate-y-0 opacity-100"
+                  : "translate-y-2 opacity-0"
+              }`}
+            >
+              Vậy là mặc định vk đồng ý rồi nha.
+            </p>
+          </div>
+        </section>
+      );
+    }
+
+    if (activeStage === 5) {
+      return (
+        <section className="relative h-[100dvh] min-h-[100dvh] overflow-hidden bg-[#050505] px-2 py-2 md:px-3 md:py-3">
+          <div ref={contentRef} className="relative h-full w-full">
+            <div className="absolute inset-0 overflow-hidden rounded-[1.6rem] border border-white/8 bg-black/40 md:rounded-[2rem]">
+              <div className="h-full overflow-y-auto scroll-smooth px-2 py-2 md:px-3 md:py-3">
+                <Masonry
+                  items={[...MASONRY_ITEMS]}
+                  ease="power3.out"
+                  duration={1.15}
+                  stagger={0.08}
+                  animateFrom="bottom"
+                  scaleOnHover
+                  hoverScale={0.95}
+                  blurToFocus
+                  colorShiftOnHover={false}
+                  grayscale
+                />
+              </div>
+            </div>
+
+            <div className="pointer-events-none absolute inset-0 rounded-[1.6rem] bg-[linear-gradient(180deg,rgba(5,5,5,0.2),rgba(5,5,5,0.36)_38%,rgba(5,5,5,0.68))] md:rounded-[2rem]" />
+            <div className="pointer-events-none absolute inset-0 rounded-[1.6rem] bg-[radial-gradient(circle_at_center,rgba(246,210,223,0.08),transparent_42%)] md:rounded-[2rem]" />
+
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-6 text-center">
+              <p className="font-ephesis text-[clamp(1.8rem,3.8vw,3rem)] leading-[1.16] whitespace-pre-line text-white/90">
+                <span ref={galleryTextRef} />
+                <span className="text-[#f6d2df]">{"\u2060|"}</span>
+              </p>
             </div>
           </div>
         </section>
@@ -802,7 +1259,7 @@ export default function MyPage() {
                     }`}
                   >
                     <span
-                      className={`absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full blur-lg ${
+                      className={`absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full blur-lg ${
                         isDisabled ? "bg-white/12" : "bg-[#f6d2df]/30"
                       }`}
                     />
@@ -862,8 +1319,10 @@ export default function MyPage() {
 
                 <div className="flex flex-col justify-between gap-8 p-6 md:p-8">
                   <div>
-                    <p className="text-sm text-white/38">{activeMemory.label}</p>
-                    <h3 className="mt-3 font-over text-[clamp(2rem,4vw,3rem)] leading-[0.92] text-white">
+                    <p className="text-sm text-white/38">
+                      {activeMemory.label}
+                    </p>
+                    <h3 className="font-over mt-3 text-[clamp(2rem,4vw,3rem)] leading-[0.92] text-white">
                       {activeMemory.title}
                     </h3>
                     <p className="mt-5 max-w-[34rem] text-base leading-8 text-white/74">
@@ -919,7 +1378,7 @@ export default function MyPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(246,210,223,0.16),transparent_24%),linear-gradient(180deg,rgba(5,5,5,0.96),rgba(5,5,5,1))]" />
         <div
           ref={overlayTextRef}
-          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center"
+          className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center"
         >
           <span className="font-ephesis text-[clamp(3.5rem,8vw,6rem)] leading-none text-[#f6d2df]">
             {STAGES.find((stage) => stage.id === transitionTargetStage)?.label}
@@ -932,9 +1391,9 @@ export default function MyPage() {
 
       <div className="relative z-10">{renderStage()}</div>
 
-      <div className="fixed right-5 top-1/2 z-30 -translate-y-1/2">
+      <div className="fixed top-1/2 right-5 z-30 -translate-y-1/2">
         <div className="flex flex-col gap-2">
-          {STAGES.map((stage) => {
+          {visibleStages.map((stage) => {
             const isActive = stage.id === activeStage;
 
             return (
@@ -986,13 +1445,11 @@ export default function MyPage() {
           <div className="h-4 w-px bg-white/10" />
           <button
             type="button"
-            onClick={() =>
-              handleStageChange(
-                STAGES[Math.min(activeStageIndex + 1, STAGES.length - 1)].id,
-              )
-            }
+            onClick={() => handleStageChange(getNextStageId(activeStage))}
             disabled={
-              activeStageIndex === STAGES.length - 1 || isTransitioning
+              activeStageIndex === STAGES.length - 1 ||
+              isTransitioning ||
+              !canAdvanceFromCurrentStage
             }
             className="rounded-full px-3 py-1.5 text-sm text-white/60 transition hover:bg-white/8 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
           >
