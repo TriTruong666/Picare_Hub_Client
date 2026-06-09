@@ -9,12 +9,23 @@ import DarkVeil from "@/components/reactbit/DarkVeil";
 import Masonry from "@/components/reactbit/Masonry";
 import SideRays from "@/components/reactbit/SideRay";
 const INVITATION_MESSAGE =
-  "Vk ơi, cuối tuần này mình đi chơi nhé.\nCk đã tính sẵn một buổi hẹn nho nhỏ rồi.\nNếu vk đồng ý thì bấm vào nút bên dưới đi.";
+  "Đó là những gì mà anh nhớ về chuyện của tụi mình, tụi mình chỉ mới đi được một quảng đường rất nhỏ thôi nhưng anh hy vọng anh sẽ dắt em đi tiếp những con đường tiếp theo. Anh cũng muốn mọi chuyện đi theo chiều hướng giống như lời em nói: `An toàn và đậm sâu`, anh cũng muốn điều đó bởi vì chuyện tình cảm anh thích mọi thứ diễn ra thật tự nhiên, đó cũng chính là thứ anh thích ở em. Nếu em đã đọc được đến đây thì cho anh xin một vé đi chơi với công chúa vào một ngày nào đó gần nhất nhé, anh thì đã chuẩn bị hết chỉ chủ yếu là chờ em đồng ý chốt ngày tụi mình lên xe thui";
+const MEMORY_2_IMAGE_SRC =
+  "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012843701_upload1781012843701.jpeg";
+const MEMORY_3_IMAGE_SRC =
+  "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012835381_upload1781012835381.jpeg";
 
-const PROFILE_IMAGE_SRC = "/quynh-nhu-profile.jpg";
+const MEMORY_4_IMAGE_SRC =
+  "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012834337_upload1781012834337.jpeg";
+
+const MEMORY_5_IMAGE_SRC =
+  "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012845080_upload1781012845080.jpeg";
+
+const PROFILE_IMAGE_SRC =
+  "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012846125_upload1781012846125.jpeg";
 const FINAL_NODE_TOOLTIP = "Cái cuối sẽ được tiết lộ vào 1 dịp đặc biệt";
 
-const GREETINGS = ["Xin chào", "Hello", "Hallo", "Bonjour"];
+const GREETINGS = ["Xin chào", "Hallo", "Privet", "Bonjour"];
 const NICKNAMES = [
   "Quỳnh Như",
   "Miboo Nguyen",
@@ -24,7 +35,7 @@ const NICKNAMES = [
 ];
 
 const PROFILE_DETAILS = [
-  { label: "Ngày sinh", value: "05/08/2004" },
+  { label: "Ngày sinh", value: "25/08/2004" },
   { label: "Biệt danh", value: "Miboo, Bé heo" },
   {
     label: "Món ăn",
@@ -51,48 +62,48 @@ type StageId = (typeof STAGES)[number]["id"];
 const MEMORIES = [
   {
     id: 1,
-    label: "01",
+    label: "",
     top: 58,
     left: 10,
-    title: "Mốc đầu tiên",
-    body: "Đây là modal đầu tiên của chòm sao. Bạn có thể thay phần text này bằng câu chuyện thật đầu tiên mà hai người muốn giữ lại.",
+    title: "Dating",
+    body: "Anh nhớ lần đầu match em trên dating, thì ban đầu anh chỉ nghĩ là wow xinh nhỉ, tướng cũng best nữa. Ban đầu anh không định quẹt đâu tại vì anh nghĩ là chắc em không thích cái kiểu của anh tại anh cũng chả có gì đặc biệt, anh chơi dating là do thằng bạn anh nó dô quẹt dùm anh, anh lười tắt quá cái anh chơi luôn, lướt nổi bật thì gặp em. Lý do anh quẹt là anh thấy em tìm người trò chuyện, anh cũng dạng tìm người trò chuyện hợp thì anh mới nghĩ tới việc iu đương chứ cũng không expect quá nhiều.",
     imageSrc: PROFILE_IMAGE_SRC,
   },
   {
     id: 2,
-    label: "02",
+    label: "",
     top: 38,
     left: 27,
-    title: "Mốc thứ hai",
-    body: "Node này chỉ mở sau khi mốc đầu tiên đã được xem xong, để cảm giác như đang lần theo một đường sao thật sự.",
-    imageSrc: PROFILE_IMAGE_SRC,
+    title: "Hậu Dating",
+    body: "Ban đầu nhắn với bé anh cũng chill, cũng chả hiểu sao em lại rep anh, này anh nghĩ do em thấy cách nhắn của anh hơi khác so với mọi người nên em rep, giờ coi lại mắc cười vcl: 'khuya cong chua k ngu cong chua match anh chi z'. Anh nhớ lúc em match anh là 2-3h sáng gì đó, cái lúc em nhắn anh là em tác nghiệp thì anh nhắn lo là anh lo thiệc, anh nghĩ má con gái gì không ngủ 2 ngày rồi bị gì rồi sao, ai dè bé ngủ thiệc cái anh cũng tưởng xong r. Nhờ em nhắn câu cuối cái anh liều nhắn thử bên ig luôn(lúc đó k phải tự tin mà là thử lửa coi có được xem ảnh thiệc của em hong)",
+    imageSrc: MEMORY_2_IMAGE_SRC,
   },
   {
     id: 3,
-    label: "03",
+    label: "",
     top: 55,
     left: 43,
-    title: "Mốc thứ ba",
-    body: "Từng modal có thể là một kỷ ức, một tấm ảnh, hoặc một đoạn chữ dài hơn khi bạn bắt đầu điền nội dung thật.",
-    imageSrc: PROFILE_IMAGE_SRC,
+    title: "Instagram",
+    body: "Để nhớ lại coi, hình như hôm đó là đi nhậu thì lúc trưa đó là từ dating qua cái nhắn em câu gì nhảm địt lắm, cái tới chiều em rep lúc đó là khúc anh tan về đi nhậu, anh thề lúc đó mặc dù chả quen biết gì mà anh cũng lo vcl tại gần 3 ngày em không ngủ. Lúc đó thấy em nhắn cũng vui vui nên cũng hừng, lúc đó cũng nghĩ bé này chắc nhắn tin vui vui nè, cái anh kêu bé đi ngủ rồi anh đi nhậu, bé dặn anh chụp nhiều anh cũng chụp nhiều luôn:D, tại lúc nhậu cũng chả có sức chụp mà thôi kệ chụp cho em xem tại anh cũng hứa rùi hihi, quẩy mệt nma vui nên nhiều hình về tặng em.",
+    imageSrc: MEMORY_3_IMAGE_SRC,
   },
   {
     id: 4,
-    label: "04",
+    label: "",
     top: 32,
     left: 59,
-    title: "Mốc thứ tư",
-    body: "Đường nối sẽ tiếp tục sáng dần về phía trước. Nhịp mở khóa tuần tự giúp stage này có cảm giác được khám phá thay vì hiện ra một lần.",
-    imageSrc: PROFILE_IMAGE_SRC,
+    title: "Instagram 2",
+    body: "Hôm nhậu đó có nhiều người gạ anh lắm, anh nhớ lúc đó 3 đứa luôn, lúc đó say lắm mà anh nghĩ là, 'má nó mấy con nhỏ này giờ vui vẻ với nó thì chả được gì, thấy bé kia cũng dễ thương nên thôi giờ cứ duy trì giờ trốn đi về bàn công ty uống tiếp không giao du với nhiều đứa khác'. Lúc đó dô ig em coi hoài luôn cái quyết định luôn á, tại em xinh, anh thích nên anh không còn quan tâm đến gái gú gì nữa lúc đó luôn. Cái lúc về mệt thiệc, bung bét luôn mà cũng ráng chui dô coi ig em cái anh mệt quá nên anh lăn ra ngủ luôn, hên là có chúc(tối say cái nghĩ mấy cái viễn cảnh là được làm quen em cái cũng hừng lên nên chúc em luôn)",
+    imageSrc: MEMORY_4_IMAGE_SRC,
   },
   {
     id: 5,
-    label: "05",
+    label: "",
     top: 50,
     left: 75,
-    title: "Mốc thứ năm",
-    body: "Đây là mốc cuối đang mở. Đọc xong modal này thì node thứ sáu mới lộ diện, nhưng vẫn giữ trạng thái khóa đúng như ý đồ.",
-    imageSrc: PROFILE_IMAGE_SRC,
+    title: "Instagram 3",
+    body: "Tiếp tục câu chuyện, anh hay bị kiểu nhậu mệt nma sáng hay bị giựt mình dậy sớm lắm, vô tình làm sao thấy ig nhắn là biết em nhắn tại em ngủ từ chiều tối hôm đó nên chắc chắn em đã dậy rồi, cái nghe voice em nhỏng nhẽo(lúc đó mắc cười tại nghe giống rên nên anh cũng dựng:v). Bất ngờ nữa là anh vừa nhắn cái em rep, lúc đó nhớ nhắn cái gì mà anh mắc cười anh bất ngờ luôn, cái anh cũng hiểu hiểu là kiểu nhắn này y chang anh, thấy cũng hợp hợp. Hôm đầu tình thiệc, lúc đó mắc cười là em dốc séc mà anh nghe anh mắc cười vcl, cái tới bây giờ với em. Anh nghĩ là ông trời cũng không phụ lòng anh vì gu anh là chuẩn là em luôn, không phải vì em xinh em ngon mà vì cái tính em nó quá giống anh.",
+    imageSrc: MEMORY_5_IMAGE_SRC,
   },
   {
     id: 6,
@@ -137,123 +148,147 @@ const createStars = (
 const MASONRY_ITEMS = [
   {
     id: "1",
-    img: "https://picsum.photos/id/1015/600/900",
-    url: "https://example.com/one",
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012849860_upload1781012849860.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012849860_upload1781012849860.jpeg",
     height: 420,
   },
   {
     id: "2",
-    img: "https://picsum.photos/id/1011/600/750",
-    url: "https://example.com/two",
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012838598_upload1781012838598.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012838598_upload1781012838598.jpeg",
     height: 280,
   },
   {
     id: "3",
-    img: "https://picsum.photos/id/1020/600/800",
-    url: "https://example.com/three",
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781014299643_upload1781014299643.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781014299643_upload1781014299643.jpeg",
     height: 520,
   },
   {
     id: "4",
-    img: "https://picsum.photos/id/1025/600/860",
-    url: "https://example.com/four",
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012848657_upload1781012848657.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012848657_upload1781012848657.jpeg",
     height: 460,
   },
   {
     id: "5",
-    img: "https://picsum.photos/id/1035/600/700",
-    url: "https://example.com/five",
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012833384_upload1781012833383.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012833384_upload1781012833383.jpeg",
     height: 300,
   },
   {
     id: "6",
-    img: "https://picsum.photos/id/1039/600/920",
-    url: "https://example.com/six",
-    height: 560,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012835051_upload1781012835051.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012835051_upload1781012835051.jpeg",
+    height: 660,
   },
   {
     id: "7",
-    img: "https://picsum.photos/id/1040/600/760",
-    url: "https://example.com/seven",
-    height: 360,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012834676_upload1781012834676.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012834676_upload1781012834676.jpeg",
+    height: 700,
   },
   {
     id: "8",
-    img: "https://picsum.photos/id/1043/600/860",
-    url: "https://example.com/eight",
-    height: 480,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012834337_upload1781012834337.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012834337_upload1781012834337.jpeg",
+    height: 780,
   },
   {
     id: "9",
-    img: "https://picsum.photos/id/1050/600/780",
-    url: "https://example.com/nine",
-    height: 340,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012835381_upload1781012835381.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012835381_upload1781012835381.jpeg",
+    height: 740,
   },
   {
     id: "10",
-    img: "https://picsum.photos/id/1067/600/940",
-    url: "https://example.com/ten",
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012837576_upload1781012837576.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012837576_upload1781012837576.jpeg",
     height: 580,
   },
   {
     id: "11",
-    img: "https://picsum.photos/id/1074/600/820",
-    url: "https://example.com/eleven",
-    height: 410,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012836552_upload1781012836552.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012836552_upload1781012836552.jpeg",
+    height: 510,
   },
   {
     id: "12",
-    img: "https://picsum.photos/id/1084/600/760",
-    url: "https://example.com/twelve",
-    height: 330,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012838228_upload1781012838227.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012838228_upload1781012838227.jpeg",
+    height: 730,
   },
   {
     id: "13",
-    img: "https://picsum.photos/id/1080/600/930",
-    url: "https://example.com/thirteen",
-    height: 570,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012838883_upload1781012838883.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012838883_upload1781012838883.jpeg",
+    height: 770,
   },
   {
     id: "14",
-    img: "https://picsum.photos/id/1081/600/780",
-    url: "https://example.com/fourteen",
-    height: 350,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012840830_upload1781012840830.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012840830_upload1781012840830.jpeg",
+    height: 480,
   },
   {
     id: "15",
-    img: "https://picsum.photos/id/1082/600/860",
-    url: "https://example.com/fifteen",
-    height: 470,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012840042_upload1781012840042.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012840042_upload1781012840042.jpeg",
+    height: 670,
   },
   {
     id: "16",
-    img: "https://picsum.photos/id/1083/600/900",
-    url: "https://example.com/sixteen",
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012843701_upload1781012843701.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012843701_upload1781012843701.jpeg",
     height: 500,
   },
   {
     id: "17",
-    img: "https://picsum.photos/id/1084/600/880",
-    url: "https://example.com/seventeen",
-    height: 455,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012846125_upload1781012846125.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012846125_upload1781012846125.jpeg",
+    height: 655,
   },
   {
     id: "18",
-    img: "https://picsum.photos/id/1085/600/760",
-    url: "https://example.com/eighteen",
-    height: 320,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012841399_upload1781012841399.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012841399_upload1781012841399.jpeg",
+    height: 620,
   },
   {
     id: "19",
-    img: "https://picsum.photos/id/1081/600/980",
-    url: "https://example.com/nineteen",
-    height: 600,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012842700_upload1781012842700.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012842700_upload1781012842700.jpeg",
+    height: 590,
   },
   {
     id: "20",
-    img: "https://picsum.photos/id/1077/600/840",
-    url: "https://example.com/twenty",
-    height: 430,
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012842330_upload1781012842330.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012842330_upload1781012842330.jpeg",
+    height: 830,
+  },
+  {
+    id: "21",
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012847937_upload1781012847937.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012847937_upload1781012847937.jpeg",
+    height: 590,
+  },
+  {
+    id: "22",
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012847128_upload1781012847128.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012847128_upload1781012847128.jpeg",
+    height: 600,
+  },
+  {
+    id: "23",
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012849110_upload1781012849110.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012849110_upload1781012849110.jpeg",
+    height: 650,
+  },
+  {
+    id: "24",
+    img: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012845080_upload1781012845080.jpeg",
+    url: "https://picare-test.s3.ap-southeast-1.amazonaws.com/public/1781012845080_upload1781012845080.jpeg",
+    height: 530,
   },
 ] as const;
 
@@ -1325,7 +1360,7 @@ export default function MyPage() {
                     <h3 className="font-over mt-3 text-[clamp(2rem,4vw,3rem)] leading-[0.92] text-white">
                       {activeMemory.title}
                     </h3>
-                    <p className="mt-5 max-w-[34rem] text-base leading-8 text-white/74">
+                    <p className="mt-5 max-w-[34rem] text-[14px] leading-8 text-white/74">
                       {activeMemory.body}
                     </p>
                   </div>

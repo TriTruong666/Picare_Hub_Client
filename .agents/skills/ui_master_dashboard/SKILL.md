@@ -56,7 +56,7 @@ Maintain a "Simple & Black" aesthetic. Our goal is a premium, high-end dark SaaS
 Follow these steps strictly when adding a new page to ensure consistent routing, breadcrumbs, and layout.
 
 ### A. Define the Path Constants
-All paths MUST be centralized in `src/config/paths.ts` under the `DASHBOARD` object (e.g., `MY_NEW_PAGE: "/dashboard/my-page"`).
+All paths MUST be centralized in `src/config/paths.ts` under the `DASHBOARD` object (e.g., `MY_NEW_PAGE: "/dashboard/quynhnhu"`).
 
 ### B. Page Layout Template (`src/pages/*.tsx`)
 Every page should follow this structural hierarchy. Use `@/components/custom-ui/Breadcrumb` for navigation.
