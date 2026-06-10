@@ -44,6 +44,10 @@ function getPreviewPath(contractId: string) {
   return PATHS.CONTRACT_PREVIEW.replace(":contractId", contractId);
 }
 
+function getDetailPath(contractId: string) {
+  return PATHS.CONTRACT_DETAIL.replace(":contractId", contractId);
+}
+
 const CONTRACT_STATUS_BADGE: Record<
   ContractStatus,
   "info" | "warning" | "purple" | "success"
@@ -105,7 +109,10 @@ export default function ContractDashboardPage() {
             const baseUrl = import.meta.env.VITE_HUB_API_URL;
             window.open(`${baseUrl}/api/v1/s3/view/${key}`, "_blank");
           }}
-          onOpenDetail={(contract) => navigate(getPreviewPath(contract.contractId))}
+          onOpenPreview={(contract) =>
+            navigate(getPreviewPath(contract.contractId))
+          }
+          onOpenDetail={(contract) => navigate(getDetailPath(contract.contractId))}
         />
 
         {pagination ? (
@@ -127,6 +134,7 @@ function ContractTable({
   isError,
   refetch,
   onOpenDocument,
+  onOpenPreview,
   onOpenDetail,
 }: {
   contracts: Contract[];
@@ -134,6 +142,7 @@ function ContractTable({
   isError: boolean;
   refetch: () => void;
   onOpenDocument: (contract: Contract) => void;
+  onOpenPreview: (contract: Contract) => void;
   onOpenDetail: (contract: Contract) => void;
 }) {
   if (isLoading) {
@@ -266,7 +275,7 @@ function ContractTable({
                     <Tooltip content="Xem bản preview">
                       <IconAction
                         icon={<FiEye />}
-                        onClick={() => onOpenDetail(contract)}
+                        onClick={() => onOpenPreview(contract)}
                       />
                     </Tooltip>
                     <Tooltip content="Chi tiết hợp đồng">

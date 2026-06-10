@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useMemo, useState } from "react";
 import { useAtom } from "jotai";
 import { FiPlus, FiUserPlus } from "react-icons/fi";
@@ -149,12 +148,15 @@ function AccountTable({
 
   const roleLabels: Record<User["role"], string> = {
     admin: "Quản trị viên",
-    ecom_lead: "Ecom Leader",
-    ecom_staff: "Ecom Team",
-    logistics: "Vận hành",
+    ecom_lead: "Ecom Lead",
+    ecom_staff: "Ecom Staff",
     warehouse: "Kho",
+    sale_lead: "Sale Lead",
+    sale_staff: "Sale Staff",
     marketing: "Marketing",
-    default: "Người dùng",
+    business_development: "Business Development",
+    finance: "Finance",
+    demo: "Demo",
   };
 
   const sortedUsers = useMemo(

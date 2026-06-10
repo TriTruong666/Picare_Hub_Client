@@ -1,5 +1,5 @@
 import type { BasePaginatedResponse, BaseResponse } from "@/types/ApiResponse";
-import type { User } from "@/types/User";
+import type { CreateUserPayload, User } from "@/types/User";
 import { hubAxiosClient } from "./client";
 
 /**
@@ -20,5 +20,12 @@ export async function getUser(
   const res = await hubAxiosClient.get(
     `/api/v1/users?page=${page}&limit=${limit}`,
   );
+  return res.data;
+}
+
+export async function createUser(
+  payload: CreateUserPayload,
+): Promise<BaseResponse<null>> {
+  const res = await hubAxiosClient.post("/api/v1/users", payload);
   return res.data;
 }

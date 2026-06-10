@@ -17,7 +17,7 @@ export const STATIC_HUB_CLIENTS: HubClient[] = [
     clientInternalUrl: PATHS.CONTRACT_CREATE,
     clientExternalUrl: PATHS.CONTRACT_CREATE,
     clientStatus: "active",
-    allowedRoles: ["admin", "sale_lead", "sale_staff"],
+    allowedRoles: ["admin", "finance"],
     note: "Static hub client",
     createdAt: "",
     updatedAt: "",
@@ -28,13 +28,13 @@ export const STATIC_HUB_CLIENTS: HubClient[] = [
     clientDescription:
       "Tạo QR Code cho sản phẩm của bạn, có thể tùy chỉnh logo, màu sắc và các thông tin khác.",
     clientLogoImage:
-      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1780894621968_upload1780894621967.png",
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1781065814978_upload1781065814978.png",
     clientMockupImage:
       "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1780894621968_upload1780894621967.png",
     clientInternalUrl: PATHS.QR_PRODUCT_GENERATOR,
     clientExternalUrl: PATHS.QR_PRODUCT_GENERATOR,
     clientStatus: "active",
-    allowedRoles: ["admin", "sale_lead", "sale_staff"],
+    allowedRoles: ["admin", "business_development"],
     note: "Static hub client",
     createdAt: "",
     updatedAt: "",

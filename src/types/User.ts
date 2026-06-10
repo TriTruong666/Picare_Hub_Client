@@ -5,13 +5,26 @@ export type User = {
   phone?: string | null;
   isOnline: boolean;
   note?: string | null;
-  role:
-    | "admin"
-    | "ecom_staff"
-    | "ecom_lead"
-    | "warehouse"
-    | "logistics"
-    | "marketing"
-    | "default";
+  role: UserRole;
   createdAt: string;
+};
+
+type UserRole =
+  | "admin"
+  | "ecom_staff"
+  | "ecom_lead"
+  | "warehouse"
+  | "sale_lead"
+  | "sale_staff"
+  | "marketing"
+  | "business_development"
+  | "finance"
+  | "demo";
+
+export type CreateUserPayload = {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string | null;
+  role: UserRole;
 };
