@@ -6,12 +6,14 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AuthProvider } from "./hooks/useAuth";
 import { ToastContainer } from "./components/ToastContainer";
 import ModalContainer from "./components/ModalContainer";
+import { DevtoolsGuard } from "./components/guards/DevtoolsGuard";
 
 export default function App() {
   return (
     <QueryProvider>
       <AuthProvider>
         <BrowserRouter>
+          <DevtoolsGuard />
           <AppRouter />
           <ModalContainer />
           <ToastContainer />
