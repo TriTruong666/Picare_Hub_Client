@@ -28,6 +28,7 @@ export const PATHS = {
     SETTINGS: "/dashboard/settings",
     ACCOUNTS: "/dashboard/accounts",
     CONTRACTS: "/dashboard/contracts",
+    QR_PRODUCTS: "/dashboard/qr-products",
     STORAGE: "/dashboard/storage",
     HUB_CLIENTS: "/dashboard/hub-clients",
     HUB_CLIENT_CREATE: "/dashboard/hub-clients/create",

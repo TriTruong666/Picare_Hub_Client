@@ -29,70 +29,80 @@ const ROLE_OPTIONS: RoleOption[] = [
     value: "admin",
     label: "Admin",
     description: "Toàn quyền hệ thống",
-    accentClass: "from-rose-500/20 to-orange-500/20 text-rose-600 dark:text-rose-300",
+    accentClass:
+      "from-rose-500/20 to-orange-500/20 text-rose-600 dark:text-rose-300",
     icon: "A",
   },
   {
     value: "ecom_staff",
     label: "Ecom Staff",
     description: "Vận hành ecommerce",
-    accentClass: "from-sky-500/20 to-cyan-500/20 text-sky-600 dark:text-sky-300",
+    accentClass:
+      "from-sky-500/20 to-cyan-500/20 text-sky-600 dark:text-sky-300",
     icon: "ES",
   },
   {
     value: "ecom_lead",
     label: "Ecom Lead",
     description: "Lead ecommerce",
-    accentClass: "from-blue-500/20 to-indigo-500/20 text-blue-600 dark:text-blue-300",
+    accentClass:
+      "from-blue-500/20 to-indigo-500/20 text-blue-600 dark:text-blue-300",
     icon: "EL",
   },
   {
     value: "warehouse",
     label: "Warehouse",
     description: "Kho và xuất nhập",
-    accentClass: "from-amber-500/20 to-yellow-500/20 text-amber-700 dark:text-amber-300",
+    accentClass:
+      "from-amber-500/20 to-yellow-500/20 text-amber-700 dark:text-amber-300",
     icon: "WH",
   },
   {
     value: "sale_lead",
     label: "Sale Lead",
     description: "Lead kinh doanh",
-    accentClass: "from-emerald-500/20 to-teal-500/20 text-emerald-700 dark:text-emerald-300",
+    accentClass:
+      "from-emerald-500/20 to-teal-500/20 text-emerald-700 dark:text-emerald-300",
     icon: "SL",
   },
   {
     value: "sale_staff",
     label: "Sale Staff",
     description: "Nhân sự kinh doanh",
-    accentClass: "from-lime-500/20 to-green-500/20 text-lime-700 dark:text-lime-300",
+    accentClass:
+      "from-lime-500/20 to-green-500/20 text-lime-700 dark:text-lime-300",
     icon: "SS",
   },
   {
     value: "marketing",
     label: "Marketing",
     description: "Truyền thông",
-    accentClass: "from-fuchsia-500/20 to-pink-500/20 text-fuchsia-700 dark:text-fuchsia-300",
+    accentClass:
+      "from-fuchsia-500/20 to-pink-500/20 text-fuchsia-700 dark:text-fuchsia-300",
     icon: "MK",
   },
   {
     value: "business_development",
-    label: "Biz Dev",
+    label: "BD",
     description: "Phát triển đối tác",
-    accentClass: "from-violet-500/20 to-purple-500/20 text-violet-700 dark:text-violet-300",
+    accentClass:
+      "from-violet-500/20 to-purple-500/20 text-violet-700 dark:text-violet-300",
     icon: "BD",
   },
   {
     value: "finance",
     label: "Finance",
     description: "Tài chính",
-    accentClass: "from-stone-400/30 to-zinc-400/30 text-stone-700 dark:text-stone-200",
+    accentClass:
+      "from-stone-400/30 to-zinc-400/30 text-stone-700 dark:text-stone-200",
     icon: "FN",
   },
   {
     value: "demo",
     label: "Demo",
     description: "Tài khoản demo",
-    accentClass: "from-indigo-500/20 to-purple-500/20 text-indigo-700 dark:text-indigo-300",
+    accentClass:
+      "from-indigo-500/20 to-purple-500/20 text-indigo-700 dark:text-indigo-300",
     icon: "DM",
   },
 ];
@@ -271,7 +281,7 @@ export function AddAccountModal() {
                   value={form.name}
                   onChange={(event) => setField("name", event.target.value)}
                   disabled={isSubmitting}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500"
+                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 transition outline-none placeholder:text-gray-400 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500"
                   placeholder="Nhập họ và tên"
                 />
               </div>
@@ -283,7 +293,7 @@ export function AddAccountModal() {
                   value={form.email}
                   onChange={(event) => setField("email", event.target.value)}
                   disabled={isSubmitting}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500"
+                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 transition outline-none placeholder:text-gray-400 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500"
                   placeholder="email@company.com"
                 />
               </div>
@@ -295,7 +305,7 @@ export function AddAccountModal() {
                   value={form.phone}
                   onChange={(event) => setField("phone", event.target.value)}
                   disabled={isSubmitting}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500"
+                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 transition outline-none placeholder:text-gray-400 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500"
                   placeholder="Nhập số điện thoại"
                 />
               </div>
@@ -307,7 +317,7 @@ export function AddAccountModal() {
                   value={form.password}
                   onChange={(event) => setField("password", event.target.value)}
                   disabled={isSubmitting}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500"
+                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 transition outline-none placeholder:text-gray-400 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500"
                   placeholder="Nhập mật khẩu đăng nhập"
                 />
               </div>

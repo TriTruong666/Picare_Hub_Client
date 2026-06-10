@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
-import { FiArchive, FiLayout, FiUsers, FiGrid, FiFileText } from "react-icons/fi";
+import { FiArchive, FiLayout, FiUsers, FiGrid, FiFileText, FiBox } from "react-icons/fi";
 import type { Role } from "@/hooks/useAuth";
 import LandingPage from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/public/LoginPage";
@@ -14,6 +14,7 @@ import ContractEditPage from "@/pages/private/ContractEditPage";
 import ContractPreviewPage from "@/pages/private/ContractPreviewPage";
 import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
 import QRProductEditPage from "@/pages/private/QRProductEditPage";
+import QRProductDashboardPage from "@/pages/private/QRProductDashboardPage";
 import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
 import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
 import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
@@ -92,6 +93,13 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     element: <ContractDashboardPage />,
     label: "H\u1ee3p \u0111\u1ed3ng",
     icon: FiFileText,
+    showInSidebar: true,
+  },
+  {
+    path: PATHS.DASHBOARD.QR_PRODUCTS,
+    element: <QRProductDashboardPage />,
+    label: "QR Sản phẩm",
+    icon: FiBox,
     showInSidebar: true,
   },
   {

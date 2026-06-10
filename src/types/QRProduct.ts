@@ -40,6 +40,7 @@ export type ProductQRJson = {
   manufacturer: string;
   expirationDate: string;
   unmappedContent: string;
+  packageSpecification: string;
   manufacturingDate: string;
   marketResponsible: string;
   usageInstructions: string;

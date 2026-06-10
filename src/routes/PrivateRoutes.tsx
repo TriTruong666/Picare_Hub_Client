@@ -8,6 +8,7 @@ import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
 import HubClientCreatePage from "@/pages/private/HubClientCreatePage";
 import HubClientDashboardPage from "@/pages/private/HubClientDashboardPage";
 import HubClientEditPage from "@/pages/private/HubClientEditPage";
+import QRProductDashboardPage from "@/pages/private/QRProductDashboardPage";
 import PrivateStubPage from "@/pages/private/PrivateStubPage";
 import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
 import StorageFolderDetailPage from "@/pages/private/StorageFolderDetailPage";
@@ -22,6 +23,7 @@ export default function PrivateRoutes() {
           <Route path="summary" element={<SummaryDashboardPage />} />
           <Route path="accounts" element={<AccountDashboardPage />} />
           <Route path="contracts" element={<ContractDashboardPage />} />
+          <Route path="qr-products" element={<QRProductDashboardPage />} />
           <Route
             path="contracts/:contractId"
             element={<ContractDetailDashboardPage />}

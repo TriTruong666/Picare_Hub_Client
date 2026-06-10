@@ -1,16 +1,13 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  FiArrowLeft,
-  FiGlobe,
   FiMoon,
   FiShoppingCart,
   FiSun,
 } from "react-icons/fi";
 import { Link, useParams } from "react-router-dom";
 
-import picareLogoDark from "@/assets/images/picare_logo_dark.png";
-import picareLogoLight from "@/assets/images/picare_logo_light.png";
 import logo from "@/assets/images/logo.png";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { PATHS } from "@/config/paths";
@@ -375,6 +372,7 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
   const manufacturer = normalizeValue(info.manufacturer);
   const marketResponsible = normalizeValue(info.marketResponsible);
   const volume = normalizeValue(info.netVolume);
+  const packageSpecification = normalizeValue(info.packageSpecification);
   const shelfLife = normalizeValue(info.shelfLife);
   const batchNumber = normalizeValue(info.batchNumber);
   const manufacturingDate = normalizeValue(info.manufacturingDate);
@@ -383,11 +381,10 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
   const origin = normalizeValue(info.origin);
   const storage = normalizeValue(info.storage);
   const extraContent = normalizeValue(info.unmappedContent);
-  const sku = normalizeValue(info.sku);
-
   const highlights = [
     // { label: "SKU", value: sku },
     { label: "Dung tích", value: volume },
+    { label: "Quy cách", value: packageSpecification },
     { label: "Hạn dùng", value: shelfLife },
     { label: "Số lô", value: batchNumber },
     { label: "Số công bố", value: notificationNumber },
@@ -409,13 +406,9 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
         <header className="relative flex items-center justify-between border-b border-black/10 py-4 sm:py-5 dark:border-white/10">
           <Link
             to={PATHS.HOME}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white/70 text-black/55 transition hover:border-black/20 hover:text-black dark:border-white/10 dark:bg-white/5 dark:text-white/55 dark:hover:text-white"
-            aria-label="Quay về trang chủ"
+            className="flex items-center gap-2"
+            aria-label="Về trang chủ"
           >
-            <FiArrowLeft />
-          </Link>
-
-          <div className="pointer-events-none absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2">
             <img
               src={logo}
               alt=""
@@ -424,9 +417,9 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
             <span className="font-bricolage text-base font-medium text-[#111111] sm:text-lg dark:text-white">
               Picare Hub
             </span>
-          </div>
+          </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2">
             <ProductPreviewThemeToggle />
             {website ? (
               <a

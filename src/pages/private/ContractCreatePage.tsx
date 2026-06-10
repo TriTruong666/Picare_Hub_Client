@@ -5,9 +5,11 @@ import {
   FiArrowLeft,
   FiCheck,
   FiClock,
+  FiExternalLink,
   FiSearch,
   FiPlus,
   FiTrash2,
+  FiX,
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -196,6 +198,77 @@ function getPreviewPath(contractId: string) {
   return PATHS.CONTRACT_PREVIEW.replace(":contractId", contractId);
 }
 
+function getContractPreviewUrl(contractId: string) {
+  if (typeof window === "undefined") {
+    return getPreviewPath(contractId);
+  }
+
+  return new URL(getPreviewPath(contractId), window.location.origin).toString();
+}
+
+function getContractQrImageSrc(previewUrl: string) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${encodeURIComponent(previewUrl)}`;
+}
+
+function ContractPreviewQrModal({
+  contractId,
+  contractLabel,
+  onClose,
+}: {
+  contractId: string;
+  contractLabel: string;
+  onClose: () => void;
+}) {
+  const previewUrl = getContractPreviewUrl(contractId);
+  const qrImageSrc = getContractQrImageSrc(previewUrl);
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/72 px-4 backdrop-blur-sm">
+      <button
+        type="button"
+        aria-label="Đóng modal QR"
+        onClick={onClose}
+        className="absolute inset-0"
+      />
+
+      <div className="relative w-full max-w-md border border-white/10 bg-[#050505] p-6 text-white shadow-[0_32px_80px_rgba(0,0,0,0.52)]">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-3 right-3 flex h-9 w-9 items-center justify-center border border-white/10 text-white/55 transition hover:border-white/20 hover:text-white"
+          aria-label="Đóng"
+        >
+          <FiX />
+        </button>
+
+        <div className="flex flex-col items-center text-center">
+          <div className="mx-auto w-full max-w-[320px] border border-white/10 bg-white p-5">
+            <img
+              src={qrImageSrc}
+              alt={contractLabel || "QR hợp đồng"}
+              className="mx-auto aspect-square w-full max-w-[280px] object-contain"
+            />
+          </div>
+
+          <p className="mt-4 max-w-[320px] text-center text-xs leading-6 text-white/45">
+            Đây là mã QR và link preview hợp đồng hiện tại. Bạn có thể quét mã hoặc mở trực tiếp đường dẫn bên dưới.
+          </p>
+
+          <a
+            href={previewUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-5 flex w-full max-w-[320px] items-center justify-center gap-3 border border-white/10 bg-white/[0.03] px-4 py-3 text-center text-sm text-white/80 transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
+          >
+            <span className="truncate">{previewUrl}</span>
+            <FiExternalLink className="shrink-0" />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ContractFormPage({
   mode = "create",
   initialContract,
@@ -231,6 +304,7 @@ export function ContractFormPage({
     Boolean(initialContract),
   );
   const [taxLookupMessage, setTaxLookupMessage] = useState("");
+  const [isContractQrModalOpen, setIsContractQrModalOpen] = useState(false);
 
   const ownerCompanyInfo = OWNER_TEMPLATES[selectedOwnerIndex];
   const isEditMode = mode === "edit";
@@ -854,6 +928,16 @@ export function ContractFormPage({
                 {isEditMode && initialContract ? (
                   <button
                     type="button"
+                    onClick={() => setIsContractQrModalOpen(true)}
+                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.07] px-6 text-sm font-medium text-black/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.11] hover:text-[#111111] dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white active:translate-y-0 active:scale-[0.98]"
+                  >
+                    Xem QR
+                  </button>
+                ) : null}
+
+                {isEditMode && initialContract ? (
+                  <button
+                    type="button"
                     onClick={() =>
                       navigate(getPreviewPath(initialContract.contractId))
                     }
@@ -882,6 +966,15 @@ export function ContractFormPage({
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
       />
+      {isEditMode && initialContract && isContractQrModalOpen ? (
+        <ContractPreviewQrModal
+          contractId={initialContract.contractId}
+          contractLabel={
+            initialContract.contractNumber || initialContract.contractId
+          }
+          onClose={() => setIsContractQrModalOpen(false)}
+        />
+      ) : null}
     </main>
   );
 }
