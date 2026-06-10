@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import gsap from "gsap";
 import RotatingText, {
@@ -293,6 +293,16 @@ const MASONRY_ITEMS = [
 ] as const;
 
 export default function MyPage() {
+  const [isUnlocked, setIsUnlocked] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("page_unlocked_250804") === "true";
+    }
+    return false;
+  });
+  const [pinCode, setPinCode] = useState("");
+  const [pinError, setPinError] = useState(false);
+  const pinInputRef = useRef<HTMLInputElement>(null);
+
   const [activeStage, setActiveStage] = useState<StageId>(1);
   const [transitionTargetStage, setTransitionTargetStage] =
     useState<StageId>(1);
@@ -306,6 +316,118 @@ export default function MyPage() {
   const [hasAcceptedInvitation, setHasAcceptedInvitation] = useState(false);
   const [invitationTypingSession, setInvitationTypingSession] = useState(0);
   const [galleryTypingSession, setGalleryTypingSession] = useState(0);
+
+  const handleVerify = (code: string) => {
+    if (code === "250804") {
+      sessionStorage.setItem("page_unlocked_250804", "true");
+      setIsUnlocked(true);
+    } else if (code.length === 6) {
+      setPinError(true);
+      if (pinInputRef.current) {
+        gsap.fromTo(
+          pinInputRef.current.parentElement,
+          { x: -10 },
+          {
+            x: 0,
+            duration: 0.08,
+            repeat: 5,
+            yoyo: true,
+            onComplete: () => {
+              setPinCode("");
+              setPinError(false);
+            },
+          }
+        );
+      } else {
+        setPinCode("");
+        setTimeout(() => setPinError(false), 1000);
+      }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleVerify(pinCode);
+    }
+  };
+
+  if (!isUnlocked) {
+    return (
+      <main className="relative flex min-h-screen items-center justify-center bg-[#050505] text-white px-6 overflow-hidden">
+        {/* Ambient background glow */}
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(246,210,223,0.12),transparent_40%)]" />
+        <div className="pointer-events-none absolute inset-0 -z-20 bg-[#020202]" />
+
+        <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.02] p-8 md:p-10 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#f6d2df]/30 bg-[#f6d2df]/10 text-[#f6d2df] shadow-[0_0_20px_rgba(246,210,223,0.2)] animate-pulse">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="h-8 w-8"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+              />
+            </svg>
+          </div>
+
+          <h2 className="font-over text-3xl text-white mb-2 tracking-wide">
+            Access Restricted
+          </h2>
+          <p className="text-sm text-white/50 mb-8 max-w-xs">
+            Trang web này được bảo vệ. Vui lòng nhập mã khóa để tiếp tục.
+          </p>
+
+          <div className="w-full space-y-4">
+            <div
+              className={`relative flex items-center justify-center rounded-xl border transition-all duration-300 ${
+                pinError
+                  ? "border-red-500 bg-red-500/5 animate-shake"
+                  : "border-white/12 bg-white/5 focus-within:border-[#f6d2df]/50 focus-within:shadow-[0_0_15px_rgba(246,210,223,0.15)]"
+              }`}
+            >
+              <input
+                ref={pinInputRef}
+                type="password"
+                maxLength={6}
+                value={pinCode}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "");
+                  setPinCode(val);
+                  if (val.length === 6) {
+                    handleVerify(val);
+                  }
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="••••••"
+                className="w-full bg-transparent py-4 text-center text-2xl tracking-[0.75em] text-white placeholder-white/20 focus:outline-none"
+                autoFocus
+              />
+            </div>
+
+            {pinError && (
+              <p className="text-xs text-red-400">
+                Mã khóa không chính xác. Vui lòng thử lại!
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => handleVerify(pinCode)}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#f6d2df]/20 to-[#f6d2df]/10 border border-[#f6d2df]/30 text-[#f9dfea] text-sm font-medium tracking-wider hover:from-[#f6d2df]/30 hover:to-[#f6d2df]/20 transition duration-300 shadow-[0_4px_20px_rgba(246,210,223,0.05)]"
+            >
+              Xác nhận
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const overlayTextRef = useRef<HTMLDivElement>(null);
