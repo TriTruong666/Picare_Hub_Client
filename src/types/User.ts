@@ -9,17 +9,26 @@ export type User = {
   createdAt: string;
 };
 
-type UserRole =
-  | "admin"
-  | "ecom_staff"
-  | "ecom_lead"
-  | "warehouse"
-  | "sale_lead"
-  | "sale_staff"
-  | "marketing"
-  | "business_development"
-  | "finance"
-  | "demo";
+export const USER_ROLES = [
+  "admin",
+  "ecom_staff",
+  "ecom_lead",
+  "warehouse",
+  "sale_lead",
+  "sale_staff",
+  "marketing",
+  "business_development",
+  "finance",
+  "demo",
+] as const;
+
+export type UserRole = (typeof USER_ROLES)[number];
+
+export const USER_ROLE_OPTIONS: Array<{ value: UserRole; label: string }> =
+  USER_ROLES.map((role) => ({
+    value: role,
+    label: role,
+  }));
 
 export type CreateUserPayload = {
   name: string;

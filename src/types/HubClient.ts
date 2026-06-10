@@ -1,3 +1,5 @@
+import type { UserRole } from "@/types/User";
+
 export type HubClient = {
   clientId: string;
   clientName: string;
@@ -15,16 +17,7 @@ export type HubClient = {
 
 export type HubClientStatus = "active" | "inactive";
 
-export type HubClientRole =
-  | "admin"
-  | "ecom_staff"
-  | "ecom_lead"
-  | "warehouse"
-  | "sale_lead"
-  | "sale_staff"
-  | "marketing"
-  | "business_development"
-  | "finance";
+export type HubClientRole = UserRole;
 
 export type CreateHubClientInput = {
   clientName: string;

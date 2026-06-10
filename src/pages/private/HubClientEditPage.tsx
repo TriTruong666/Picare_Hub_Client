@@ -22,10 +22,11 @@ import {
 } from "@/hooks/data/useHubClientHooks";
 import { useUploadS3Asset } from "@/hooks/data/useS3Hooks";
 import type { HubClientRole, HubClientStatus } from "@/types/HubClient";
+import { USER_ROLE_OPTIONS } from "@/types/User";
 
 const HUB_CLIENT_IMAGE_FOLDER = "public";
 
-const ALL_ROLES: { value: HubClientRole; label: string }[] = [
+/* const ALL_ROLES: { value: HubClientRole; label: string }[] = [
   { value: "admin", label: "Quản trị viên" },
   { value: "ecom_staff", label: "Ecom Staff" },
   { value: "ecom_lead", label: "Ecom Leader" },
@@ -34,7 +35,7 @@ const ALL_ROLES: { value: HubClientRole; label: string }[] = [
   { value: "sale_lead", label: "Sale Leader" },
   { value: "sale_staff", label: "Sale Staff" },
   { value: "marketing", label: "Marketing" },
-];
+]; */
 
 const STATUS_OPTIONS: { value: HubClientStatus; label: string }[] = [
   { value: "active", label: "Hoạt động" },
@@ -661,7 +662,7 @@ export default function HubClientEditPage() {
               Chọn các vai trò có thể truy cập client này
             </p>
             <div className="flex flex-col gap-2">
-              {ALL_ROLES.map((role) => {
+              {USER_ROLE_OPTIONS.map((role) => {
                 const active = allowedRoles.includes(role.value);
                 return (
                   <button
