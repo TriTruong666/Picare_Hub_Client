@@ -49,5 +49,11 @@ export default function QRProductEditPage() {
     );
   }
 
-  return <QRProductFormPage mode="edit" initialProduct={product} />;
+  return (
+    <QRProductFormPage
+      mode="edit"
+      initialProduct={product}
+      showQrButton
+    />
+  );
 }

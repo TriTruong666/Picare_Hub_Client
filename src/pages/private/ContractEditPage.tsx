@@ -72,5 +72,11 @@ export default function ContractEditPage() {
     );
   }
 
-  return <ContractFormPage mode="edit" initialContract={contract} />;
+  return (
+    <ContractFormPage
+      mode="edit"
+      initialContract={contract}
+      showQrButton={false}
+    />
+  );
 }

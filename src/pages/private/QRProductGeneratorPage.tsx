@@ -436,9 +436,11 @@ function DeleteProductQRModal({
 export function QRProductFormPage({
   mode = "create",
   initialProduct,
+  showQrButton = false,
 }: {
   mode?: QRProductFormMode;
   initialProduct?: ProductQR;
+  showQrButton?: boolean;
 }) {
   const navigate = useNavigate();
   const createProductQRMutation = useCreateProductQR();
@@ -585,6 +587,15 @@ export function QRProductFormPage({
     initialProduct?.productId ||
     "";
 
+  const openCurrentQrModal = () => {
+    if (!initialProduct) return;
+
+    setSuccessModalHelperText(
+      "Đây là mã QR và link preview sản phẩm sau khi cập nhật. Bạn có thể quét mã hoặc mở trực tiếp đường dẫn bên dưới.",
+    );
+    setCreatedProduct(initialProduct);
+  };
+
   return (
     <main className="qr-generator-page dashboard-theme min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
       {!isHistoryOpen ? (
@@ -707,6 +718,16 @@ export function QRProductFormPage({
                     className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.08] px-6 text-sm font-medium text-black/84 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.12] hover:text-[#111111] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white"
                   >
                     Preview
+                  </button>
+                ) : null}
+
+                {isEditMode && initialProduct && showQrButton ? (
+                  <button
+                    type="button"
+                    onClick={openCurrentQrModal}
+                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.07] px-6 text-sm font-medium text-black/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.11] hover:text-[#111111] dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white active:translate-y-0 active:scale-[0.98]"
+                  >
+                    Xem QR
                   </button>
                 ) : null}
 

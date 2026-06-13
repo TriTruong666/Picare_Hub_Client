@@ -272,9 +272,11 @@ function ContractPreviewQrModal({
 export function ContractFormPage({
   mode = "create",
   initialContract,
+  showQrButton = true,
 }: {
   mode?: ContractFormMode;
   initialContract?: Contract;
+  showQrButton?: boolean;
 }) {
   const navigate = useNavigate();
   const createContractMutation = useCreateContract();
@@ -925,7 +927,7 @@ export function ContractFormPage({
                   </span>
                 </button>
 
-                {isEditMode && initialContract ? (
+                {isEditMode && initialContract && showQrButton ? (
                   <button
                     type="button"
                     onClick={() => setIsContractQrModalOpen(true)}
@@ -966,7 +968,7 @@ export function ContractFormPage({
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
       />
-      {isEditMode && initialContract && isContractQrModalOpen ? (
+      {isEditMode && initialContract && showQrButton && isContractQrModalOpen ? (
         <ContractPreviewQrModal
           contractId={initialContract.contractId}
           contractLabel={
