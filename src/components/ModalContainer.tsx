@@ -1,40 +1,11 @@
 import { useAtom } from "jotai";
-import { modalAtom, closeModalAtom, userIdAtom } from "@/stores/modalStore";
+import { modalAtom, closeModalAtom, selectedUserAtom } from "@/stores/modalStore";
 import { AddAccountModal } from "@/components/modals/AddAccountModal";
-
-function ActionStateModal({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  const [, closeModal] = useAtom(closeModalAtom);
-
-  return (
-    <div className="dashboard-theme w-full max-w-md rounded-2xl border border-gray-300 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-neutral-900">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-        {title}
-      </h2>
-      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-        {description}
-      </p>
-      <div className="mt-6 flex justify-end">
-        <button
-          type="button"
-          onClick={closeModal}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
-        >
-          Đóng
-        </button>
-      </div>
-    </div>
-  );
-}
+import { UpdateAccountModal } from "@/components/modals/UpdateAccountModal";
 
 export default function ModalContainer() {
   const [modal] = useAtom(modalAtom);
-  const [userId] = useAtom(userIdAtom);
+  const [selectedUser] = useAtom(selectedUserAtom);
   const [, closeModal] = useAtom(closeModalAtom);
 
   if (!modal) return null;
@@ -46,17 +17,8 @@ export default function ModalContainer() {
     >
       <div onClick={(event) => event.stopPropagation()}>
         {modal === "add_account" ? <AddAccountModal /> : null}
-        {modal === "lock" ? (
-          <ActionStateModal
-            title="Khoa tai khoan"
-            description={`Action lock cho user ${userId || ""} chua duoc noi API.`}
-          />
-        ) : null}
-        {modal === "unlock" ? (
-          <ActionStateModal
-            title="Mo khoa tai khoan"
-            description={`Action unlock cho user ${userId || ""} chua duoc noi API.`}
-          />
+        {modal === "update_account" && selectedUser ? (
+          <UpdateAccountModal key={selectedUser.userId} user={selectedUser} />
         ) : null}
       </div>
     </div>

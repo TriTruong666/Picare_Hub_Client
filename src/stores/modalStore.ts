@@ -1,14 +1,10 @@
 import { atom } from "jotai";
+import type { User } from "@/types/User";
 
-type LockType = "account" | null;
-type UnlockType = "account" | null;
-
-export type ModalKey = "add_account" | "lock" | "unlock" | null;
+export type ModalKey = "add_account" | "update_account" | null;
 
 export const modalAtom = atom<ModalKey>(null);
-export const userIdAtom = atom<string | null>(null);
-export const lockTypeAtom = atom<LockType>(null);
-export const unlockTypeAtom = atom<UnlockType>(null);
+export const selectedUserAtom = atom<User | null>(null);
 export const isModalLockedAtom = atom(false);
 
 export const openModalAtom = atom(null, (_, set, type: ModalKey) => {
@@ -19,26 +15,14 @@ export const closeModalAtom = atom(null, (get, set) => {
   if (get(isModalLockedAtom)) return;
 
   set(modalAtom, null);
-  set(userIdAtom, null);
-  set(lockTypeAtom, null);
-  set(unlockTypeAtom, null);
+  set(selectedUserAtom, null);
   set(isModalLockedAtom, false);
 });
 
-export const openLockModalAtom = atom(
+export const openUpdateAccountModalAtom = atom(
   null,
-  (_, set, type: LockType, userId: string) => {
-    set(userIdAtom, userId);
-    set(lockTypeAtom, type);
-    set(modalAtom, "lock");
-  },
-);
-
-export const openUnlockModalAtom = atom(
-  null,
-  (_, set, type: UnlockType, userId: string) => {
-    set(userIdAtom, userId);
-    set(unlockTypeAtom, type);
-    set(modalAtom, "unlock");
+  (_, set, user: User) => {
+    set(selectedUserAtom, user);
+    set(modalAtom, "update_account");
   },
 );

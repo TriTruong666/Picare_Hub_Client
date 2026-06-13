@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   FiBell,
-  FiHome,
+  FiLogOut,
   FiLayout,
   FiMessageCircle,
   FiMoon,
@@ -23,6 +23,7 @@ import type { RouteConfig } from "@/config/routes.config";
 import { PATHS } from "@/config/paths";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/images/logo.png";
+import { IoBusinessOutline } from "react-icons/io5";
 
 type ViewTransitionDocument = Document & {
   startViewTransition?: (callback: () => void) => {
@@ -156,70 +157,96 @@ function Navbar() {
           <button
             type="button"
             onClick={() => setIsProfileOpen((prev) => !prev)}
-            className="flex h-10 items-center gap-2 rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 shadow-sm transition-all hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:hover:bg-white/10"
+            className="group flex items-center gap-2.5 rounded-full border border-gray-300 bg-white p-1 pr-3 text-xs font-medium text-gray-700 shadow-sm transition-all hover:border-gray-400 hover:bg-gray-50 active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:hover:bg-white/10"
           >
-            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-white">
-              <FiUser className="text-sm" />
+            <span className="from-primary to-primary/60 flex h-7 w-7 items-center justify-center rounded-full bg-linear-to-br text-xs font-bold text-black">
+              {user?.name?.[0]?.toUpperCase() || "P"}
             </span>
             <span className="hidden md:block">{user?.name || "Profile"}</span>
-            <HiChevronDown className="text-sm text-gray-400" />
+            <HiChevronDown className="text-sm text-gray-400 transition-transform duration-300" />
           </button>
 
           <AnimatePresence>
             {isProfileOpen ? (
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                initial={{ opacity: 0, y: 12, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.96 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-                className="absolute right-0 mt-3 w-52 overflow-hidden rounded-md border border-gray-200 bg-white shadow-[0_18px_40px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#0b0b0b] dark:shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+                exit={{ opacity: 0, y: 12, scale: 0.96 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute right-0 mt-3 w-60 overflow-hidden rounded-2xl border border-white/10 bg-black/90 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.65)]"
               >
-                <div className="border-b border-gray-200 px-4 py-3 dark:border-white/10">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {user?.name || "Profile"}
-                  </p>
+                <div className="border-b border-white/5 p-3.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="from-primary to-primary/60 flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br text-xs font-bold text-black">
+                      {user?.name?.[0]?.toUpperCase() || "U"}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-semibold text-white">
+                        {user?.name || "Profile"}
+                      </p>
+                      <p className="truncate text-[11px] text-white/40">
+                        {user?.email || ""}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="p-2">
+                <div className="p-1">
                   <ProfileRouteLink
                     to={PATHS.HOME}
-                    icon={<FiHome className="text-[15px]" />}
+                    icon={<IoBusinessOutline size={16} className="text-white/40" />}
                     onClick={() => setIsProfileOpen(false)}
                   >
-                    Home
+                    Hub Center
                   </ProfileRouteLink>
 
                   <ProfileRouteLink
                     to={PATHS.DASHBOARD.PROFILE}
-                    icon={<FiUser className="text-[15px]" />}
+                    icon={<FiUser className="text-[15px] text-white/40" />}
                     onClick={() => setIsProfileOpen(false)}
                   >
-                    My profile
+                    Hồ sơ của tôi
                   </ProfileRouteLink>
 
                   <ProfileRouteLink
                     to={PATHS.DASHBOARD.SETTINGS}
-                    icon={<FiSettings className="text-[15px]" />}
+                    icon={<FiSettings className="text-[15px] text-white/40" />}
                     onClick={() => setIsProfileOpen(false)}
                   >
-                    Settings
+                    Cài đặt
                   </ProfileRouteLink>
 
                   <ProfileRouteLink
                     to={PATHS.DASHBOARD.NOTIFICATIONS}
-                    icon={<FiBell className="text-[15px]" />}
+                    icon={<FiBell className="text-[15px] text-white/40" />}
                     onClick={() => setIsProfileOpen(false)}
                   >
-                    Notifications
+                    Thông báo
                   </ProfileRouteLink>
 
                   <ProfileRouteLink
                     to={PATHS.DASHBOARD.MESSAGES}
-                    icon={<FiMessageCircle className="text-[15px]" />}
+                    icon={<FiMessageCircle className="text-[15px] text-white/40" />}
                     onClick={() => setIsProfileOpen(false)}
                   >
-                    Messages
+                    Tin nhắn
                   </ProfileRouteLink>
+                </div>
+
+                <div className="border-t border-white/5 p-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      logout();
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] text-red-400 transition-colors hover:bg-red-400/10"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-400/10 text-red-400">
+                      <FiLogOut size={16} />
+                    </span>
+                    <span className="font-medium">Đăng xuất</span>
+                  </button>
                 </div>
               </motion.div>
             ) : null}
@@ -265,12 +292,12 @@ function ProfileRouteLink({
     <Link
       to={to}
       onClick={onClick}
-      className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-left transition-colors hover:bg-gray-100 dark:hover:bg-white/5"
+      className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-white/5"
     >
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-gray-100 text-gray-600 dark:bg-white/5 dark:text-gray-300">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/5 text-gray-600 dark:text-gray-300">
         {icon}
       </span>
-      <span className="block text-sm font-medium text-gray-800 dark:text-gray-100">
+      <span className="block text-[13px] font-medium text-white/80">
         {children}
       </span>
     </Link>
@@ -386,7 +413,10 @@ function CollapsibleNavItem({ item }: { item: RouteConfig }) {
 }
 
 function DashboardThemeToggle() {
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("theme") !== "light";
+  });
   const btnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -394,14 +424,12 @@ function DashboardThemeToggle() {
 
     if (saved === "light") {
       document.documentElement.classList.remove("dark");
-      setDark(false);
       return;
     }
 
     // Mặc định dark mode
     document.documentElement.classList.add("dark");
     localStorage.setItem("theme", "dark");
-    setDark(true);
   }, []);
 
   const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {

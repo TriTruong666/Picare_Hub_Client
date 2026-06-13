@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAtom } from "jotai";
-import { FiPlus, FiUserPlus } from "react-icons/fi";
-import { IoMdLock, IoMdUnlock } from "react-icons/io";
+import { FiEdit2, FiPlus, FiUserPlus } from "react-icons/fi";
 import { PiExport } from "react-icons/pi";
 import { formatRelativeTime } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
@@ -12,11 +11,7 @@ import GlassSelect from "@/components/custom_ui/Select";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { useUsers } from "@/hooks/data/useUserHooks";
-import {
-  openLockModalAtom,
-  openModalAtom,
-  openUnlockModalAtom,
-} from "@/stores/modalStore";
+import { openModalAtom, openUpdateAccountModalAtom } from "@/stores/modalStore";
 import type { BasePaginatedResponse } from "@/types/ApiResponse";
 import type { User } from "@/types/User";
 
@@ -142,9 +137,8 @@ function AccountTable({
   refetch,
   sortType,
 }: AccountTableProps) {
-  const [, openLockModal] = useAtom(openLockModalAtom);
-  const [, openUnlockModal] = useAtom(openUnlockModalAtom);
   const [, openModal] = useAtom(openModalAtom);
+  const [, openUpdateAccountModal] = useAtom(openUpdateAccountModalAtom);
 
   const roleLabels: Record<User["role"], string> = {
     admin: "Quản trị viên",
@@ -268,21 +262,10 @@ function AccountTable({
                 <StatusBadge isOnline={user.isOnline} />
               </td>
               <td className="p-4 text-center">
-                <Tooltip content={user.isOnline ? "Vô hiệu hóa" : "Kích hoạt"}>
+                <Tooltip content="Chỉnh sửa">
                   <IconAction
-                    onClick={() =>
-                      user.isOnline
-                        ? openLockModal("account", user.userId)
-                        : openUnlockModal("account", user.userId)
-                    }
-                    danger={user.isOnline}
-                    icon={
-                      user.isOnline ? (
-                        <IoMdLock className="text-red-400" />
-                      ) : (
-                        <IoMdUnlock />
-                      )
-                    }
+                    onClick={() => openUpdateAccountModal(user)}
+                    icon={<FiEdit2 />}
                   />
                 </Tooltip>
               </td>

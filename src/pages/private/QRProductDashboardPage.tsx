@@ -24,18 +24,18 @@ const columns = [
   {
     key: "product_info",
     label: "Thông tin sản phẩm",
-    width: "w-[34%]",
+    width: "w-[30%]",
     align: "left",
   },
-  { key: "batch", label: "Số lô", width: "w-[16%]", align: "center" },
+  { key: "batch", label: "Số lô", width: "w-[15%]", align: "center" },
   {
     key: "notification",
     label: "Số công bố",
-    width: "w-[18%]",
+    width: "w-[20%]",
     align: "center",
   },
-  { key: "spec", label: "Quy cách", width: "w-[16%]", align: "center" },
-  { key: "actions", label: "Thao tác", width: "w-[16%]", align: "center" },
+  { key: "spec", label: "Quy cách", width: "w-[15%]", align: "center" },
+  { key: "actions", label: "Thao tác", width: "w-[20%]", align: "center" },
 ] as const;
 
 function getProductEditPath(productId: string) {
@@ -97,7 +97,8 @@ function ProductQrModal({
           </div>
 
           <p className="mt-4 max-w-[320px] text-center text-xs leading-6 text-white/45">
-            Đây là mã QR và link preview sản phẩm. Bạn có thể quét mã hoặc mở trực tiếp đường dẫn bên dưới.
+            Đây là mã QR và link preview sản phẩm. Bạn có thể quét mã hoặc mở
+            trực tiếp đường dẫn bên dưới.
           </p>
 
           <a
@@ -118,7 +119,9 @@ function ProductQrModal({
 export default function QRProductDashboardPage() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [selectedProduct, setSelectedProduct] = useState<ProductQR | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductQR | null>(
+    null,
+  );
   const pageSize = 10;
 
   const {
@@ -243,7 +246,7 @@ function QRProductTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[1120px] table-fixed border-collapse border-x border-t border-gray-400 text-left dark:border-white/10">
+      <table className="w-full min-w-[800px] table-fixed border-collapse border-x border-t border-gray-400 text-left dark:border-white/10">
         <thead>
           <tr className="bg-gray-200/50 dark:bg-white/5">
             {columns.map((column, index) => (
@@ -280,7 +283,9 @@ function QRProductTable({
                     <div className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
                       <p>
                         Ngày sản xuất:{" "}
-                        {formatProductDate(product.jsonContent.manufacturingDate)}
+                        {formatProductDate(
+                          product.jsonContent.manufacturingDate,
+                        )}
                       </p>
                       <p>
                         Hết hạn:{" "}
@@ -304,7 +309,10 @@ function QRProductTable({
 
                 <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
                   <span className="text-[13px] text-gray-600 dark:text-gray-300">
-                    {normalizeValue(product.jsonContent.netVolume)}
+                    {normalizeValue(
+                      product.jsonContent.netVolume ||
+                        product.jsonContent.packageSpecification,
+                    )}
                   </span>
                 </td>
 
@@ -333,7 +341,11 @@ function QRProductTable({
                         icon={<FiExternalLink />}
                         onClick={() => {
                           if (website) {
-                            window.open(website, "_blank", "noopener,noreferrer");
+                            window.open(
+                              website,
+                              "_blank",
+                              "noopener,noreferrer",
+                            );
                           }
                         }}
                         disabled={!website}

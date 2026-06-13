@@ -37,3 +37,11 @@ export type CreateUserPayload = {
   phone?: string | null;
   role: UserRole;
 };
+
+export type UpdateUserPayload = {
+  name: string;
+  email: string;
+  password?: string;
+  phone?: string | null;
+  role: UserRole;
+};

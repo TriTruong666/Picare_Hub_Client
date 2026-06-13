@@ -1,5 +1,5 @@
 import type { BasePaginatedResponse, BaseResponse } from "@/types/ApiResponse";
-import type { CreateUserPayload, User } from "@/types/User";
+import type { CreateUserPayload, UpdateUserPayload, User } from "@/types/User";
 import { hubAxiosClient } from "./client";
 
 /**
@@ -27,5 +27,13 @@ export async function createUser(
   payload: CreateUserPayload,
 ): Promise<BaseResponse<null>> {
   const res = await hubAxiosClient.post("/api/v1/users", payload);
+  return res.data;
+}
+
+export async function updateUser(
+  payload: UpdateUserPayload,
+  userId: string,
+): Promise<BaseResponse<null>> {
+  const res = await hubAxiosClient.put(`/api/v1/users/${userId}`, payload);
   return res.data;
 }
