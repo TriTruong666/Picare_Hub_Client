@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { FiArchive, FiLayout, FiUsers, FiGrid, FiFileText, FiBox } from "react-icons/fi";
 import type { Role } from "@/hooks/useAuth";
+import { canAccessDashboard } from "@/config/dashboardAccess";
 import LandingPage from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/public/LoginPage";
 import LoginClientPage from "@/pages/public/LoginClientPage";
@@ -145,6 +146,7 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
 
 export const getSidebarNavigation = (role?: Role) =>
   PRIVATE_ROUTES.filter((route) => {
+    if (!canAccessDashboard(role)) return false;
     const hasRole = !route.roles || (role && route.roles.includes(role));
     return route.showInSidebar && hasRole;
   });

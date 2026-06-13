@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -22,6 +22,7 @@ import { getSidebarNavigation } from "@/config/routes.config";
 import type { RouteConfig } from "@/config/routes.config";
 import { PATHS } from "@/config/paths";
 import { useAuth } from "@/hooks/useAuth";
+import { useLogout } from "@/hooks/data/useAuthHooks";
 import logo from "@/assets/images/logo.png";
 import { IoBusinessOutline } from "react-icons/io5";
 
@@ -30,6 +31,12 @@ type ViewTransitionDocument = Document & {
     ready: Promise<void>;
   };
 };
+
+const NAVBAR_PLACEHOLDER_TEXTS = [
+  "Tim collection dang index...",
+  "Toi muon chat voi AI...",
+  "Tong quan he thong...",
+];
 
 export default function DashboardLayout() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -74,20 +81,12 @@ function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-
-  const placeholderTexts = useMemo(
-    () => [
-      "Tim collection dang index...",
-      "Toi muon chat voi AI...",
-      "Tong quan he thong...",
-    ],
-    [],
-  );
+  const { mutate: logout } = useLogout();
 
   useEffect(() => {
-    if (placeholderTexts.length === 0) return;
+    if (NAVBAR_PLACEHOLDER_TEXTS.length === 0) return;
 
-    const currentText = placeholderTexts[index];
+    const currentText = NAVBAR_PLACEHOLDER_TEXTS[index];
     const typingSpeed = isDeleting ? 80 : 70;
     const delayBeforeDeleting = 4000;
 
@@ -102,12 +101,12 @@ function Navbar() {
         window.setTimeout(() => setIsDeleting(true), delayBeforeDeleting);
       } else if (isDeleting && charIndex === 0) {
         setIsDeleting(false);
-        setIndex((prev) => (prev + 1) % placeholderTexts.length);
+        setIndex((prev) => (prev + 1) % NAVBAR_PLACEHOLDER_TEXTS.length);
       }
     }, typingSpeed);
 
     return () => window.clearTimeout(timeout);
-  }, [charIndex, index, isDeleting, placeholderTexts]);
+  }, [charIndex, index, isDeleting]);
 
   useEffect(() => {
     function onClickOutside(event: MouseEvent) {
@@ -363,6 +362,7 @@ function CollapsibleNavItem({ item }: { item: RouteConfig }) {
   return (
     <div>
       <button
+        type="button"
         onClick={() => setIsOpen((value) => !value)}
         className="flex w-full items-center justify-between rounded-lg border border-transparent px-4 py-3 text-sm font-medium text-gray-600 transition-all hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:border-white/10 dark:hover:bg-white/5 dark:hover:text-white"
       >

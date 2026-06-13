@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 
+import { canAccessDashboard } from "@/config/dashboardAccess";
 import { PATHS } from "@/config/paths";
 import { useAuth } from "@/hooks/useAuth";
 import { FullScreenSpinner } from "../custom_ui/Spinner";
@@ -9,7 +10,7 @@ import { FullScreenSpinner } from "../custom_ui/Spinner";
  * Nếu chưa đăng nhập, chuyển về LoginHubPage kèm redirect về link đang mở.
  */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -24,6 +25,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         replace
       />
     );
+  }
+
+  if (!canAccessDashboard(user?.role)) {
+    return <Navigate to={PATHS.HOME} replace />;
   }
 
   return <>{children}</>;

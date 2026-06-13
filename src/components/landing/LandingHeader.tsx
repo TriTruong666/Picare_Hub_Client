@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { IoBusinessOutline } from "react-icons/io5";
 import logo from "@/assets/images/logo.png";
 import {
@@ -16,6 +16,7 @@ import type { HubClient } from "@/types/HubClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/data/useAuthHooks";
 import { STATIC_HUB_CLIENTS } from "@/constants/staticHubClients";
+import { canAccessDashboard } from "@/config/dashboardAccess";
 
 export default function LandingHeader() {
   const [activeTab, setActiveTab] = useState("Giới thiệu");
@@ -26,6 +27,7 @@ export default function LandingHeader() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { isAuthenticated, user } = useAuth();
   const { mutate: logout } = useLogout();
+  const canUseDashboard = canAccessDashboard(user?.role);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -58,18 +60,17 @@ export default function LandingHeader() {
     status: "active",
   });
 
-  const mergedClients = useMemo(() => {
-    const seen = new Set<string>();
-
-    return [...(hubClients || []), ...STATIC_HUB_CLIENTS].filter((client) => {
-      if (seen.has(client.clientId)) {
+  const seenClientIds = new Set<string>();
+  const mergedClients = [...(hubClients || []), ...STATIC_HUB_CLIENTS].filter(
+    (client) => {
+      if (seenClientIds.has(client.clientId)) {
         return false;
       }
 
-      seen.add(client.clientId);
+      seenClientIds.add(client.clientId);
       return true;
-    });
-  }, [hubClients]);
+    },
+  );
 
   const totalPages = Math.max(1, Math.ceil(mergedClients.length / 3));
   const normalizedPage = currentPage % totalPages;
@@ -121,6 +122,7 @@ export default function LandingHeader() {
               return (
                 <div key={item.name} className="relative">
                   <button
+                    type="button"
                     onClick={() => {
                       setActiveTab(item.name);
                       if (item.hasDropdown) {
@@ -241,6 +243,7 @@ export default function LandingHeader() {
                       ))}
                     </div>
                     <button
+                      type="button"
                       onClick={nextMore}
                       className="group flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all hover:bg-white/10 active:scale-95"
                       aria-label="Tiếp theo"
@@ -256,7 +259,10 @@ export default function LandingHeader() {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-6">
-          <button className="font-inter hidden items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-white md:flex">
+          <button
+            type="button"
+            className="font-inter hidden items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-white md:flex"
+          >
             <FiGlobe size={16} />
             Vn
             <FiChevronDown size={14} />
@@ -265,6 +271,7 @@ export default function LandingHeader() {
           {isAuthenticated ? (
             <div className="relative" ref={userMenuRef}>
               <button
+                type="button"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="group flex items-center gap-3 rounded-full border border-white/10 bg-white/5 p-1.5 pr-4 transition-all hover:bg-white/10 active:scale-95"
               >
@@ -312,14 +319,16 @@ export default function LandingHeader() {
                         />
                         Hub Center
                       </Link>
-                      <Link
-                        to="/dashboard"
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <FiLayout size={16} className="text-white/40" />
-                        Hub Dashboard
-                      </Link>
+                      {canUseDashboard ? (
+                        <Link
+                          to="/dashboard"
+                          className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <FiLayout size={16} className="text-white/40" />
+                          Hub Dashboard
+                        </Link>
+                      ) : null}
                       <Link
                         to="/profile"
                         className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
@@ -341,6 +350,7 @@ export default function LandingHeader() {
                     {/* Logout */}
                     <div className="border-t border-white/5 p-1.5">
                       <button
+                        type="button"
                         onClick={() => {
                           setIsUserMenuOpen(false);
                           logout();

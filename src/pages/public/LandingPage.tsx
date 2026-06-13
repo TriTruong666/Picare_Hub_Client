@@ -1,10 +1,12 @@
 import { PATHS } from "@/config/paths";
+import { canAccessDashboard } from "@/config/dashboardAccess";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import LandingHeader from "../../components/landing/LandingHeader";
 
 export default function LandingPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const canUseDashboard = canAccessDashboard(user?.role);
 
   return (
     <main className="min-h-screen bg-[#050505]">
@@ -24,12 +26,14 @@ export default function LandingPage() {
                 >
                   Bắt đầu công việc
                 </Link>
-                <Link
-                  to={PATHS.DASHBOARD.ROOT}
-                  className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-white/10 active:scale-95"
-                >
-                  Vào dashboard
-                </Link>
+                {canUseDashboard ? (
+                  <Link
+                    to={PATHS.DASHBOARD.ROOT}
+                    className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-white/10 active:scale-95"
+                  >
+                    Vào dashboard
+                  </Link>
+                ) : null}
               </>
             ) : (
               <Link

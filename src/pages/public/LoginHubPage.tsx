@@ -9,6 +9,8 @@ import { getApiErrorMessage } from "@/common/api.error";
 import { useAuth } from "@/hooks/useAuth";
 import { PATHS } from "@/config/paths";
 import { toast } from "@/hooks/useToast";
+import { canAccessDashboard } from "@/config/dashboardAccess";
+import type { User } from "@/types/User";
 
 function getSafeRedirectPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
@@ -23,7 +25,7 @@ function getSafeRedirectPath(value: string | null) {
 }
 
 export default function LoginHubPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,6 +36,7 @@ export default function LoginHubPage() {
   const loginMutation = useLogin();
   const queryClient = useQueryClient();
   const redirectPath = getSafeRedirectPath(searchParams.get("redirect"));
+  const isDashboardRedirect = redirectPath.startsWith(PATHS.DASHBOARD.ROOT);
 
   const projects = [
     { name: "Picare CRM", desc: "Quản lý khách hàng chuyên sâu" },
@@ -55,6 +58,20 @@ export default function LoginHubPage() {
               "Chào mừng quay trở lại Picare Hub!",
             );
             await queryClient.refetchQueries({ queryKey: ["auth", "me"] });
+            const currentUser = queryClient.getQueryData<User>(["auth", "me"]);
+
+            if (
+              isDashboardRedirect &&
+              !canAccessDashboard(currentUser?.role)
+            ) {
+              toast.error(
+                "Truy cập bị từ chối",
+                "Tài khoản không có quyền truy cập dashboard.",
+              );
+              window.location.href = PATHS.HOME;
+              return;
+            }
+
             // Full refresh / redirection to clean up query states
             window.location.href = redirectPath;
           } else {
@@ -65,6 +82,14 @@ export default function LoginHubPage() {
       },
     );
   };
+
+  if (
+    isAuthenticated &&
+    isDashboardRedirect &&
+    !canAccessDashboard(user?.role)
+  ) {
+    return <Navigate to={PATHS.HOME} replace />;
+  }
 
   if (isAuthenticated) {
     return <Navigate to={redirectPath} replace />;
