@@ -12,10 +12,16 @@ export type ServiceContractPayload = {
   contractData: ServiceContractDataPayload;
 };
 
+export type AppendixContractDataPayload = {
+  details: ContractDetail[];
+  contractDueDate: string | null;
+  ownerCompanyInfo: OwnerCompanyInfoPayload;
+  partnerCompanyInfo: PartnerCompanyInfoPayload;
+};
+
 export type AppendixContractPayload = {
   contractType: "appendix";
   principleContractNumber: string;
-  principleContractSignedDate: string;
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
   products: string[];
@@ -227,8 +233,12 @@ export type Contract = {
   contractNumber: string;
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
-  contractDueDate: string;
-  contractData?: PrincipleContractDataPayload | ServiceContractDataPayload | null;
+  contractDueDate: string | null;
+  contractData?:
+    | PrincipleContractDataPayload
+    | ServiceContractDataPayload
+    | AppendixContractDataPayload
+    | null;
   principleContractNumber?: string | null;
   principleContractSignedDate?: string | null;
   products?: string[];

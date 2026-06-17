@@ -34,6 +34,11 @@ import {
   useUpdateContract,
 } from "@/hooks/data/useContractHooks";
 import { useTaxPayerLookup } from "@/hooks/data/useTaxPayerHooks";
+import {
+  MOCK_APPENDIX_CONTRACT_ID,
+  createDefaultMockAppendixContract,
+  storeMockContractPreview,
+} from "@/utils/contractPreviewMock";
 import type {
   Contract,
   CreateContractPayload,
@@ -127,7 +132,7 @@ const MOCK_COMPLETED_PRINCIPLE_CONTRACT: Contract = {
   contractUrl: null,
   createdAt: "2026-06-08T10:00:08.248Z",
   updatedAt: "2026-06-15T03:00:00.000Z",
-  status: "completed",
+  status: "owner_signed",
   documents: [
     {
       id: -3,
@@ -143,6 +148,44 @@ const MOCK_COMPLETED_PRINCIPLE_CONTRACT: Contract = {
   details: [],
   signatures: [],
 };
+
+function buildMockAppendixPreviewContract(
+  ownerCompanyInfo: OwnerCompanyInfoPayload,
+  principleContract: Contract,
+): Contract {
+  const fallback = createDefaultMockAppendixContract();
+
+  return {
+    ...fallback,
+    contractId: MOCK_APPENDIX_CONTRACT_ID,
+    contractNumber: "002/06/2026/PLHP/TH",
+    ownerCompanyInfo,
+    partnerCompanyInfo:
+      principleContract.partnerCompanyInfo ?? fallback.partnerCompanyInfo,
+    contractData: {
+      details: [],
+      contractDueDate: null,
+      ownerCompanyInfo,
+      partnerCompanyInfo:
+        principleContract.partnerCompanyInfo ?? fallback.partnerCompanyInfo,
+    },
+    principleContractNumber:
+      principleContract.contractNumber || principleContract.contractId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    status: "owner_signed",
+    documents: [
+      {
+        ...fallback.documents[0],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    ],
+    products: [
+      "Tên sản phẩm: Mocelux Collagen\nThành phần: Collagen peptide, Vitamin C\nQuy cách đóng gói: Hộp 30 gói x 10ml\nSố đăng ký: 1234/2026/ĐKSP\nNước sản xuất: Việt Nam\nĐơn giá(+VAT): 350000\nPhân loại: Thực phẩm bảo vệ sức khỏe\n",
+    ],
+  };
+}
 
 const PARTNER_FIELDS: {
   key: PartnerField;
@@ -272,10 +315,10 @@ function isEmpty(value: string) {
   return !value.trim();
 }
 
-function createAppendixProductRow(): AppendixProductRow {
+function createAppendixProductRow(content = ""): AppendixProductRow {
   return {
     id: crypto.randomUUID(),
-    content: "",
+    content,
   };
 }
 
@@ -293,13 +336,6 @@ function formatDate(value?: string | null) {
     month: "2-digit",
     year: "numeric",
   }).format(date);
-}
-
-function getCompletedContractSignedDate(contract?: Contract | null) {
-  const completedDocument = contract?.documents?.find(
-    (document) => document.version === 3,
-  );
-  return formatDate(completedDocument?.createdAt);
 }
 
 function normalizeEditorText(html: string) {
@@ -420,15 +456,12 @@ function PrincipleContractSelect({
           {selectedContract ? (
             <>
               <span className="block truncate text-sm font-semibold text-[#111111] dark:text-white">
-                {selectedContract.contractNumber ||
-                  selectedContract.contractId}
+                {selectedContract.contractNumber || selectedContract.contractId}
               </span>
               <span className="mt-1 block truncate text-xs text-black/52 dark:text-white/45">
                 {selectedContract.partnerCompanyInfo.companyName ||
                   selectedContract.partnerCompanyInfo.ownerName}{" "}
-                · Ngày ký{" "}
-                {getCompletedContractSignedDate(selectedContract) ||
-                  "chưa có version 3"}
+                · {formatDate(selectedContract.createdAt) || "Chưa có ngày"}
               </span>
             </>
           ) : (
@@ -436,10 +469,10 @@ function PrincipleContractSelect({
               <span className="block text-sm font-medium text-[#111111] dark:text-white">
                 {isLoading
                   ? "Đang tải danh sách hợp đồng..."
-                  : "Chọn hợp đồng nguyên tắc đã hoàn tất"}
+                  : "Chọn hợp đồng nguyên tắc"}
               </span>
               <span className="mt-1 block text-xs text-black/48 dark:text-white/38">
-                Menu sẽ hiển thị số hợp đồng, ngày ký và thông tin đối tác.
+                Menu sẽ hiển thị số hợp đồng, trạng thái và thông tin đối tác.
               </span>
             </>
           )}
@@ -455,15 +488,14 @@ function PrincipleContractSelect({
         <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#050505] text-white shadow-[0_24px_60px_rgba(0,0,0,0.46)]">
           {hasOnlyMock ? (
             <div className="border-b border-white/10 px-4 py-3 text-xs text-white/45">
-              Chưa có hợp đồng completed từ API. Đang hiển thị một hợp đồng mẫu
-              để kiểm tra giao diện.
+              Chưa có hợp đồng phù hợp từ API. Đang hiển thị một hợp đồng mẫu để
+              kiểm tra giao diện.
             </div>
           ) : null}
 
           <div className="max-h-80 overflow-y-auto p-2">
             {contracts.map((contract) => {
               const active = contract.contractId === selectedContractId;
-              const signedDate = getCompletedContractSignedDate(contract);
               const isMock = contract.contractId === MOCK_PRINCIPLE_CONTRACT_ID;
 
               return (
@@ -510,9 +542,9 @@ function PrincipleContractSelect({
 
                   <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-white/42 sm:grid-cols-3">
                     <span>
-                      Ngày ký:{" "}
+                      Ngày tạo:{" "}
                       <strong className="font-semibold text-white">
-                        {signedDate || "Chưa có v3"}
+                        {formatDate(contract.createdAt) || "Chưa có ngày"}
                       </strong>
                     </span>
                     <span>
@@ -524,7 +556,7 @@ function PrincipleContractSelect({
                     <span>
                       Trạng thái:{" "}
                       <strong className="font-semibold text-white">
-                        Hoàn tất
+                        {contract.status}
                       </strong>
                     </span>
                   </div>
@@ -595,7 +627,8 @@ function ContractPreviewQrModal({
           </div>
 
           <p className="mt-4 max-w-[320px] text-center text-xs leading-6 text-white/45">
-            Đây là mã QR và link preview hợp đồng hiện tại. Bạn có thể quét mã hoặc mở trực tiếp đường dẫn bên dưới.
+            Đây là mã QR và link preview hợp đồng hiện tại. Bạn có thể quét mã
+            hoặc mở trực tiếp đường dẫn bên dưới.
           </p>
 
           <a
@@ -630,10 +663,21 @@ export function ContractFormPage({
     useContractList({
       page: 1,
       limit: 100,
-      status: "completed",
+      status: "unsigned",
     });
+  const { data: ownerSignedContracts = [] } = useContractList({
+    page: 1,
+    limit: 100,
+    status: "owner_signed",
+  });
   const [selectedContractType, setSelectedContractType] =
-    useState<ContractKind | null>(initialContract ? "principle" : null);
+    useState<ContractKind | null>(
+      initialContract?.contractType === "appendix"
+        ? "appendix"
+        : initialContract
+          ? "principle"
+          : null,
+    );
   const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(0);
   const [selectedPrincipleContractId, setSelectedPrincipleContractId] =
     useState("");
@@ -666,8 +710,13 @@ export function ContractFormPage({
   const [isContractQrModalOpen, setIsContractQrModalOpen] = useState(false);
 
   const ownerCompanyInfo = OWNER_TEMPLATES[selectedOwnerIndex];
-  const principleContracts = completedContracts.filter(
-    (contract) => contract.status === "completed",
+  const principleContracts = [
+    ...completedContracts,
+    ...ownerSignedContracts,
+  ].filter(
+    (contract, index, list) =>
+      list.findIndex((item) => item.contractId === contract.contractId) ===
+      index,
   );
   const principleContractOptions =
     principleContracts.length > 0
@@ -676,9 +725,8 @@ export function ContractFormPage({
   const selectedPrincipleContract = principleContractOptions.find(
     (contract) => contract.contractId === selectedPrincipleContractId,
   );
-  const principleContractSignedDate = getCompletedContractSignedDate(
-    selectedPrincipleContract,
-  );
+  const isMockPrincipleContractSelected =
+    selectedPrincipleContract?.contractId === MOCK_PRINCIPLE_CONTRACT_ID;
   const isEditMode = mode === "edit";
   const isSubmitting = isEditMode
     ? updateContractMutation.isPending
@@ -703,7 +751,26 @@ export function ContractFormPage({
     );
     setIsPartnerFormVisible(true);
     setTaxLookupMessage("");
-    setSelectedContractType("principle");
+    setSelectedContractType(
+      initialContract.contractType === "appendix" ? "appendix" : "principle",
+    );
+
+    if (initialContract.contractType === "appendix") {
+      setSelectedPrincipleContractId(
+        initialContract.principleContractNumber ?? "",
+      );
+      setAppendixProducts(
+        initialContract.products?.length
+          ? initialContract.products.map((product) =>
+              createAppendixProductRow(product),
+            )
+          : [createAppendixProductRow()],
+      );
+      setPaymentTermDays("");
+      setCreditLimit("");
+      return;
+    }
+
     setPaymentTermDays(
       "paymentTermDays" in (initialContract.contractData ?? {})
         ? String(initialContract.contractData?.paymentTermDays ?? "")
@@ -864,10 +931,6 @@ export function ContractFormPage({
         return "Vui lòng chọn hợp đồng nguyên tắc đã hoàn tất.";
       }
 
-      if (!principleContractSignedDate) {
-        return "Hợp đồng nguyên tắc được chọn chưa có bản hoàn chỉnh version 3 để lấy ngày ký.";
-      }
-
       const productContents = appendixProducts
         .map((product) => product.content.trim())
         .filter(Boolean);
@@ -932,7 +995,6 @@ export function ContractFormPage({
         principleContractNumber:
           selectedPrincipleContract.contractNumber ||
           selectedPrincipleContract.contractId,
-        principleContractSignedDate,
         ownerCompanyInfo,
         partnerCompanyInfo: normalizePartnerInfo(
           selectedPrincipleContract.partnerCompanyInfo,
@@ -961,6 +1023,17 @@ export function ContractFormPage({
     const validationError = validateForm();
     if (validationError) {
       toast.error("Thiếu dữ liệu", validationError);
+      return;
+    }
+
+    if (
+      selectedContractType === "appendix" &&
+      isMockPrincipleContractSelected
+    ) {
+      toast.error(
+        "Không thể tạo từ dữ liệu mẫu",
+        "Chọn mock chỉ để xem preview. Hãy chọn hợp đồng thật nếu muốn tạo phụ lục.",
+      );
       return;
     }
 
@@ -996,6 +1069,22 @@ export function ContractFormPage({
     window.location.assign(previewUrl);
   };
 
+  const handlePreviewMockAppendix = () => {
+    if (!selectedPrincipleContract) {
+      toast.error("Thiếu dữ liệu", "Chưa có hợp đồng nguyên tắc để preview.");
+      return;
+    }
+
+    const mockContract = buildMockAppendixPreviewContract(
+      ownerCompanyInfo,
+      selectedPrincipleContract,
+    );
+    storeMockContractPreview(mockContract);
+    navigate(
+      `${PATHS.CONTRACT_PREVIEW.replace(":contractId", MOCK_APPENDIX_CONTRACT_ID)}?mock=1`,
+    );
+  };
+
   return (
     <main className="dashboard-theme min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
       {!isHistoryOpen ? (
@@ -1028,7 +1117,7 @@ export function ContractFormPage({
             <div className="absolute top-0 right-0">
               <ThemeToggle />
             </div>
-            <h1 className="text-center text-2xl font-medium text-[#111111] dark:text-white md:text-3xl">
+            <h1 className="text-center text-2xl font-medium text-[#111111] md:text-3xl dark:text-white">
               {isEditMode
                 ? `Hợp đồng số ${initialContract?.contractNumber || initialContract?.contractId}`
                 : "Hệ thống tạo hợp đồng điện tử - Picare Việt Nam"}
@@ -1101,148 +1190,73 @@ export function ContractFormPage({
 
             {selectedContractType === "principle" ? (
               <>
-            <section className="border-b border-black/10 py-6 dark:border-white/10">
-              <SectionTitle>Thông tin hợp đồng</SectionTitle>
+                <section className="border-b border-black/10 py-6 dark:border-white/10">
+                  <SectionTitle>Thông tin hợp đồng</SectionTitle>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div>
-                  <FieldLabel>Thời hạn thanh toán (ngày)</FieldLabel>
-                  <TextInput
-                    id="payment-term-days"
-                    type="number"
-                    value={paymentTermDays}
-                    onChange={setPaymentTermDays}
-                    placeholder="30"
-                    required
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Hạn mức công nợ</FieldLabel>
-                  <TextInput
-                    id="credit-limit"
-                    type="number"
-                    value={creditLimit}
-                    onChange={setCreditLimit}
-                    placeholder="Để trống nếu không áp dụng"
-                  />
-                </div>
-              </div>
-            </section>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <FieldLabel>Thời hạn thanh toán (ngày)</FieldLabel>
+                      <TextInput
+                        id="payment-term-days"
+                        type="number"
+                        value={paymentTermDays}
+                        onChange={setPaymentTermDays}
+                        placeholder="30"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Hạn mức công nợ</FieldLabel>
+                      <TextInput
+                        id="credit-limit"
+                        type="number"
+                        value={creditLimit}
+                        onChange={setCreditLimit}
+                        placeholder="Để trống nếu không áp dụng"
+                      />
+                    </div>
+                  </div>
+                </section>
 
-            <section className="border-b border-black/10 py-6 dark:border-white/10">
-              <SectionTitle>Công ty chủ sở hữu</SectionTitle>
+                <section className="border-b border-black/10 py-6 dark:border-white/10">
+                  <SectionTitle>Công ty chủ sở hữu</SectionTitle>
 
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                {OWNER_TEMPLATES.map((template, index) => {
-                  const selected = selectedOwnerIndex === index;
-
-                  return (
-                    <motion.button
-                      key={template.companyCode}
-                      type="button"
-                      onClick={() => setSelectedOwnerIndex(index)}
-                      whileHover={{ y: -3 }}
-                      whileTap={{ scale: 0.99 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 420,
-                        damping: 30,
-                      }}
-                      className={`relative w-full overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
-                        selected
-                          ? "border-black/30 bg-black/[0.06] dark:border-white/35 dark:bg-white/6"
-                          : "border-black/12 bg-white hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p
-                            className={`text-xs ${
-                              selected ? "text-black/78 dark:text-white/70" : "text-black/52 dark:text-white/40"
-                            }`}
-                          >
-                            {template.companyCode}
-                          </p>
-                          <h3 className="mt-2 text-sm leading-5 font-medium text-[#111111] dark:text-white">
-                            {template.companyName}
-                          </h3>
-                        </div>
-                        <span
-                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
-                            selected
-                              ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
-                              : "border-black/15 text-transparent dark:border-white/15"
-                          }`}
-                        >
-                          <FiCheck className="text-xs" />
-                        </span>
-                      </div>
-                      <div className="mt-4 space-y-2 text-xs leading-5 text-black/58 dark:text-white/45">
-                        <p>{template.address}</p>
-                        <p>
-                          {template.ownerName} · {template.role}
-                        </p>
-                        <p className="tabular-nums">
-                          {template.phone} · {template.email}
-                        </p>
-                        <p>MST: {template.mst}</p>
-                      </div>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section className="border-b border-black/10 py-6 dark:border-white/10">
-              <SectionTitle>Công ty đối tác</SectionTitle>
-
-              <div className="space-y-5">
-                <div>
-                  <FieldLabel>Loại đối tác</FieldLabel>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {[
-                      {
-                        value: "individual" as const,
-                        title: "Cá nhân",
-                        description: "Không cần nhập MST và tên công ty.",
-                      },
-                      {
-                        value: "company" as const,
-                        title: "Công ty",
-                        description:
-                          "Có bước nhập MST và kiểm tra thông tin doanh nghiệp.",
-                      },
-                    ].map((option) => {
-                      const selected = partnerEntityType === option.value;
+                    {OWNER_TEMPLATES.map((template, index) => {
+                      const selected = selectedOwnerIndex === index;
 
                       return (
                         <motion.button
-                          key={option.value}
+                          key={template.companyCode}
                           type="button"
-                          onClick={() =>
-                            handlePartnerEntityTypeChange(option.value)
-                          }
-                          whileHover={{ y: -2 }}
+                          onClick={() => setSelectedOwnerIndex(index)}
+                          whileHover={{ y: -3 }}
                           whileTap={{ scale: 0.99 }}
                           transition={{
                             type: "spring",
                             stiffness: 420,
                             damping: 30,
                           }}
-                          className={`rounded-xl border p-4 text-left transition-all duration-300 ${
+                          className={`relative w-full overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
                             selected
                               ? "border-black/30 bg-black/[0.06] dark:border-white/35 dark:bg-white/6"
                               : "border-black/12 bg-white hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start justify-between gap-4">
                             <div>
-                              <p className="text-sm font-medium text-[#111111] dark:text-white">
-                                {option.title}
+                              <p
+                                className={`text-xs ${
+                                  selected
+                                    ? "text-black/78 dark:text-white/70"
+                                    : "text-black/52 dark:text-white/40"
+                                }`}
+                              >
+                                {template.companyCode}
                               </p>
-                              <p className="mt-1 text-xs leading-5 text-black/58 dark:text-white/45">
-                                {option.description}
-                              </p>
+                              <h3 className="mt-2 text-sm leading-5 font-medium text-[#111111] dark:text-white">
+                                {template.companyName}
+                              </h3>
                             </div>
                             <span
                               className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
@@ -1254,154 +1268,242 @@ export function ContractFormPage({
                               <FiCheck className="text-xs" />
                             </span>
                           </div>
+                          <div className="mt-4 space-y-2 text-xs leading-5 text-black/58 dark:text-white/45">
+                            <p>{template.address}</p>
+                            <p>
+                              {template.ownerName} · {template.role}
+                            </p>
+                            <p className="tabular-nums">
+                              {template.phone} · {template.email}
+                            </p>
+                            <p>MST: {template.mst}</p>
+                          </div>
                         </motion.button>
                       );
                     })}
                   </div>
-                </div>
+                </section>
 
-                {partnerEntityType === "company" ? (
-                <div>
-                  <FieldLabel>Mã số thuế</FieldLabel>
-                  <div className="flex flex-col gap-3 md:flex-row">
-                    <div className="min-w-0 flex-1">
-                      <TextInput
-                        id="partner-mst"
-                        value={partnerCompanyInfo.mst ?? ""}
-                        onChange={(value) => updatePartnerField("mst", value)}
-                        placeholder="Nhập mã số thuế đối tác"
-                        required
-                      />
+                <section className="border-b border-black/10 py-6 dark:border-white/10">
+                  <SectionTitle>Công ty đối tác</SectionTitle>
+
+                  <div className="space-y-5">
+                    <div>
+                      <FieldLabel>Loại đối tác</FieldLabel>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        {[
+                          {
+                            value: "individual" as const,
+                            title: "Cá nhân",
+                            description: "Không cần nhập MST và tên công ty.",
+                          },
+                          {
+                            value: "company" as const,
+                            title: "Công ty",
+                            description:
+                              "Có bước nhập MST và kiểm tra thông tin doanh nghiệp.",
+                          },
+                        ].map((option) => {
+                          const selected = partnerEntityType === option.value;
+
+                          return (
+                            <motion.button
+                              key={option.value}
+                              type="button"
+                              onClick={() =>
+                                handlePartnerEntityTypeChange(option.value)
+                              }
+                              whileHover={{ y: -2 }}
+                              whileTap={{ scale: 0.99 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 420,
+                                damping: 30,
+                              }}
+                              className={`rounded-xl border p-4 text-left transition-all duration-300 ${
+                                selected
+                                  ? "border-black/30 bg-black/[0.06] dark:border-white/35 dark:bg-white/6"
+                                  : "border-black/12 bg-white hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <p className="text-sm font-medium text-[#111111] dark:text-white">
+                                    {option.title}
+                                  </p>
+                                  <p className="mt-1 text-xs leading-5 text-black/58 dark:text-white/45">
+                                    {option.description}
+                                  </p>
+                                </div>
+                                <span
+                                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                                    selected
+                                      ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
+                                      : "border-black/15 text-transparent dark:border-white/15"
+                                  }`}
+                                >
+                                  <FiCheck className="text-xs" />
+                                </span>
+                              </div>
+                            </motion.button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleTaxLookup}
-                      disabled={taxPayerLookupMutation.isPending}
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-black/12 bg-white px-4 text-[12px] font-medium text-black/78 transition hover:border-black/25 hover:text-[#111111] dark:border-white/10 dark:bg-transparent dark:text-white/75 dark:hover:border-white/25 dark:hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {taxPayerLookupMutation.isPending ? (
-                        <Spinner size="sm" />
-                      ) : (
-                        <FiSearch />
-                      )}
-                      Kiểm tra
-                    </button>
-                  </div>
 
-                  {taxLookupMessage ? (
-                    <div className="mt-3 flex flex-col gap-3 text-[12px] text-black/58 dark:text-white/45 md:flex-row md:items-center md:justify-between">
-                      <p>{taxLookupMessage}</p>
-                      {!isPartnerFormVisible ? (
-                        <button
-                          type="button"
-                          onClick={handleManualPartnerInput}
-                          className="w-fit rounded-lg border border-black/12 bg-white px-4 py-2 text-xs font-medium text-black/74 transition hover:border-black/25 hover:text-[#111111] dark:border-white/10 dark:bg-transparent dark:text-white/70 dark:hover:border-white/25 dark:hover:text-white"
-                        >
-                          Nhập tay
-                        </button>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <p className="mt-3 text-[12px] text-black/48 dark:text-white/35">
-                      Nhập mã số thuế rồi bấm kiểm tra để tự điền tên công ty và
-                      địa chỉ nếu có dữ liệu.
-                    </p>
-                  )}
-                </div>
-                ) : null}
+                    {partnerEntityType === "company" ? (
+                      <div>
+                        <FieldLabel>Mã số thuế</FieldLabel>
+                        <div className="flex flex-col gap-3 md:flex-row">
+                          <div className="min-w-0 flex-1">
+                            <TextInput
+                              id="partner-mst"
+                              value={partnerCompanyInfo.mst ?? ""}
+                              onChange={(value) =>
+                                updatePartnerField("mst", value)
+                              }
+                              placeholder="Nhập mã số thuế đối tác"
+                              required
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleTaxLookup}
+                            disabled={taxPayerLookupMutation.isPending}
+                            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-black/12 bg-white px-4 text-[12px] font-medium text-black/78 transition hover:border-black/25 hover:text-[#111111] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-transparent dark:text-white/75 dark:hover:border-white/25 dark:hover:text-white"
+                          >
+                            {taxPayerLookupMutation.isPending ? (
+                              <Spinner size="sm" />
+                            ) : (
+                              <FiSearch />
+                            )}
+                            Kiểm tra
+                          </button>
+                        </div>
 
-                {isPartnerFormVisible ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.22 }}
-                    className="grid grid-cols-1 gap-4 md:grid-cols-2"
-                  >
-                    {(partnerEntityType === "company"
-                      ? PARTNER_FIELDS.filter((field) => field.key !== "mst")
-                      : PARTNER_DETAIL_FIELDS
-                    ).map((field) => (
-                      <div
-                        key={field.key}
-                        className={field.multiline ? "md:col-span-2" : ""}
-                      >
-                        <FieldLabel>{field.label}</FieldLabel>
-                        {field.multiline ? (
-                          <TextareaInput
-                            id={`partner-${field.key}`}
-                            value={String(partnerCompanyInfo[field.key] ?? "")}
-                            onChange={(value) =>
-                              updatePartnerField(field.key, value)
-                            }
-                            placeholder={field.placeholder}
-                            required
-                          />
+                        {taxLookupMessage ? (
+                          <div className="mt-3 flex flex-col gap-3 text-[12px] text-black/58 md:flex-row md:items-center md:justify-between dark:text-white/45">
+                            <p>{taxLookupMessage}</p>
+                            {!isPartnerFormVisible ? (
+                              <button
+                                type="button"
+                                onClick={handleManualPartnerInput}
+                                className="w-fit rounded-lg border border-black/12 bg-white px-4 py-2 text-xs font-medium text-black/74 transition hover:border-black/25 hover:text-[#111111] dark:border-white/10 dark:bg-transparent dark:text-white/70 dark:hover:border-white/25 dark:hover:text-white"
+                              >
+                                Nhập tay
+                              </button>
+                            ) : null}
+                          </div>
                         ) : (
-                          <TextInput
-                            id={`partner-${field.key}`}
-                            type={field.key === "email" ? "email" : "text"}
-                            value={String(partnerCompanyInfo[field.key] ?? "")}
-                            onChange={(value) =>
-                              updatePartnerField(field.key, value)
-                            }
-                            placeholder={field.placeholder}
-                            required
-                          />
+                          <p className="mt-3 text-[12px] text-black/48 dark:text-white/35">
+                            Nhập mã số thuế rồi bấm kiểm tra để tự điền tên công
+                            ty và địa chỉ nếu có dữ liệu.
+                          </p>
                         )}
                       </div>
-                    ))}
-                  </motion.div>
-                ) : null}
-              </div>
-            </section>
+                    ) : null}
 
-            <div className="flex flex-col items-center gap-3 py-6">
-              <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="group relative inline-flex h-12 min-w-56 items-center justify-center overflow-hidden rounded-full bg-white px-6 text-sm font-medium text-black shadow-[0_16px_45px_rgba(0,0,0,0.38)] transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white/95 hover:shadow-[0_22px_60px_rgba(0,0,0,0.46)] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:translate-y-0 disabled:bg-white/45 disabled:text-black/50 disabled:shadow-none"
-                >
-                  <span className="absolute inset-x-6 top-0 h-px bg-linear-to-r from-transparent via-black/25 to-transparent opacity-50" />
-                  <span className="flex items-center justify-center gap-2.5">
-                    {isSubmitting ? <Spinner size="sm" color="black" /> : null}
-                    {isEditMode ? "Chỉnh sửa" : "Tạo hợp đồng"}
-                  </span>
-                </button>
+                    {isPartnerFormVisible ? (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.22 }}
+                        className="grid grid-cols-1 gap-4 md:grid-cols-2"
+                      >
+                        {(partnerEntityType === "company"
+                          ? PARTNER_FIELDS.filter(
+                              (field) => field.key !== "mst",
+                            )
+                          : PARTNER_DETAIL_FIELDS
+                        ).map((field) => (
+                          <div
+                            key={field.key}
+                            className={field.multiline ? "md:col-span-2" : ""}
+                          >
+                            <FieldLabel>{field.label}</FieldLabel>
+                            {field.multiline ? (
+                              <TextareaInput
+                                id={`partner-${field.key}`}
+                                value={String(
+                                  partnerCompanyInfo[field.key] ?? "",
+                                )}
+                                onChange={(value) =>
+                                  updatePartnerField(field.key, value)
+                                }
+                                placeholder={field.placeholder}
+                                required
+                              />
+                            ) : (
+                              <TextInput
+                                id={`partner-${field.key}`}
+                                type={field.key === "email" ? "email" : "text"}
+                                value={String(
+                                  partnerCompanyInfo[field.key] ?? "",
+                                )}
+                                onChange={(value) =>
+                                  updatePartnerField(field.key, value)
+                                }
+                                placeholder={field.placeholder}
+                                required
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </motion.div>
+                    ) : null}
+                  </div>
+                </section>
 
-                {isEditMode && initialContract && showQrButton ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsContractQrModalOpen(true)}
-                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.07] px-6 text-sm font-medium text-black/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.11] hover:text-[#111111] dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white active:translate-y-0 active:scale-[0.98]"
-                  >
-                    Xem QR
-                  </button>
-                ) : null}
+                <div className="flex flex-col items-center gap-3 py-6">
+                  <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="group relative inline-flex h-12 min-w-56 items-center justify-center overflow-hidden rounded-full bg-white px-6 text-sm font-medium text-black shadow-[0_16px_45px_rgba(0,0,0,0.38)] transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white/95 hover:shadow-[0_22px_60px_rgba(0,0,0,0.46)] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:translate-y-0 disabled:bg-white/45 disabled:text-black/50 disabled:shadow-none"
+                    >
+                      <span className="absolute inset-x-6 top-0 h-px bg-linear-to-r from-transparent via-black/25 to-transparent opacity-50" />
+                      <span className="flex items-center justify-center gap-2.5">
+                        {isSubmitting ? (
+                          <Spinner size="sm" color="black" />
+                        ) : null}
+                        {isEditMode ? "Chỉnh sửa" : "Tạo hợp đồng"}
+                      </span>
+                    </button>
 
-                {isEditMode && initialContract ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate(getPreviewPath(initialContract.contractId))
-                    }
-                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.07] px-6 text-sm font-medium text-black/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.11] hover:text-[#111111] dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white active:translate-y-0 active:scale-[0.98]"
-                  >
-                    Xem Preview hợp đồng
-                  </button>
-                ) : null}
-              </div>
+                    {isEditMode && initialContract && showQrButton ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsContractQrModalOpen(true)}
+                        className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.07] px-6 text-sm font-medium text-black/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.11] hover:text-[#111111] active:translate-y-0 active:scale-[0.98] dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white"
+                      >
+                        Xem QR
+                      </button>
+                    ) : null}
 
-              {lastPayload?.contractType === "principle" ? (
-                <p className="text-xs text-black/60 dark:text-white/50">
-                  Đã gửi yêu cầu tạo hợp đồng nguyên tắc, thời hạn thanh toán{" "}
-                  <span className="tabular-nums">
-                    {lastPayload.contractData.paymentTermDays}
-                  </span>{" "}
-                  ngày.
-                </p>
-              ) : null}
-            </div>
+                    {isEditMode && initialContract ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate(getPreviewPath(initialContract.contractId))
+                        }
+                        className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.07] px-6 text-sm font-medium text-black/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.11] hover:text-[#111111] active:translate-y-0 active:scale-[0.98] dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white"
+                      >
+                        Xem Preview hợp đồng
+                      </button>
+                    ) : null}
+                  </div>
+
+                  {lastPayload?.contractType === "principle" ? (
+                    <p className="text-xs text-black/60 dark:text-white/50">
+                      Đã gửi yêu cầu tạo hợp đồng nguyên tắc, thời hạn thanh
+                      toán{" "}
+                      <span className="tabular-nums">
+                        {lastPayload.contractData.paymentTermDays}
+                      </span>{" "}
+                      ngày.
+                    </p>
+                  ) : null}
+                </div>
               </>
             ) : null}
             {selectedContractType === "appendix" ? (
@@ -1421,7 +1523,7 @@ export function ContractFormPage({
                     </div>
 
                     {selectedPrincipleContract ? (
-                      <div className="grid grid-cols-1 gap-3 rounded-xl border border-black/12 bg-white p-4 text-sm dark:border-white/10 dark:bg-white/2 md:grid-cols-2">
+                      <div className="grid grid-cols-1 gap-3 rounded-xl border border-black/12 bg-white p-4 text-sm md:grid-cols-2 dark:border-white/10 dark:bg-white/2">
                         <div>
                           <p className="text-[11px] text-black/40 dark:text-white/40">
                             Số hợp đồng nguyên tắc
@@ -1433,11 +1535,11 @@ export function ContractFormPage({
                         </div>
                         <div>
                           <p className="text-[11px] text-black/40 dark:text-white/40">
-                            Ngày ký hợp đồng nguyên tắc
+                            Ngày tạo
                           </p>
                           <p className="mt-1 font-semibold text-[#111111] dark:text-white">
-                            {principleContractSignedDate ||
-                              "Chưa tìm thấy document version 3"}
+                            {formatDate(selectedPrincipleContract.createdAt) ||
+                              "Không có"}
                           </p>
                         </div>
                         <div>
@@ -1534,7 +1636,7 @@ export function ContractFormPage({
                 {selectedPrincipleContract ? (
                   <section className="border-b border-black/10 py-6 dark:border-white/10">
                     <SectionTitle>Công ty đối tác</SectionTitle>
-                    <div className="grid grid-cols-1 gap-3 rounded-xl border border-black/12 bg-white p-4 text-sm dark:border-white/10 dark:bg-white/2 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 rounded-xl border border-black/12 bg-white p-4 text-sm md:grid-cols-2 dark:border-white/10 dark:bg-white/2">
                       {PARTNER_FIELDS.map((field) => (
                         <div
                           key={field.key}
@@ -1543,7 +1645,7 @@ export function ContractFormPage({
                           <p className="text-[11px] text-black/40 dark:text-white/40">
                             {field.label}
                           </p>
-                          <p className="mt-1 whitespace-pre-line font-semibold text-[#111111] dark:text-white">
+                          <p className="mt-1 font-semibold whitespace-pre-line text-[#111111] dark:text-white">
                             {String(
                               selectedPrincipleContract.partnerCompanyInfo[
                                 field.key
@@ -1591,10 +1693,22 @@ export function ContractFormPage({
                   >
                     <span className="absolute inset-x-6 top-0 h-px bg-linear-to-r from-transparent via-black/25 to-transparent opacity-50" />
                     <span className="flex items-center justify-center gap-2.5">
-                      {isSubmitting ? <Spinner size="sm" color="black" /> : null}
+                      {isSubmitting ? (
+                        <Spinner size="sm" color="black" />
+                      ) : null}
                       Tạo phụ lục
                     </span>
                   </button>
+
+                  {selectedContractType === "appendix" ? (
+                    <button
+                      type="button"
+                      onClick={handlePreviewMockAppendix}
+                      className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.07] px-6 text-sm font-medium text-black/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.11] hover:text-[#111111] active:translate-y-0 active:scale-[0.98] dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white"
+                    >
+                      Xem preview mock
+                    </button>
+                  ) : null}
 
                   {lastPayload?.contractType === "appendix" ? (
                     <p className="text-xs text-black/60 dark:text-white/50">
@@ -1616,7 +1730,10 @@ export function ContractFormPage({
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
       />
-      {isEditMode && initialContract && showQrButton && isContractQrModalOpen ? (
+      {isEditMode &&
+      initialContract &&
+      showQrButton &&
+      isContractQrModalOpen ? (
         <ContractPreviewQrModal
           contractId={initialContract.contractId}
           contractLabel={
