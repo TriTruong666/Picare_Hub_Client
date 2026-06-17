@@ -1,13 +1,23 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { type FormEvent, type ReactNode, useEffect, useState } from "react";
+import {
+  type FormEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { motion } from "framer-motion";
 import {
   FiArrowLeft,
+  FiChevronDown,
   FiCheck,
   FiClock,
   FiExternalLink,
   FiFileText,
+  FiPlus,
   FiSearch,
+  FiTrash2,
   FiX,
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,10 +25,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { ContractHistoryPanel } from "@/components/contracts/ContractHistoryPanel";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
+import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
 import { PATHS } from "@/config/paths";
 import { toast } from "@/hooks/useToast";
 import {
   useCreateContract,
+  useContractList,
   useUpdateContract,
 } from "@/hooks/data/useContractHooks";
 import { useTaxPayerLookup } from "@/hooks/data/useTaxPayerHooks";
@@ -33,7 +45,11 @@ type PartnerField = keyof PartnerCompanyInfoPayload;
 
 type ContractFormMode = "create" | "edit";
 type PartnerEntityType = "individual" | "company";
-type ContractKind = "principle" | "service";
+type ContractKind = "principle" | "appendix" | "service";
+type AppendixProductRow = {
+  id: string;
+  content: string;
+};
 
 const CONTRACT_TYPE_OPTIONS: {
   value: ContractKind;
@@ -45,6 +61,11 @@ const CONTRACT_TYPE_OPTIONS: {
     value: "principle",
     title: "Hợp đồng nguyên tắc",
     description: "Mẫu hợp đồng bán hàng thường xuyên theo cấu trúc mới.",
+  },
+  {
+    value: "appendix",
+    title: "Phụ lục hợp đồng",
+    description: "Tạo phụ lục dựa trên hợp đồng nguyên tắc đã hoàn tất.",
   },
   {
     value: "service",
@@ -78,6 +99,50 @@ const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
     role: "Giám Đốc",
   },
 ];
+
+const MOCK_PRINCIPLE_CONTRACT_ID = "__mock_completed_principle_contract__";
+
+const MOCK_COMPLETED_PRINCIPLE_CONTRACT: Contract = {
+  id: -1,
+  contractId: MOCK_PRINCIPLE_CONTRACT_ID,
+  contractNumber: "08/2026/HĐNT/MOCELUX-PICARE",
+  ownerCompanyInfo: OWNER_TEMPLATES[1],
+  partnerCompanyInfo: {
+    companyName: "CÔNG TY TNHH MOCELUX",
+    address: "456 Lê Lợi, TP.HCM",
+    phone: "0911111111",
+    email: "contact@mocelux.vn",
+    bankInfo: "9876543210 - ACB",
+    mst: "0398765432",
+    ownerName: "Trần Văn B",
+    role: "Giám đốc",
+  },
+  contractDueDate: "2026-06-15T00:00:00.000Z",
+  contractData: {
+    paymentTermDays: 30,
+    creditLimit: null,
+  },
+  contractChecksum: "mock",
+  contractType: "principle",
+  contractUrl: null,
+  createdAt: "2026-06-08T10:00:08.248Z",
+  updatedAt: "2026-06-15T03:00:00.000Z",
+  status: "completed",
+  documents: [
+    {
+      id: -3,
+      contractDocumentId: "mock-version-3",
+      version: 3,
+      status: "completed",
+      fileUrl: "",
+      fileHash: "mock",
+      createdAt: "2026-06-15T03:00:00.000Z",
+      updatedAt: "2026-06-15T03:00:00.000Z",
+    },
+  ],
+  details: [],
+  signatures: [],
+};
 
 const PARTNER_FIELDS: {
   key: PartnerField;
@@ -207,6 +272,272 @@ function isEmpty(value: string) {
   return !value.trim();
 }
 
+function createAppendixProductRow(): AppendixProductRow {
+  return {
+    id: crypto.randomUUID(),
+    content: "",
+  };
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    const [year, month, day] = value.split("-");
+    return [day, month, year].filter(Boolean).join("/");
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function getCompletedContractSignedDate(contract?: Contract | null) {
+  const completedDocument = contract?.documents?.find(
+    (document) => document.version === 3,
+  );
+  return formatDate(completedDocument?.createdAt);
+}
+
+function normalizeEditorText(html: string) {
+  if (!html.trim()) return "";
+
+  const withLineBreaks = html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "- ");
+
+  if (typeof window === "undefined") {
+    return withLineBreaks.replace(/<[^>]+>/g, "").trim();
+  }
+
+  const element = document.createElement("div");
+  element.innerHTML = withLineBreaks;
+  return (element.textContent || "").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function AppendixProductEditor({
+  product,
+  index,
+  canRemove,
+  onChange,
+  onRemove,
+}: {
+  product: AppendixProductRow;
+  index: number;
+  canRemove: boolean;
+  onChange: (id: string, content: string) => void;
+  onRemove: (id: string) => void;
+}) {
+  const handleChange = useCallback(
+    ({ html }: { html: string }) => {
+      onChange(product.id, normalizeEditorText(html));
+    },
+    [onChange, product.id],
+  );
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-black/12 bg-white dark:border-white/10 dark:bg-white/2">
+      <div className="flex items-center justify-between gap-3 border-b border-black/10 px-4 py-3 dark:border-white/10">
+        <p className="text-sm font-medium text-[#111111] dark:text-white">
+          Sản phẩm {index + 1}
+        </p>
+        {canRemove ? (
+          <button
+            type="button"
+            onClick={() => onRemove(product.id)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-black/12 text-black/60 transition hover:border-black/25 hover:text-[#111111] dark:border-white/10 dark:text-white/60 dark:hover:border-white/25 dark:hover:text-white"
+            aria-label={`Xóa sản phẩm ${index + 1}`}
+          >
+            <FiTrash2 />
+          </button>
+        ) : null}
+      </div>
+      <SimpleEditor
+        key={product.id}
+        content={product.content}
+        placeholder="Tên sản phẩm, thành phần, quy cách đóng gói, số đăng ký, nước sản xuất, đơn giá, phân loại..."
+        showThemeToggle={false}
+        wrapperClassName="min-h-[280px] bg-white dark:bg-[#050505]"
+        contentClassName="min-h-[220px]"
+        editorClassName="min-h-[220px]"
+        onChange={handleChange}
+      />
+    </div>
+  );
+}
+
+function PrincipleContractSelect({
+  contracts,
+  selectedContractId,
+  isLoading,
+  onChange,
+}: {
+  contracts: Contract[];
+  selectedContractId: string;
+  isLoading: boolean;
+  onChange: (contractId: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const selectedContract = contracts.find(
+    (contract) => contract.contractId === selectedContractId,
+  );
+  const hasOnlyMock =
+    contracts.length === 1 &&
+    contracts[0].contractId === MOCK_PRINCIPLE_CONTRACT_ID;
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      <button
+        type="button"
+        disabled={isLoading}
+        onClick={() => setIsOpen((current) => !current)}
+        className={`flex min-h-16 w-full items-center justify-between gap-4 rounded-xl border px-4 py-3 text-left transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
+          isOpen
+            ? "border-black/30 bg-white shadow-[0_16px_35px_rgba(0,0,0,0.08)] dark:border-white/25 dark:bg-white/6"
+            : "border-black/12 bg-white hover:border-black/22 dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20"
+        }`}
+      >
+        <span className="min-w-0">
+          {selectedContract ? (
+            <>
+              <span className="block truncate text-sm font-semibold text-[#111111] dark:text-white">
+                {selectedContract.contractNumber ||
+                  selectedContract.contractId}
+              </span>
+              <span className="mt-1 block truncate text-xs text-black/52 dark:text-white/45">
+                {selectedContract.partnerCompanyInfo.companyName ||
+                  selectedContract.partnerCompanyInfo.ownerName}{" "}
+                · Ngày ký{" "}
+                {getCompletedContractSignedDate(selectedContract) ||
+                  "chưa có version 3"}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="block text-sm font-medium text-[#111111] dark:text-white">
+                {isLoading
+                  ? "Đang tải danh sách hợp đồng..."
+                  : "Chọn hợp đồng nguyên tắc đã hoàn tất"}
+              </span>
+              <span className="mt-1 block text-xs text-black/48 dark:text-white/38">
+                Menu sẽ hiển thị số hợp đồng, ngày ký và thông tin đối tác.
+              </span>
+            </>
+          )}
+        </span>
+        <FiChevronDown
+          className={`h-5 w-5 shrink-0 text-black/45 transition-transform duration-300 dark:text-white/45 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen ? (
+        <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#050505] text-white shadow-[0_24px_60px_rgba(0,0,0,0.46)]">
+          {hasOnlyMock ? (
+            <div className="border-b border-white/10 px-4 py-3 text-xs text-white/45">
+              Chưa có hợp đồng completed từ API. Đang hiển thị một hợp đồng mẫu
+              để kiểm tra giao diện.
+            </div>
+          ) : null}
+
+          <div className="max-h-80 overflow-y-auto p-2">
+            {contracts.map((contract) => {
+              const active = contract.contractId === selectedContractId;
+              const signedDate = getCompletedContractSignedDate(contract);
+              const isMock = contract.contractId === MOCK_PRINCIPLE_CONTRACT_ID;
+
+              return (
+                <button
+                  key={contract.contractId}
+                  type="button"
+                  onClick={() => {
+                    onChange(contract.contractId);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full rounded-lg border p-3 text-left transition-all duration-300 ${
+                    active
+                      ? "border-white/15 bg-white/[0.06]"
+                      : "border-transparent hover:border-white/10 hover:bg-white/[0.045]"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-sm font-semibold text-white">
+                          {contract.contractNumber || contract.contractId}
+                        </p>
+                        {isMock ? (
+                          <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-medium text-white/55">
+                            Mẫu UI
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-1 truncate text-xs text-white/48">
+                        {contract.partnerCompanyInfo.companyName ||
+                          contract.partnerCompanyInfo.ownerName}
+                      </p>
+                    </div>
+                    <span
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                        active
+                          ? "border-white/35 bg-white text-black"
+                          : "border-white/12 text-transparent"
+                      }`}
+                    >
+                      <FiCheck className="text-xs" />
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-white/42 sm:grid-cols-3">
+                    <span>
+                      Ngày ký:{" "}
+                      <strong className="font-semibold text-white">
+                        {signedDate || "Chưa có v3"}
+                      </strong>
+                    </span>
+                    <span>
+                      MST:{" "}
+                      <strong className="font-semibold text-white">
+                        {contract.partnerCompanyInfo.mst || "Không có"}
+                      </strong>
+                    </span>
+                    <span>
+                      Trạng thái:{" "}
+                      <strong className="font-semibold text-white">
+                        Hoàn tất
+                      </strong>
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function getPreviewPath(contractId: string) {
   return PATHS.CONTRACT_PREVIEW.replace(":contractId", contractId);
 }
@@ -295,9 +626,17 @@ export function ContractFormPage({
   const createContractMutation = useCreateContract();
   const updateContractMutation = useUpdateContract();
   const taxPayerLookupMutation = useTaxPayerLookup();
+  const { data: completedContracts = [], isLoading: isLoadingContracts } =
+    useContractList({
+      page: 1,
+      limit: 100,
+      status: "completed",
+    });
   const [selectedContractType, setSelectedContractType] =
     useState<ContractKind | null>(initialContract ? "principle" : null);
   const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(0);
+  const [selectedPrincipleContractId, setSelectedPrincipleContractId] =
+    useState("");
   const [partnerEntityType, setPartnerEntityType] =
     useState<PartnerEntityType>("company");
   const [partnerCompanyInfo, setPartnerCompanyInfo] =
@@ -311,9 +650,11 @@ export function ContractFormPage({
       ownerName: "",
       role: "",
     });
-  const [appendixDate, setAppendixDate] = useState("");
   const [paymentTermDays, setPaymentTermDays] = useState("");
   const [creditLimit, setCreditLimit] = useState("");
+  const [appendixProducts, setAppendixProducts] = useState<
+    AppendixProductRow[]
+  >([createAppendixProductRow()]);
   const [lastPayload, setLastPayload] = useState<CreateContractPayload | null>(
     null,
   );
@@ -325,6 +666,19 @@ export function ContractFormPage({
   const [isContractQrModalOpen, setIsContractQrModalOpen] = useState(false);
 
   const ownerCompanyInfo = OWNER_TEMPLATES[selectedOwnerIndex];
+  const principleContracts = completedContracts.filter(
+    (contract) => contract.status === "completed",
+  );
+  const principleContractOptions =
+    principleContracts.length > 0
+      ? principleContracts
+      : [MOCK_COMPLETED_PRINCIPLE_CONTRACT];
+  const selectedPrincipleContract = principleContractOptions.find(
+    (contract) => contract.contractId === selectedPrincipleContractId,
+  );
+  const principleContractSignedDate = getCompletedContractSignedDate(
+    selectedPrincipleContract,
+  );
   const isEditMode = mode === "edit";
   const isSubmitting = isEditMode
     ? updateContractMutation.isPending
@@ -350,11 +704,6 @@ export function ContractFormPage({
     setIsPartnerFormVisible(true);
     setTaxLookupMessage("");
     setSelectedContractType("principle");
-    setAppendixDate(
-      "appendixDate" in (initialContract.contractData ?? {})
-        ? String(initialContract.contractData?.appendixDate ?? "")
-        : initialContract.contractDueDate?.slice(0, 10) || "",
-    );
     setPaymentTermDays(
       "paymentTermDays" in (initialContract.contractData ?? {})
         ? String(initialContract.contractData?.paymentTermDays ?? "")
@@ -450,17 +799,84 @@ export function ContractFormPage({
     setIsPartnerFormVisible(isEditMode);
   };
 
+  const handleContractTypeSelect = (type: ContractKind) => {
+    setSelectedContractType(type);
+    setTaxLookupMessage("");
+
+    if (type === "appendix") {
+      setPartnerEntityType("company");
+      setIsPartnerFormVisible(false);
+      return;
+    }
+
+    setSelectedPrincipleContractId("");
+    setAppendixProducts([createAppendixProductRow()]);
+    setIsPartnerFormVisible(isEditMode);
+  };
+
+  const handlePrincipleContractSelect = (contractId: string) => {
+    setSelectedPrincipleContractId(contractId);
+    const contract = principleContractOptions.find(
+      (item) => item.contractId === contractId,
+    );
+
+    if (!contract) {
+      setIsPartnerFormVisible(false);
+      return;
+    }
+
+    setPartnerEntityType("company");
+    setPartnerCompanyInfo(contract.partnerCompanyInfo);
+    setIsPartnerFormVisible(true);
+  };
+
+  const updateAppendixProduct = useCallback((id: string, content: string) => {
+    setAppendixProducts((current) =>
+      current.map((product) =>
+        product.id === id ? { ...product, content } : product,
+      ),
+    );
+  }, []);
+
+  const addAppendixProduct = useCallback(() => {
+    setAppendixProducts((current) => [...current, createAppendixProductRow()]);
+  }, []);
+
+  const removeAppendixProduct = useCallback((id: string) => {
+    setAppendixProducts((current) =>
+      current.length > 1
+        ? current.filter((product) => product.id !== id)
+        : current,
+    );
+  }, []);
+
   const validateForm = (): string | null => {
     if (!selectedContractType) {
       return "Vui lòng chọn loại hợp đồng.";
     }
 
-    if (selectedContractType !== "principle") {
+    if (selectedContractType === "service") {
       return "Loại hợp đồng này chưa sẵn sàng để tạo.";
     }
 
-    if (isEmpty(appendixDate)) {
-      return "Vui lòng chọn ngày ký hợp đồng.";
+    if (selectedContractType === "appendix") {
+      if (!selectedPrincipleContract) {
+        return "Vui lòng chọn hợp đồng nguyên tắc đã hoàn tất.";
+      }
+
+      if (!principleContractSignedDate) {
+        return "Hợp đồng nguyên tắc được chọn chưa có bản hoàn chỉnh version 3 để lấy ngày ký.";
+      }
+
+      const productContents = appendixProducts
+        .map((product) => product.content.trim())
+        .filter(Boolean);
+
+      if (productContents.length === 0) {
+        return "Vui lòng nhập ít nhất một sản phẩm cho phụ lục hợp đồng.";
+      }
+
+      return null;
     }
 
     const parsedPaymentTermDays = Number(paymentTermDays);
@@ -494,32 +910,49 @@ export function ContractFormPage({
     return null;
   };
 
-  const buildPayload = (): CreateContractPayload => ({
-    ownerCompanyInfo,
-    partnerCompanyInfo: {
-      ...partnerCompanyInfo,
-      companyName:
-        partnerEntityType === "company"
-          ? partnerCompanyInfo.companyName?.trim() || ""
-          : null,
-      mst:
-        partnerEntityType === "company"
-          ? partnerCompanyInfo.mst?.trim() || ""
-          : null,
-      address: partnerCompanyInfo.address.trim(),
-      phone: partnerCompanyInfo.phone.trim(),
-      email: partnerCompanyInfo.email.trim(),
-      bankInfo: partnerCompanyInfo.bankInfo.trim(),
-      ownerName: partnerCompanyInfo.ownerName.trim(),
-      role: partnerCompanyInfo.role.trim(),
-    },
-    contractType: "principle",
-    contractData: {
-      appendixDate,
-      paymentTermDays: Number(paymentTermDays),
-      creditLimit: isEmpty(creditLimit) ? null : Number(creditLimit),
-    },
+  const normalizePartnerInfo = (
+    info: PartnerCompanyInfoPayload,
+  ): PartnerCompanyInfoPayload => ({
+    ...info,
+    companyName:
+      partnerEntityType === "company" ? info.companyName?.trim() || "" : null,
+    mst: partnerEntityType === "company" ? info.mst?.trim() || "" : null,
+    address: info.address.trim(),
+    phone: info.phone.trim(),
+    email: info.email.trim(),
+    bankInfo: info.bankInfo.trim(),
+    ownerName: info.ownerName.trim(),
+    role: info.role.trim(),
   });
+
+  const buildPayload = (): CreateContractPayload => {
+    if (selectedContractType === "appendix" && selectedPrincipleContract) {
+      return {
+        contractType: "appendix",
+        principleContractNumber:
+          selectedPrincipleContract.contractNumber ||
+          selectedPrincipleContract.contractId,
+        principleContractSignedDate,
+        ownerCompanyInfo,
+        partnerCompanyInfo: normalizePartnerInfo(
+          selectedPrincipleContract.partnerCompanyInfo,
+        ),
+        products: appendixProducts
+          .map((product) => product.content.trim())
+          .filter(Boolean),
+      };
+    }
+
+    return {
+      ownerCompanyInfo,
+      partnerCompanyInfo: normalizePartnerInfo(partnerCompanyInfo),
+      contractType: "principle",
+      contractData: {
+        paymentTermDays: Number(paymentTermDays),
+        creditLimit: isEmpty(creditLimit) ? null : Number(creditLimit),
+      },
+    };
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -621,7 +1054,7 @@ export function ContractFormPage({
                         key={option.value}
                         type="button"
                         disabled={option.disabled}
-                        onClick={() => setSelectedContractType(option.value)}
+                        onClick={() => handleContractTypeSelect(option.value)}
                         whileHover={option.disabled ? undefined : { y: -3 }}
                         whileTap={option.disabled ? undefined : { scale: 0.99 }}
                         transition={{
@@ -672,16 +1105,6 @@ export function ContractFormPage({
               <SectionTitle>Thông tin hợp đồng</SectionTitle>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div>
-                  <FieldLabel>Ngày ký</FieldLabel>
-                  <TextInput
-                    id="appendix-date"
-                    type="date"
-                    value={appendixDate}
-                    onChange={setAppendixDate}
-                    required
-                  />
-                </div>
                 <div>
                   <FieldLabel>Thời hạn thanh toán (ngày)</FieldLabel>
                   <TextInput
@@ -969,18 +1392,220 @@ export function ContractFormPage({
                 ) : null}
               </div>
 
-              {lastPayload ? (
+              {lastPayload?.contractType === "principle" ? (
                 <p className="text-xs text-black/60 dark:text-white/50">
                   Đã gửi yêu cầu tạo hợp đồng nguyên tắc, thời hạn thanh toán{" "}
                   <span className="tabular-nums">
-                    {"paymentTermDays" in lastPayload.contractData
-                      ? lastPayload.contractData.paymentTermDays
-                      : 0}
+                    {lastPayload.contractData.paymentTermDays}
                   </span>{" "}
                   ngày.
                 </p>
               ) : null}
             </div>
+              </>
+            ) : null}
+            {selectedContractType === "appendix" ? (
+              <>
+                <section className="border-b border-black/10 py-6 dark:border-white/10">
+                  <SectionTitle>Hợp đồng nguyên tắc</SectionTitle>
+
+                  <div className="space-y-4">
+                    <div>
+                      <FieldLabel>Chọn hợp đồng đã hoàn tất</FieldLabel>
+                      <PrincipleContractSelect
+                        contracts={principleContractOptions}
+                        selectedContractId={selectedPrincipleContractId}
+                        isLoading={isLoadingContracts}
+                        onChange={handlePrincipleContractSelect}
+                      />
+                    </div>
+
+                    {selectedPrincipleContract ? (
+                      <div className="grid grid-cols-1 gap-3 rounded-xl border border-black/12 bg-white p-4 text-sm dark:border-white/10 dark:bg-white/2 md:grid-cols-2">
+                        <div>
+                          <p className="text-[11px] text-black/40 dark:text-white/40">
+                            Số hợp đồng nguyên tắc
+                          </p>
+                          <p className="mt-1 font-semibold text-[#111111] dark:text-white">
+                            {selectedPrincipleContract.contractNumber ||
+                              selectedPrincipleContract.contractId}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] text-black/40 dark:text-white/40">
+                            Ngày ký hợp đồng nguyên tắc
+                          </p>
+                          <p className="mt-1 font-semibold text-[#111111] dark:text-white">
+                            {principleContractSignedDate ||
+                              "Chưa tìm thấy document version 3"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] text-black/40 dark:text-white/40">
+                            Đối tác
+                          </p>
+                          <p className="mt-1 font-semibold text-[#111111] dark:text-white">
+                            {selectedPrincipleContract.partnerCompanyInfo
+                              .companyName ||
+                              selectedPrincipleContract.partnerCompanyInfo
+                                .ownerName}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] text-black/40 dark:text-white/40">
+                            Mã số thuế
+                          </p>
+                          <p className="mt-1 font-semibold text-[#111111] dark:text-white">
+                            {selectedPrincipleContract.partnerCompanyInfo.mst ||
+                              "Không có"}
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </section>
+
+                <section className="border-b border-black/10 py-6 dark:border-white/10">
+                  <SectionTitle>Công ty chủ sở hữu</SectionTitle>
+
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {OWNER_TEMPLATES.map((template, index) => {
+                      const selected = selectedOwnerIndex === index;
+
+                      return (
+                        <motion.button
+                          key={template.companyCode}
+                          type="button"
+                          onClick={() => setSelectedOwnerIndex(index)}
+                          whileHover={{ y: -3 }}
+                          whileTap={{ scale: 0.99 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 420,
+                            damping: 30,
+                          }}
+                          className={`relative w-full overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
+                            selected
+                              ? "border-black/30 bg-black/[0.06] dark:border-white/35 dark:bg-white/6"
+                              : "border-black/12 bg-white hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p
+                                className={`text-xs ${
+                                  selected
+                                    ? "text-black/78 dark:text-white/70"
+                                    : "text-black/52 dark:text-white/40"
+                                }`}
+                              >
+                                {template.companyCode}
+                              </p>
+                              <h3 className="mt-2 text-sm leading-5 font-medium text-[#111111] dark:text-white">
+                                {template.companyName}
+                              </h3>
+                            </div>
+                            <span
+                              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                                selected
+                                  ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
+                                  : "border-black/15 text-transparent dark:border-white/15"
+                              }`}
+                            >
+                              <FiCheck className="text-xs" />
+                            </span>
+                          </div>
+                          <div className="mt-4 space-y-2 text-xs leading-5 text-black/58 dark:text-white/45">
+                            <p>{template.address}</p>
+                            <p>
+                              {template.ownerName} · {template.role}
+                            </p>
+                            <p className="tabular-nums">
+                              {template.phone} · {template.email}
+                            </p>
+                            <p>MST: {template.mst}</p>
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                {selectedPrincipleContract ? (
+                  <section className="border-b border-black/10 py-6 dark:border-white/10">
+                    <SectionTitle>Công ty đối tác</SectionTitle>
+                    <div className="grid grid-cols-1 gap-3 rounded-xl border border-black/12 bg-white p-4 text-sm dark:border-white/10 dark:bg-white/2 md:grid-cols-2">
+                      {PARTNER_FIELDS.map((field) => (
+                        <div
+                          key={field.key}
+                          className={field.multiline ? "md:col-span-2" : ""}
+                        >
+                          <p className="text-[11px] text-black/40 dark:text-white/40">
+                            {field.label}
+                          </p>
+                          <p className="mt-1 whitespace-pre-line font-semibold text-[#111111] dark:text-white">
+                            {String(
+                              selectedPrincipleContract.partnerCompanyInfo[
+                                field.key
+                              ] || "Không có",
+                            )}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
+                <section className="border-b border-black/10 py-6 dark:border-white/10">
+                  <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <SectionTitle>Sản phẩm trong phụ lục</SectionTitle>
+                    <button
+                      type="button"
+                      onClick={addAppendixProduct}
+                      className="inline-flex h-10 w-fit items-center justify-center gap-2 rounded-lg border border-black/12 bg-white px-4 text-xs font-medium text-black/75 transition hover:border-black/25 hover:text-[#111111] dark:border-white/10 dark:bg-transparent dark:text-white/70 dark:hover:border-white/25 dark:hover:text-white"
+                    >
+                      <FiPlus />
+                      Thêm sản phẩm
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {appendixProducts.map((product, index) => (
+                      <AppendixProductEditor
+                        key={product.id}
+                        product={product}
+                        index={index}
+                        canRemove={appendixProducts.length > 1}
+                        onChange={updateAppendixProduct}
+                        onRemove={removeAppendixProduct}
+                      />
+                    ))}
+                  </div>
+                </section>
+
+                <div className="flex flex-col items-center gap-3 py-6">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="group relative inline-flex h-12 min-w-56 items-center justify-center overflow-hidden rounded-full bg-white px-6 text-sm font-medium text-black shadow-[0_16px_45px_rgba(0,0,0,0.38)] transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white/95 hover:shadow-[0_22px_60px_rgba(0,0,0,0.46)] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:translate-y-0 disabled:bg-white/45 disabled:text-black/50 disabled:shadow-none"
+                  >
+                    <span className="absolute inset-x-6 top-0 h-px bg-linear-to-r from-transparent via-black/25 to-transparent opacity-50" />
+                    <span className="flex items-center justify-center gap-2.5">
+                      {isSubmitting ? <Spinner size="sm" color="black" /> : null}
+                      Tạo phụ lục
+                    </span>
+                  </button>
+
+                  {lastPayload?.contractType === "appendix" ? (
+                    <p className="text-xs text-black/60 dark:text-white/50">
+                      Đã gửi yêu cầu tạo phụ lục với{" "}
+                      <span className="tabular-nums">
+                        {lastPayload.products.length}
+                      </span>{" "}
+                      sản phẩm.
+                    </p>
+                  ) : null}
+                </div>
               </>
             ) : null}
           </motion.div>

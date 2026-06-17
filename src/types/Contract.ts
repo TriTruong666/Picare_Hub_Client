@@ -1,16 +1,32 @@
-export type UpdateContractPayload = {
+export type PrincipleContractPayload = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
-  contractType: ContractType;
-  contractData: PrincipleContractDataPayload | ServiceContractDataPayload;
+  contractType: "principle";
+  contractData: PrincipleContractDataPayload;
 };
 
-export type CreateContractPayload = {
+export type ServiceContractPayload = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
-  contractType: ContractType;
-  contractData: PrincipleContractDataPayload | ServiceContractDataPayload;
+  contractType: "service";
+  contractData: ServiceContractDataPayload;
 };
+
+export type AppendixContractPayload = {
+  contractType: "appendix";
+  principleContractNumber: string;
+  principleContractSignedDate: string;
+  ownerCompanyInfo: OwnerCompanyInfoPayload;
+  partnerCompanyInfo: PartnerCompanyInfoPayload;
+  products: string[];
+};
+
+export type UpdateContractPayload =
+  | PrincipleContractPayload
+  | ServiceContractPayload
+  | AppendixContractPayload;
+
+export type CreateContractPayload = UpdateContractPayload;
 
 export type ContractDetailPayload = {
   productName: string;
@@ -18,7 +34,6 @@ export type ContractDetailPayload = {
 };
 
 export type PrincipleContractDataPayload = {
-  appendixDate: string;
   paymentTermDays: number;
   creditLimit: number | null;
 };
@@ -52,7 +67,12 @@ export type PartnerCompanyInfoPayload = {
   role: string;
 };
 
-export type ContractType = "principle" | "service" | "digital" | "default";
+export type ContractType =
+  | "principle"
+  | "appendix"
+  | "service"
+  | "digital"
+  | "default";
 
 export type ContractStatus =
   | "draft"
@@ -77,6 +97,7 @@ export type ContractDocument = {
   id: number;
   contractDocumentId: string;
   version: number;
+  status?: string;
   fileUrl: string;
   fileHash: string;
   createdAt: string;
@@ -208,6 +229,9 @@ export type Contract = {
   partnerCompanyInfo: PartnerCompanyInfoPayload;
   contractDueDate: string;
   contractData?: PrincipleContractDataPayload | ServiceContractDataPayload | null;
+  principleContractNumber?: string | null;
+  principleContractSignedDate?: string | null;
+  products?: string[];
   contractChecksum: string;
   contractType: ContractType;
   contractUrl: string | null;

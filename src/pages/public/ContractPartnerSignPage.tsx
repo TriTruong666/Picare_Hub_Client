@@ -144,10 +144,6 @@ function getPrincipleContractData(contract: Contract): PrincipleContractDataPayl
   const data = contract.contractData ?? {};
 
   return {
-    appendixDate:
-      "appendixDate" in data && data.appendixDate
-        ? String(data.appendixDate)
-        : contract.contractDueDate,
     paymentTermDays:
       "paymentTermDays" in data && typeof data.paymentTermDays === "number"
         ? data.paymentTermDays
@@ -161,6 +157,65 @@ function getPrincipleContractData(contract: Contract): PrincipleContractDataPayl
 
 function formatCreditLimit(value: number | null) {
   return value === null ? "Không áp dụng" : `${formatCurrency(value)} VND`;
+}
+
+type AppendixProductRow = {
+  productName: string;
+  ingredients: string;
+  packaging: string;
+  registrationNumber: string;
+  originCountry: string;
+  vatPrice: string;
+  category: string;
+};
+
+const APPENDIX_PRODUCT_LABELS: Record<keyof AppendixProductRow, string> = {
+  productName: "Tên sản phẩm",
+  ingredients: "Thành phần",
+  packaging: "Quy cách đóng gói",
+  registrationNumber: "Số đăng ký",
+  originCountry: "Nước sản xuất",
+  vatPrice: "Đơn giá(+VAT)",
+  category: "Phân loại",
+};
+
+function parseAppendixProduct(rawProduct: string): AppendixProductRow {
+  const row: AppendixProductRow = {
+    productName: "",
+    ingredients: "",
+    packaging: "",
+    registrationNumber: "",
+    originCountry: "",
+    vatPrice: "",
+    category: "",
+  };
+
+  const labelEntries = Object.entries(APPENDIX_PRODUCT_LABELS) as [
+    keyof AppendixProductRow,
+    string,
+  ][];
+
+  for (const line of rawProduct.split(/\r?\n/)) {
+    const [label, ...valueParts] = line.split(":");
+    const normalizedLabel = label?.trim().toLowerCase();
+    const matchedEntry = labelEntries.find(
+      ([, displayLabel]) => displayLabel.toLowerCase() === normalizedLabel,
+    );
+
+    if (matchedEntry) {
+      row[matchedEntry[0]] = valueParts.join(":").trim();
+    }
+  }
+
+  if (!row.productName) {
+    row.productName = rawProduct.trim();
+  }
+
+  return row;
+}
+
+function getAppendixProducts(contract: Contract) {
+  return (contract.products ?? []).map(parseAppendixProduct);
 }
 
 function ArticleTitle({ children }: { children: ReactNode }) {
@@ -352,7 +407,6 @@ function ContractDocument({
   const partner = contract.partnerCompanyInfo;
   const contractData = getPrincipleContractData(contract);
   const todayDate = getVietnameseDate();
-  const appendixDate = formatDate(contractData.appendixDate);
   const creditLimit = formatCreditLimit(contractData.creditLimit);
   const contractNumber = contract.contractNumber;
   const hasOwnerSigned =
@@ -434,13 +488,16 @@ function ContractDocument({
       <p className="mt-3 text-[14px] leading-7 text-white/62">
         Sau đây gọi tắt là Bên B. Bên Mua, Bên Bán sau đây gọi riêng là “Bên” và gọi chung là “Hai Bên”.
       </p>
+      <p className="mt-3 text-[14px] leading-7 text-white/62">
+        Hai bên cùng thỏa thuận và ký kết Hợp đồng mua bán hàng hóa thường xuyên (sau đây gọi tắt là “Hợp đồng”) như sau:
+      </p>
 
       <section>
         <ArticleTitle>Điều 1: Các điều khoản chung</ArticleTitle>
         <ClauseList
           items={[
             <>1.1 Hợp đồng Nguyên tắc này là cơ sở để hai Bên thực hiện việc mua bán hàng hóa thường xuyên.</>,
-            <>1.2 Căn cứ vào Hợp đồng này, hai Bên sẽ ký Đơn đặt hàng đối với từng lô hàng cụ thể. Chi tiết hàng hóa, chất lượng, số lượng, giá cả, giao hàng và các điều khoản khác sẽ được chỉ rõ trong các Đơn đặt hàng tương ứng.</>,
+            <>1.2 Căn cứ vào Hợp đồng này, hai Bên sẽ ký Đơn đặt hàng (Bằng văn bản và/hoặc thư điện tử) đối với từng lô hàng cụ thể. Chi tiết hàng hóa, chất lượng, số lượng, giá cả, giao hàng và các điều khoản khác (nếu có) sẽ được chỉ rõ trong các Đơn đặt hàng tương ứng.</>,
             <>1.3 Trong trường hợp hai Bên có giao dịch mua bán mà nội dung thỏa thuận giữa hai Bên có các điều kiện thỏa thuận bổ sung và chi tiết hơn so với nội dung Hợp đồng này, hoặc do hai Bên thống nhất, thỏa thuận thì hai Bên sẽ ký Phụ Lục Hợp Đồng để thực hiện giao dịch. Trong trường hợp đó, Hợp đồng mua bán sẽ được ưu tiên áp dụng nếu có điều khoản trái với Hợp đồng này.</>,
           ]}
         />
@@ -478,7 +535,7 @@ function ContractDocument({
             <>- Hàng hóa có thể giao một lần hay nhiều lần tùy theo hai Bên thỏa thuận cụ thể trong từng Đơn Đặt hàng.</>,
             <>- Tại thời điểm giao hàng, Bên Mua kiểm tra hàng hóa và có quyền từ chối nhận hàng nếu sản phẩm không đạt chất lượng theo quy định tại Khoản 2.1 Điều 2 Hợp đồng này. Nếu Bên Mua chấp nhận một phần trong tổng số hàng hóa được giao thì Hai Bên sẽ lập Biên bản bàn giao số hàng thực nhận.</>,
             <>3.6 Chứng từ giao hàng gồm có:</>,
-            <>Hóa đơn bán hàng hợp lệ. Thông tin viết hóa đơn: Tên Công ty: {owner.companyName}; MST: {owner.mst}; Địa chỉ: {owner.address};</>,
+            <>Hóa đơn bán hàng hợp lệ. Thông tin viết hóa đơn: Tên Công ty: {partner.companyName || partner.ownerName}; MST: {partner.mst}; Địa chỉ: {partner.address};</>,
             <>Biên bản giao nhận hàng hóa đối với trường hợp giao hàng trực tiếp. Trường hợp giao hàng qua nhà vận chuyển thì bill vận chuyển ghi rõ số kiện, trọng lượng và còn dấu niêm phong của Bên Bán, có danh mục hàng hóa, số lượng từng loại hàng được đóng trong từng kiện hàng.</>,
             <>- Đơn đặt hàng đã được xác nhận theo Quy trình đặt hàng thỏa thuận tại Điều này.</>,
             <>- Phiếu kiểm nghiệm, giấy phép lưu hành, giấy phép nhập khẩu (đối với hàng nhập khẩu), các giấy tờ chứng minh nguồn gốc xuất xứ hàng hóa theo quy định pháp luật.</>,
@@ -491,7 +548,7 @@ function ContractDocument({
         <ClauseList
           items={[
             <>4.1 Giá bán:</>,
-            <>- Bảng giá chi tiết và chương trình hợp tác đính kèm tại Phụ lục số 01 ký ngày <strong className="font-semibold text-white/82">{appendixDate || "..."}</strong></>,
+            <>- Bảng giá chi tiết và chương trình hợp tác đính kèm tại Phụ lục kèm theo.</>,
             <>- Giá bán hàng hóa là giá Bên Bán niêm yết tùy từng thời điểm và có hiệu lực áp dụng vào thời điểm Bên Mua đặt hàng.</>,
             <>- Trường hợp có điều chỉnh giá bán, Bên Bán cung cấp cho Bên Mua văn bản thông báo điều chỉnh giá bán trước thời điểm thay đổi giá ít nhất 03 ngày làm việc.</>,
             <>4.2 Thời hạn thanh toán: <strong className="font-semibold text-white/82">{contractData.paymentTermDays}</strong> ngày kể từ ngày Bên Bán hoàn thành việc giao hàng và cung cấp đầy đủ chứng từ giao hàng theo quy định tại Khoản 3.6 Điều 3 Hợp đồng này. Trường hợp ngày thanh toán rơi vào ngày thứ 7, Chủ nhật hoặc ngày Lễ, Tết theo quy định của nhà nước thì ngày thanh toán được dời vào ngày làm việc kế tiếp.</>,
@@ -563,8 +620,8 @@ function ContractDocument({
         <ArticleTitle>Điều 9: Chống tham nhũng</ArticleTitle>
         <ClauseList
           items={[
-            <>9.1. Bên Bán không được bằng bất kỳ hình thức nào trao cho nhân viên của Bên Mua các lợi ích bằng tiền hoặc/và hiện vật như tặng quà, thưởng tiền, trích phần trăm hoa hồng, cho nhân viên nâng giá để hưởng chênh lệch hoặc các hành vi có tính chất tương tự mà không có sự đồng ý bằng văn bản của Bên Mua. Bên Mua được quyền chấm dứt hợp đồng này nếu Bên Bán vi phạm cam kết này và đồng thời Bên Bán sẽ phải bồi thường cho Bên Bị Ảnh Hưởng.</>,
-            <>9.2. Bên phát hiện các hành vi vi phạm về tham nhũng hoặc lợi ích vật chất như đã nêu ở trên thì thông báo cho Bên Mua theo thông tin sau: - Họ tên: {partner.ownerName} Chức vụ: {partner.role} - Điện thoại: {partner.phone} - Email: {partner.email}</>,
+            <>9.1. Bên Bán không được bằng bất kỳ hình thức nào trao cho nhân viên của Bên Mua các lợi ích bằng tiền hoặc/và hiện vật như tặng quà, thưởng tiền, trích phần trăm hoa hồng, cho nhân viên nâng giá để hưởng chênh lệch hoặc các hành vi có tính chất tương tự mà không có sự đồng ý bằng văn bản của Bên Mua. Bên Mua được quyền chấm dứt hợp đồng này nếu Bên Bán vi phạm cam kết này và đồng thời Bên Bán sẽ phải bồi thường cho Bên Mua tương đương số tiền mà Bên Bán đã chi trả cho nhân viên của Bên Mua.</>,
+            <>9.2. Bên Bán cam kết rằng, nếu biết việc nhân viên của Bên Mua có các hành vi đề nghị việc được hưởng tiền/ lợi ích vật chất như đã nêu ở trên thì thông báo cho Bên Mua theo thông tin sau: - Họ tên: {partner.ownerName} Chức vụ: {partner.role} - Điện thoại: {partner.phone} - Email: {partner.email}</>,
           ]}
         />
       </section>
@@ -596,6 +653,173 @@ function ContractDocument({
             <>Hợp đồng Nguyên tắc bán hàng này được lập thành 04 bản, mỗi bên giữ 02 bản có giá trị pháp lý như nhau. Hợp đồng có hiệu lực kể từ ngày ký.</>,
           ]}
         />
+      </section>
+
+      <section className="mt-20 grid gap-12 border-t border-white/10 pt-12 md:grid-cols-2">
+        <SignatureBlock
+          title="Đại diện Bên A"
+          name={owner.ownerName}
+          isSigned={hasOwnerSigned}
+        />
+        <SignatureBlock
+          title="Đại diện Bên B"
+          name={partner.ownerName}
+          isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)}
+          shouldAnimate={Boolean(partnerSignatureRevealKey)}
+          revealKey={partnerSignatureRevealKey}
+          signatureRef={partnerSignatureRef}
+        />
+      </section>
+    </motion.article>
+  );
+}
+
+function AppendixContractDocument({
+  contract,
+  partnerSignatureRef,
+  partnerSignatureRevealKey,
+}: {
+  contract: Contract;
+  partnerSignatureRef?: Ref<HTMLDivElement>;
+  partnerSignatureRevealKey?: number;
+}) {
+  const owner = contract.ownerCompanyInfo;
+  const partner = contract.partnerCompanyInfo;
+  const todayDate = getVietnameseDate();
+  const shortTodayDate = formatDate(new Date().toISOString());
+  const products = getAppendixProducts(contract);
+  const hasOwnerSigned =
+    contract.status === "owner_signed" || contract.status === "completed";
+  const hasPartnerSigned = contract.status === "completed";
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      className="mx-auto w-full max-w-3xl pb-24"
+    >
+      <header className="grid gap-8 border-b border-white/10 pb-10 md:grid-cols-[1fr_1.15fr]">
+        <div>
+          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">
+            {owner.companyName}
+          </p>
+          <p className="mt-3 text-[13px] text-white/35">
+            Số:{" "}
+            <strong className="font-semibold text-white/72">
+              {contract.contractNumber || contract.contractId}
+            </strong>
+          </p>
+        </div>
+        <div className="text-left md:text-center">
+          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">
+            Cộng hòa xã hội chủ nghĩa Việt Nam
+          </p>
+          <p className="mt-1 text-[13px] text-white/62">
+            Độc lập - Tự do - Hạnh phúc
+          </p>
+        </div>
+      </header>
+
+      <section className="pt-14 text-center">
+        <p className="text-[13px] text-white/35">
+          Hôm nay,{" "}
+          <strong className="font-semibold text-white/72">{todayDate}</strong>
+        </p>
+        <h1 className="mt-7 text-4xl font-medium tracking-[0.03em] text-white uppercase">
+          Phụ lục hợp đồng
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-[14px] leading-7 text-white/62">
+          Đính kèm Hợp đồng nguyên tắc số:{" "}
+          <strong className="font-semibold text-white/86">
+            {contract.principleContractNumber || "..."}
+          </strong>{" "}
+          ký ngày{" "}
+          <strong className="font-semibold text-white/86">
+            {contract.principleContractSignedDate || "..."}
+          </strong>
+        </p>
+      </section>
+
+      <p className="mt-10 text-[14px] leading-7 text-white/62">
+        Hôm nay,{" "}
+        <strong className="font-semibold text-white/82">
+          {shortTodayDate || "..."}
+        </strong>{" "}
+        tại văn phòng công ty chúng tôi gồm có:
+      </p>
+
+      <PartySection
+        title={`Công ty bán (Bên A): ${owner.companyName}`}
+        party={owner}
+      />
+      <p className="mt-3 text-[14px] leading-7 text-white/62">
+        Sau đây gọi tắt là Bên A
+      </p>
+      <PartySection
+        title={`Công ty mua (Bên B): ${partner.companyName || partner.ownerName}`}
+        party={partner}
+      />
+      <p className="mt-3 text-[14px] leading-7 text-white/62">
+        Sau đây gọi tắt là Bên B
+      </p>
+
+      <section>
+        <ArticleTitle>Nội dung phụ lục</ArticleTitle>
+        <ClauseList
+          items={[
+            <>Hai bên đồng ý ký kết Phụ lục với các điều khoản sau:</>,
+            <>Bảng giá: Bên B được hưởng các chính sách, chương trình hợp tác theo bảng liệt kê chi tiết (Giá và các chính sách, chương trình hợp tác đã bao gồm thuế GTGT). Mức chiết khấu này sẽ là căn cứ để Bên A xuất hóa đơn GTGT cho Bên B khi xuất bán hàng hóa. Khi bảng giá thay đổi đã được hai Bên thống nhất qua thư điện tử (email). Bên A cung cấp cho Bên B bảng giá mới trước 30 (ba mươi) ngày trước khi áp dụng.</>,
+            <>Lưu ý: Thuế suất thuế GTGT của sản phẩm sẽ thay đổi tùy từng thời điểm. phù hợp theo quy định của pháp luật hiện hành.</>,
+          ]}
+        />
+      </section>
+
+      <section>
+        <ArticleTitle>Bảng sản phẩm</ArticleTitle>
+        <div className="mt-5 overflow-x-auto">
+          <table className="w-full min-w-[860px] border-collapse text-left text-[12px]">
+            <thead>
+              <tr className="border-y border-white/15 bg-white/[0.06] text-white/70">
+                <th className="w-12 px-3 py-3 font-medium">STT</th>
+                {Object.values(APPENDIX_PRODUCT_LABELS).map((label) => (
+                  <th key={label} className="px-3 py-3 font-medium">
+                    {label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {products.length > 0 ? (
+                products.map((product, index) => (
+                  <tr
+                    key={`${product.productName}-${index}`}
+                    className="border-b border-white/10 text-white/62"
+                  >
+                    <td className="px-3 py-3 align-top tabular-nums">
+                      {index + 1}
+                    </td>
+                    {(Object.keys(APPENDIX_PRODUCT_LABELS) as Array<
+                      keyof AppendixProductRow
+                    >).map((key) => (
+                      <td key={key} className="px-3 py-3 align-top">
+                        <strong className="font-semibold text-white/86">
+                          {product[key] || "-"}
+                        </strong>
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="px-3 py-8 text-center text-white/45">
+                    Chưa có sản phẩm trong phụ lục.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="mt-20 grid gap-12 border-t border-white/10 pt-12 md:grid-cols-2">
@@ -1175,11 +1399,19 @@ export default function ContractPartnerSignPage() {
 
   return (
     <main className="dashboard-theme min-h-screen bg-black px-5 py-10 text-white md:px-8">
-      <ContractDocument
-        contract={contract}
-        partnerSignatureRef={partnerSignatureRef}
-        partnerSignatureRevealKey={partnerSignatureRevealKey}
-      />
+      {contract.contractType === "appendix" ? (
+        <AppendixContractDocument
+          contract={contract}
+          partnerSignatureRef={partnerSignatureRef}
+          partnerSignatureRevealKey={partnerSignatureRevealKey}
+        />
+      ) : (
+        <ContractDocument
+          contract={contract}
+          partnerSignatureRef={partnerSignatureRef}
+          partnerSignatureRevealKey={partnerSignatureRevealKey}
+        />
+      )}
       {contract.status === "owner_signed" || contract.status === "completed" ? (
         <ContractActionDock
           contract={contract}
