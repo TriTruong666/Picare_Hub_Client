@@ -1,22 +1,32 @@
 export type UpdateContractPayload = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
-  contractDueDate: string;
-  contractType: "digital" | "default";
-  details: ContractDetailPayload[];
+  contractType: ContractType;
+  contractData: PrincipleContractDataPayload | ServiceContractDataPayload;
 };
 
 export type CreateContractPayload = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
-  contractDueDate: string;
-  contractType: "digital" | "default";
-  details: ContractDetailPayload[];
+  contractType: ContractType;
+  contractData: PrincipleContractDataPayload | ServiceContractDataPayload;
 };
 
 export type ContractDetailPayload = {
   productName: string;
   price: number;
+};
+
+export type PrincipleContractDataPayload = {
+  appendixDate: string;
+  paymentTermDays: number;
+  creditLimit: number | null;
+};
+
+export type ServiceContractDataPayload = {
+  title?: string;
+  scope?: string;
+  paymentTerm?: string;
 };
 
 export type OwnerCompanyInfoPayload = {
@@ -42,7 +52,7 @@ export type PartnerCompanyInfoPayload = {
   role: string;
 };
 
-export type ContractType = "digital" | "default";
+export type ContractType = "principle" | "service" | "digital" | "default";
 
 export type ContractStatus =
   | "draft"
@@ -197,6 +207,7 @@ export type Contract = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
   contractDueDate: string;
+  contractData?: PrincipleContractDataPayload | ServiceContractDataPayload | null;
   contractChecksum: string;
   contractType: ContractType;
   contractUrl: string | null;

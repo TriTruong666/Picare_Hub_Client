@@ -6,9 +6,8 @@ import {
   FiCheck,
   FiClock,
   FiExternalLink,
+  FiFileText,
   FiSearch,
-  FiPlus,
-  FiTrash2,
   FiX,
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
@@ -32,14 +31,28 @@ import type {
 
 type PartnerField = keyof PartnerCompanyInfoPayload;
 
-type ProductRow = {
-  id: string;
-  productName: string;
-  price: string;
-};
-
 type ContractFormMode = "create" | "edit";
 type PartnerEntityType = "individual" | "company";
+type ContractKind = "principle" | "service";
+
+const CONTRACT_TYPE_OPTIONS: {
+  value: ContractKind;
+  title: string;
+  description: string;
+  disabled?: boolean;
+}[] = [
+  {
+    value: "principle",
+    title: "Hợp đồng nguyên tắc",
+    description: "Mẫu hợp đồng bán hàng thường xuyên theo cấu trúc mới.",
+  },
+  {
+    value: "service",
+    title: "Hợp đồng dịch vụ",
+    description: "Format đang tổng hợp, sẽ mở sau.",
+    disabled: true,
+  },
+];
 
 const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
   {
@@ -282,6 +295,8 @@ export function ContractFormPage({
   const createContractMutation = useCreateContract();
   const updateContractMutation = useUpdateContract();
   const taxPayerLookupMutation = useTaxPayerLookup();
+  const [selectedContractType, setSelectedContractType] =
+    useState<ContractKind | null>(initialContract ? "principle" : null);
   const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(0);
   const [partnerEntityType, setPartnerEntityType] =
     useState<PartnerEntityType>("company");
@@ -296,8 +311,9 @@ export function ContractFormPage({
       ownerName: "",
       role: "",
     });
-  const [contractDueDate, setContractDueDate] = useState("");
-  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [appendixDate, setAppendixDate] = useState("");
+  const [paymentTermDays, setPaymentTermDays] = useState("");
+  const [creditLimit, setCreditLimit] = useState("");
   const [lastPayload, setLastPayload] = useState<CreateContractPayload | null>(
     null,
   );
@@ -333,13 +349,23 @@ export function ContractFormPage({
     );
     setIsPartnerFormVisible(true);
     setTaxLookupMessage("");
-    setContractDueDate(initialContract.contractDueDate.slice(0, 10));
-    setProducts(
-      (initialContract.details ?? []).map((detail) => ({
-        id: detail.contractDetailId || crypto.randomUUID(),
-        productName: detail.productName,
-        price: String(detail.price),
-      })),
+    setSelectedContractType("principle");
+    setAppendixDate(
+      "appendixDate" in (initialContract.contractData ?? {})
+        ? String(initialContract.contractData?.appendixDate ?? "")
+        : initialContract.contractDueDate?.slice(0, 10) || "",
+    );
+    setPaymentTermDays(
+      "paymentTermDays" in (initialContract.contractData ?? {})
+        ? String(initialContract.contractData?.paymentTermDays ?? "")
+        : "",
+    );
+    setCreditLimit(
+      "creditLimit" in (initialContract.contractData ?? {}) &&
+        initialContract.contractData?.creditLimit !== null &&
+        initialContract.contractData?.creditLimit !== undefined
+        ? String(initialContract.contractData.creditLimit)
+        : "",
     );
   }, [initialContract]);
 
@@ -424,36 +450,33 @@ export function ContractFormPage({
     setIsPartnerFormVisible(isEditMode);
   };
 
-  const updateProduct = (
-    id: string,
-    key: "productName" | "price",
-    value: string,
-  ) => {
-    setProducts((prev) =>
-      prev.map((product) =>
-        product.id === id ? { ...product, [key]: value } : product,
-      ),
-    );
-  };
-
-  const addProduct = () => {
-    setProducts((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        productName: "",
-        price: "",
-      },
-    ]);
-  };
-
-  const removeProduct = (id: string) => {
-    setProducts((prev) => prev.filter((product) => product.id !== id));
-  };
-
   const validateForm = (): string | null => {
-    if (isEmpty(contractDueDate)) {
-      return "Vui lòng chọn ngày hết hạn hợp đồng.";
+    if (!selectedContractType) {
+      return "Vui lòng chọn loại hợp đồng.";
+    }
+
+    if (selectedContractType !== "principle") {
+      return "Loại hợp đồng này chưa sẵn sàng để tạo.";
+    }
+
+    if (isEmpty(appendixDate)) {
+      return "Vui lòng chọn ngày ký hợp đồng.";
+    }
+
+    const parsedPaymentTermDays = Number(paymentTermDays);
+    if (
+      isEmpty(paymentTermDays) ||
+      !Number.isInteger(parsedPaymentTermDays) ||
+      parsedPaymentTermDays <= 0
+    ) {
+      return "Vui lòng nhập thời hạn thanh toán là số ngày lớn hơn 0.";
+    }
+
+    if (!isEmpty(creditLimit)) {
+      const parsedCreditLimit = Number(creditLimit);
+      if (!Number.isFinite(parsedCreditLimit) || parsedCreditLimit < 0) {
+        return "Hạn mức công nợ phải là số lớn hơn hoặc bằng 0, hoặc để trống.";
+      }
     }
 
     const requiredPartnerFields =
@@ -466,24 +489,6 @@ export function ContractFormPage({
       return `Vui lòng nhập đầy đủ thông tin đối tác: ${missingPartnerFields
         .map((field) => field.label.toLowerCase())
         .join(", ")}.`;
-    }
-
-    if (products.length === 0) {
-      return "Vui lòng thêm ít nhất một sản phẩm.";
-    }
-
-    const invalidProductIndex = products.findIndex((product) => {
-      const price = Number(product.price);
-      return (
-        isEmpty(product.productName) ||
-        isEmpty(product.price) ||
-        !Number.isFinite(price) ||
-        price <= 0
-      );
-    });
-
-    if (invalidProductIndex >= 0) {
-      return `Dòng sản phẩm ${invalidProductIndex + 1} chưa hợp lệ. Vui lòng nhập tên và giá lớn hơn 0.`;
     }
 
     return null;
@@ -508,14 +513,12 @@ export function ContractFormPage({
       ownerName: partnerCompanyInfo.ownerName.trim(),
       role: partnerCompanyInfo.role.trim(),
     },
-    contractDueDate,
-    contractType: "digital",
-    details: products
-      .filter((product) => product.productName.trim() && product.price.trim())
-      .map((product) => ({
-        productName: product.productName.trim(),
-        price: Number(product.price),
-      })),
+    contractType: "principle",
+    contractData: {
+      appendixDate,
+      paymentTermDays: Number(paymentTermDays),
+      creditLimit: isEmpty(creditLimit) ? null : Number(creditLimit),
+    },
   });
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -605,18 +608,99 @@ export function ContractFormPage({
             transition={{ duration: 0.25 }}
             className="flex flex-col"
           >
+            {!isEditMode ? (
+              <section className="border-b border-black/10 py-6 dark:border-white/10">
+                <SectionTitle>Chọn loại hợp đồng</SectionTitle>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {CONTRACT_TYPE_OPTIONS.map((option) => {
+                    const selected = selectedContractType === option.value;
+
+                    return (
+                      <motion.button
+                        key={option.value}
+                        type="button"
+                        disabled={option.disabled}
+                        onClick={() => setSelectedContractType(option.value)}
+                        whileHover={option.disabled ? undefined : { y: -3 }}
+                        whileTap={option.disabled ? undefined : { scale: 0.99 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 420,
+                          damping: 30,
+                        }}
+                        className={`relative rounded-xl border p-5 text-left transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-45 ${
+                          selected
+                            ? "border-black/30 bg-black/[0.06] dark:border-white/35 dark:bg-white/6"
+                            : "border-black/12 bg-white hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex gap-3">
+                            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-black/10 bg-black/[0.04] text-black/62 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/62">
+                              <FiFileText />
+                            </span>
+                            <div>
+                              <h3 className="text-sm font-medium text-[#111111] dark:text-white">
+                                {option.title}
+                              </h3>
+                              <p className="mt-2 text-xs leading-5 text-black/58 dark:text-white/45">
+                                {option.description}
+                              </p>
+                            </div>
+                          </div>
+                          <span
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                              selected
+                                ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
+                                : "border-black/15 text-transparent dark:border-white/15"
+                            }`}
+                          >
+                            <FiCheck className="text-xs" />
+                          </span>
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
+
+            {selectedContractType === "principle" ? (
+              <>
             <section className="border-b border-black/10 py-6 dark:border-white/10">
               <SectionTitle>Thông tin hợp đồng</SectionTitle>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
-                  <FieldLabel>Ngày hết hạn</FieldLabel>
+                  <FieldLabel>Ngày ký</FieldLabel>
                   <TextInput
-                    id="contract-due-date"
+                    id="appendix-date"
                     type="date"
-                    value={contractDueDate}
-                    onChange={setContractDueDate}
+                    value={appendixDate}
+                    onChange={setAppendixDate}
                     required
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Thời hạn thanh toán (ngày)</FieldLabel>
+                  <TextInput
+                    id="payment-term-days"
+                    type="number"
+                    value={paymentTermDays}
+                    onChange={setPaymentTermDays}
+                    placeholder="30"
+                    required
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Hạn mức công nợ</FieldLabel>
+                  <TextInput
+                    id="credit-limit"
+                    type="number"
+                    value={creditLimit}
+                    onChange={setCreditLimit}
+                    placeholder="Để trống nếu không áp dụng"
                   />
                 </div>
               </div>
@@ -848,71 +932,6 @@ export function ContractFormPage({
               </div>
             </section>
 
-            <section className="border-b border-black/10 py-6 dark:border-white/10">
-              <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <SectionTitle>Danh sách sản phẩm</SectionTitle>
-                <button
-                  type="button"
-                  onClick={addProduct}
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-black/[0.08] px-4 py-2 text-[12px] text-black/84 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-black/[0.12] hover:text-[#111111] dark:bg-white/[0.06] dark:text-white/80 dark:hover:bg-white/[0.1] dark:hover:text-white active:translate-y-0 active:scale-[0.98]"
-                >
-                  <FiPlus className="transition duration-200 group-hover:rotate-90" />
-                  Thêm sản phẩm
-                </button>
-              </div>
-
-              {products.length > 0 ? (
-                <div className="flex flex-col gap-3">
-                  {products.map((product, index) => (
-                    <div
-                      key={product.id}
-                      className="grid grid-cols-1 gap-3 border border-black/12 bg-white p-3 dark:border-white/10 dark:bg-transparent md:grid-cols-[1fr_180px_40px]"
-                    >
-                      <div>
-                        <FieldLabel>Sản phẩm {index + 1}</FieldLabel>
-                        <TextInput
-                          id={`product-name-${product.id}`}
-                          value={product.productName}
-                          onChange={(value) =>
-                            updateProduct(product.id, "productName", value)
-                          }
-                          placeholder="Tên sản phẩm"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <FieldLabel>Giá</FieldLabel>
-                        <TextInput
-                          id={`product-price-${product.id}`}
-                          type="number"
-                          value={product.price}
-                          onChange={(value) =>
-                            updateProduct(product.id, "price", value)
-                          }
-                          placeholder="0"
-                          required
-                        />
-                      </div>
-                      <div className="flex items-end">
-                        <button
-                          type="button"
-                          onClick={() => removeProduct(product.id)}
-                          className="flex h-11 w-10 items-center justify-center rounded-lg border border-black/12 bg-white text-black/54 transition-all hover:border-red-400/40 hover:text-red-500 dark:border-white/10 dark:bg-transparent dark:text-white/45 dark:hover:text-red-300"
-                          aria-label="Xóa sản phẩm"
-                        >
-                          <FiTrash2 />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-lg border border-dashed border-black/12 bg-white px-4 py-8 text-center text-sm text-black/48 dark:border-white/10 dark:bg-transparent dark:text-white/35">
-                  Chưa có sản phẩm nào. Bấm thêm sản phẩm để bắt đầu.
-                </div>
-              )}
-            </section>
-
             <div className="flex flex-col items-center gap-3 py-6">
               <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <button
@@ -952,14 +971,18 @@ export function ContractFormPage({
 
               {lastPayload ? (
                 <p className="text-xs text-black/60 dark:text-white/50">
-                  Đã gửi yêu cầu tạo hợp đồng với{" "}
+                  Đã gửi yêu cầu tạo hợp đồng nguyên tắc, thời hạn thanh toán{" "}
                   <span className="tabular-nums">
-                    {lastPayload.details.length}
+                    {"paymentTermDays" in lastPayload.contractData
+                      ? lastPayload.contractData.paymentTermDays
+                      : 0}
                   </span>{" "}
-                  sản phẩm.
+                  ngày.
                 </p>
               ) : null}
             </div>
+              </>
+            ) : null}
           </motion.div>
         </form>
       </div>
