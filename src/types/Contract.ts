@@ -16,6 +16,10 @@ export type ServiceContractPayload = {
 export type AppendixContractProductPayload = {
   origin?: string | null;
   rawContent?: string | null;
+  html?: string | null;
+  rawHtml?: string | null;
+  richText?: string | null;
+  productRichText?: string | null;
   ingredients?: string | null;
   productName?: string | null;
   unitPriceVat?: number | string | null;

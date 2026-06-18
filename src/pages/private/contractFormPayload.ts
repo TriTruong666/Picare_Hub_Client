@@ -36,6 +36,19 @@ export function normalizePartnerCompanyInfo(
   };
 }
 
+function getPreferredAppendixRawContent(
+  product: AppendixContractProductPayload,
+) {
+  return (
+    product.rawContent?.trim() ||
+    product.html?.trim() ||
+    product.rawHtml?.trim() ||
+    product.richText?.trim() ||
+    product.productRichText?.trim() ||
+    ""
+  );
+}
+
 export function buildPrincipleContractPayload({
   ownerCompanyInfo,
   partnerCompanyInfo,
@@ -89,7 +102,12 @@ export function buildAppendixContractPayload({
     partnerCompanyInfo,
     products: products
       .map((product) =>
-        typeof product === "string" ? { rawContent: product.trim() } : product,
+        typeof product === "string"
+          ? { rawContent: product.trim() }
+          : {
+              ...product,
+              rawContent: getPreferredAppendixRawContent(product),
+            },
       )
       .filter((product) => Boolean(product.rawContent?.trim())),
   };

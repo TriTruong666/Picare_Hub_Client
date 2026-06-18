@@ -550,6 +550,16 @@ function PrincipleContractSelect({
   );
 }
 
+function findOwnerTemplateIndex(contract?: Contract) {
+  if (!contract) return -1;
+
+  return OWNER_TEMPLATES.findIndex(
+    (template) =>
+      template.companyCode === contract.ownerCompanyInfo.companyCode ||
+      template.mst === contract.ownerCompanyInfo.mst,
+  );
+}
+
 function getPreviewPath(contractId: string) {
   return PATHS.CONTRACT_PREVIEW.replace(":contractId", contractId);
 }
@@ -760,6 +770,11 @@ export function ContractFormPage({
           initialContract.principleContractNumber ||
           "",
       );
+      const selectedOwnerTemplateIndex =
+        findOwnerTemplateIndex(initialContract);
+      if (selectedOwnerTemplateIndex >= 0) {
+        setSelectedOwnerIndex(selectedOwnerTemplateIndex);
+      }
       setAppendixProducts(
         appendixProducts.length
           ? appendixProducts.map((product) =>
@@ -885,7 +900,8 @@ export function ContractFormPage({
   const handlePrincipleContractSelect = (contractId: string) => {
     setSelectedPrincipleContractId(contractId);
     const contract = principleContractOptions.find(
-      (item) => item.contractId === contractId,
+      (item) =>
+        item.contractId === contractId || item.contractNumber === contractId,
     );
 
     if (!contract) {
@@ -893,6 +909,10 @@ export function ContractFormPage({
       return;
     }
 
+    const ownerTemplateIndex = findOwnerTemplateIndex(contract);
+    if (ownerTemplateIndex >= 0) {
+      setSelectedOwnerIndex(ownerTemplateIndex);
+    }
     setPartnerEntityType("company");
     setPartnerCompanyInfo(contract.partnerCompanyInfo);
     setIsPartnerFormVisible(true);
@@ -974,17 +994,6 @@ export function ContractFormPage({
     const validationError = validateForm();
     if (validationError) {
       toast.error("Thiếu dữ liệu", validationError);
-      return;
-    }
-
-    if (
-      selectedContractType === "appendix" &&
-      isMockPrincipleContractSelected
-    ) {
-      toast.error(
-        "Không thể tạo từ dữ liệu mẫu",
-        "Chọn mock chỉ để xem preview. Hãy chọn hợp đồng thật nếu muốn tạo phụ lục.",
-      );
       return;
     }
 
@@ -1176,71 +1185,73 @@ export function ContractFormPage({
                   </div>
                 </section>
 
-                <section className="border-b border-black/10 py-6 dark:border-white/10">
-                  <SectionTitle>Công ty chủ sở hữu</SectionTitle>
+                {selectedPrincipleContract ? (
+                  <section className="border-b border-black/10 py-6 dark:border-white/10">
+                    <div className="mb-4 flex items-end justify-between gap-4">
+                      <SectionTitle>Công ty chủ sở hữu</SectionTitle>
+                      <span className="text-[11px] font-medium tracking-[0.08em] text-black/45 uppercase dark:text-white/35">
+                        Chỉ xem
+                      </span>
+                    </div>
 
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {OWNER_TEMPLATES.map((template, index) => {
-                      const selected = selectedOwnerIndex === index;
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      {OWNER_TEMPLATES.map((template, index) => {
+                        const selected = selectedOwnerIndex === index;
 
-                      return (
-                        <motion.button
-                          key={template.companyCode}
-                          type="button"
-                          onClick={() => setSelectedOwnerIndex(index)}
-                          whileHover={{ y: -3 }}
-                          whileTap={{ scale: 0.99 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 420,
-                            damping: 30,
-                          }}
-                          className={`relative w-full overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
-                            selected
-                              ? "border-black/30 bg-black/[0.06] dark:border-white/35 dark:bg-white/6"
-                              : "border-black/12 bg-white hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <p
-                                className={`text-xs ${
+                        return (
+                          <motion.button
+                            key={template.companyCode}
+                            type="button"
+                            disabled
+                            whileHover={undefined}
+                            whileTap={undefined}
+                            className={`relative w-full overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
+                              selected
+                                ? "cursor-default border-black/30 bg-black/[0.06] opacity-100 dark:border-white/35 dark:bg-white/6"
+                                : "cursor-default border-black/12 bg-white opacity-75 dark:border-white/10 dark:bg-white/2"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <p
+                                  className={`text-xs ${
+                                    selected
+                                      ? "text-black/78 dark:text-white/70"
+                                      : "text-black/52 dark:text-white/40"
+                                  }`}
+                                >
+                                  {template.companyCode}
+                                </p>
+                                <h3 className="mt-2 text-sm leading-5 font-medium text-[#111111] dark:text-white">
+                                  {template.companyName}
+                                </h3>
+                              </div>
+                              <span
+                                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
                                   selected
-                                    ? "text-black/78 dark:text-white/70"
-                                    : "text-black/52 dark:text-white/40"
+                                    ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
+                                    : "border-black/15 text-transparent dark:border-white/15"
                                 }`}
                               >
-                                {template.companyCode}
-                              </p>
-                              <h3 className="mt-2 text-sm leading-5 font-medium text-[#111111] dark:text-white">
-                                {template.companyName}
-                              </h3>
+                                <FiCheck className="text-xs" />
+                              </span>
                             </div>
-                            <span
-                              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
-                                selected
-                                  ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
-                                  : "border-black/15 text-transparent dark:border-white/15"
-                              }`}
-                            >
-                              <FiCheck className="text-xs" />
-                            </span>
-                          </div>
-                          <div className="mt-4 space-y-2 text-xs leading-5 text-black/58 dark:text-white/45">
-                            <p>{template.address}</p>
-                            <p>
-                              {template.ownerName} · {template.role}
-                            </p>
-                            <p className="tabular-nums">
-                              {template.phone} · {template.email}
-                            </p>
-                            <p>MST: {template.mst}</p>
-                          </div>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </section>
+                            <div className="mt-4 space-y-2 text-xs leading-5 text-black/58 dark:text-white/45">
+                              <p>{template.address}</p>
+                              <p>
+                                {template.ownerName} · {template.role}
+                              </p>
+                              <p className="tabular-nums">
+                                {template.phone} · {template.email}
+                              </p>
+                              <p>MST: {template.mst}</p>
+                            </div>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ) : null}
 
                 <section className="border-b border-black/10 py-6 dark:border-white/10">
                   <SectionTitle>Công ty đối tác</SectionTitle>
@@ -1525,71 +1536,73 @@ export function ContractFormPage({
                   </div>
                 </section>
 
-                <section className="border-b border-black/10 py-6 dark:border-white/10">
-                  <SectionTitle>Công ty chủ sở hữu</SectionTitle>
+                {selectedPrincipleContract ? (
+                  <section className="border-b border-black/10 py-6 dark:border-white/10">
+                    <div className="mb-4 flex items-end justify-between gap-4">
+                      <SectionTitle>Công ty chủ sở hữu</SectionTitle>
+                      <span className="text-[11px] font-medium tracking-[0.08em] text-black/45 uppercase dark:text-white/35">
+                        Chỉ xem
+                      </span>
+                    </div>
 
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {OWNER_TEMPLATES.map((template, index) => {
-                      const selected = selectedOwnerIndex === index;
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      {OWNER_TEMPLATES.map((template, index) => {
+                        const selected = selectedOwnerIndex === index;
 
-                      return (
-                        <motion.button
-                          key={template.companyCode}
-                          type="button"
-                          onClick={() => setSelectedOwnerIndex(index)}
-                          whileHover={{ y: -3 }}
-                          whileTap={{ scale: 0.99 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 420,
-                            damping: 30,
-                          }}
-                          className={`relative w-full overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
-                            selected
-                              ? "border-black/30 bg-black/[0.06] dark:border-white/35 dark:bg-white/6"
-                              : "border-black/12 bg-white hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <p
-                                className={`text-xs ${
+                        return (
+                          <motion.button
+                            key={template.companyCode}
+                            type="button"
+                            disabled
+                            whileHover={undefined}
+                            whileTap={undefined}
+                            className={`relative w-full overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
+                              selected
+                                ? "cursor-default border-black/30 bg-black/[0.06] opacity-100 dark:border-white/35 dark:bg-white/6"
+                                : "cursor-default border-black/12 bg-white opacity-75 dark:border-white/10 dark:bg-white/2"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <p
+                                  className={`text-xs ${
+                                    selected
+                                      ? "text-black/78 dark:text-white/70"
+                                      : "text-black/52 dark:text-white/40"
+                                  }`}
+                                >
+                                  {template.companyCode}
+                                </p>
+                                <h3 className="mt-2 text-sm leading-5 font-medium text-[#111111] dark:text-white">
+                                  {template.companyName}
+                                </h3>
+                              </div>
+                              <span
+                                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
                                   selected
-                                    ? "text-black/78 dark:text-white/70"
-                                    : "text-black/52 dark:text-white/40"
+                                    ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
+                                    : "border-black/15 text-transparent dark:border-white/15"
                                 }`}
                               >
-                                {template.companyCode}
-                              </p>
-                              <h3 className="mt-2 text-sm leading-5 font-medium text-[#111111] dark:text-white">
-                                {template.companyName}
-                              </h3>
+                                <FiCheck className="text-xs" />
+                              </span>
                             </div>
-                            <span
-                              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
-                                selected
-                                  ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
-                                  : "border-black/15 text-transparent dark:border-white/15"
-                              }`}
-                            >
-                              <FiCheck className="text-xs" />
-                            </span>
-                          </div>
-                          <div className="mt-4 space-y-2 text-xs leading-5 text-black/58 dark:text-white/45">
-                            <p>{template.address}</p>
-                            <p>
-                              {template.ownerName} · {template.role}
-                            </p>
-                            <p className="tabular-nums">
-                              {template.phone} · {template.email}
-                            </p>
-                            <p>MST: {template.mst}</p>
-                          </div>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </section>
+                            <div className="mt-4 space-y-2 text-xs leading-5 text-black/58 dark:text-white/45">
+                              <p>{template.address}</p>
+                              <p>
+                                {template.ownerName} · {template.role}
+                              </p>
+                              <p className="tabular-nums">
+                                {template.phone} · {template.email}
+                              </p>
+                              <p>MST: {template.mst}</p>
+                            </div>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ) : null}
 
                 {selectedPrincipleContract ? (
                   <section className="border-b border-black/10 py-6 dark:border-white/10">
