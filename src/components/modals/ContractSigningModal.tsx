@@ -159,7 +159,7 @@ function LocalSignAppGuideModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 12 }}
         transition={{ type: "spring", duration: 0.35 }}
-        className="dashboard-theme relative flex max-h-[calc(100vh-2rem)] min-h-0 w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_90px_rgba(0,0,0,0.75)]"
+        className="dashboard-theme contract-surface relative flex max-h-[calc(100vh-2rem)] min-h-0 w-full max-w-3xl flex-col overflow-hidden rounded-2xl border"
       >
         <div className="flex shrink-0 items-start justify-between gap-5 border-b border-white/10 px-6 py-5 md:px-8 md:py-7">
           <div>
@@ -501,7 +501,7 @@ function TokenSelectionModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 12 }}
         transition={{ type: "spring", duration: 0.35 }}
-        className="dashboard-theme relative flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_90px_rgba(0,0,0,0.75)]"
+        className="dashboard-theme contract-surface relative flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border"
       >
         <div className="flex items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
           <div>
@@ -601,7 +601,7 @@ function CertificateSelectionModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 12 }}
         transition={{ type: "spring", duration: 0.35 }}
-        className="dashboard-theme relative flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_90px_rgba(0,0,0,0.75)]"
+        className="dashboard-theme contract-surface relative flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border"
       >
         <div className="flex items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
           <div>
@@ -719,7 +719,7 @@ function PinSigningModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 12 }}
         transition={{ type: "spring", duration: 0.35 }}
-        className="dashboard-theme relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_90px_rgba(0,0,0,0.75)]"
+        className="dashboard-theme contract-surface relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border"
       >
         <div className="flex items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
           <div>
@@ -1108,7 +1108,7 @@ function ContractSigningForm({
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: "spring", duration: 0.3 }}
           onSubmit={handleSubmit}
-          className="dashboard-theme relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+          className="dashboard-theme contract-surface relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border backdrop-blur-xl"
         >
           <div className="flex items-center justify-between border-white/10 bg-white/[0.04] p-6">
             <div>

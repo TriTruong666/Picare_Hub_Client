@@ -112,7 +112,7 @@ export default function HandwrittenSignatureModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0, y: 10 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
-            className="dashboard-theme relative flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+            className="dashboard-theme contract-surface relative flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl border"
           >
             <div className="flex items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] px-6 py-5">
               <div>

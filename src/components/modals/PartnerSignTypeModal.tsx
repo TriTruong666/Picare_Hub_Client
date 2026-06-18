@@ -107,7 +107,7 @@ export default function PartnerSignTypeModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 8 }}
             transition={{ type: "spring", duration: 0.3, bounce: 0.12 }}
-            className="dashboard-theme relative flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+            className="dashboard-theme contract-surface relative flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl border backdrop-blur-xl"
           >
             <div className="flex items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] px-6 py-5">
               <div className="space-y-1">

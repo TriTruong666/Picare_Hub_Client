@@ -336,3 +336,96 @@ body.dark {
 .dashboard-theme .dashboard-chip-active {
   background-color: var(--dashboard-color-primary);
 }
+
+.contract-surface {
+  background: rgba(255, 251, 245, 0.98);
+  color: #161616;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 24px 80px rgba(17, 17, 17, 0.14);
+}
+
+.contract-surface [class*="text-white"] {
+  color: inherit;
+}
+
+.contract-surface [class*="text-white/"] {
+  color: rgba(22, 22, 22, 0.68);
+}
+
+.contract-surface [class*="border-white/"] {
+  border-color: rgba(17, 17, 17, 0.08);
+}
+
+.contract-surface [class*="bg-white/"] {
+  background-color: rgba(17, 17, 17, 0.03);
+}
+
+.contract-surface input,
+.contract-surface textarea {
+  color: inherit;
+}
+
+.contract-surface ::placeholder {
+  color: rgba(22, 22, 22, 0.34);
+}
+
+.dark .contract-surface {
+  background: rgba(11, 11, 11, 0.98);
+  color: #f7f7f7;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65);
+}
+
+.dark .contract-surface [class*="text-white"] {
+  color: inherit;
+}
+
+.dark .contract-surface [class*="text-white/"] {
+  color: rgba(247, 247, 247, 0.62);
+}
+
+.dark .contract-surface [class*="border-white/"] {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .contract-surface [class*="bg-white/"] {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.dark .contract-surface ::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.contract-dock {
+  background: rgba(255, 251, 245, 0.9);
+  color: #161616;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 18px 55px rgba(17, 17, 17, 0.16);
+}
+
+.contract-dock-button {
+  background: rgba(17, 17, 17, 0.06);
+  color: rgba(22, 22, 22, 0.74);
+}
+
+.contract-dock-button:hover {
+  background: rgba(17, 17, 17, 0.88);
+  color: #ffffff;
+}
+
+.dark .contract-dock {
+  background: rgba(11, 11, 11, 0.9);
+  color: #f7f7f7;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
+}
+
+.dark .contract-dock-button {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(247, 247, 247, 0.72);
+}
+
+.dark .contract-dock-button:hover {
+  background: rgba(255, 255, 255, 0.95);
+  color: #111111;
+}

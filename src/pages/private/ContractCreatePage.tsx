@@ -35,6 +35,7 @@ import {
 } from "@/hooks/data/useContractHooks";
 import { useTaxPayerLookup } from "@/hooks/data/useTaxPayerHooks";
 import type {
+  AppendixContractProductPayload,
   Contract,
   CreateContractPayload,
   OwnerCompanyInfoPayload,
@@ -65,19 +66,12 @@ const CONTRACT_TYPE_OPTIONS: {
   {
     value: "principle",
     title: "Hợp đồng nguyên tắc",
-    description: "Mẫu hợp đồng bán hàng thường xuyên theo cấu trúc mới.",
+    description: "Mẫu hợp đồng đồng nguyên tắc về việc mua bán",
   },
   {
     value: "appendix",
     title: "Phụ lục hợp đồng",
-    description:
-      "Tạo hoặc chỉnh sửa phụ lục dựa trên hợp đồng nguyên tắc đã có.",
-  },
-  {
-    value: "service",
-    title: "Hợp đồng dịch vụ",
-    description: "Format đang tổng hợp, sẽ mở sau.",
-    disabled: true,
+    description: "Phụ lục hợp đồng nguyên tắc dựa trên hợp đồng sẵn có",
   },
 ];
 
@@ -661,7 +655,7 @@ export function ContractFormPage({
     page: 1,
     limit: 100,
     status: "unsigned",
-    contractType: "principal",
+    contractType: "principle",
   });
   const {
     data: ownerSignedContracts = [],
@@ -670,7 +664,7 @@ export function ContractFormPage({
     page: 1,
     limit: 100,
     status: "owner_signed",
-    contractType: "principal",
+    contractType: "principle",
   });
   const {
     data: completedContracts = [],
@@ -679,7 +673,7 @@ export function ContractFormPage({
     page: 1,
     limit: 100,
     status: "completed",
-    contractType: "principal",
+    contractType: "principle",
   });
   const [selectedContractType, setSelectedContractType] =
     useState<ContractKind | null>(

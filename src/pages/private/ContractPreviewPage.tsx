@@ -593,7 +593,7 @@ function SendPartnerMailModal({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", duration: 0.3 }}
-            className="dashboard-theme relative flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0b] text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+            className="dashboard-theme contract-surface relative flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border backdrop-blur-xl"
           >
             <div className="flex items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] p-6">
               <div>
@@ -1519,7 +1519,7 @@ function DockButton({
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="group flex h-12 w-12 items-center justify-center rounded-full bg-black/[0.06] text-black/70 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black hover:text-white active:translate-y-0 active:scale-95 disabled:pointer-events-none disabled:opacity-40 dark:bg-white/[0.07] dark:text-white/70 dark:hover:bg-white dark:hover:text-black"
+        className="contract-dock-button group flex h-12 w-12 items-center justify-center rounded-full transition duration-250 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:pointer-events-none disabled:opacity-40"
         aria-label={label}
       >
         <span className="text-[18px] transition duration-250 ease-out group-hover:scale-105">
@@ -1574,7 +1574,7 @@ function ContractActionDock({
         initial={{ opacity: 0, y: 18, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
-        className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+        className="contract-dock fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border p-2 backdrop-blur-xl"
       >
         {canSignContract ? (
           <DockButton

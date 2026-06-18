@@ -1276,7 +1276,7 @@ function DockButton({
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="group flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.07] text-white/70 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-white hover:text-black active:translate-y-0 active:scale-95 disabled:pointer-events-none disabled:opacity-40"
+        className="contract-dock-button group flex h-12 w-12 items-center justify-center rounded-full transition duration-250 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:pointer-events-none disabled:opacity-40"
         aria-label={label}
       >
         <span className="text-[18px] transition duration-250 ease-out group-hover:scale-105">
@@ -1319,7 +1319,7 @@ function LegalNameMismatchModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0, y: 10 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            className="dashboard-theme relative w-full max-w-xl overflow-hidden rounded-2xl border border-amber-300/18 bg-[#0b0b0b] text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+            className="dashboard-theme contract-surface relative w-full max-w-xl overflow-hidden rounded-2xl border"
           >
             <div className="border-b border-white/10 bg-amber-300/[0.06] px-6 py-5">
               <p className="text-[11px] font-medium text-amber-200/75 uppercase">
@@ -1416,7 +1416,7 @@ function ContractCompletionModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0, y: 14 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
-            className="dashboard-theme relative w-full max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-black text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+            className="dashboard-theme contract-surface relative w-full max-w-xl overflow-hidden rounded-2xl border"
           >
             <div className="flex flex-col items-center px-8 pt-8 text-center">
               <img
@@ -1619,7 +1619,7 @@ function ContractActionDock({
         initial={{ opacity: 0, y: 18, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
-        className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0b]/90 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+        className="contract-dock fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border p-2 backdrop-blur-xl"
       >
         {contract.status === "completed" ? (
           <DockButton
