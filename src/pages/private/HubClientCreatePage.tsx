@@ -252,7 +252,6 @@ export default function HubClientCreatePage() {
 
   const [clientName, setClientName] = useState("");
   const [clientDescription, setClientDescription] = useState("");
-  const [clientInternalUrl, setClientInternalUrl] = useState("");
   const [clientExternalUrl, setClientExternalUrl] = useState("");
   const [clientLogoImage, setClientLogoImage] = useState("");
   const [clientMockupImage, setClientMockupImage] = useState("");
@@ -351,7 +350,7 @@ export default function HubClientCreatePage() {
       const response = await createMutation.mutateAsync({
         clientName,
         clientDescription,
-        clientInternalUrl,
+        clientInternalUrl: null,
         clientExternalUrl,
         clientLogoImage: uploadedLogoUrl,
         clientMockupImage: uploadedMockupUrl,
@@ -461,16 +460,6 @@ export default function HubClientCreatePage() {
             </h2>
             <div className="flex flex-col gap-4">
               <div>
-                <FieldLabel>URL nội bộ</FieldLabel>
-                <TextInput
-                  id="client-internal-url"
-                  value={clientInternalUrl}
-                  onChange={setClientInternalUrl}
-                  placeholder="http://internal.example.com"
-                  disabled={isSaving}
-                />
-              </div>
-              <div>
                 <FieldLabel>URL bên ngoài</FieldLabel>
                 <TextInput
                   id="client-external-url"
@@ -480,6 +469,9 @@ export default function HubClientCreatePage() {
                   disabled={isSaving}
                 />
               </div>
+              <p className="text-[11px] text-gray-500 dark:text-white/35">
+                URL nội bộ sẽ được bổ sung sau trong màn hình chỉnh sửa nếu cần.
+              </p>
             </div>
           </section>
 
@@ -595,7 +587,7 @@ export default function HubClientCreatePage() {
                 Nếu không chọn ảnh, payload tạo mới sẽ gửi chuỗi rỗng cho 2
                 field ảnh.
               </p>
-              <p>Hãy kiểm tra URL nội bộ và URL bên ngoài trước khi lưu.</p>
+              <p>Hãy kiểm tra URL bên ngoài trước khi lưu.</p>
             </div>
             <button
               type="button"

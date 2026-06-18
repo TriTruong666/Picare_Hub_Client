@@ -22,7 +22,7 @@ export type HubClientRole = UserRole;
 export type CreateHubClientInput = {
   clientName: string;
   clientDescription: string;
-  clientInternalUrl: string;
+  clientInternalUrl: string | null;
   clientExternalUrl: string;
   clientLogoImage: string;
   clientMockupImage: string;
