@@ -33,6 +33,14 @@ const CONTRACT_STATUS_BADGE: Record<
   completed: "success",
 };
 
+const CONTRACT_TYPE_LABELS = {
+  principle: "Hợp đồng nguyên tắc",
+  appendix: "Phụ lục hợp đồng",
+  service: "Hợp đồng dịch vụ",
+  digital: "Hợp đồng điện tử",
+  default: "Mặc định",
+} as const;
+
 type OrganizationCredentialLike = {
   business_license?: string | null;
   business_license_key?: string | null;
@@ -135,6 +143,10 @@ function getOrganizationCredentialData(raw: unknown) {
       "powerOfAttorneyImageKey",
     ]),
   };
+}
+
+function getContractTypeLabel(contractType: keyof typeof CONTRACT_TYPE_LABELS) {
+  return CONTRACT_TYPE_LABELS[contractType] || "Không xác định";
 }
 
 export default function ContractDetailDashboardPage() {
@@ -244,10 +256,8 @@ export default function ContractDetailDashboardPage() {
               ["Số hợp đồng", contract.contractNumber || "-"],
               [
                 "Loại hợp đồng",
-                contract.contractType === "digital" ? "Điện tử" : "Mặc định",
+                getContractTypeLabel(contract.contractType),
               ],
-
-              ["Ngày hết hạn", formatDate(contract.contractDueDate)],
               ["Tạo lúc", formatDateTime(contract.createdAt)],
               ["Cập nhật", formatDateTime(contract.updatedAt)],
             ]}

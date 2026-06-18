@@ -1,17 +1,18 @@
 import { useMemo, useState } from "react";
-import { FiEye } from "react-icons/fi";
+import { FiEye, FiSearch } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 import { formatDate } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
+import GlassSelect from "@/components/custom_ui/Select";
 import IconAction from "@/components/custom_ui/IconAction";
 import { Pagination } from "@/components/custom_ui/Pagination";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
 import { useContractList } from "@/hooks/data/useContractHooks";
-import type { Contract, ContractStatus } from "@/types/Contract";
+import type { Contract, ContractStatus, ContractType } from "@/types/Contract";
 import { IoIosInformationCircleOutline } from "react-icons/io";
 
 const breadcrumbItems = [
@@ -21,16 +22,15 @@ const breadcrumbItems = [
 ];
 
 const columns = [
-  { key: "contract", label: "Hợp đồng", width: "w-[28%]", align: "left" },
-  { key: "partner", label: "Đối tác", width: "w-[23%]", align: "left" },
-  { key: "status", label: "Trạng thái", width: "w-[16%]", align: "center" },
+  { key: "contract", label: "Đối tác", width: "w-[40%]", align: "left" },
+  { key: "status", label: "Trạng thái", width: "w-[18%]", align: "center" },
   {
     key: "document",
     label: "File hợp đồng",
-    width: "w-[17%]",
+    width: "w-[20%]",
     align: "center",
   },
-  { key: "actions", label: "Thao tác", width: "w-[16%]", align: "center" },
+  { key: "actions", label: "Thao tác", width: "w-[22%]", align: "center" },
 ] as const;
 
 const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
@@ -39,6 +39,31 @@ const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
   owner_signed: "Chủ sở hữu đã ký",
   completed: "Hoàn tất",
 };
+
+const CONTRACT_STATUS_OPTIONS = [
+  { label: "Tất cả trạng thái", value: "" },
+  { label: "Bản nháp", value: "draft" },
+  { label: "Chờ ký", value: "unsigned" },
+  { label: "Chủ sở hữu đã ký", value: "owner_signed" },
+  { label: "Hoàn tất", value: "completed" },
+];
+
+const CONTRACT_TYPE_LABELS: Record<ContractType, string> = {
+  principle: "Hợp đồng nguyên tắc",
+  appendix: "Phụ lục hợp đồng",
+  service: "Hợp đồng dịch vụ",
+  digital: "Hợp đồng điện tử",
+  default: "Mặc định",
+};
+
+const CONTRACT_TYPE_OPTIONS = [
+  { label: "Tất cả loại hợp đồng", value: "" },
+  { label: "Hợp đồng nguyên tắc", value: "principle" },
+  { label: "Phụ lục hợp đồng", value: "appendix" },
+  { label: "Hợp đồng dịch vụ", value: "service" },
+  { label: "Hợp đồng điện tử", value: "digital" },
+  { label: "Mặc định", value: "default" },
+];
 
 function getPreviewPath(contractId: string) {
   return PATHS.CONTRACT_PREVIEW.replace(":contractId", contractId);
@@ -71,12 +96,28 @@ function getContractFileKey(contractUrl?: string | null) {
   }
 }
 
+function getContractTypeLabel(contractType: ContractType) {
+  return CONTRACT_TYPE_LABELS[contractType] || "Không xác định";
+}
+
 export default function ContractDashboardPage() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ContractStatus | "">("");
+  const [typeFilter, setTypeFilter] = useState<ContractType | "">("");
   const pageSize = 10;
 
-  const params = useMemo(() => ({ page, limit: pageSize }), [page]);
+  const params = useMemo(
+    () => ({
+      page,
+      limit: pageSize,
+      ...(search.trim() ? { search: search.trim() } : {}),
+      ...(statusFilter ? { status: statusFilter } : {}),
+      ...(typeFilter ? { contractType: typeFilter } : {}),
+    }),
+    [page, pageSize, search, statusFilter, typeFilter],
+  );
   const { data, isLoading, isError, refetch, fullResponse } =
     useContractList(params);
 
@@ -91,6 +132,45 @@ export default function ContractDashboardPage() {
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl dark:text-white">
             Quản lý hợp đồng
           </h1>
+        </div>
+      </div>
+
+      <div className="mb-6 flex flex-col gap-3 xl:flex-row">
+        <div className="relative flex-1">
+          <FiSearch className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-gray-400 dark:text-white/30" />
+          <input
+            id="contract-search"
+            type="text"
+            placeholder="Tìm theo số hợp đồng, tên đối tác..."
+            value={search}
+            onChange={(event) => {
+              setPage(1);
+              setSearch(event.target.value);
+            }}
+            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 placeholder:text-gray-500 outline-none transition hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+          />
+        </div>
+        <div className="w-full xl:w-56">
+          <GlassSelect
+            value={statusFilter}
+            onChange={(value) => {
+              setPage(1);
+              setStatusFilter(value as ContractStatus | "");
+            }}
+            placeholder="Tất cả trạng thái"
+            options={CONTRACT_STATUS_OPTIONS}
+          />
+        </div>
+        <div className="w-full xl:w-56">
+          <GlassSelect
+            value={typeFilter}
+            onChange={(value) => {
+              setPage(1);
+              setTypeFilter(value as ContractType | "");
+            }}
+            placeholder="Tất cả loại hợp đồng"
+            options={CONTRACT_TYPE_OPTIONS}
+          />
         </div>
       </div>
 
@@ -208,13 +288,14 @@ function ContractTable({
         </thead>
         <tbody className="divide-y divide-gray-400 dark:divide-white/10">
           {contracts.map((contract) => {
+            const hasDocument = Boolean(
+              getContractFileKey(contract.contractUrl),
+            );
             const partnerName =
               contract.partnerCompanyInfo.companyName?.trim() ||
               contract.partnerCompanyInfo.ownerName?.trim() ||
               "-";
-            const hasDocument = Boolean(
-              getContractFileKey(contract.contractUrl),
-            );
+            const contractTypeLabel = getContractTypeLabel(contract.contractType);
 
             return (
               <tr
@@ -222,28 +303,15 @@ function ContractTable({
                 className="transition-colors hover:bg-gray-100/50 dark:hover:bg-white/5"
               >
                 <td className="border-r border-gray-400 p-4 dark:border-white/10">
-                  <div className="flex items-start gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                        {contract.contractNumber || contract.contractId}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Hạn hợp đồng: {formatDate(contract.contractDueDate)}
-                      </p>
-                      <p className="mt-1 truncate text-[13px] text-gray-600 dark:text-gray-300">
-                        {contract.ownerCompanyInfo.companyName || "-"}
-                      </p>
-                    </div>
-                  </div>
-                </td>
-
-                <td className="border-r border-gray-400 p-4 dark:border-white/10">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
                       {partnerName}
                     </p>
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Đối tác
+                      Số hợp đồng: {contract.contractNumber || contract.contractId}
+                    </p>
+                    <p className="mt-1 truncate text-[13px] text-gray-600 dark:text-gray-300">
+                      Loại hợp đồng: {contractTypeLabel}
                     </p>
                   </div>
                 </td>

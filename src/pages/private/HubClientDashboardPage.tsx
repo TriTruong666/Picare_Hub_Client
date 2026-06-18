@@ -184,7 +184,7 @@ export default function HubClientDashboardPage() {
             placeholder="Tìm kiếm theo tên..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="h-10 w-full rounded-lg border border-gray-300 bg-white pr-4 pl-9 text-sm text-gray-700 placeholder:text-gray-400 outline-none transition-all hover:border-gray-400 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 placeholder:text-gray-500 outline-none transition hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
           />
         </div>
         <div className="w-48">
