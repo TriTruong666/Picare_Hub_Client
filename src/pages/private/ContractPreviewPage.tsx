@@ -16,9 +16,10 @@ import {
 import { useSendMailTemplate } from "@/hooks/data/useMailHooks";
 import { useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
 import { toast } from "@/hooks/useToast";
-import { readMockContractPreview } from "@/utils/contractPreviewMock";
 import type {
   Contract,
+  AppendixContractDataPayload,
+  AppendixContractProductPayload,
   OwnerCompanyInfoPayload,
   PartnerCompanyInfoPayload,
   PrincipleContractDataPayload,
@@ -133,6 +134,8 @@ type AppendixProductRow = {
   category: string;
 };
 
+type AppendixProductSource = string | AppendixContractProductPayload;
+
 const APPENDIX_PRODUCT_LABELS: Record<keyof AppendixProductRow, string> = {
   productName: "Tên sản phẩm",
   ingredients: "Thành phần",
@@ -143,7 +146,40 @@ const APPENDIX_PRODUCT_LABELS: Record<keyof AppendixProductRow, string> = {
   category: "Phân loại",
 };
 
-function parseAppendixProduct(rawProduct: string): AppendixProductRow {
+function normalizeAppendixLabel(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .replace(/^[\s\-–—•]+/, "")
+    .replace(/[^a-zA-Z0-9]+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+const APPENDIX_PRODUCT_LABEL_LOOKUP: Record<string, keyof AppendixProductRow> = {
+  ...Object.fromEntries(
+    (Object.entries(APPENDIX_PRODUCT_LABELS) as Array<
+      [keyof AppendixProductRow, string]
+    >).map(([key, label]) => [normalizeAppendixLabel(label), key]),
+  ),
+  "ten san pham": "productName",
+  "thanh phan": "ingredients",
+  "quy cach": "packaging",
+  "quy cach dong goi": "packaging",
+  "so dang ky": "registrationNumber",
+  "so cong bo": "registrationNumber",
+  "nuoc san xuat": "originCountry",
+  "xuat xu": "originCountry",
+  "don gia": "vatPrice",
+  "don gia vat": "vatPrice",
+  "phan loai": "category",
+};
+
+function parseAppendixProduct(
+  rawProduct: AppendixProductSource,
+): AppendixProductRow {
   const row: AppendixProductRow = {
     productName: "",
     ingredients: "",
@@ -154,32 +190,70 @@ function parseAppendixProduct(rawProduct: string): AppendixProductRow {
     category: "",
   };
 
-  const labelEntries = Object.entries(APPENDIX_PRODUCT_LABELS) as [
-    keyof AppendixProductRow,
-    string,
-  ][];
+  const applyRawContent = (content: string) => {
+    for (const line of content.split(/\r?\n/)) {
+      const [label, ...valueParts] = line.split(":");
+      const normalizedLabel = normalizeAppendixLabel(label || "");
+      const matchedKey = APPENDIX_PRODUCT_LABEL_LOOKUP[normalizedLabel];
 
-  for (const line of rawProduct.split(/\r?\n/)) {
-    const [label, ...valueParts] = line.split(":");
-    const normalizedLabel = label?.trim().toLowerCase();
-    const matchedEntry = labelEntries.find(
-      ([, displayLabel]) => displayLabel.toLowerCase() === normalizedLabel,
-    );
-
-    if (matchedEntry) {
-      row[matchedEntry[0]] = valueParts.join(":").trim();
+      if (matchedKey) {
+        row[matchedKey] = valueParts.join(":").trim();
+      }
     }
+  };
+
+  if (typeof rawProduct === "string") {
+    applyRawContent(rawProduct);
+
+    if (!row.productName) {
+      row.productName = rawProduct.trim();
+    }
+
+    return row;
   }
 
-  if (!row.productName) {
-    row.productName = rawProduct.trim();
+  row.productName = rawProduct.productName?.trim() || "";
+  row.ingredients = rawProduct.ingredients?.trim() || "";
+  row.packaging = rawProduct.packageSpecification?.trim() || "";
+  row.registrationNumber = rawProduct.registrationNumber?.trim() || "";
+  row.originCountry = rawProduct.origin?.trim() || "";
+  row.vatPrice =
+    rawProduct.unitPriceVat !== null && rawProduct.unitPriceVat !== undefined
+      ? String(rawProduct.unitPriceVat).trim()
+      : "";
+  row.category = rawProduct.classification?.trim() || "";
+
+  if (rawProduct.rawContent?.trim()) {
+    applyRawContent(rawProduct.rawContent.trim());
+  }
+
+  if (!row.productName && rawProduct.rawContent?.trim()) {
+    row.productName = rawProduct.rawContent.trim();
   }
 
   return row;
 }
 
 function getAppendixProducts(contract: Contract) {
-  return (contract.products ?? []).map(parseAppendixProduct);
+  const contractData = contract.contractData as
+    | AppendixContractDataPayload
+    | null
+    | undefined;
+
+  const rawProducts = contractData?.products?.length
+    ? contractData.products
+    : contract.products ?? [];
+
+  return rawProducts.map(parseAppendixProduct);
+}
+
+function getAppendixPrincipleContractNumber(contract: Contract) {
+  const contractData = contract.contractData as
+    | AppendixContractDataPayload
+    | null
+    | undefined;
+
+  return contractData?.principleContractNumber || contract.principleContractNumber;
 }
 
 function ArticleTitle({ children }: { children: React.ReactNode }) {
@@ -606,7 +680,7 @@ function ContractDocument({
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28 }}
-      className="mx-auto w-full max-w-3xl pb-24"
+      className="mx-auto w-full max-w-5xl pb-24"
     >
       <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
         <div>
@@ -1221,7 +1295,7 @@ function AppendixContractDocument({
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28 }}
-      className="mx-auto w-full max-w-3xl pb-24"
+      className="mx-auto w-full max-w-5xl pb-24"
     >
       <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
         <div>
@@ -1258,8 +1332,11 @@ function AppendixContractDocument({
         <p className="mx-auto mt-4 max-w-2xl text-[14px] leading-7 text-black/62 dark:text-white/62">
           Đính kèm Hợp đồng nguyên tắc số:{" "}
           <strong className="font-semibold text-black/86 dark:text-white/86">
-            {contract.principleContractNumber || "..."}
+            {getAppendixPrincipleContractNumber(contract) || "..."}
           </strong>{" "}
+          <span className="ml-2 inline-flex rounded-full border border-black/10 bg-black/[0.04] px-2 py-0.5 text-[10px] font-medium tracking-[0.08em] text-black/55 uppercase dark:border-white/10 dark:bg-white/[0.06] dark:text-white/50">
+            Loại: Phụ lục
+          </span>
         </p>
       </section>
 
@@ -1311,7 +1388,7 @@ function AppendixContractDocument({
       <section>
         <ArticleTitle>Bảng sản phẩm</ArticleTitle>
         <div className="mt-5 overflow-x-auto">
-          <table className="w-full min-w-[860px] border-collapse text-left text-[12px]">
+          <table className="w-full min-w-[1120px] border-collapse text-left text-[12px]">
             <thead>
               <tr className="border-y border-black/15 bg-black/[0.035] text-black/70 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70">
                 <th className="w-12 px-3 py-3 font-medium">STT</th>
@@ -1641,19 +1718,5 @@ function ContractPreviewPageData() {
 }
 
 export default function ContractPreviewPage() {
-  const { contractId = "" } = useParams();
-  const mockContract = readMockContractPreview(contractId);
-
-  if (mockContract) {
-    return (
-      <ContractPreviewPageShell
-        contract={mockContract}
-        onSigned={() => {
-          // Mock preview only.
-        }}
-      />
-    );
-  }
-
   return <ContractPreviewPageData />;
 }

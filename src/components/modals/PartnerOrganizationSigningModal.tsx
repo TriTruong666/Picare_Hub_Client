@@ -52,7 +52,7 @@ type ContractOrganizationSigningFormProps = {
 };
 
 const LOCAL_SIGN_APP_DOWNLOAD_URL =
-  "https://drive.google.com/file/d/1Oed-YQl0OAwKlj72ffynibC_cqMpdCuU/view?usp=sharing";
+  "https://drive.google.com/file/d/10fZYSzI_qLTrM4bgMev9AgrdK_o_czm-/view?usp=sharing";
 
 const PICAREVN_ASCII = String.raw`
  ____  ___ ____    _    ____  _____ __     ___   _

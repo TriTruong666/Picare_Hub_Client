@@ -74,6 +74,7 @@ export default function ContractEditPage() {
 
   return (
     <ContractFormPage
+      key={contract.contractId}
       mode="edit"
       initialContract={contract}
       showQrButton={false}

@@ -34,12 +34,9 @@ import {
   useUpdateContract,
 } from "@/hooks/data/useContractHooks";
 import { useTaxPayerLookup } from "@/hooks/data/useTaxPayerHooks";
-import {
-  MOCK_APPENDIX_CONTRACT_ID,
-  createDefaultMockAppendixContract,
-  storeMockContractPreview,
-} from "@/utils/contractPreviewMock";
 import type {
+  AppendixContractDataPayload,
+  AppendixContractProductPayload,
   Contract,
   CreateContractPayload,
   OwnerCompanyInfoPayload,
@@ -70,7 +67,7 @@ const CONTRACT_TYPE_OPTIONS: {
   {
     value: "appendix",
     title: "Phụ lục hợp đồng",
-    description: "Tạo phụ lục dựa trên hợp đồng nguyên tắc đã hoàn tất.",
+    description: "Tạo hoặc chỉnh sửa phụ lục dựa trên hợp đồng nguyên tắc đã có.",
   },
   {
     value: "service",
@@ -104,88 +101,6 @@ const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
     role: "Giám Đốc",
   },
 ];
-
-const MOCK_PRINCIPLE_CONTRACT_ID = "__mock_completed_principle_contract__";
-
-const MOCK_COMPLETED_PRINCIPLE_CONTRACT: Contract = {
-  id: -1,
-  contractId: MOCK_PRINCIPLE_CONTRACT_ID,
-  contractNumber: "08/2026/HĐNT/MOCELUX-PICARE",
-  ownerCompanyInfo: OWNER_TEMPLATES[1],
-  partnerCompanyInfo: {
-    companyName: "CÔNG TY TNHH MOCELUX",
-    address: "456 Lê Lợi, TP.HCM",
-    phone: "0911111111",
-    email: "contact@mocelux.vn",
-    bankInfo: "9876543210 - ACB",
-    mst: "0398765432",
-    ownerName: "Trần Văn B",
-    role: "Giám đốc",
-  },
-  contractDueDate: "2026-06-15T00:00:00.000Z",
-  contractData: {
-    paymentTermDays: 30,
-    creditLimit: null,
-  },
-  contractChecksum: "mock",
-  contractType: "principle",
-  contractUrl: null,
-  createdAt: "2026-06-08T10:00:08.248Z",
-  updatedAt: "2026-06-15T03:00:00.000Z",
-  status: "owner_signed",
-  documents: [
-    {
-      id: -3,
-      contractDocumentId: "mock-version-3",
-      version: 3,
-      status: "completed",
-      fileUrl: "",
-      fileHash: "mock",
-      createdAt: "2026-06-15T03:00:00.000Z",
-      updatedAt: "2026-06-15T03:00:00.000Z",
-    },
-  ],
-  details: [],
-  signatures: [],
-};
-
-function buildMockAppendixPreviewContract(
-  ownerCompanyInfo: OwnerCompanyInfoPayload,
-  principleContract: Contract,
-): Contract {
-  const fallback = createDefaultMockAppendixContract();
-
-  return {
-    ...fallback,
-    contractId: MOCK_APPENDIX_CONTRACT_ID,
-    contractNumber: "002/06/2026/PLHP/TH",
-    ownerCompanyInfo,
-    partnerCompanyInfo:
-      principleContract.partnerCompanyInfo ?? fallback.partnerCompanyInfo,
-    contractData: {
-      details: [],
-      contractDueDate: null,
-      ownerCompanyInfo,
-      partnerCompanyInfo:
-        principleContract.partnerCompanyInfo ?? fallback.partnerCompanyInfo,
-    },
-    principleContractNumber:
-      principleContract.contractNumber || principleContract.contractId,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    status: "owner_signed",
-    documents: [
-      {
-        ...fallback.documents[0],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ],
-    products: [
-      "Tên sản phẩm: Mocelux Collagen\nThành phần: Collagen peptide, Vitamin C\nQuy cách đóng gói: Hộp 30 gói x 10ml\nSố đăng ký: 1234/2026/ĐKSP\nNước sản xuất: Việt Nam\nĐơn giá(+VAT): 350000\nPhân loại: Thực phẩm bảo vệ sức khỏe\n",
-    ],
-  };
-}
 
 const PARTNER_FIELDS: {
   key: PartnerField;
@@ -322,6 +237,36 @@ function createAppendixProductRow(content = ""): AppendixProductRow {
   };
 }
 
+function formatAppendixProductContent(
+  product: string | AppendixContractProductPayload,
+) {
+  if (typeof product === "string") {
+    return product;
+  }
+
+  if (product.rawContent?.trim()) {
+    return product.rawContent.trim();
+  }
+
+  const lines = [
+    product.productName ? `Tên sản phẩm: ${product.productName}` : "",
+    product.ingredients ? `Thành phần: ${product.ingredients}` : "",
+    product.packageSpecification
+      ? `Quy cách đóng gói: ${product.packageSpecification}`
+      : "",
+    product.registrationNumber
+      ? `Số đăng ký: ${product.registrationNumber}`
+      : "",
+    product.origin ? `Nước sản xuất: ${product.origin}` : "",
+    product.unitPriceVat !== null && product.unitPriceVat !== undefined
+      ? `Đơn giá(+VAT): ${product.unitPriceVat}`
+      : "",
+    product.classification ? `Phân loại: ${product.classification}` : "",
+  ].filter(Boolean);
+
+  return lines.join("\n");
+}
+
 function formatDate(value?: string | null) {
   if (!value) return "";
   const date = new Date(value);
@@ -422,9 +367,6 @@ function PrincipleContractSelect({
   const selectedContract = contracts.find(
     (contract) => contract.contractId === selectedContractId,
   );
-  const hasOnlyMock =
-    contracts.length === 1 &&
-    contracts[0].contractId === MOCK_PRINCIPLE_CONTRACT_ID;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -486,17 +428,9 @@ function PrincipleContractSelect({
 
       {isOpen ? (
         <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#050505] text-white shadow-[0_24px_60px_rgba(0,0,0,0.46)]">
-          {hasOnlyMock ? (
-            <div className="border-b border-white/10 px-4 py-3 text-xs text-white/45">
-              Chưa có hợp đồng phù hợp từ API. Đang hiển thị một hợp đồng mẫu để
-              kiểm tra giao diện.
-            </div>
-          ) : null}
-
           <div className="max-h-80 overflow-y-auto p-2">
             {contracts.map((contract) => {
               const active = contract.contractId === selectedContractId;
-              const isMock = contract.contractId === MOCK_PRINCIPLE_CONTRACT_ID;
 
               return (
                 <button
@@ -518,11 +452,6 @@ function PrincipleContractSelect({
                         <p className="truncate text-sm font-semibold text-white">
                           {contract.contractNumber || contract.contractId}
                         </p>
-                        {isMock ? (
-                          <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-medium text-white/55">
-                            Mẫu UI
-                          </span>
-                        ) : null}
                       </div>
                       <p className="mt-1 truncate text-xs text-white/48">
                         {contract.partnerCompanyInfo.companyName ||
@@ -659,17 +588,26 @@ export function ContractFormPage({
   const createContractMutation = useCreateContract();
   const updateContractMutation = useUpdateContract();
   const taxPayerLookupMutation = useTaxPayerLookup();
-  const { data: completedContracts = [], isLoading: isLoadingContracts } =
+  const { data: unsignedContracts = [], isLoading: isLoadingUnsignedContracts } =
     useContractList({
       page: 1,
       limit: 100,
       status: "unsigned",
     });
-  const { data: ownerSignedContracts = [] } = useContractList({
+  const {
+    data: ownerSignedContracts = [],
+    isLoading: isLoadingOwnerSignedContracts,
+  } = useContractList({
     page: 1,
     limit: 100,
     status: "owner_signed",
   });
+  const { data: completedContracts = [], isLoading: isLoadingCompletedContracts } =
+    useContractList({
+      page: 1,
+      limit: 100,
+      status: "completed",
+    });
   const [selectedContractType, setSelectedContractType] =
     useState<ContractKind | null>(
       initialContract?.contractType === "appendix"
@@ -711,26 +649,26 @@ export function ContractFormPage({
 
   const ownerCompanyInfo = OWNER_TEMPLATES[selectedOwnerIndex];
   const principleContracts = [
-    ...completedContracts,
+    ...unsignedContracts,
     ...ownerSignedContracts,
+    ...completedContracts,
   ].filter(
     (contract, index, list) =>
       list.findIndex((item) => item.contractId === contract.contractId) ===
       index,
   );
-  const principleContractOptions =
-    principleContracts.length > 0
-      ? principleContracts
-      : [MOCK_COMPLETED_PRINCIPLE_CONTRACT];
+  const principleContractOptions = principleContracts;
   const selectedPrincipleContract = principleContractOptions.find(
     (contract) => contract.contractId === selectedPrincipleContractId,
   );
-  const isMockPrincipleContractSelected =
-    selectedPrincipleContract?.contractId === MOCK_PRINCIPLE_CONTRACT_ID;
   const isEditMode = mode === "edit";
   const isSubmitting = isEditMode
     ? updateContractMutation.isPending
     : createContractMutation.isPending;
+  const isLoadingContracts =
+    isLoadingUnsignedContracts ||
+    isLoadingOwnerSignedContracts ||
+    isLoadingCompletedContracts;
 
   useEffect(() => {
     if (!initialContract) return;
@@ -756,13 +694,23 @@ export function ContractFormPage({
     );
 
     if (initialContract.contractType === "appendix") {
+      const contractData = initialContract.contractData as
+        | AppendixContractDataPayload
+        | null
+        | undefined;
+      const appendixProducts = contractData?.products?.length
+        ? contractData.products
+        : initialContract.products ?? [];
+
       setSelectedPrincipleContractId(
-        initialContract.principleContractNumber ?? "",
+        contractData?.principleContractNumber ||
+          initialContract.principleContractNumber ||
+          "",
       );
       setAppendixProducts(
-        initialContract.products?.length
-          ? initialContract.products.map((product) =>
-              createAppendixProductRow(product),
+        appendixProducts.length
+          ? appendixProducts.map((product) =>
+              createAppendixProductRow(formatAppendixProductContent(product)),
             )
           : [createAppendixProductRow()],
       );
@@ -771,16 +719,16 @@ export function ContractFormPage({
       return;
     }
 
+    const principleData = initialContract.contractData as any;
+
     setPaymentTermDays(
-      "paymentTermDays" in (initialContract.contractData ?? {})
-        ? String(initialContract.contractData?.paymentTermDays ?? "")
+      principleData?.paymentTermDays != null
+        ? String(principleData.paymentTermDays)
         : "",
     );
     setCreditLimit(
-      "creditLimit" in (initialContract.contractData ?? {}) &&
-        initialContract.contractData?.creditLimit !== null &&
-        initialContract.contractData?.creditLimit !== undefined
-        ? String(initialContract.contractData.creditLimit)
+      principleData?.creditLimit != null
+        ? String(principleData.creditLimit)
         : "",
     );
   }, [initialContract]);
@@ -951,13 +899,6 @@ export function ContractFormPage({
       return "Vui lòng nhập thời hạn thanh toán là số ngày lớn hơn 0.";
     }
 
-    if (!isEmpty(creditLimit)) {
-      const parsedCreditLimit = Number(creditLimit);
-      if (!Number.isFinite(parsedCreditLimit) || parsedCreditLimit < 0) {
-        return "Hạn mức công nợ phải là số lớn hơn hoặc bằng 0, hoặc để trống.";
-      }
-    }
-
     const requiredPartnerFields =
       partnerEntityType === "company" ? PARTNER_FIELDS : PARTNER_DETAIL_FIELDS;
     const missingPartnerFields = requiredPartnerFields.filter((field) =>
@@ -988,20 +929,37 @@ export function ContractFormPage({
     role: info.role.trim(),
   });
 
+  const normalizeCreditLimitPayload = () => {
+    const trimmed = creditLimit.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : trimmed;
+  };
+
   const buildPayload = (): CreateContractPayload => {
     if (selectedContractType === "appendix" && selectedPrincipleContract) {
+      const principleSignedDate =
+        selectedPrincipleContract.principleContractSignedDate ||
+        initialContract?.principleContractSignedDate ||
+        null;
+
       return {
         contractType: "appendix",
         principleContractNumber:
           selectedPrincipleContract.contractNumber ||
           selectedPrincipleContract.contractId,
+        principleContractSignedDate: principleSignedDate,
+        contractDueDate: initialContract?.contractDueDate ?? null,
         ownerCompanyInfo,
-        partnerCompanyInfo: normalizePartnerInfo(
-          selectedPrincipleContract.partnerCompanyInfo,
-        ),
+        partnerCompanyInfo: normalizePartnerInfo(partnerCompanyInfo),
         products: appendixProducts
-          .map((product) => product.content.trim())
-          .filter(Boolean),
+          .map((product) => ({
+            rawContent: product.content.trim(),
+          }))
+          .filter((product) => Boolean(product.rawContent)),
       };
     }
 
@@ -1009,9 +967,10 @@ export function ContractFormPage({
       ownerCompanyInfo,
       partnerCompanyInfo: normalizePartnerInfo(partnerCompanyInfo),
       contractType: "principle",
+      contractDueDate: initialContract?.contractDueDate ?? null,
       contractData: {
         paymentTermDays: Number(paymentTermDays),
-        creditLimit: isEmpty(creditLimit) ? null : Number(creditLimit),
+        creditLimit: normalizeCreditLimitPayload(),
       },
     };
   };
@@ -1067,22 +1026,6 @@ export function ContractFormPage({
 
     setLastPayload(payload);
     window.location.assign(previewUrl);
-  };
-
-  const handlePreviewMockAppendix = () => {
-    if (!selectedPrincipleContract) {
-      toast.error("Thiếu dữ liệu", "Chưa có hợp đồng nguyên tắc để preview.");
-      return;
-    }
-
-    const mockContract = buildMockAppendixPreviewContract(
-      ownerCompanyInfo,
-      selectedPrincipleContract,
-    );
-    storeMockContractPreview(mockContract);
-    navigate(
-      `${PATHS.CONTRACT_PREVIEW.replace(":contractId", MOCK_APPENDIX_CONTRACT_ID)}?mock=1`,
-    );
   };
 
   return (
@@ -1209,7 +1152,7 @@ export function ContractFormPage({
                       <FieldLabel>Hạn mức công nợ</FieldLabel>
                       <TextInput
                         id="credit-limit"
-                        type="number"
+                        type="text"
                         value={creditLimit}
                         onChange={setCreditLimit}
                         placeholder="Để trống nếu không áp dụng"
@@ -1466,7 +1409,7 @@ export function ContractFormPage({
                         {isSubmitting ? (
                           <Spinner size="sm" color="black" />
                         ) : null}
-                        {isEditMode ? "Chỉnh sửa" : "Tạo hợp đồng"}
+                        {isEditMode ? "Cập nhật" : "Tạo hợp đồng"}
                       </span>
                     </button>
 
@@ -1513,7 +1456,7 @@ export function ContractFormPage({
 
                   <div className="space-y-4">
                     <div>
-                      <FieldLabel>Chọn hợp đồng đã hoàn tất</FieldLabel>
+                      <FieldLabel>Chọn hợp đồng</FieldLabel>
                       <PrincipleContractSelect
                         contracts={principleContractOptions}
                         selectedContractId={selectedPrincipleContractId}
@@ -1696,23 +1639,14 @@ export function ContractFormPage({
                       {isSubmitting ? (
                         <Spinner size="sm" color="black" />
                       ) : null}
-                      Tạo phụ lục
+                      {isEditMode ? "Cập nhật phụ lục" : "Tạo phụ lục"}
                     </span>
                   </button>
 
-                  {selectedContractType === "appendix" ? (
-                    <button
-                      type="button"
-                      onClick={handlePreviewMockAppendix}
-                      className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.07] px-6 text-sm font-medium text-black/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.11] hover:text-[#111111] active:translate-y-0 active:scale-[0.98] dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white"
-                    >
-                      Xem preview mock
-                    </button>
-                  ) : null}
-
                   {lastPayload?.contractType === "appendix" ? (
                     <p className="text-xs text-black/60 dark:text-white/50">
-                      Đã gửi yêu cầu tạo phụ lục với{" "}
+                      Đã gửi yêu cầu{" "}
+                      {isEditMode ? "cập nhật phụ lục" : "tạo phụ lục"} với{" "}
                       <span className="tabular-nums">
                         {lastPayload.products.length}
                       </span>{" "}

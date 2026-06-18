@@ -25,6 +25,7 @@ type ContractListParams = {
 
 type MutationToastOptions = {
   showSuccessToast?: boolean;
+  showErrorToast?: boolean;
 };
 
 function getIndividualCredentialUploadErrorMessage(response: {
@@ -400,7 +401,7 @@ export function useUploadHandwrittenSignature(options?: MutationToastOptions) {
 
 export function useDeleteCredential(options?: MutationToastOptions) {
   const queryClient = useQueryClient();
-  const { showSuccessToast = true } = options ?? {};
+  const { showSuccessToast = true, showErrorToast = true } = options ?? {};
 
   return useMutation({
     mutationFn: ({
@@ -422,13 +423,19 @@ export function useDeleteCredential(options?: MutationToastOptions) {
           queryKey: ["contracts", variables.contractId],
         });
       } else {
-        toast.error(
-          "Thất bại",
-          getIndividualCredentialUploadErrorMessage(data),
-        );
+        if (showErrorToast) {
+          toast.error(
+            "Thất bại",
+            getIndividualCredentialUploadErrorMessage(data),
+          );
+        }
       }
     },
-    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+    onError: (err) => {
+      if (showErrorToast) {
+        toast.error("Lỗi", getApiErrorMessage(err));
+      }
+    },
   });
 }
 

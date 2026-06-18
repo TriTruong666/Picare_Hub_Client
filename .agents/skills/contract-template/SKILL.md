@@ -38,7 +38,7 @@ The appendix document must not show the 11 principle contract articles. It must 
 - National title block.
 - Current document date.
 - Title `Phụ lục hợp đồng`.
-- Line: `Đính kèm Hợp đồng nguyên tắc số: ... ký ngày ...`.
+- Line: `Đính kèm Hợp đồng nguyên tắc số:`.
 - Both party sections using the same `PartySection` layout as principle.
 - Text: `Hai bên đồng ý ký kết Phụ lục với các điều khoản sau:`.
 - Full pricing/cooperation paragraph from the appendix PDF sample.

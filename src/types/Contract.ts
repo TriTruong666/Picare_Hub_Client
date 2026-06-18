@@ -2,7 +2,8 @@ export type PrincipleContractPayload = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
   contractType: "principle";
-  contractData: PrincipleContractDataPayload;
+  contractDueDate?: string | null;
+  contractData: PrincipleContractRequestDataPayload;
 };
 
 export type ServiceContractPayload = {
@@ -12,19 +13,39 @@ export type ServiceContractPayload = {
   contractData: ServiceContractDataPayload;
 };
 
+export type AppendixContractProductPayload = {
+  origin?: string | null;
+  rawContent?: string | null;
+  ingredients?: string | null;
+  productName?: string | null;
+  unitPriceVat?: number | string | null;
+  classification?: string | null;
+  registrationNumber?: string | null;
+  packageSpecification?: string | null;
+};
+
+export type PrincipleContractRequestDataPayload = {
+  paymentTermDays: number;
+  creditLimit: number | string | null;
+};
+
 export type AppendixContractDataPayload = {
   details: ContractDetail[];
+  products?: AppendixContractProductPayload[];
   contractDueDate: string | null;
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
+  principleContractNumber?: string | null;
 };
 
 export type AppendixContractPayload = {
   contractType: "appendix";
   principleContractNumber: string;
+  principleContractSignedDate?: string | null;
+  contractDueDate?: string | null;
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
-  products: string[];
+  products: AppendixContractProductPayload[];
 };
 
 export type UpdateContractPayload =
