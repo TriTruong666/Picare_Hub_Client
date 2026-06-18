@@ -28,6 +28,7 @@ import type {
   PartnerCompanyInfoPayload,
   PrincipleContractDataPayload,
 } from "@/types/Contract";
+import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 
 type RefreshedContractHandler = () =>
   | Contract
@@ -197,24 +198,27 @@ function normalizeAppendixLabel(value: string) {
     .toLowerCase();
 }
 
-const APPENDIX_PRODUCT_LABEL_LOOKUP: Record<string, keyof AppendixProductRow> = {
-  ...Object.fromEntries(
-    (Object.entries(APPENDIX_PRODUCT_LABELS) as Array<
-      [keyof AppendixProductRow, string]
-    >).map(([key, label]) => [normalizeAppendixLabel(label), key]),
-  ),
-  "ten san pham": "productName",
-  "thanh phan": "ingredients",
-  "quy cach": "packaging",
-  "quy cach dong goi": "packaging",
-  "so dang ky": "registrationNumber",
-  "so cong bo": "registrationNumber",
-  "nuoc san xuat": "originCountry",
-  "xuat xu": "originCountry",
-  "don gia": "vatPrice",
-  "don gia vat": "vatPrice",
-  "phan loai": "category",
-};
+const APPENDIX_PRODUCT_LABEL_LOOKUP: Record<string, keyof AppendixProductRow> =
+  {
+    ...Object.fromEntries(
+      (
+        Object.entries(APPENDIX_PRODUCT_LABELS) as Array<
+          [keyof AppendixProductRow, string]
+        >
+      ).map(([key, label]) => [normalizeAppendixLabel(label), key]),
+    ),
+    "ten san pham": "productName",
+    "thanh phan": "ingredients",
+    "quy cach": "packaging",
+    "quy cach dong goi": "packaging",
+    "so dang ky": "registrationNumber",
+    "so cong bo": "registrationNumber",
+    "nuoc san xuat": "originCountry",
+    "xuat xu": "originCountry",
+    "don gia": "vatPrice",
+    "don gia vat": "vatPrice",
+    "phan loai": "category",
+  };
 
 function parseAppendixProduct(
   rawProduct: AppendixProductSource,
@@ -281,7 +285,7 @@ function getAppendixProducts(contract: Contract) {
 
   const rawProducts = contractData?.products?.length
     ? contractData.products
-    : contract.products ?? [];
+    : (contract.products ?? []);
 
   return rawProducts.map(parseAppendixProduct);
 }
@@ -292,7 +296,9 @@ function getAppendixPrincipleContractNumber(contract: Contract) {
     | null
     | undefined;
 
-  return contractData?.principleContractNumber || contract.principleContractNumber;
+  return (
+    contractData?.principleContractNumber || contract.principleContractNumber
+  );
 }
 
 function ArticleTitle({ children }: { children: ReactNode }) {
@@ -1829,10 +1835,15 @@ function ContractPartnerSignPageData() {
 
   if (isLoading) {
     return (
-      <main className="dashboard-theme flex min-h-screen items-center justify-center bg-black text-white">
+      <main className="dashboard-theme relative flex min-h-screen items-center justify-center bg-[#f6f1e8] text-[#111111] dark:bg-black dark:text-white">
+        <div className="absolute top-6 right-6">
+          <ThemeToggle />
+        </div>
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" color="white" />
-          <p className="text-sm text-white/45">Đang tải hợp đồng...</p>
+          <p className="text-sm text-black/45 dark:text-white/45">
+            Đang tải hợp đồng...
+          </p>
         </div>
       </main>
     );

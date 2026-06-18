@@ -35,13 +35,16 @@ import {
 } from "@/hooks/data/useContractHooks";
 import { useTaxPayerLookup } from "@/hooks/data/useTaxPayerHooks";
 import type {
-  AppendixContractDataPayload,
-  AppendixContractProductPayload,
   Contract,
   CreateContractPayload,
   OwnerCompanyInfoPayload,
   PartnerCompanyInfoPayload,
 } from "@/types/Contract";
+import {
+  buildAppendixContractPayload,
+  buildPrincipleContractPayload,
+  normalizePartnerCompanyInfo,
+} from "./contractFormPayload";
 
 type PartnerField = keyof PartnerCompanyInfoPayload;
 
@@ -365,8 +368,17 @@ function PrincipleContractSelect({
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const selectedContract = contracts.find(
-    (contract) => contract.contractId === selectedContractId,
+    (contract) =>
+      contract.contractId === selectedContractId ||
+      contract.contractNumber === selectedContractId,
   );
+  const isEmpty = !isLoading && contracts.length === 0;
+
+  useEffect(() => {
+    if (isOpen && isEmpty) {
+      setIsOpen(false);
+    }
+  }, [isEmpty, isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -386,7 +398,7 @@ function PrincipleContractSelect({
     <div ref={wrapperRef} className="relative">
       <button
         type="button"
-        disabled={isLoading}
+        disabled={isLoading || isEmpty}
         onClick={() => setIsOpen((current) => !current)}
         className={`flex min-h-16 w-full items-center justify-between gap-4 rounded-xl border px-4 py-3 text-left transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
           isOpen
@@ -411,10 +423,16 @@ function PrincipleContractSelect({
               <span className="block text-sm font-medium text-[#111111] dark:text-white">
                 {isLoading
                   ? "Đang tải danh sách hợp đồng..."
-                  : "Chọn hợp đồng nguyên tắc"}
+                  : isEmpty
+                    ? "Không có hợp đồng nguyên tắc phù hợp"
+                    : "Chọn hợp đồng nguyên tắc"}
               </span>
               <span className="mt-1 block text-xs text-black/48 dark:text-white/38">
-                Menu sẽ hiển thị số hợp đồng, trạng thái và thông tin đối tác.
+                {isLoading
+                  ? "Đang lấy dữ liệu từ hệ thống, vui lòng chờ."
+                  : isEmpty
+                    ? "Cần có hợp đồng trạng thái phù hợp để tạo hoặc chỉnh sửa phụ lục."
+                    : "Menu sẽ hiển thị số hợp đồng, trạng thái và thông tin đối tác."}
               </span>
             </>
           )}
@@ -429,69 +447,102 @@ function PrincipleContractSelect({
       {isOpen ? (
         <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#050505] text-white shadow-[0_24px_60px_rgba(0,0,0,0.46)]">
           <div className="max-h-80 overflow-y-auto p-2">
-            {contracts.map((contract) => {
-              const active = contract.contractId === selectedContractId;
+            {isLoading ? (
+              <div className="space-y-2 p-1">
+                {[0, 1, 2].map((index) => (
+                  <div
+                    key={index}
+                    className="rounded-lg border border-white/10 bg-white/[0.04] p-3"
+                  >
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-white/10" />
+                    <div className="mt-3 h-3 w-1/2 animate-pulse rounded bg-white/8" />
+                    <div className="mt-4 grid grid-cols-3 gap-2">
+                      <div className="h-3 animate-pulse rounded bg-white/8" />
+                      <div className="h-3 animate-pulse rounded bg-white/8" />
+                      <div className="h-3 animate-pulse rounded bg-white/8" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : isEmpty ? (
+              <div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/40">
+                  <FiSearch />
+                </div>
+                <p className="text-sm font-medium text-white">
+                  Không tìm thấy hợp đồng nguyên tắc
+                </p>
+                <p className="max-w-xs text-xs leading-6 text-white/45">
+                  Danh sách hiện tại chưa có hợp đồng phù hợp để tạo phụ lục.
+                </p>
+              </div>
+            ) : (
+              contracts.map((contract) => {
+                const active =
+                  contract.contractId === selectedContractId ||
+                  contract.contractNumber === selectedContractId;
 
-              return (
-                <button
-                  key={contract.contractId}
-                  type="button"
-                  onClick={() => {
-                    onChange(contract.contractId);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full rounded-lg border p-3 text-left transition-all duration-300 ${
-                    active
-                      ? "border-white/15 bg-white/[0.06]"
-                      : "border-transparent hover:border-white/10 hover:bg-white/[0.045]"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="truncate text-sm font-semibold text-white">
-                          {contract.contractNumber || contract.contractId}
+                return (
+                  <button
+                    key={contract.contractId}
+                    type="button"
+                    onClick={() => {
+                      onChange(contract.contractId);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full rounded-lg border p-3 text-left transition-all duration-300 ${
+                      active
+                        ? "border-white/15 bg-white/[0.06]"
+                        : "border-transparent hover:border-white/10 hover:bg-white/[0.045]"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate text-sm font-semibold text-white">
+                            {contract.contractNumber || contract.contractId}
+                          </p>
+                        </div>
+                        <p className="mt-1 truncate text-xs text-white/48">
+                          {contract.partnerCompanyInfo.companyName ||
+                            contract.partnerCompanyInfo.ownerName}
                         </p>
                       </div>
-                      <p className="mt-1 truncate text-xs text-white/48">
-                        {contract.partnerCompanyInfo.companyName ||
-                          contract.partnerCompanyInfo.ownerName}
-                      </p>
+                      <span
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                          active
+                            ? "border-white/35 bg-white text-black"
+                            : "border-white/12 text-transparent"
+                        }`}
+                      >
+                        <FiCheck className="text-xs" />
+                      </span>
                     </div>
-                    <span
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
-                        active
-                          ? "border-white/35 bg-white text-black"
-                          : "border-white/12 text-transparent"
-                      }`}
-                    >
-                      <FiCheck className="text-xs" />
-                    </span>
-                  </div>
 
-                  <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-white/42 sm:grid-cols-3">
-                    <span>
-                      Ngày tạo:{" "}
-                      <strong className="font-semibold text-white">
-                        {formatDate(contract.createdAt) || "Chưa có ngày"}
-                      </strong>
-                    </span>
-                    <span>
-                      MST:{" "}
-                      <strong className="font-semibold text-white">
-                        {contract.partnerCompanyInfo.mst || "Không có"}
-                      </strong>
-                    </span>
-                    <span>
-                      Trạng thái:{" "}
-                      <strong className="font-semibold text-white">
-                        {contract.status}
-                      </strong>
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+                    <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-white/42 sm:grid-cols-3">
+                      <span>
+                        Ngày tạo:{" "}
+                        <strong className="font-semibold text-white">
+                          {formatDate(contract.createdAt) || "Chưa có ngày"}
+                        </strong>
+                      </span>
+                      <span>
+                        MST:{" "}
+                        <strong className="font-semibold text-white">
+                          {contract.partnerCompanyInfo.mst || "Không có"}
+                        </strong>
+                      </span>
+                      <span>
+                        Trạng thái:{" "}
+                        <strong className="font-semibold text-white">
+                          {contract.status}
+                        </strong>
+                      </span>
+                    </div>
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
       ) : null}
@@ -659,7 +710,9 @@ export function ContractFormPage({
   );
   const principleContractOptions = principleContracts;
   const selectedPrincipleContract = principleContractOptions.find(
-    (contract) => contract.contractId === selectedPrincipleContractId,
+    (contract) =>
+      contract.contractId === selectedPrincipleContractId ||
+      contract.contractNumber === selectedPrincipleContractId,
   );
   const isEditMode = mode === "edit";
   const isSubmitting = isEditMode
@@ -914,67 +967,6 @@ export function ContractFormPage({
     return null;
   };
 
-  const normalizePartnerInfo = (
-    info: PartnerCompanyInfoPayload,
-  ): PartnerCompanyInfoPayload => ({
-    ...info,
-    companyName:
-      partnerEntityType === "company" ? info.companyName?.trim() || "" : null,
-    mst: partnerEntityType === "company" ? info.mst?.trim() || "" : null,
-    address: info.address.trim(),
-    phone: info.phone.trim(),
-    email: info.email.trim(),
-    bankInfo: info.bankInfo.trim(),
-    ownerName: info.ownerName.trim(),
-    role: info.role.trim(),
-  });
-
-  const normalizeCreditLimitPayload = () => {
-    const trimmed = creditLimit.trim();
-    if (!trimmed) {
-      return null;
-    }
-
-    const parsed = Number(trimmed);
-    return Number.isFinite(parsed) ? parsed : trimmed;
-  };
-
-  const buildPayload = (): CreateContractPayload => {
-    if (selectedContractType === "appendix" && selectedPrincipleContract) {
-      const principleSignedDate =
-        selectedPrincipleContract.principleContractSignedDate ||
-        initialContract?.principleContractSignedDate ||
-        null;
-
-      return {
-        contractType: "appendix",
-        principleContractNumber:
-          selectedPrincipleContract.contractNumber ||
-          selectedPrincipleContract.contractId,
-        principleContractSignedDate: principleSignedDate,
-        contractDueDate: initialContract?.contractDueDate ?? null,
-        ownerCompanyInfo,
-        partnerCompanyInfo: normalizePartnerInfo(partnerCompanyInfo),
-        products: appendixProducts
-          .map((product) => ({
-            rawContent: product.content.trim(),
-          }))
-          .filter((product) => Boolean(product.rawContent)),
-      };
-    }
-
-    return {
-      ownerCompanyInfo,
-      partnerCompanyInfo: normalizePartnerInfo(partnerCompanyInfo),
-      contractType: "principle",
-      contractDueDate: initialContract?.contractDueDate ?? null,
-      contractData: {
-        paymentTermDays: Number(paymentTermDays),
-        creditLimit: normalizeCreditLimitPayload(),
-      },
-    };
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isSubmitting) return;
@@ -996,7 +988,30 @@ export function ContractFormPage({
       return;
     }
 
-    const payload = buildPayload();
+    const payload =
+      selectedContractType === "appendix" && selectedPrincipleContract
+        ? buildAppendixContractPayload({
+            ownerCompanyInfo,
+            partnerCompanyInfo: normalizePartnerCompanyInfo(
+              partnerCompanyInfo,
+              partnerEntityType,
+            ),
+            contractDueDate: initialContract?.contractDueDate ?? null,
+            principleContract: selectedPrincipleContract,
+            principleContractSignedDate:
+              initialContract?.principleContractSignedDate ?? null,
+            products: appendixProducts.map((product) => product.content.trim()),
+          })
+        : buildPrincipleContractPayload({
+            ownerCompanyInfo,
+            partnerCompanyInfo: normalizePartnerCompanyInfo(
+              partnerCompanyInfo,
+              partnerEntityType,
+            ),
+            contractDueDate: initialContract?.contractDueDate ?? null,
+            paymentTermDays,
+            creditLimit,
+          });
 
     if (isEditMode && initialContract) {
       const response = await updateContractMutation.mutateAsync({

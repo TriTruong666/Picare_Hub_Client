@@ -16,12 +16,16 @@ export default function ContractEditPage() {
 
   if (isLoading) {
     return (
-      <main className="dashboard-theme relative flex min-h-screen items-center justify-center bg-[#f6f1e8] text-[#111111] dark:bg-[#050505] dark:text-white">
+      <main className="dashboard-theme relative flex min-h-screen items-center justify-center bg-[#f6f1e8] text-[#111111] dark:bg-black dark:text-white">
         <div className="absolute top-6 right-6">
           <ThemeToggle />
         </div>
-        <Spinner size="lg" color="white" />
-        <p className="text-sm text-black/45 dark:text-white/45">Đang tải hợp đồng...</p>
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" color="white" />
+          <p className="text-sm text-black/45 dark:text-white/45">
+            Đang tải hợp đồng...
+          </p>
+        </div>
       </main>
     );
   }
