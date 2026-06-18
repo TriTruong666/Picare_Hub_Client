@@ -2,7 +2,6 @@ import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  FiCheckCircle,
   FiCreditCard,
   FiDownload,
   FiLock,
@@ -1169,12 +1168,9 @@ function ContractOrganizationSigningForm({
               </dl>
             </div>
 
-            <div className="flex items-start gap-2 border-l border-amber-200/25 pl-3 text-xs leading-5 font-medium text-amber-100">
-              <FiCheckCircle className="shrink-0 text-amber-200/80" />
-              <span>
-                Luồng này sẽ tạo phiên ký số cho bên mua và xuất bản hợp đồng
-                sau khi hoàn tất ký.
-              </span>
+            <div className="rounded-xl border border-amber-200/25 bg-amber-100/40 px-4 py-3 text-xs leading-5 font-medium text-amber-950 dark:bg-amber-300/10 dark:text-amber-50">
+              Luồng này sẽ tạo phiên ký số cho bên mua và xuất bản hợp đồng
+              sau khi hoàn tất ký.
             </div>
           </div>
 

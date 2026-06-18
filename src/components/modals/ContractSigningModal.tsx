@@ -1163,8 +1163,7 @@ function ContractSigningForm({
               </dl>
             </div>
 
-            <div className="flex items-start gap-2 border-l border-amber-200/25 pl-3 text-xs leading-5 font-medium text-amber-100">
-              <FiCheckCircle className="shrink-0 text-amber-200/80" />
+            <div className="flex items-start gap-2 border-l border-amber-600 pl-3 text-xs leading-5 font-medium text-amber-600 dark:border-amber-200/25 dark:text-amber-100">
               <span>
                 Phiên ký này sẽ dùng tên công ty và email công ty của bên sở
                 hữu. Sau khi xác nhận ký, hợp đồng sẽ được xuất bản và không thể
