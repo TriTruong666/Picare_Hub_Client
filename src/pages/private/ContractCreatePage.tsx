@@ -20,7 +20,7 @@ import {
   FiTrash2,
   FiX,
 } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { ContractHistoryPanel } from "@/components/contracts/ContractHistoryPanel";
 import { Spinner } from "@/components/custom_ui/Spinner";
@@ -70,7 +70,8 @@ const CONTRACT_TYPE_OPTIONS: {
   {
     value: "appendix",
     title: "Phụ lục hợp đồng",
-    description: "Tạo hoặc chỉnh sửa phụ lục dựa trên hợp đồng nguyên tắc đã có.",
+    description:
+      "Tạo hoặc chỉnh sửa phụ lục dựa trên hợp đồng nguyên tắc đã có.",
   },
   {
     value: "service",
@@ -395,7 +396,7 @@ function PrincipleContractSelect({
   }, []);
 
   return (
-    <div ref={wrapperRef} className="relative">
+    <div ref={wrapperRef} className="relative z-30">
       <button
         type="button"
         disabled={isLoading || isEmpty}
@@ -445,7 +446,7 @@ function PrincipleContractSelect({
       </button>
 
       {isOpen ? (
-        <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#050505] text-white shadow-[0_24px_60px_rgba(0,0,0,0.46)]">
+        <div className="absolute z-[120] mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#050505] text-white shadow-[0_24px_60px_rgba(0,0,0,0.46)]">
           <div className="max-h-80 overflow-y-auto p-2">
             {isLoading ? (
               <div className="space-y-2 p-1">
@@ -646,15 +647,22 @@ export function ContractFormPage({
   showQrButton?: boolean;
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const createContractMutation = useCreateContract();
   const updateContractMutation = useUpdateContract();
   const taxPayerLookupMutation = useTaxPayerLookup();
-  const { data: unsignedContracts = [], isLoading: isLoadingUnsignedContracts } =
-    useContractList({
-      page: 1,
-      limit: 100,
-      status: "unsigned",
-    });
+  const initialCreateContractType = (
+    location.state as { contractType?: ContractKind } | null | undefined
+  )?.contractType;
+  const {
+    data: unsignedContracts = [],
+    isLoading: isLoadingUnsignedContracts,
+  } = useContractList({
+    page: 1,
+    limit: 100,
+    status: "unsigned",
+    contractType: "principal",
+  });
   const {
     data: ownerSignedContracts = [],
     isLoading: isLoadingOwnerSignedContracts,
@@ -662,20 +670,28 @@ export function ContractFormPage({
     page: 1,
     limit: 100,
     status: "owner_signed",
+    contractType: "principal",
   });
-  const { data: completedContracts = [], isLoading: isLoadingCompletedContracts } =
-    useContractList({
-      page: 1,
-      limit: 100,
-      status: "completed",
-    });
+  const {
+    data: completedContracts = [],
+    isLoading: isLoadingCompletedContracts,
+  } = useContractList({
+    page: 1,
+    limit: 100,
+    status: "completed",
+    contractType: "principal",
+  });
   const [selectedContractType, setSelectedContractType] =
     useState<ContractKind | null>(
       initialContract?.contractType === "appendix"
         ? "appendix"
         : initialContract
           ? "principle"
-          : null,
+          : initialCreateContractType === "appendix"
+            ? "appendix"
+            : initialCreateContractType === "principle"
+              ? "principle"
+              : null,
     );
   const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(0);
   const [selectedPrincipleContractId, setSelectedPrincipleContractId] =
@@ -763,7 +779,7 @@ export function ContractFormPage({
         | undefined;
       const appendixProducts = contractData?.products?.length
         ? contractData.products
-        : initialContract.products ?? [];
+        : (initialContract.products ?? []);
 
       setSelectedPrincipleContractId(
         contractData?.principleContractNumber ||
@@ -1189,9 +1205,6 @@ export function ContractFormPage({
                   <section className="border-b border-black/10 py-6 dark:border-white/10">
                     <div className="mb-4 flex items-end justify-between gap-4">
                       <SectionTitle>Công ty chủ sở hữu</SectionTitle>
-                      <span className="text-[11px] font-medium tracking-[0.08em] text-black/45 uppercase dark:text-white/35">
-                        Chỉ xem
-                      </span>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -1540,9 +1553,6 @@ export function ContractFormPage({
                   <section className="border-b border-black/10 py-6 dark:border-white/10">
                     <div className="mb-4 flex items-end justify-between gap-4">
                       <SectionTitle>Công ty chủ sở hữu</SectionTitle>
-                      <span className="text-[11px] font-medium tracking-[0.08em] text-black/45 uppercase dark:text-white/35">
-                        Chỉ xem
-                      </span>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

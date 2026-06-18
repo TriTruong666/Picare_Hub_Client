@@ -1,6 +1,12 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { FiDownload, FiEdit3, FiMail, FiPenTool } from "react-icons/fi";
+import {
+  FiDownload,
+  FiEdit3,
+  FiFilePlus,
+  FiMail,
+  FiPenTool,
+} from "react-icons/fi";
 import { HiOutlineX } from "react-icons/hi";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -158,24 +164,27 @@ function normalizeAppendixLabel(value: string) {
     .toLowerCase();
 }
 
-const APPENDIX_PRODUCT_LABEL_LOOKUP: Record<string, keyof AppendixProductRow> = {
-  ...Object.fromEntries(
-    (Object.entries(APPENDIX_PRODUCT_LABELS) as Array<
-      [keyof AppendixProductRow, string]
-    >).map(([key, label]) => [normalizeAppendixLabel(label), key]),
-  ),
-  "ten san pham": "productName",
-  "thanh phan": "ingredients",
-  "quy cach": "packaging",
-  "quy cach dong goi": "packaging",
-  "so dang ky": "registrationNumber",
-  "so cong bo": "registrationNumber",
-  "nuoc san xuat": "originCountry",
-  "xuat xu": "originCountry",
-  "don gia": "vatPrice",
-  "don gia vat": "vatPrice",
-  "phan loai": "category",
-};
+const APPENDIX_PRODUCT_LABEL_LOOKUP: Record<string, keyof AppendixProductRow> =
+  {
+    ...Object.fromEntries(
+      (
+        Object.entries(APPENDIX_PRODUCT_LABELS) as Array<
+          [keyof AppendixProductRow, string]
+        >
+      ).map(([key, label]) => [normalizeAppendixLabel(label), key]),
+    ),
+    "ten san pham": "productName",
+    "thanh phan": "ingredients",
+    "quy cach": "packaging",
+    "quy cach dong goi": "packaging",
+    "so dang ky": "registrationNumber",
+    "so cong bo": "registrationNumber",
+    "nuoc san xuat": "originCountry",
+    "xuat xu": "originCountry",
+    "don gia": "vatPrice",
+    "don gia vat": "vatPrice",
+    "phan loai": "category",
+  };
 
 function parseAppendixProduct(
   rawProduct: AppendixProductSource,
@@ -242,7 +251,7 @@ function getAppendixProducts(contract: Contract) {
 
   const rawProducts = contractData?.products?.length
     ? contractData.products
-    : contract.products ?? [];
+    : (contract.products ?? []);
 
   return rawProducts.map(parseAppendixProduct);
 }
@@ -253,7 +262,9 @@ function getAppendixPrincipleContractNumber(contract: Contract) {
     | null
     | undefined;
 
-  return contractData?.principleContractNumber || contract.principleContractNumber;
+  return (
+    contractData?.principleContractNumber || contract.principleContractNumber
+  );
 }
 
 function ArticleTitle({ children }: { children: React.ReactNode }) {
@@ -448,16 +459,49 @@ type PartnerMailForm = {
   replyTo: string;
 };
 
+function getContractMailTypeLabel(contractType: Contract["contractType"]) {
+  return contractType === "appendix" ? "Phụ lục hợp đồng" : "Hợp đồng nguyên tắc";
+}
+
 function createPartnerMailForm(contract: Contract): PartnerMailForm {
   const partner = contract.partnerCompanyInfo;
   const owner = contract.ownerCompanyInfo;
+  const contractTypeLabel = getContractMailTypeLabel(contract.contractType);
+  const contractTypeNumberLabel =
+    contract.contractType === "appendix"
+      ? getAppendixPrincipleContractNumber(contract) || "không xác định"
+      : contract.contractNumber || contract.contractId;
+  const appendixProducts = getAppendixProducts(contract);
+  const appendixProductNames = appendixProducts
+    .map((product) => product.productName.trim())
+    .filter(Boolean)
+    .slice(0, 5);
+
+  const messageLines =
+    contract.contractType === "appendix"
+      ? [
+          `${owner.companyName} đã hoàn tất xử lý ${contractTypeLabel.toLowerCase()} số ${contract.contractNumber || contract.contractId}.`,
+          `Phụ lục này được đính kèm theo Hợp đồng nguyên tắc số ${contractTypeNumberLabel}.`,
+          appendixProductNames.length
+            ? `Danh sách sản phẩm trong phụ lục hiện tại gồm: ${appendixProductNames.join(", ")}.`
+            : "Phụ lục hiện tại đã có dữ liệu sản phẩm và có thể đối chiếu trực tiếp trên hệ thống.",
+          "Vui lòng kiểm tra lại toàn bộ nội dung, đặc biệt là thông tin công ty, danh mục sản phẩm, đơn giá, quy cách và các dữ liệu liên quan trước khi thực hiện bước ký tiếp theo.",
+          "Nếu cần chỉnh sửa, vui lòng phản hồi ngay email này để bộ phận phụ trách xử lý trước khi chốt hồ sơ.",
+          "Sau khi ký hoàn tất, trạng thái hợp đồng sẽ được cập nhật đồng bộ trên hệ thống.",
+        ]
+      : [
+          `${owner.companyName} đã hoàn tất ký số cho ${contractTypeLabel.toLowerCase()} số ${contract.contractNumber || contract.contractId}.`,
+          "Vui lòng mở file đính kèm để rà soát lại toàn bộ điều khoản, phạm vi hợp tác, thời hạn thanh toán, hạn mức công nợ và các thông tin pháp lý của hai bên.",
+          "Trong trường hợp cần xác nhận thêm nội dung nào trước khi ký, vui lòng phản hồi trực tiếp email này để chúng tôi hỗ trợ ngay.",
+          "Sau khi hoàn tất thao tác ký, hệ thống sẽ tự động cập nhật trạng thái và đồng bộ sang bước xử lý tiếp theo.",
+        ];
 
   return {
     to: partner.email || "",
-    subject: `Hợp đồng nguyên tắc ${contract.contractNumber} đã sẵn sàng để xem và ký`,
-    title: `Hợp đồng đã được ký bởi ${owner.companyName}`,
+    subject: `[${contractTypeLabel}] ${contract.contractNumber || contract.contractId} đã sẵn sàng để xem và ký`,
+    title: `Thông báo ${contractTypeLabel}`,
     intro: `Kính gửi ${partner.companyName || `${partner.ownerName || "Quý đối tác"}`},`,
-    message: `${owner.companyName} đã hoàn tất chữ ký số cho hợp đồng ${contract.contractNumber}. Vui lòng kiểm tra nội dung hợp đồng và tiếp tục xử lý theo quy trình của bên mua.`,
+    message: messageLines.join("\n"),
     replyTo: owner.email || "",
   };
 }
@@ -485,6 +529,7 @@ function SendPartnerMailModal({
 
   const isSending =
     sendMailMutation.isPending || generateSignLinkMutation.isPending;
+  const mailTypeLabel = getContractMailTypeLabel(contract.contractType);
 
   const updateField = (field: keyof PartnerMailForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -553,10 +598,11 @@ function SendPartnerMailModal({
             <div className="flex items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] p-6">
               <div>
                 <h2 className="text-base font-semibold text-white">
-                  Gửi mail cho đối tác
+                  Gửi mail {mailTypeLabel.toLowerCase()}
                 </h2>
                 <p className="mt-1 text-xs leading-5 text-white/45">
-                  Kiểm tra nội dung trước khi gửi hợp đồng đã ký cho bên mua.
+                  Kiểm tra nội dung trước khi gửi mail cho đối tác để tiếp tục
+                  quy trình ký và xử lý {mailTypeLabel.toLowerCase()}.
                 </p>
               </div>
 
@@ -1334,9 +1380,6 @@ function AppendixContractDocument({
           <strong className="font-semibold text-black/86 dark:text-white/86">
             {getAppendixPrincipleContractNumber(contract) || "..."}
           </strong>{" "}
-          <span className="ml-2 inline-flex rounded-full border border-black/10 bg-black/[0.04] px-2 py-0.5 text-[10px] font-medium tracking-[0.08em] text-black/55 uppercase dark:border-white/10 dark:bg-white/[0.06] dark:text-white/50">
-            Loại: Phụ lục
-          </span>
         </p>
       </section>
 
@@ -1501,6 +1544,9 @@ function ContractActionDock({
   const canSignContract =
     contract.status === "draft" || contract.status === "unsigned";
   const canSendPartnerMail = contract.status === "owner_signed";
+  const canCreatePrincipleContract =
+    contract.contractType === "principle" &&
+    (contract.status === "owner_signed" || contract.status === "completed");
 
   const handleDownloadContract = () => {
     const key = getS3KeyFromUrl(contract.contractUrl);
@@ -1550,6 +1596,17 @@ function ContractActionDock({
             icon={<FiDownload />}
             onClick={handleDownloadContract}
             disabled={downloadMutation.isPending}
+          />
+        ) : null}
+        {canCreatePrincipleContract ? (
+          <DockButton
+            label="Tạo hợp đồng nguyên tắc"
+            icon={<FiFilePlus />}
+            onClick={() =>
+              navigate(PATHS.CONTRACT_CREATE, {
+                state: { contractType: "principle" },
+              })
+            }
           />
         ) : null}
         {canSendPartnerMail ? (

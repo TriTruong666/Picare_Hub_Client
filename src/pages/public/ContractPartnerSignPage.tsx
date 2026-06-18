@@ -1140,9 +1140,6 @@ function AppendixContractDocument({
           <strong className="font-semibold text-white/86">
             {getAppendixPrincipleContractNumber(contract) || "..."}
           </strong>{" "}
-          <span className="ml-2 inline-flex rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] font-medium tracking-[0.08em] text-white/50 uppercase">
-            Loại: Phụ lục
-          </span>
         </p>
       </section>
 

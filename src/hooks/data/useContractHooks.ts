@@ -21,6 +21,7 @@ type ContractListParams = {
   limit: number;
   search?: string;
   status?: ContractStatus;
+  contractType?: string;
 };
 
 type MutationToastOptions = {
