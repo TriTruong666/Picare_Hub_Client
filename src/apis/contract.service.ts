@@ -5,6 +5,7 @@ import type {
   CreateContractPayload,
   CreateContractResponse,
   DeleteCredentialPayload,
+  DraftDownloadContractResponse,
   GenSignLinkResponse,
   HandwrittenSignaturePayload,
   SigningCompletePayload,
@@ -94,6 +95,15 @@ export const publishDraftContract = async (
 ): Promise<BaseResponse<null>> => {
   const res = await hubAxiosClient.post(
     `/api/v1/contracts/${contractId}/publish-unsigned`,
+  );
+  return res.data;
+};
+
+export const createDraftDownloadContract = async (
+  contractId: string,
+): Promise<BaseResponse<DraftDownloadContractResponse>> => {
+  const res = await hubAxiosClient.post(
+    `/api/v1/contracts/${contractId}/draft-download`,
   );
   return res.data;
 };

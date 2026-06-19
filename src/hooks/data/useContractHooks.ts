@@ -200,6 +200,31 @@ export function usePublishDraftContract(options?: MutationToastOptions) {
   });
 }
 
+export function useCreateDraftDownloadContract(options?: MutationToastOptions) {
+  const queryClient = useQueryClient();
+  const { showSuccessToast = true } = options ?? {};
+
+  return useMutation({
+    mutationFn: (contractId: string) =>
+      ContractService.createDraftDownloadContract(contractId),
+    onSuccess: (data, contractId) => {
+      if (data.success) {
+        if (showSuccessToast) {
+          toast.success("Thành công", "Đã tạo liên kết tải bản hợp đồng nháp");
+        }
+        queryClient.invalidateQueries({ queryKey: ["contracts"] });
+        queryClient.invalidateQueries({ queryKey: ["contracts", contractId] });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
 export function useCreateSigningSession(options?: MutationToastOptions) {
   const queryClient = useQueryClient();
   const { showSuccessToast = true } = options ?? {};

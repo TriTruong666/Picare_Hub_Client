@@ -125,11 +125,11 @@ export type ContractDetail = {
 };
 
 export type ContractDocument = {
-  id: number;
+  id?: number;
   contractDocumentId: string;
   version: number;
   status?: string;
-  fileUrl: string;
+  fileUrl: string | null;
   fileHash: string;
   createdAt: string;
   updatedAt: string;
@@ -284,6 +284,18 @@ export type CreateContractResponse = {
   contract: Contract;
   pdfHashHex: string;
   previewUrl: string;
+};
+
+export type DraftDownloadContractResponse = {
+  contractId: string;
+  contractDocumentId: string;
+  documentVersion: number;
+  status: "draft";
+  fileName: string;
+  fileUrl: string;
+  fileKey: string;
+  downloadUrl: string;
+  pdfHashHex: string;
 };
 
 export type SigningSessionPayload = {

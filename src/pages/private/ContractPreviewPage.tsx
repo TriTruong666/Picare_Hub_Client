@@ -16,6 +16,7 @@ import { Tooltip } from "@/components/custom_ui/Tooltip";
 import ContractSigningModal from "@/components/modals/ContractSigningModal";
 import { PATHS } from "@/config/paths";
 import {
+  useCreateDraftDownloadContract,
   useContractDetail,
   useGenerateSignLink,
 } from "@/hooks/data/useContractHooks";
@@ -55,6 +56,23 @@ function getS3KeyFromUrl(fileUrl?: string | null) {
 function getFileNameFromS3Key(key: string, fallback: string) {
   const fileName = key.split("/").filter(Boolean).at(-1);
   return fileName || fallback;
+}
+
+function getDraftDocumentFile(contract: Contract) {
+  return contract.documents?.find(
+    (document) =>
+      document.status === "draft" && document.version === 1 && document.fileUrl,
+  );
+}
+
+function openDownloadUrl(downloadUrl: string, fileName: string) {
+  const a = document.createElement("a");
+  a.href = downloadUrl;
+  a.target = "_blank";
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 function getSignatureDisplayName(fullName?: string) {
@@ -1541,6 +1559,7 @@ function ContractActionDock({
 }) {
   const navigate = useNavigate();
   const downloadMutation = useDownloadS3Asset();
+  const draftDownloadMutation = useCreateDraftDownloadContract();
   const [signingContract, setSigningContract] = useState<Contract | null>(null);
   const [isSendMailOpen, setIsSendMailOpen] = useState(false);
   const canSignContract =
@@ -1550,7 +1569,38 @@ function ContractActionDock({
     contract.contractType === "principle" &&
     (contract.status === "owner_signed" || contract.status === "completed");
 
-  const handleDownloadContract = () => {
+  const handleDownloadDraftContract = async () => {
+    const draftDocument = getDraftDocumentFile(contract);
+    const draftDocumentKey = getS3KeyFromUrl(draftDocument?.fileUrl);
+
+    if (draftDocumentKey) {
+      downloadMutation.mutate({
+        key: draftDocumentKey,
+        originalName: getFileNameFromS3Key(
+          draftDocumentKey,
+          `${contract.contractNumber || contract.contractId}-draft.pdf`,
+        ),
+      });
+      return;
+    }
+
+    const response = await draftDownloadMutation
+      .mutateAsync(contract.contractId)
+      .catch(() => null);
+
+    if (!response?.success || !response.data?.downloadUrl) {
+      return;
+    }
+
+    openDownloadUrl(response.data.downloadUrl, response.data.fileName);
+  };
+
+  const handleDownloadContract = async () => {
+    if (contract.status === "draft") {
+      await handleDownloadDraftContract();
+      return;
+    }
+
     const key = getS3KeyFromUrl(contract.contractUrl);
 
     if (!key) {
@@ -1592,14 +1642,18 @@ function ContractActionDock({
             onClick={() => navigate(getEditPath(contract.contractId))}
           />
         ) : null}
-        {contract.status !== "draft" ? (
-          <DockButton
-            label="Tải hợp đồng"
-            icon={<FiDownload />}
-            onClick={handleDownloadContract}
-            disabled={downloadMutation.isPending}
-          />
-        ) : null}
+        <DockButton
+          label={
+            contract.status === "draft"
+              ? "Tải hợp đồng nháp"
+              : "Tải hợp đồng"
+          }
+          icon={<FiDownload />}
+          onClick={handleDownloadContract}
+          disabled={
+            downloadMutation.isPending || draftDownloadMutation.isPending
+          }
+        />
         {canCreatePrincipleContract ? (
           <DockButton
             label="Tạo phụ lục hợp đồng"
