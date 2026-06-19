@@ -254,10 +254,7 @@ export default function ContractDetailDashboardPage() {
                 />,
               ],
               ["Số hợp đồng", contract.contractNumber || "-"],
-              [
-                "Loại hợp đồng",
-                getContractTypeLabel(contract.contractType),
-              ],
+              ["Loại hợp đồng", getContractTypeLabel(contract.contractType)],
               ["Tạo lúc", formatDateTime(contract.createdAt)],
               ["Cập nhật", formatDateTime(contract.updatedAt)],
             ]}
@@ -293,7 +290,7 @@ export default function ContractDetailDashboardPage() {
               title="Xác thực cá nhân"
               rows={[
                 {
-                  label: "Mã xác thực",
+                  label: "CMND Số",
                   value: contract.individualCredential?.credentialId || "-",
                 },
                 {

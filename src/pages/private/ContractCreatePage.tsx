@@ -928,6 +928,10 @@ export function ContractFormPage({
     setIsPartnerFormVisible(true);
   };
 
+  const handleOwnerTemplateSelect = (index: number) => {
+    setSelectedOwnerIndex(index);
+  };
+
   const updateAppendixProduct = useCallback((id: string, content: string) => {
     setAppendixProducts((current) =>
       current.map((product) =>
@@ -1195,8 +1199,7 @@ export function ContractFormPage({
                   </div>
                 </section>
 
-                {selectedPrincipleContract ? (
-                  <section className="border-b border-black/10 py-6 dark:border-white/10">
+                <section className="border-b border-black/10 py-6 dark:border-white/10">
                     <div className="mb-4 flex items-end justify-between gap-4">
                       <SectionTitle>Công ty chủ sở hữu</SectionTitle>
                     </div>
@@ -1209,13 +1212,13 @@ export function ContractFormPage({
                           <motion.button
                             key={template.companyCode}
                             type="button"
-                            disabled
+                            onClick={() => handleOwnerTemplateSelect(index)}
                             whileHover={undefined}
-                            whileTap={undefined}
+                            whileTap={{ scale: 0.99 }}
                             className={`relative w-full overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
                               selected
-                                ? "cursor-default border-black/30 bg-black/[0.06] opacity-100 dark:border-white/35 dark:bg-white/6"
-                                : "cursor-default border-black/12 bg-white opacity-75 dark:border-white/10 dark:bg-white/2"
+                                ? "cursor-pointer border-black/30 bg-black/[0.06] opacity-100 dark:border-white/35 dark:bg-white/6"
+                                : "cursor-pointer border-black/12 bg-white opacity-75 hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
                             }`}
                           >
                             <div className="flex items-start justify-between gap-4">
@@ -1257,8 +1260,7 @@ export function ContractFormPage({
                         );
                       })}
                     </div>
-                  </section>
-                ) : null}
+                </section>
 
                 <section className="border-b border-black/10 py-6 dark:border-white/10">
                   <SectionTitle>Công ty đối tác</SectionTitle>
