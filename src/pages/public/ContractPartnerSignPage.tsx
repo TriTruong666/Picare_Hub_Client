@@ -1364,14 +1364,14 @@ function LegalNameMismatchModal({
               <button
                 type="button"
                 onClick={onReupload}
-                className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/70 transition hover:border-white/25 hover:bg-white/10 hover:text-white"
+                className="rounded-lg border border-white/15 bg-[rgba(255,255,255,0.08)] px-4 py-2 text-sm text-white/80 transition hover:border-white/25 hover:bg-[rgba(255,255,255,0.14)] hover:text-white"
               >
                 Upload lại CCCD
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg px-4 py-2 text-sm text-white/60 transition hover:bg-white/10 hover:text-white"
+                className="rounded-lg bg-[rgba(255,255,255,0.08)] px-4 py-2 text-sm text-white/75 transition hover:bg-[rgba(255,255,255,0.14)] hover:text-white"
               >
                 Kiểm tra lại
               </button>
@@ -1445,7 +1445,7 @@ function ContractCompletionModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm text-white/62 transition hover:bg-white/10 hover:text-white"
+                className="inline-flex h-10 items-center justify-center rounded-lg bg-[rgba(255,255,255,0.08)] px-4 text-sm text-white/75 transition hover:bg-[rgba(255,255,255,0.14)] hover:text-white"
               >
                 Đóng
               </button>

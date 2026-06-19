@@ -460,7 +460,9 @@ type PartnerMailForm = {
 };
 
 function getContractMailTypeLabel(contractType: Contract["contractType"]) {
-  return contractType === "appendix" ? "Phụ lục hợp đồng" : "Hợp đồng nguyên tắc";
+  return contractType === "appendix"
+    ? "Phụ lục hợp đồng"
+    : "Hợp đồng nguyên tắc";
 }
 
 function createPartnerMailForm(contract: Contract): PartnerMailForm {
@@ -677,7 +679,7 @@ function SendPartnerMailModal({
                 type="button"
                 disabled={isSending}
                 onClick={onClose}
-                className="rounded-lg px-4 py-2 text-sm text-white/60 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg bg-[rgba(255,255,255,0.08)] px-4 py-2 text-sm text-white/75 transition hover:bg-[rgba(255,255,255,0.14)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 dark:bg-[rgba(255,255,255,0.08)] dark:hover:bg-[rgba(255,255,255,0.16)]"
               >
                 Hủy
               </button>
@@ -1600,11 +1602,11 @@ function ContractActionDock({
         ) : null}
         {canCreatePrincipleContract ? (
           <DockButton
-            label="Tạo hợp đồng nguyên tắc"
+            label="Tạo phụ lục hợp đồng"
             icon={<FiFilePlus />}
             onClick={() =>
               navigate(PATHS.CONTRACT_CREATE, {
-                state: { contractType: "principle" },
+                state: { contractType: "appendix" },
               })
             }
           />

@@ -121,7 +121,7 @@ export default function PartnerSignTypeModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg p-2 text-white/45 transition hover:bg-white/10 hover:text-white"
+                className="rounded-lg bg-[rgba(255,255,255,0.08)] p-2 text-white/75 transition hover:bg-[rgba(255,255,255,0.14)] hover:text-white"
               >
                 <HiOutlineX className="h-5 w-5" />
               </button>
