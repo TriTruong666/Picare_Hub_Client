@@ -1,7 +1,7 @@
 import { FiDownload } from "react-icons/fi";
 import { Link, useParams } from "react-router-dom";
 
-import { formatDate, formatDateTime } from "@/common/format";
+import { formatDateTime } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import { Spinner } from "@/components/custom_ui/Spinner";
@@ -43,13 +43,27 @@ const CONTRACT_TYPE_LABELS = {
 
 type OrganizationCredentialLike = {
   business_license?: string | null;
+  business_license_url?: string | null;
   business_license_key?: string | null;
   businessLicense?: string | null;
+  businessLicenseUrl?: string | null;
   businessLicenseKey?: string | null;
   power_of_attorney_image?: string | null;
+  power_of_attorney_image_url?: string | null;
   power_of_attorney_image_key?: string | null;
   powerOfAttorneyImage?: string | null;
+  powerOfAttorneyImageUrl?: string | null;
   powerOfAttorneyImageKey?: string | null;
+  gpd?: string | null;
+  gpd_url?: string | null;
+  gpd_key?: string | null;
+  gpdKey?: string | null;
+  gpdUrl?: string | null;
+  ccddk?: string | null;
+  ccddk_url?: string | null;
+  ccddk_key?: string | null;
+  ccddkKey?: string | null;
+  ccddkUrl?: string | null;
 };
 
 function getContractFileKey(fileUrl?: string | null) {
@@ -128,7 +142,9 @@ function getOrganizationCredentialData(raw: unknown) {
   return {
     businessLicenseUrl: getRecordValue(source, [
       "business_license",
+      "business_license_url",
       "businessLicense",
+      "businessLicenseUrl",
     ]),
     businessLicenseKey: getRecordValue(source, [
       "business_license_key",
@@ -136,12 +152,18 @@ function getOrganizationCredentialData(raw: unknown) {
     ]),
     powerOfAttorneyUrl: getRecordValue(source, [
       "power_of_attorney_image",
+      "power_of_attorney_image_url",
       "powerOfAttorneyImage",
+      "powerOfAttorneyImageUrl",
     ]),
     powerOfAttorneyKey: getRecordValue(source, [
       "power_of_attorney_image_key",
       "powerOfAttorneyImageKey",
     ]),
+    gpdUrl: getRecordValue(source, ["gpd", "gpd_url", "gpdUrl"]),
+    gpdKey: getRecordValue(source, ["gpd_key", "gpdKey"]),
+    ccddkUrl: getRecordValue(source, ["ccddk", "ccddk_url", "ccddkUrl"]),
+    ccddkKey: getRecordValue(source, ["ccddk_key", "ccddkKey"]),
   };
 }
 
@@ -338,7 +360,9 @@ export default function ContractDetailDashboardPage() {
                 {
                   label: "Giấy phép kinh doanh",
                   value:
-                    organizationCredential.businessLicenseKey || "Đã tải lên",
+                    organizationCredential.businessLicenseKey ||
+                    organizationCredential.businessLicenseUrl ||
+                    "Đã tải lên",
                   hasFile: Boolean(
                     organizationCredential.businessLicenseUrl ||
                     organizationCredential.businessLicenseKey,
@@ -351,7 +375,10 @@ export default function ContractDetailDashboardPage() {
                 },
                 {
                   label: "Giấy uỷ quyền",
-                  value: organizationCredential.powerOfAttorneyKey || "-",
+                  value:
+                    organizationCredential.powerOfAttorneyKey ||
+                    organizationCredential.powerOfAttorneyUrl ||
+                    "-",
                   hasFile: Boolean(
                     organizationCredential.powerOfAttorneyUrl ||
                     organizationCredential.powerOfAttorneyKey,
@@ -360,6 +387,37 @@ export default function ContractDetailDashboardPage() {
                     openS3Asset(
                       organizationCredential.powerOfAttorneyUrl,
                       organizationCredential.powerOfAttorneyKey,
+                    ),
+                },
+                {
+                  label: "GPD",
+                  value:
+                    organizationCredential.gpdKey ||
+                    organizationCredential.gpdUrl ||
+                    "Đã tải lên",
+                  hasFile: Boolean(
+                    organizationCredential.gpdUrl || organizationCredential.gpdKey,
+                  ),
+                  onView: () =>
+                    openS3Asset(
+                      organizationCredential.gpdUrl,
+                      organizationCredential.gpdKey,
+                    ),
+                },
+                {
+                  label: "CCDDK",
+                  value:
+                    organizationCredential.ccddkKey ||
+                    organizationCredential.ccddkUrl ||
+                    "Đã tải lên",
+                  hasFile: Boolean(
+                    organizationCredential.ccddkUrl ||
+                    organizationCredential.ccddkKey,
+                  ),
+                  onView: () =>
+                    openS3Asset(
+                      organizationCredential.ccddkUrl,
+                      organizationCredential.ccddkKey,
                     ),
                 },
               ]}

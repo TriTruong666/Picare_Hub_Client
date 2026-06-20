@@ -348,6 +348,8 @@ export type UploadIndividualCredentialPayload = {
 export type UploadOrganizationCredentialPayload = {
   business_license: File;
   power_of_attorney_image?: File | null;
+  gpd?: File | null;
+  ccddk?: File | null;
 };
 
 export type HandwrittenSignaturePayload = {

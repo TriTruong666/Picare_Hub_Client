@@ -1475,7 +1475,9 @@ function ContractActionDock({
   onCredentialUploaded?: RefreshedContractHandler;
 }) {
   const downloadMutation = useDownloadS3Asset();
-  const updatePartnerSignTypeMutation = useUpdatePartnerSignType();
+  const updatePartnerSignTypeMutation = useUpdatePartnerSignType({
+    showSuccessToast: false,
+  });
   const deleteCredentialMutation = useDeleteCredential({
     showSuccessToast: false,
     showErrorToast: false,
@@ -1655,6 +1657,7 @@ function ContractActionDock({
 
       <OrganizationCredentialUploadModal
         contractId={contract.contractId}
+        contract={contract}
         partnerToken={partnerToken}
         isOpen={isOrganizationCredentialOpen}
         onClose={() => setIsOrganizationCredentialOpen(false)}

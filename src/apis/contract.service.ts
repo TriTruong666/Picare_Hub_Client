@@ -202,6 +202,12 @@ export const uploadOrganizationCredential = async (
   if (payload.power_of_attorney_image) {
     formData.append("power_of_attorney_image", payload.power_of_attorney_image);
   }
+  if (payload.gpd) {
+    formData.append("gpd", payload.gpd);
+  }
+  if (payload.ccddk) {
+    formData.append("ccddk", payload.ccddk);
+  }
   const requestConfig = getPartnerTokenRequestConfig(token);
 
   const res = await hubAxiosClient.post(

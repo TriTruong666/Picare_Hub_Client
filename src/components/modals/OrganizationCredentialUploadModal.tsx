@@ -21,6 +21,7 @@ type SelectedFile = {
 
 type OrganizationCredentialUploadModalProps = {
   contractId: string;
+  contract: Contract;
   partnerToken?: string;
   isOpen: boolean;
   onClose: () => void;
@@ -176,6 +177,7 @@ function FileUploadCard({
 
 export default function OrganizationCredentialUploadModal({
   contractId,
+  contract,
   partnerToken,
   isOpen,
   onClose,
@@ -188,14 +190,15 @@ export default function OrganizationCredentialUploadModal({
   const [businessLicenseFile, setBusinessLicenseFile] =
     useState<SelectedFile | null>(null);
   const [authorityFile, setAuthorityFile] = useState<SelectedFile | null>(null);
+  const [gpdFile, setGpdFile] = useState<SelectedFile | null>(null);
+  const [ccddkFile, setCcddkFile] = useState<SelectedFile | null>(null);
 
   const isSubmitting = uploadOrganizationMutation.isPending;
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setBusinessLicenseFile(null);
-    setAuthorityFile(null);
-  }, [isOpen]);
+  const isThOwnerCompany =
+    contract.ownerCompanyInfo.companyCode?.trim().toUpperCase() === "TH";
+  const ownerCompanyDisplayName =
+    contract.ownerCompanyInfo.companyName?.trim() ||
+    (isThOwnerCompany ? "Trung Hạnh" : contract.ownerCompanyInfo.companyCode);
 
   const setFileState = (
     setter: Dispatch<SetStateAction<SelectedFile | null>>,
@@ -228,13 +231,26 @@ export default function OrganizationCredentialUploadModal({
       if (authorityFile?.previewUrl) {
         URL.revokeObjectURL(authorityFile.previewUrl);
       }
+      if (gpdFile?.previewUrl) {
+        URL.revokeObjectURL(gpdFile.previewUrl);
+      }
+      if (ccddkFile?.previewUrl) {
+        URL.revokeObjectURL(ccddkFile.previewUrl);
+      }
     };
-  }, [authorityFile?.previewUrl, businessLicenseFile?.previewUrl]);
+  }, [
+    authorityFile?.previewUrl,
+    businessLicenseFile?.previewUrl,
+    ccddkFile?.previewUrl,
+    gpdFile?.previewUrl,
+  ]);
 
   const handleClose = () => {
     if (isSubmitting) return;
     clearFileState(setBusinessLicenseFile, businessLicenseFile);
     clearFileState(setAuthorityFile, authorityFile);
+    clearFileState(setGpdFile, gpdFile);
+    clearFileState(setCcddkFile, ccddkFile);
     onClose();
   };
 
@@ -249,12 +265,32 @@ export default function OrganizationCredentialUploadModal({
       return;
     }
 
+    if (isThOwnerCompany) {
+      if (!gpdFile) {
+        toast.error(
+          "Thiếu GPD",
+          "Vui lòng upload file PDF giấy chứng nhận Thực hành tốt phân phối thuốc.",
+        );
+        return;
+      }
+
+      if (!ccddkFile) {
+        toast.error(
+          "Thiếu CDDK",
+          "Vui lòng upload file PDF chứng chỉ đủ điều kiện.",
+        );
+        return;
+      }
+    }
+
     const response = await uploadOrganizationMutation.mutateAsync({
       contractId,
       partnerToken,
       data: {
         business_license: businessLicenseFile.file,
         power_of_attorney_image: authorityFile?.file ?? null,
+        gpd: gpdFile?.file ?? null,
+        ccddk: ccddkFile?.file ?? null,
       },
     });
 
@@ -262,6 +298,8 @@ export default function OrganizationCredentialUploadModal({
       const refreshedContract = await onUploaded?.();
       clearFileState(setBusinessLicenseFile, businessLicenseFile);
       clearFileState(setAuthorityFile, authorityFile);
+      clearFileState(setGpdFile, gpdFile);
+      clearFileState(setCcddkFile, ccddkFile);
       onContinue?.(refreshedContract);
     }
   };
@@ -306,7 +344,7 @@ export default function OrganizationCredentialUploadModal({
             </div>
 
             <div className="grid gap-4 p-6 md:grid-cols-2">
-              <div className="md:col-span-2">
+              <div className="md:col-span-1">
                 <FileUploadCard
                   label="Giấy phép kinh doanh"
                   description="Bắt buộc. Vui lòng upload file PDF giấy phép kinh doanh."
@@ -324,7 +362,7 @@ export default function OrganizationCredentialUploadModal({
                 />
               </div>
 
-              <div className="md:col-span-2">
+              <div className="md:col-span-1">
                 <FileUploadCard
                   label="Giấy uỷ quyền"
                   description="Tùy chọn. Dành cho trường hợp người ký được ủy quyền."
@@ -337,6 +375,38 @@ export default function OrganizationCredentialUploadModal({
                   onRemove={() => clearFileState(setAuthorityFile, authorityFile)}
                 />
               </div>
+
+              {isThOwnerCompany ? (
+                <>
+                  <div className="md:col-span-1">
+                    <FileUploadCard
+                      label="GPD"
+                      description={`Bắt buộc với công ty chủ quản ${ownerCompanyDisplayName}. Upload file PDF giấy chứng nhận Thực hành tốt phân phối thuốc.`}
+                      file={gpdFile}
+                      kind="pdf"
+                      icon={<FiFileText size={22} />}
+                      placeholderLabel="Chọn file PDF"
+                      disabled={isSubmitting}
+                      onSelect={(file) => setFileState(setGpdFile, file)}
+                      onRemove={() => clearFileState(setGpdFile, gpdFile)}
+                    />
+                  </div>
+
+                  <div className="md:col-span-1">
+                    <FileUploadCard
+                      label="CCDDK"
+                      description={`Bắt buộc với công ty chủ quản ${ownerCompanyDisplayName}. Upload file PDF chứng chỉ đủ điều kiện.`}
+                      file={ccddkFile}
+                      kind="pdf"
+                      icon={<FiFileText size={22} />}
+                      placeholderLabel="Chọn file PDF"
+                      disabled={isSubmitting}
+                      onSelect={(file) => setFileState(setCcddkFile, file)}
+                      onRemove={() => clearFileState(setCcddkFile, ccddkFile)}
+                    />
+                  </div>
+                </>
+              ) : null}
             </div>
 
             <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">

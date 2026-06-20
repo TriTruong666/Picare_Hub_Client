@@ -35,6 +35,7 @@ import {
 } from "@/hooks/data/useContractHooks";
 import { useTaxPayerLookup } from "@/hooks/data/useTaxPayerHooks";
 import type {
+  AppendixContractDataPayload,
   AppendixContractProductPayload,
   Contract,
   CreateContractPayload,
@@ -649,7 +650,7 @@ export function ContractFormPage({
     location.state as { contractType?: ContractKind } | null | undefined
   )?.contractType;
   const {
-    data: unsignedContracts = [],
+    data: unsignedContractsData,
     isLoading: isLoadingUnsignedContracts,
   } = useContractList({
     page: 1,
@@ -657,8 +658,9 @@ export function ContractFormPage({
     status: "unsigned",
     contractType: "principle",
   });
+  const unsignedContracts = unsignedContractsData ?? [];
   const {
-    data: ownerSignedContracts = [],
+    data: ownerSignedContractsData,
     isLoading: isLoadingOwnerSignedContracts,
   } = useContractList({
     page: 1,
@@ -666,8 +668,9 @@ export function ContractFormPage({
     status: "owner_signed",
     contractType: "principle",
   });
+  const ownerSignedContracts = ownerSignedContractsData ?? [];
   const {
-    data: completedContracts = [],
+    data: completedContractsData,
     isLoading: isLoadingCompletedContracts,
   } = useContractList({
     page: 1,
@@ -675,6 +678,7 @@ export function ContractFormPage({
     status: "completed",
     contractType: "principle",
   });
+  const completedContracts = completedContractsData ?? [];
   const [selectedContractType, setSelectedContractType] =
     useState<ContractKind | null>(
       initialContract?.contractType === "appendix"
@@ -720,9 +724,9 @@ export function ContractFormPage({
 
   const ownerCompanyInfo = OWNER_TEMPLATES[selectedOwnerIndex];
   const principleContracts = [
-    ...unsignedContracts,
-    ...ownerSignedContracts,
-    ...completedContracts,
+    ...(unsignedContracts ?? []),
+    ...(ownerSignedContracts ?? []),
+    ...(completedContracts ?? []),
   ].filter(
     (contract, index, list) =>
       list.findIndex((item) => item.contractId === contract.contractId) ===
@@ -1200,66 +1204,66 @@ export function ContractFormPage({
                 </section>
 
                 <section className="border-b border-black/10 py-6 dark:border-white/10">
-                    <div className="mb-4 flex items-end justify-between gap-4">
-                      <SectionTitle>Công ty chủ sở hữu</SectionTitle>
-                    </div>
+                  <div className="mb-4 flex items-end justify-between gap-4">
+                    <SectionTitle>Công ty chủ sở hữu</SectionTitle>
+                  </div>
 
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                      {OWNER_TEMPLATES.map((template, index) => {
-                        const selected = selectedOwnerIndex === index;
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {OWNER_TEMPLATES.map((template, index) => {
+                      const selected = selectedOwnerIndex === index;
 
-                        return (
-                          <motion.button
-                            key={template.companyCode}
-                            type="button"
-                            onClick={() => handleOwnerTemplateSelect(index)}
-                            whileHover={undefined}
-                            whileTap={{ scale: 0.99 }}
-                            className={`relative w-full overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
-                              selected
-                                ? "cursor-pointer border-black/30 bg-black/[0.06] opacity-100 dark:border-white/35 dark:bg-white/6"
-                                : "cursor-pointer border-black/12 bg-white opacity-75 hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-4">
-                              <div>
-                                <p
-                                  className={`text-xs ${
-                                    selected
-                                      ? "text-black/78 dark:text-white/70"
-                                      : "text-black/52 dark:text-white/40"
-                                  }`}
-                                >
-                                  {template.companyCode}
-                                </p>
-                                <h3 className="mt-2 text-sm leading-5 font-medium text-[#111111] dark:text-white">
-                                  {template.companyName}
-                                </h3>
-                              </div>
-                              <span
-                                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                      return (
+                        <motion.button
+                          key={template.companyCode}
+                          type="button"
+                          onClick={() => handleOwnerTemplateSelect(index)}
+                          whileHover={undefined}
+                          whileTap={{ scale: 0.99 }}
+                          className={`relative w-full overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 ${
+                            selected
+                              ? "cursor-pointer border-black/30 bg-black/[0.06] opacity-100 dark:border-white/35 dark:bg-white/6"
+                              : "cursor-pointer border-black/12 bg-white opacity-75 hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p
+                                className={`text-xs ${
                                   selected
-                                    ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
-                                    : "border-black/15 text-transparent dark:border-white/15"
+                                    ? "text-black/78 dark:text-white/70"
+                                    : "text-black/52 dark:text-white/40"
                                 }`}
                               >
-                                <FiCheck className="text-xs" />
-                              </span>
-                            </div>
-                            <div className="mt-4 space-y-2 text-xs leading-5 text-black/58 dark:text-white/45">
-                              <p>{template.address}</p>
-                              <p>
-                                {template.ownerName} · {template.role}
+                                {template.companyCode}
                               </p>
-                              <p className="tabular-nums">
-                                {template.phone} · {template.email}
-                              </p>
-                              <p>MST: {template.mst}</p>
+                              <h3 className="mt-2 text-sm leading-5 font-medium text-[#111111] dark:text-white">
+                                {template.companyName}
+                              </h3>
                             </div>
-                          </motion.button>
-                        );
-                      })}
-                    </div>
+                            <span
+                              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                                selected
+                                  ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
+                                  : "border-black/15 text-transparent dark:border-white/15"
+                              }`}
+                            >
+                              <FiCheck className="text-xs" />
+                            </span>
+                          </div>
+                          <div className="mt-4 space-y-2 text-xs leading-5 text-black/58 dark:text-white/45">
+                            <p>{template.address}</p>
+                            <p>
+                              {template.ownerName} · {template.role}
+                            </p>
+                            <p className="tabular-nums">
+                              {template.phone} · {template.email}
+                            </p>
+                            <p>MST: {template.mst}</p>
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
                 </section>
 
                 <section className="border-b border-black/10 py-6 dark:border-white/10">
