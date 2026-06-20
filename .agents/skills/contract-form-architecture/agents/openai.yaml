@@ -1,0 +1,4 @@
+interface:
+  display_name: "Contract Form Architecture"
+  short_description: "Scale Picare contract create and edit forms"
+  default_prompt: "Use $contract-form-architecture to add or refactor a Picare contract form variant without changing shared UI behavior."

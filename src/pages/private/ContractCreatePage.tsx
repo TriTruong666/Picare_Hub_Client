@@ -1,23 +1,19 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import {
   type FormEvent,
-  type ReactNode,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { motion } from "framer-motion";
 import {
   FiArrowLeft,
-  FiChevronDown,
   FiCheck,
   FiClock,
   FiExternalLink,
   FiFileText,
   FiPlus,
   FiSearch,
-  FiTrash2,
   FiX,
 } from "react-icons/fi";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -25,7 +21,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ContractHistoryPanel } from "@/components/contracts/ContractHistoryPanel";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
-import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
 import { PATHS } from "@/config/paths";
 import { toast } from "@/hooks/useToast";
 import {
@@ -35,46 +30,44 @@ import {
 } from "@/hooks/data/useContractHooks";
 import { useTaxPayerLookup } from "@/hooks/data/useTaxPayerHooks";
 import type {
-  AppendixContractDataPayload,
-  AppendixContractProductPayload,
   Contract,
   CreateContractPayload,
   OwnerCompanyInfoPayload,
   PartnerCompanyInfoPayload,
 } from "@/types/Contract";
 import {
-  buildAppendixContractPayload,
-  buildPrincipleContractPayload,
-  normalizePartnerCompanyInfo,
-} from "./contractFormPayload";
-
-type PartnerField = keyof PartnerCompanyInfoPayload;
+  CONTRACT_FORM_REGISTRY,
+  CONTRACT_TYPE_OPTIONS,
+  isRegisteredContractType,
+  type RegisteredContractType,
+} from "./contract-form/contractFormRegistry";
+import {
+  PARTNER_DETAIL_FIELDS,
+  PARTNER_FIELDS,
+  type PartnerField,
+} from "./contract-form/common/partnerCompany";
+import { formatContractDate } from "./contract-form/common/formatContractDate";
+import {
+  FieldLabel,
+  SectionTitle,
+  TextareaInput,
+  TextInput,
+} from "./contract-form/common/FormPrimitives";
+import {
+  appendixContractVariant,
+  createAppendixProductRow,
+  hydrateAppendixContractValues,
+  type AppendixProductRow,
+} from "./contract-form/variants/appendix/appendixContractVariant";
+import {
+  AppendixProductEditor,
+  PrincipleContractSelect,
+} from "./contract-form/variants/appendix/AppendixContractFields";
+import { principleContractVariant } from "./contract-form/variants/principle/principleContractVariant";
+import { PrincipleContractFields } from "./contract-form/variants/principle/PrincipleContractFields";
+import type { PartnerEntityType } from "./contract-form/types";
 
 type ContractFormMode = "create" | "edit";
-type PartnerEntityType = "individual" | "company";
-type ContractKind = "principle" | "appendix" | "service";
-type AppendixProductRow = {
-  id: string;
-  content: string;
-};
-
-const CONTRACT_TYPE_OPTIONS: {
-  value: ContractKind;
-  title: string;
-  description: string;
-  disabled?: boolean;
-}[] = [
-  {
-    value: "principle",
-    title: "Hợp đồng nguyên tắc",
-    description: "Mẫu hợp đồng đồng nguyên tắc về việc mua bán",
-  },
-  {
-    value: "appendix",
-    title: "Phụ lục hợp đồng",
-    description: "Phụ lục hợp đồng nguyên tắc dựa trên hợp đồng sẵn có",
-  },
-];
 
 const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
   {
@@ -100,451 +93,6 @@ const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
     role: "Giám Đốc",
   },
 ];
-
-const PARTNER_FIELDS: {
-  key: PartnerField;
-  label: string;
-  placeholder: string;
-  multiline?: boolean;
-}[] = [
-  {
-    key: "companyName",
-    label: "Tên công ty",
-    placeholder: "Nhập tên công ty đối tác",
-  },
-  {
-    key: "mst",
-    label: "Mã số thuế",
-    placeholder: "Nhập mã số thuế",
-  },
-  {
-    key: "address",
-    label: "Địa chỉ",
-    placeholder: "Nhập địa chỉ công ty",
-    multiline: true,
-  },
-  {
-    key: "phone",
-    label: "Số điện thoại",
-    placeholder: "Nhập số điện thoại",
-  },
-  {
-    key: "email",
-    label: "Email",
-    placeholder: "Nhập email liên hệ",
-  },
-  {
-    key: "bankInfo",
-    label: "Thông tin ngân hàng",
-    placeholder: "Số tài khoản, ngân hàng, chi nhánh",
-    multiline: true,
-  },
-  {
-    key: "ownerName",
-    label: "Người đại diện",
-    placeholder: "Nhập tên người đại diện",
-  },
-  {
-    key: "role",
-    label: "Chức vụ",
-    placeholder: "Nhập chức vụ",
-  },
-];
-
-const PARTNER_DETAIL_FIELDS = PARTNER_FIELDS.filter(
-  (field) => field.key !== "mst" && field.key !== "companyName",
-);
-
-function FieldLabel({ children }: { children: ReactNode }) {
-  return (
-    <label className="mb-1.5 block text-[11px] text-black/40 dark:text-white/40">
-      {children}
-    </label>
-  );
-}
-
-function SectionTitle({ children }: { children: ReactNode }) {
-  return (
-    <h2 className="mb-5 text-sm font-medium text-[#111111] dark:text-white">
-      {children}
-    </h2>
-  );
-}
-
-function TextInput({
-  id,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  required,
-}: {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  type?: "text" | "email" | "tel" | "url" | "date" | "number";
-  required?: boolean;
-}) {
-  return (
-    <input
-      id={id}
-      type={type}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder={placeholder}
-      required={required}
-      className="h-11 w-full rounded-lg border border-black/15 bg-white px-4 text-sm text-[#111111] transition-all outline-none placeholder:text-black/35 hover:border-black/25 hover:bg-white focus:border-black/35 dark:border-white/10 dark:bg-transparent dark:text-white dark:placeholder:text-white/25 dark:hover:border-white/20 dark:hover:bg-transparent dark:focus:border-white/30"
-    />
-  );
-}
-
-function TextareaInput({
-  id,
-  value,
-  onChange,
-  placeholder,
-  required,
-}: {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  required?: boolean;
-}) {
-  return (
-    <textarea
-      id={id}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder={placeholder}
-      required={required}
-      rows={3}
-      className="w-full resize-none rounded-lg border border-black/15 bg-white px-4 py-2.5 text-sm text-[#111111] transition-all outline-none placeholder:text-black/35 hover:border-black/25 hover:bg-white focus:border-black/35 dark:border-white/10 dark:bg-transparent dark:text-white dark:placeholder:text-white/25 dark:hover:border-white/20 dark:hover:bg-transparent dark:focus:border-white/30"
-    />
-  );
-}
-
-function isEmpty(value: string) {
-  return !value.trim();
-}
-
-function createAppendixProductRow(content = ""): AppendixProductRow {
-  return {
-    id: crypto.randomUUID(),
-    content,
-  };
-}
-
-function formatAppendixProductContent(
-  product: string | AppendixContractProductPayload,
-) {
-  if (typeof product === "string") {
-    return product;
-  }
-
-  if (product.rawContent?.trim()) {
-    return product.rawContent.trim();
-  }
-
-  const lines = [
-    product.productName ? `Tên sản phẩm: ${product.productName}` : "",
-    product.ingredients ? `Thành phần: ${product.ingredients}` : "",
-    product.packageSpecification
-      ? `Quy cách đóng gói: ${product.packageSpecification}`
-      : "",
-    product.registrationNumber
-      ? `Số đăng ký: ${product.registrationNumber}`
-      : "",
-    product.origin ? `Nước sản xuất: ${product.origin}` : "",
-    product.unitPriceVat !== null && product.unitPriceVat !== undefined
-      ? `Đơn giá(+VAT): ${product.unitPriceVat}`
-      : "",
-    product.classification ? `Phân loại: ${product.classification}` : "",
-  ].filter(Boolean);
-
-  return lines.join("\n");
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return "";
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    const [year, month, day] = value.split("-");
-    return [day, month, year].filter(Boolean).join("/");
-  }
-
-  return new Intl.DateTimeFormat("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);
-}
-
-function normalizeEditorText(html: string) {
-  if (!html.trim()) return "";
-
-  const withLineBreaks = html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
-    .replace(/<li[^>]*>/gi, "- ");
-
-  if (typeof window === "undefined") {
-    return withLineBreaks.replace(/<[^>]+>/g, "").trim();
-  }
-
-  const element = document.createElement("div");
-  element.innerHTML = withLineBreaks;
-  return (element.textContent || "").replace(/\n{3,}/g, "\n\n").trim();
-}
-
-function AppendixProductEditor({
-  product,
-  index,
-  canRemove,
-  onChange,
-  onRemove,
-}: {
-  product: AppendixProductRow;
-  index: number;
-  canRemove: boolean;
-  onChange: (id: string, content: string) => void;
-  onRemove: (id: string) => void;
-}) {
-  const handleChange = useCallback(
-    ({ html }: { html: string }) => {
-      onChange(product.id, normalizeEditorText(html));
-    },
-    [onChange, product.id],
-  );
-
-  return (
-    <div className="overflow-hidden rounded-xl border border-black/12 bg-white dark:border-white/10 dark:bg-white/2">
-      <div className="flex items-center justify-between gap-3 border-b border-black/10 px-4 py-3 dark:border-white/10">
-        <p className="text-sm font-medium text-[#111111] dark:text-white">
-          Sản phẩm {index + 1}
-        </p>
-        {canRemove ? (
-          <button
-            type="button"
-            onClick={() => onRemove(product.id)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-black/12 text-black/60 transition hover:border-black/25 hover:text-[#111111] dark:border-white/10 dark:text-white/60 dark:hover:border-white/25 dark:hover:text-white"
-            aria-label={`Xóa sản phẩm ${index + 1}`}
-          >
-            <FiTrash2 />
-          </button>
-        ) : null}
-      </div>
-      <SimpleEditor
-        key={product.id}
-        content={product.content}
-        placeholder="Tên sản phẩm, thành phần, quy cách đóng gói, số đăng ký, nước sản xuất, đơn giá, phân loại..."
-        showThemeToggle={false}
-        wrapperClassName="min-h-[280px] bg-white dark:bg-[#050505]"
-        contentClassName="min-h-[220px]"
-        editorClassName="min-h-[220px]"
-        onChange={handleChange}
-      />
-    </div>
-  );
-}
-
-function PrincipleContractSelect({
-  contracts,
-  selectedContractId,
-  isLoading,
-  onChange,
-}: {
-  contracts: Contract[];
-  selectedContractId: string;
-  isLoading: boolean;
-  onChange: (contractId: string) => void;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const selectedContract = contracts.find(
-    (contract) =>
-      contract.contractId === selectedContractId ||
-      contract.contractNumber === selectedContractId,
-  );
-  const isEmpty = !isLoading && contracts.length === 0;
-
-  useEffect(() => {
-    if (isOpen && isEmpty) {
-      setIsOpen(false);
-    }
-  }, [isEmpty, isOpen]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  return (
-    <div ref={wrapperRef} className="relative z-30">
-      <button
-        type="button"
-        disabled={isLoading || isEmpty}
-        onClick={() => setIsOpen((current) => !current)}
-        className={`flex min-h-16 w-full items-center justify-between gap-4 rounded-xl border px-4 py-3 text-left transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
-          isOpen
-            ? "border-black/30 bg-white shadow-[0_16px_35px_rgba(0,0,0,0.08)] dark:border-white/25 dark:bg-white/6"
-            : "border-black/12 bg-white hover:border-black/22 dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20"
-        }`}
-      >
-        <span className="min-w-0">
-          {selectedContract ? (
-            <>
-              <span className="block truncate text-sm font-semibold text-[#111111] dark:text-white">
-                {selectedContract.contractNumber || selectedContract.contractId}
-              </span>
-              <span className="mt-1 block truncate text-xs text-black/52 dark:text-white/45">
-                {selectedContract.partnerCompanyInfo.companyName ||
-                  selectedContract.partnerCompanyInfo.ownerName}{" "}
-                · {formatDate(selectedContract.createdAt) || "Chưa có ngày"}
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="block text-sm font-medium text-[#111111] dark:text-white">
-                {isLoading
-                  ? "Đang tải danh sách hợp đồng..."
-                  : isEmpty
-                    ? "Không có hợp đồng nguyên tắc phù hợp"
-                    : "Chọn hợp đồng nguyên tắc"}
-              </span>
-              <span className="mt-1 block text-xs text-black/48 dark:text-white/38">
-                {isLoading
-                  ? "Đang lấy dữ liệu từ hệ thống, vui lòng chờ."
-                  : isEmpty
-                    ? "Cần có hợp đồng trạng thái phù hợp để tạo hoặc chỉnh sửa phụ lục."
-                    : "Menu sẽ hiển thị số hợp đồng, trạng thái và thông tin đối tác."}
-              </span>
-            </>
-          )}
-        </span>
-        <FiChevronDown
-          className={`h-5 w-5 shrink-0 text-black/45 transition-transform duration-300 dark:text-white/45 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-
-      {isOpen ? (
-        <div className="absolute z-[120] mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#050505] text-white shadow-[0_24px_60px_rgba(0,0,0,0.46)]">
-          <div className="max-h-80 overflow-y-auto p-2">
-            {isLoading ? (
-              <div className="space-y-2 p-1">
-                {[0, 1, 2].map((index) => (
-                  <div
-                    key={index}
-                    className="rounded-lg border border-white/10 bg-white/[0.04] p-3"
-                  >
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-white/10" />
-                    <div className="mt-3 h-3 w-1/2 animate-pulse rounded bg-white/8" />
-                    <div className="mt-4 grid grid-cols-3 gap-2">
-                      <div className="h-3 animate-pulse rounded bg-white/8" />
-                      <div className="h-3 animate-pulse rounded bg-white/8" />
-                      <div className="h-3 animate-pulse rounded bg-white/8" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : isEmpty ? (
-              <div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/40">
-                  <FiSearch />
-                </div>
-                <p className="text-sm font-medium text-white">
-                  Không tìm thấy hợp đồng nguyên tắc
-                </p>
-                <p className="max-w-xs text-xs leading-6 text-white/45">
-                  Danh sách hiện tại chưa có hợp đồng phù hợp để tạo phụ lục.
-                </p>
-              </div>
-            ) : (
-              contracts.map((contract) => {
-                const active =
-                  contract.contractId === selectedContractId ||
-                  contract.contractNumber === selectedContractId;
-
-                return (
-                  <button
-                    key={contract.contractId}
-                    type="button"
-                    onClick={() => {
-                      onChange(contract.contractId);
-                      setIsOpen(false);
-                    }}
-                    className={`w-full rounded-lg border p-3 text-left transition-all duration-300 ${
-                      active
-                        ? "border-white/15 bg-white/[0.06]"
-                        : "border-transparent hover:border-white/10 hover:bg-white/[0.045]"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate text-sm font-semibold text-white">
-                            {contract.contractNumber || contract.contractId}
-                          </p>
-                        </div>
-                        <p className="mt-1 truncate text-xs text-white/48">
-                          {contract.partnerCompanyInfo.companyName ||
-                            contract.partnerCompanyInfo.ownerName}
-                        </p>
-                      </div>
-                      <span
-                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
-                          active
-                            ? "border-white/35 bg-white text-black"
-                            : "border-white/12 text-transparent"
-                        }`}
-                      >
-                        <FiCheck className="text-xs" />
-                      </span>
-                    </div>
-
-                    <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-white/42 sm:grid-cols-3">
-                      <span>
-                        Ngày tạo:{" "}
-                        <strong className="font-semibold text-white">
-                          {formatDate(contract.createdAt) || "Chưa có ngày"}
-                        </strong>
-                      </span>
-                      <span>
-                        MST:{" "}
-                        <strong className="font-semibold text-white">
-                          {contract.partnerCompanyInfo.mst || "Không có"}
-                        </strong>
-                      </span>
-                      <span>
-                        Trạng thái:{" "}
-                        <strong className="font-semibold text-white">
-                          {contract.status}
-                        </strong>
-                      </span>
-                    </div>
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
 
 function findOwnerTemplateIndex(contract?: Contract) {
   if (!contract) return -1;
@@ -647,7 +195,10 @@ export function ContractFormPage({
   const updateContractMutation = useUpdateContract();
   const taxPayerLookupMutation = useTaxPayerLookup();
   const initialCreateContractType = (
-    location.state as { contractType?: ContractKind } | null | undefined
+    location.state as
+      | { contractType?: RegisteredContractType }
+      | null
+      | undefined
   )?.contractType;
   const {
     data: unsignedContractsData,
@@ -680,16 +231,12 @@ export function ContractFormPage({
   });
   const completedContracts = completedContractsData ?? [];
   const [selectedContractType, setSelectedContractType] =
-    useState<ContractKind | null>(
-      initialContract?.contractType === "appendix"
-        ? "appendix"
-        : initialContract
-          ? "principle"
-          : initialCreateContractType === "appendix"
-            ? "appendix"
-            : initialCreateContractType === "principle"
-              ? "principle"
-              : null,
+    useState<RegisteredContractType | null>(
+      initialContract && isRegisteredContractType(initialContract.contractType)
+        ? initialContract.contractType
+        : isRegisteredContractType(initialCreateContractType)
+          ? initialCreateContractType
+          : null,
     );
   const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(0);
   const [selectedPrincipleContractId, setSelectedPrincipleContractId] =
@@ -767,52 +314,33 @@ export function ContractFormPage({
     setIsPartnerFormVisible(true);
     setTaxLookupMessage("");
     setSelectedContractType(
-      initialContract.contractType === "appendix" ? "appendix" : "principle",
+      isRegisteredContractType(initialContract.contractType)
+        ? initialContract.contractType
+        : null,
     );
 
     if (initialContract.contractType === "appendix") {
-      const contractData = initialContract.contractData as
-        | AppendixContractDataPayload
-        | null
-        | undefined;
-      const appendixProducts = contractData?.products?.length
-        ? contractData.products
-        : (initialContract.products ?? []);
+      const hydrated = hydrateAppendixContractValues(initialContract);
 
       setSelectedPrincipleContractId(
-        contractData?.principleContractNumber ||
-          initialContract.principleContractNumber ||
-          "",
+        hydrated.principleContractNumber,
       );
       const selectedOwnerTemplateIndex =
         findOwnerTemplateIndex(initialContract);
       if (selectedOwnerTemplateIndex >= 0) {
         setSelectedOwnerIndex(selectedOwnerTemplateIndex);
       }
-      setAppendixProducts(
-        appendixProducts.length
-          ? appendixProducts.map((product) =>
-              createAppendixProductRow(formatAppendixProductContent(product)),
-            )
-          : [createAppendixProductRow()],
-      );
+      setAppendixProducts(hydrated.products);
       setPaymentTermDays("");
       setCreditLimit("");
       return;
     }
 
-    const principleData = initialContract.contractData as any;
-
-    setPaymentTermDays(
-      principleData?.paymentTermDays != null
-        ? String(principleData.paymentTermDays)
-        : "",
-    );
-    setCreditLimit(
-      principleData?.creditLimit != null
-        ? String(principleData.creditLimit)
-        : "",
-    );
+    if (initialContract.contractType === "principle") {
+      const hydrated = principleContractVariant.hydrate(initialContract);
+      setPaymentTermDays(hydrated.paymentTermDays);
+      setCreditLimit(hydrated.creditLimit);
+    }
   }, [initialContract]);
 
   const updatePartnerField = (key: PartnerField, value: string) => {
@@ -896,7 +424,7 @@ export function ContractFormPage({
     setIsPartnerFormVisible(isEditMode);
   };
 
-  const handleContractTypeSelect = (type: ContractKind) => {
+  const handleContractTypeSelect = (type: RegisteredContractType) => {
     setSelectedContractType(type);
     setTaxLookupMessage("");
 
@@ -961,48 +489,32 @@ export function ContractFormPage({
       return "Vui lòng chọn loại hợp đồng.";
     }
 
-    if (selectedContractType === "service") {
-      return "Loại hợp đồng này chưa sẵn sàng để tạo.";
-    }
-
     if (selectedContractType === "appendix") {
-      if (!selectedPrincipleContract) {
-        return "Vui lòng chọn hợp đồng nguyên tắc đã hoàn tất.";
-      }
-
-      const productContents = appendixProducts
-        .map((product) => product.content.trim())
-        .filter(Boolean);
-
-      if (productContents.length === 0) {
-        return "Vui lòng nhập ít nhất một sản phẩm cho phụ lục hợp đồng.";
-      }
-
-      return null;
+      return appendixContractVariant.validate(
+        {
+          principleContract: selectedPrincipleContract ?? null,
+          principleContractSignedDate:
+            initialContract?.principleContractSignedDate ?? null,
+          products: appendixProducts,
+        },
+        {
+          ownerCompanyInfo,
+          partnerCompanyInfo,
+          partnerEntityType,
+          contractDueDate: initialContract?.contractDueDate ?? null,
+        },
+      );
     }
 
-    const parsedPaymentTermDays = Number(paymentTermDays);
-    if (
-      isEmpty(paymentTermDays) ||
-      !Number.isInteger(parsedPaymentTermDays) ||
-      parsedPaymentTermDays <= 0
-    ) {
-      return "Vui lòng nhập thời hạn thanh toán là số ngày lớn hơn 0.";
-    }
-
-    const requiredPartnerFields =
-      partnerEntityType === "company" ? PARTNER_FIELDS : PARTNER_DETAIL_FIELDS;
-    const missingPartnerFields = requiredPartnerFields.filter((field) =>
-      isEmpty(String(partnerCompanyInfo[field.key] ?? "")),
+    return principleContractVariant.validate(
+      { paymentTermDays, creditLimit },
+      {
+        ownerCompanyInfo,
+        partnerCompanyInfo,
+        partnerEntityType,
+        contractDueDate: initialContract?.contractDueDate ?? null,
+      },
     );
-
-    if (missingPartnerFields.length > 0) {
-      return `Vui lòng nhập đầy đủ thông tin đối tác: ${missingPartnerFields
-        .map((field) => field.label.toLowerCase())
-        .join(", ")}.`;
-    }
-
-    return null;
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -1015,30 +527,27 @@ export function ContractFormPage({
       return;
     }
 
+    const commonValues = {
+      ownerCompanyInfo,
+      partnerCompanyInfo,
+      partnerEntityType,
+      contractDueDate: initialContract?.contractDueDate ?? null,
+    };
     const payload =
-      selectedContractType === "appendix" && selectedPrincipleContract
-        ? buildAppendixContractPayload({
-            ownerCompanyInfo,
-            partnerCompanyInfo: normalizePartnerCompanyInfo(
-              partnerCompanyInfo,
-              partnerEntityType,
-            ),
-            contractDueDate: initialContract?.contractDueDate ?? null,
-            principleContract: selectedPrincipleContract,
-            principleContractSignedDate:
-              initialContract?.principleContractSignedDate ?? null,
-            products: appendixProducts.map((product) => product.content.trim()),
-          })
-        : buildPrincipleContractPayload({
-            ownerCompanyInfo,
-            partnerCompanyInfo: normalizePartnerCompanyInfo(
-              partnerCompanyInfo,
-              partnerEntityType,
-            ),
-            contractDueDate: initialContract?.contractDueDate ?? null,
-            paymentTermDays,
-            creditLimit,
-          });
+      selectedContractType === "appendix"
+        ? CONTRACT_FORM_REGISTRY.appendix.buildPayload(
+            {
+              principleContract: selectedPrincipleContract ?? null,
+              principleContractSignedDate:
+                initialContract?.principleContractSignedDate ?? null,
+              products: appendixProducts,
+            },
+            commonValues,
+          )
+        : CONTRACT_FORM_REGISTRY.principle.buildPayload(
+            { paymentTermDays, creditLimit },
+            commonValues,
+          );
 
     if (isEditMode && initialContract) {
       const response = await updateContractMutation.mutateAsync({
@@ -1175,33 +684,12 @@ export function ContractFormPage({
 
             {selectedContractType === "principle" ? (
               <>
-                <section className="border-b border-black/10 py-6 dark:border-white/10">
-                  <SectionTitle>Thông tin hợp đồng</SectionTitle>
-
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                      <FieldLabel>Thời hạn thanh toán (ngày)</FieldLabel>
-                      <TextInput
-                        id="payment-term-days"
-                        type="number"
-                        value={paymentTermDays}
-                        onChange={setPaymentTermDays}
-                        placeholder="30"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <FieldLabel>Hạn mức công nợ</FieldLabel>
-                      <TextInput
-                        id="credit-limit"
-                        type="text"
-                        value={creditLimit}
-                        onChange={setCreditLimit}
-                        placeholder="Để trống nếu không áp dụng"
-                      />
-                    </div>
-                  </div>
-                </section>
+                <PrincipleContractFields
+                  paymentTermDays={paymentTermDays}
+                  creditLimit={creditLimit}
+                  onPaymentTermDaysChange={setPaymentTermDays}
+                  onCreditLimitChange={setCreditLimit}
+                />
 
                 <section className="border-b border-black/10 py-6 dark:border-white/10">
                   <div className="mb-4 flex items-end justify-between gap-4">
@@ -1520,7 +1008,9 @@ export function ContractFormPage({
                             Ngày tạo
                           </p>
                           <p className="mt-1 font-semibold text-[#111111] dark:text-white">
-                            {formatDate(selectedPrincipleContract.createdAt) ||
+                            {formatContractDate(
+                              selectedPrincipleContract.createdAt,
+                            ) ||
                               "Không có"}
                           </p>
                         </div>
