@@ -20,6 +20,8 @@ import { useUploadS3Asset } from "@/hooks/data/useS3Hooks";
 import type { HubClientRole, HubClientStatus } from "@/types/HubClient";
 import { USER_ROLE_OPTIONS } from "@/types/User";
 
+import { toast } from "@/hooks/useToast";
+
 const HUB_CLIENT_IMAGE_FOLDER = "public";
 
 /* const ALL_ROLES: { value: HubClientRole; label: string }[] = [
@@ -128,6 +130,8 @@ function ImageUploadField({
   onClear,
   aspectRatio = "square",
   disabled,
+  urlValue = "",
+  onChangeUrl,
 }: {
   id: string;
   label: string;
@@ -137,6 +141,8 @@ function ImageUploadField({
   onClear: () => void;
   aspectRatio?: "square" | "landscape";
   disabled?: boolean;
+  urlValue?: string;
+  onChangeUrl?: (url: string) => void;
 }) {
   const [errorSrc, setErrorSrc] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -150,6 +156,15 @@ function ImageUploadField({
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
+
+    if (urlValue) {
+      toast.error(
+        "Lỗi hình ảnh",
+        "Không thể vừa tải file vừa chèn link ảnh. Đã xoá file upload."
+      );
+      onClear();
+      return;
+    }
     onSelectFile(file);
   };
 
@@ -238,6 +253,27 @@ function ImageUploadField({
           {hasImage ? "Chọn ảnh khác" : "Chọn ảnh"}
         </button>
       </div>
+
+      <div className="mt-3">
+        <input
+          type="text"
+          placeholder="Hoặc chèn link ảnh trực tiếp..."
+          value={urlValue}
+          onChange={(e) => {
+            const nextUrl = e.target.value;
+            if (nextUrl && fileName) {
+              toast.error(
+                "Lỗi hình ảnh",
+                "Không thể vừa tải file vừa chèn link ảnh. Đã xoá file upload."
+              );
+              onClear();
+            }
+            onChangeUrl?.(nextUrl);
+          }}
+          disabled={disabled}
+          className="h-8 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-700 transition-all outline-none placeholder:text-gray-400 hover:border-gray-400 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/25 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+        />
+      </div>
     </div>
   );
 }
@@ -257,6 +293,8 @@ export default function HubClientCreatePage() {
   const [clientMockupImage, setClientMockupImage] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [mockupFile, setMockupFile] = useState<File | null>(null);
+  const [logoUrlInput, setLogoUrlInput] = useState("");
+  const [mockupUrlInput, setMockupUrlInput] = useState("");
   const [clientStatus, setClientStatus] = useState<HubClientStatus>("active");
   const [allowedRoles, setAllowedRoles] = useState<HubClientRole[]>([]);
   const [note, setNote] = useState("");
@@ -315,9 +353,10 @@ export default function HubClientCreatePage() {
 
   const uploadImageIfNeeded = async (
     file: File | null,
+    fallbackUrl: string,
     description: string,
   ) => {
-    if (!file) return "";
+    if (!file) return fallbackUrl;
 
     const base64File = await fileToBase64(file);
     const response = await uploadMutation.mutateAsync({
@@ -340,10 +379,12 @@ export default function HubClientCreatePage() {
     try {
       const uploadedLogoUrl = await uploadImageIfNeeded(
         logoFile,
+        clientLogoImage,
         `Hub client logo - ${clientName || "new-client"}`,
       );
       const uploadedMockupUrl = await uploadImageIfNeeded(
         mockupFile,
+        clientMockupImage,
         `Hub client mockup - ${clientName || "new-client"}`,
       );
 
@@ -485,6 +526,11 @@ export default function HubClientCreatePage() {
                 label="Logo"
                 value={clientLogoImage}
                 fileName={logoFile?.name}
+                urlValue={logoUrlInput}
+                onChangeUrl={(url) => {
+                  setLogoUrlInput(url);
+                  setClientLogoImage(url);
+                }}
                 onSelectFile={(file) =>
                   setImageState({
                     file,
@@ -493,13 +539,14 @@ export default function HubClientCreatePage() {
                     objectUrlRef: logoObjectUrlRef,
                   })
                 }
-                onClear={() =>
+                onClear={() => {
                   clearImageState({
                     setFile: setLogoFile,
                     setPreview: setClientLogoImage,
                     objectUrlRef: logoObjectUrlRef,
-                  })
-                }
+                  });
+                  setLogoUrlInput("");
+                }}
                 aspectRatio="square"
                 disabled={isSaving}
               />
@@ -508,6 +555,11 @@ export default function HubClientCreatePage() {
                 label="Mockup"
                 value={clientMockupImage}
                 fileName={mockupFile?.name}
+                urlValue={mockupUrlInput}
+                onChangeUrl={(url) => {
+                  setMockupUrlInput(url);
+                  setClientMockupImage(url);
+                }}
                 onSelectFile={(file) =>
                   setImageState({
                     file,
@@ -516,13 +568,14 @@ export default function HubClientCreatePage() {
                     objectUrlRef: mockupObjectUrlRef,
                   })
                 }
-                onClear={() =>
+                onClear={() => {
                   clearImageState({
                     setFile: setMockupFile,
                     setPreview: setClientMockupImage,
                     objectUrlRef: mockupObjectUrlRef,
-                  })
-                }
+                  });
+                  setMockupUrlInput("");
+                }}
                 aspectRatio="landscape"
                 disabled={isSaving}
               />
