@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
-import { FiArchive, FiLayout, FiUsers, FiGrid, FiFileText, FiBox } from "react-icons/fi";
+import {
+  FiArchive,
+  FiLayout,
+  FiUsers,
+  FiGrid,
+  FiFileText,
+  FiBox,
+} from "react-icons/fi";
 import type { Role } from "@/hooks/useAuth";
 import { canAccessDashboard } from "@/config/dashboardAccess";
 import LandingPage from "@/pages/public/LandingPage";
@@ -52,10 +59,10 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
     path: PATHS.LOGIN_HUB,
     element: <LoginHubPage />,
   },
-  {
-    path: PATHS.MY_PAGE,
-    element: <MyPage />,
-  },
+  // {
+  //   path: PATHS.MY_PAGE,
+  //   element: <MyPage />,
+  // },
   {
     path: PATHS.PARTNER_SIGN,
     element: <ContractPartnerSignPage />,
