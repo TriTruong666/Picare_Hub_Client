@@ -24,16 +24,20 @@ import { toast } from "@/hooks/useToast";
 
 const HUB_CLIENT_IMAGE_FOLDER = "public";
 
-/* const ALL_ROLES: { value: HubClientRole; label: string }[] = [
-  { value: "admin", label: "Quản trị viên" },
-  { value: "ecom_staff", label: "Ecom Staff" },
-  { value: "ecom_lead", label: "Ecom Leader" },
-  { value: "logistics", label: "Vận hành" },
-  { value: "warehouse", label: "Kho" },
-  { value: "sale_lead", label: "Sale Leader" },
-  { value: "sale_staff", label: "Sale Staff" },
+const ALL_ROLES: { value: HubClientRole; label: string }[] = [
+  { value: "admin", label: "Admin" },
+  { value: "ceo", label: "CEO" },
+  { value: "supply_chain", label: "Supply Chain" },
+  { value: "hr", label: "HR" },
+  { value: "qc", label: "QC" },
+  { value: "ecom", label: "Ecom" },
+  { value: "warehouse", label: "Warehouse" },
+  { value: "sales", label: "Sales" },
   { value: "marketing", label: "Marketing" },
-]; */
+  { value: "business_development", label: "Business Development" },
+  { value: "finance", label: "Finance" },
+  { value: "demo", label: "Demo" },
+];
 
 const STATUS_OPTIONS: { value: HubClientStatus; label: string }[] = [
   { value: "active", label: "Hoạt động" },
@@ -160,7 +164,7 @@ function ImageUploadField({
     if (urlValue) {
       toast.error(
         "Lỗi hình ảnh",
-        "Không thể vừa tải file vừa chèn link ảnh. Đã xoá file upload."
+        "Không thể vừa tải file vừa chèn link ảnh. Đã xoá file upload.",
       );
       onClear();
       return;
@@ -264,7 +268,7 @@ function ImageUploadField({
             if (nextUrl && fileName) {
               toast.error(
                 "Lỗi hình ảnh",
-                "Không thể vừa tải file vừa chèn link ảnh. Đã xoá file upload."
+                "Không thể vừa tải file vừa chèn link ảnh. Đã xoá file upload.",
               );
               onClear();
             }
