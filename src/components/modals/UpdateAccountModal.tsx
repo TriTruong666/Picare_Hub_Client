@@ -19,11 +19,13 @@ type UpdateFormState = {
 
 const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
   { value: "admin", label: "Admin" },
-  { value: "ecom_staff", label: "Ecom Staff" },
-  { value: "ecom_lead", label: "Ecom Lead" },
+  { value: "ceo", label: "CEO" },
+  { value: "supply_chain", label: "Supply Chain" },
+  { value: "hr", label: "HR" },
+  { value: "qc", label: "QC" },
+  { value: "ecom", label: "Ecom" },
   { value: "warehouse", label: "Warehouse" },
-  { value: "sale_lead", label: "Sale Lead" },
-  { value: "sale_staff", label: "Sale Staff" },
+  { value: "sales", label: "Sales" },
   { value: "marketing", label: "Marketing" },
   { value: "business_development", label: "Business Development" },
   { value: "finance", label: "Finance" },

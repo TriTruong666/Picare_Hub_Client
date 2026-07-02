@@ -11,11 +11,13 @@ export type User = {
 
 export const USER_ROLES = [
   "admin",
-  "ecom_staff",
-  "ecom_lead",
+  "ceo",
+  "supply_chain",
+  "hr",
+  "qc",
+  "ecom",
   "warehouse",
-  "sale_lead",
-  "sale_staff",
+  "sales",
   "marketing",
   "business_development",
   "finance",
@@ -24,10 +26,25 @@ export const USER_ROLES = [
 
 export type UserRole = (typeof USER_ROLES)[number];
 
+export const ROLE_LABELS: Record<UserRole, string> = {
+  admin: "Admin",
+  ceo: "CEO",
+  supply_chain: "Supply Chain",
+  hr: "HR",
+  qc: "QC",
+  ecom: "Ecom",
+  warehouse: "Warehouse",
+  sales: "Sales",
+  marketing: "Marketing",
+  business_development: "Business Development",
+  finance: "Finance",
+  demo: "Demo",
+};
+
 export const USER_ROLE_OPTIONS: Array<{ value: UserRole; label: string }> =
   USER_ROLES.map((role) => ({
     value: role,
-    label: role,
+    label: ROLE_LABELS[role],
   }));
 
 export type CreateUserPayload = {

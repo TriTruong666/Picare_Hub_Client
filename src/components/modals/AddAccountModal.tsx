@@ -34,20 +34,45 @@ const ROLE_OPTIONS: RoleOption[] = [
     icon: "A",
   },
   {
-    value: "ecom_staff",
-    label: "Ecom Staff",
-    description: "Vận hành ecommerce",
+    value: "ceo",
+    label: "CEO",
+    description: "Ban giám đốc",
+    accentClass:
+      "from-rose-500/20 to-orange-500/20 text-rose-600 dark:text-rose-300",
+    icon: "CE",
+  },
+  {
+    value: "supply_chain",
+    label: "Supply Chain",
+    description: "Vận hành chuỗi cung ứng",
+    accentClass:
+      "from-sky-500/20 to-cyan-500/20 text-sky-600 dark:text-sky-300",
+    icon: "SC",
+  },
+  {
+    value: "hr",
+    label: "HR",
+    description: "Nhân sự",
+    accentClass:
+      "from-sky-500/20 to-cyan-500/20 text-sky-600 dark:text-sky-300",
+    icon: "HR",
+  },
+  {
+    value: "qc",
+    label: "QC",
+    description: "Kiểm soát chất lượng",
+    accentClass:
+      "from-sky-500/20 to-cyan-500/20 text-sky-600 dark:text-sky-300",
+    icon: "QC",
+  },
+
+  {
+    value: "ecom",
+    label: "Ecom",
+    description: "Vận hành sàn TMĐT",
     accentClass:
       "from-sky-500/20 to-cyan-500/20 text-sky-600 dark:text-sky-300",
     icon: "ES",
-  },
-  {
-    value: "ecom_lead",
-    label: "Ecom Lead",
-    description: "Lead ecommerce",
-    accentClass:
-      "from-blue-500/20 to-indigo-500/20 text-blue-600 dark:text-blue-300",
-    icon: "EL",
   },
   {
     value: "warehouse",
@@ -58,20 +83,12 @@ const ROLE_OPTIONS: RoleOption[] = [
     icon: "WH",
   },
   {
-    value: "sale_lead",
-    label: "Sale Lead",
-    description: "Lead kinh doanh",
+    value: "sales",
+    label: "Sales",
+    description: "Kinh doanh",
     accentClass:
       "from-emerald-500/20 to-teal-500/20 text-emerald-700 dark:text-emerald-300",
     icon: "SL",
-  },
-  {
-    value: "sale_staff",
-    label: "Sale Staff",
-    description: "Nhân sự kinh doanh",
-    accentClass:
-      "from-lime-500/20 to-green-500/20 text-lime-700 dark:text-lime-300",
-    icon: "SS",
   },
   {
     value: "marketing",
@@ -92,7 +109,7 @@ const ROLE_OPTIONS: RoleOption[] = [
   {
     value: "finance",
     label: "Finance",
-    description: "Tài chính",
+    description: "Kế toán",
     accentClass:
       "from-stone-400/30 to-zinc-400/30 text-stone-700 dark:text-stone-200",
     icon: "FN",
