@@ -7,6 +7,7 @@ import {
   FiGrid,
   FiFileText,
   FiBox,
+  FiShield,
 } from "react-icons/fi";
 import type { Role } from "@/hooks/useAuth";
 import { canAccessDashboard } from "@/config/dashboardAccess";
@@ -28,6 +29,9 @@ import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
 import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
 import HubClientDashboardPage from "@/pages/private/HubClientDashboardPage";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
+import LicenseCreatePage from "@/pages/private/LicenseCreatePage";
+import LicenseListPage from "@/pages/private/LicenseListPage";
+import LicenseSupportPage from "@/pages/private/LicenseSupportPage";
 import { PATHS } from "./paths";
 
 export interface RouteConfig {
@@ -123,6 +127,32 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     label: "Hub Clients",
     icon: FiGrid,
     showInSidebar: true,
+  },
+  {
+    path: "/dashboard/licenses",
+    label: "Bản quyền",
+    icon: FiShield,
+    showInSidebar: true,
+    children: [
+      {
+        path: PATHS.DASHBOARD.LICENSE_CREATE,
+        element: <LicenseCreatePage />,
+        label: "Tạo bản quyền",
+        showInSidebar: true,
+      },
+      {
+        path: PATHS.DASHBOARD.LICENSE_LIST,
+        element: <LicenseListPage />,
+        label: "Danh sách",
+        showInSidebar: true,
+      },
+      {
+        path: PATHS.DASHBOARD.LICENSE_SUPPORT,
+        element: <LicenseSupportPage />,
+        label: "Hỗ trợ",
+        showInSidebar: true,
+      },
+    ],
   },
   {
     path: PATHS.CONTRACT_CREATE,

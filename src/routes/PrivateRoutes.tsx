@@ -13,6 +13,9 @@ import PrivateStubPage from "@/pages/private/PrivateStubPage";
 import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
 import StorageFolderDetailPage from "@/pages/private/StorageFolderDetailPage";
 import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
+import LicenseCreatePage from "@/pages/private/LicenseCreatePage";
+import LicenseListPage from "@/pages/private/LicenseListPage";
+import LicenseSupportPage from "@/pages/private/LicenseSupportPage";
 
 export default function PrivateRoutes() {
   return (
@@ -33,6 +36,9 @@ export default function PrivateRoutes() {
           <Route path="hub-clients" element={<HubClientDashboardPage />} />
           <Route path="hub-clients/create" element={<HubClientCreatePage />} />
           <Route path="hub-clients/:clientId/edit" element={<HubClientEditPage />} />
+          <Route path="licenses" element={<LicenseListPage />} />
+          <Route path="licenses/create" element={<LicenseCreatePage />} />
+          <Route path="licenses/support" element={<LicenseSupportPage />} />
           <Route path="notifications" element={<PrivateStubPage />} />
           <Route path="messages" element={<PrivateStubPage />} />
           <Route path="profile" element={<PrivateStubPage />} />
