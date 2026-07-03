@@ -14,7 +14,7 @@ export interface SoftwareItem {
   status: string;
   domain: string;
   type: string;
-  serverConfig: SoftwareServerConfig;
+  serverConfig: SoftwareServerConfig[];
   note: string;
 }
 
