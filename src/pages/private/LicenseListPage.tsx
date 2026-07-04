@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { FiPlus } from "react-icons/fi";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
+import { StateShell } from "@/components/custom_ui/ShellState";
 import { PATHS } from "@/config/paths";
 
 export default function LicenseListPage() {
@@ -35,11 +36,13 @@ export default function LicenseListPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-300 bg-gray-50 p-8 text-center dark:border-white/10 dark:bg-white/5">
-        <p className="text-sm text-gray-500 dark:text-white/40">
-          Chưa có dữ liệu hiển thị. Bấm "Tạo bản quyền" để thêm bản ghi mới.
-        </p>
-      </div>
+      <StateShell
+        title="Danh sách trống"
+        message='Chưa có dữ liệu hiển thị. Bấm "Tạo bản quyền" để thêm bản ghi mới.'
+        actionLabel="Tạo bản quyền"
+        onAction={() => navigate(PATHS.DASHBOARD.LICENSE_CREATE)}
+      />
     </div>
   );
 }
+

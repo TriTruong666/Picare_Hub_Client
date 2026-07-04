@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 
-import { Spinner } from "@/components/custom_ui/Spinner";
+import { StateShell, StateLoadingContainer } from "@/components/custom_ui/ShellState";
 import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 import { useContractDetail } from "@/hooks/data/useContractHooks";
 import { ContractFormPage } from "./ContractCreatePage";
@@ -20,12 +20,7 @@ export default function ContractEditPage() {
         <div className="absolute top-6 right-6">
           <ThemeToggle />
         </div>
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" color="white" />
-          <p className="text-sm text-black/45 dark:text-white/45">
-            Đang tải hợp đồng...
-          </p>
-        </div>
+        <StateLoadingContainer message="Đang tải hợp đồng..." />
       </main>
     );
   }
@@ -36,19 +31,12 @@ export default function ContractEditPage() {
         <div className="absolute top-6 right-6">
           <ThemeToggle />
         </div>
-        <div className="max-w-md text-center">
-          <h1 className="text-xl font-medium">Không tải được hợp đồng</h1>
-          <p className="mt-3 text-sm leading-6 text-black/45 dark:text-white/45">
-            Vui lòng kiểm tra lại mã hợp đồng hoặc thử tải lại trang.
-          </p>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="mt-6 rounded-lg border border-black/15 px-5 py-2 text-sm text-black/80 transition hover:border-black/30 hover:text-[#111111] dark:border-white/15 dark:text-white/80 dark:hover:border-white/30 dark:hover:text-white"
-          >
-            Tải lại
-          </button>
-        </div>
+        <StateShell
+          title="Không tải được hợp đồng"
+          message="Vui lòng kiểm tra lại mã hợp đồng hoặc thử tải lại trang."
+          actionLabel="Tải lại"
+          onAction={() => refetch()}
+        />
       </main>
     );
   }
@@ -59,19 +47,12 @@ export default function ContractEditPage() {
         <div className="absolute top-6 right-6">
           <ThemeToggle />
         </div>
-        <div className="max-w-md text-center">
-          <h1 className="text-xl font-medium">Hợp đồng đã được xuất bản</h1>
-          <p className="mt-3 text-sm leading-6 text-black/45 dark:text-white/45">
-            Bạn không thể chỉnh sửa những bản hợp đồng đã qua quá trình xuất bản
-          </p>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="mt-6 rounded-lg border border-black/15 px-5 py-2 text-sm text-black/80 transition hover:border-black/30 hover:text-[#111111] dark:border-white/15 dark:text-white/80 dark:hover:border-white/30 dark:hover:text-white"
-          >
-            Tải lại
-          </button>
-        </div>
+        <StateShell
+          title="Hợp đồng đã được xuất bản"
+          message="Bạn không thể chỉnh sửa những bản hợp đồng đã qua quá trình xuất bản"
+          actionLabel="Tải lại"
+          onAction={() => refetch()}
+        />
       </main>
     );
   }
@@ -85,3 +66,4 @@ export default function ContractEditPage() {
     />
   );
 }
+

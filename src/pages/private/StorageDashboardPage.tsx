@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { formatFileSize, formatRelativeTime } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
-import { Spinner } from "@/components/custom_ui/Spinner";
+import { StateShell, StateLoadingContainer } from "@/components/custom_ui/ShellState";
 import CreateS3FolderModal from "@/components/modals/CreateS3FolderModal";
 import DeleteS3FolderModal from "@/components/modals/DeleteS3FolderModal";
 import EditS3FolderModal from "@/components/modals/EditS3FolderModal";
@@ -51,27 +51,21 @@ export default function StorageDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="page-layout flex min-h-[400px] flex-col items-center justify-center py-10">
-        <Spinner size="lg" />
-        <p className="mt-4 text-sm font-medium text-gray-500">
-          Đang tải dữ liệu...
-        </p>
+      <div className="page-layout">
+        <StateLoadingContainer message="Đang tải dữ liệu..." />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="page-layout flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
-        <p className="max-w-md text-center text-sm font-medium text-red-400">
-          Đã xảy ra lỗi khi tải danh sách thư mục
-        </p>
-        <button
-          onClick={() => refetch()}
-          className="mt-6 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/5 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-        >
-          Thử lại
-        </button>
+      <div className="page-layout">
+        <StateShell
+          title="Đã xảy ra lỗi"
+          message="Đã xảy ra lỗi khi tải danh sách thư mục"
+          actionLabel="Thử lại"
+          onAction={() => refetch()}
+        />
       </div>
     );
   }
@@ -102,22 +96,12 @@ export default function StorageDashboardPage() {
       </div>
 
       {folders.length === 0 ? (
-        <div className="flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Danh sách trống
-          </h3>
-          <p className="mt-2 text-sm text-gray-500 dark:text-white/50">
-            Hệ thống hiện tại chưa có thư mục lưu trữ nào
-          </p>
-          <button
-            type="button"
-            onClick={openCreateFolderModal}
-            className="mt-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-xs font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-          >
-            <FiFolderPlus className="text-lg" />
-            Tạo thư mục ngay
-          </button>
-        </div>
+        <StateShell
+          title="Danh sách trống"
+          message="Hệ thống hiện tại chưa có thư mục lưu trữ nào"
+          actionLabel="Tạo thư mục ngay"
+          onAction={openCreateFolderModal}
+        />
       ) : (
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
           {folders.map((folder, index) => {

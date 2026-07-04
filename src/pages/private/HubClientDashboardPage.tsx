@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import GlassSelect from "@/components/custom_ui/Select";
+import { StateShell } from "@/components/custom_ui/ShellState";
 import { PATHS } from "@/config/paths";
 import { useHubClients } from "@/hooks/data/useHubClientHooks";
 import type { HubClient } from "@/types/HubClient";
@@ -207,17 +208,12 @@ export default function HubClientDashboardPage() {
           ))}
         </div>
       ) : isError ? (
-        <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
-          <p className="max-w-md text-center text-sm font-medium text-red-400">
-            Đã xảy ra lỗi khi tải dữ liệu từ hệ thống
-          </p>
-          <button
-            onClick={() => refetch()}
-            className="mt-6 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/5 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-          >
-            Thử lại
-          </button>
-        </div>
+        <StateShell
+          title="Đã xảy ra lỗi"
+          message="Đã xảy ra lỗi khi tải dữ liệu từ hệ thống"
+          actionLabel="Thử lại"
+          onAction={() => refetch()}
+        />
       ) : clients && clients.length > 0 ? (
         <motion.div
           variants={containerVariants}
@@ -230,21 +226,20 @@ export default function HubClientDashboardPage() {
           ))}
         </motion.div>
       ) : (
-        <div className="flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Danh sách trống</h3>
-          <p className="mt-2 text-sm text-gray-500 dark:text-white/50">
-            {search
+        <StateShell
+          title="Danh sách trống"
+          message={
+            search
               ? `Không tìm thấy kết quả cho "${search}"`
-              : "Chưa có hub client nào trong hệ thống"}
-          </p>
-          <button
-            onClick={() => navigate(PATHS.DASHBOARD.HUB_CLIENT_CREATE)}
-            className="mt-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-xs font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-indigo-500"
-          >
-            <FiPlus className="text-lg" />
-            Thêm ngay
-          </button>
-        </div>
+              : "Chưa có hub client nào trong hệ thống"
+          }
+          actionLabel={search ? "Xóa tìm kiếm" : "Thêm ngay"}
+          onAction={
+            search
+              ? () => setSearch("")
+              : () => navigate(PATHS.DASHBOARD.HUB_CLIENT_CREATE)
+          }
+        />
       )}
 
       {!isLoading && !isError && clients && clients.length > 0 && (

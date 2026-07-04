@@ -1,4 +1,5 @@
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
+import { StateShell } from "@/components/custom_ui/ShellState";
 import { PATHS } from "@/config/paths";
 
 export default function LicenseSupportPage() {
@@ -24,11 +25,11 @@ export default function LicenseSupportPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-300 bg-gray-50 p-8 text-center dark:border-white/10 dark:bg-white/5">
-        <p className="text-sm text-gray-500 dark:text-white/40">
-          Chức năng hỗ trợ đang được phát triển.
-        </p>
-      </div>
+      <StateShell
+        title="Tính năng đang phát triển"
+        message="Chức năng hỗ trợ kỹ thuật đang được xây dựng và sẽ sớm ra mắt."
+      />
     </div>
   );
 }
+

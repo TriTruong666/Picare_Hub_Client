@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { formatDateTime } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
-import { Spinner } from "@/components/custom_ui/Spinner";
+import { StateShell, StateLoadingContainer } from "@/components/custom_ui/ShellState";
 import { PATHS } from "@/config/paths";
 import { useContractDetail } from "@/hooks/data/useContractHooks";
 import { toast } from "@/hooks/useToast";
@@ -182,8 +182,8 @@ export default function ContractDetailDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="page-layout flex min-h-100 items-center justify-center">
-        <Spinner size="lg" />
+      <div className="page-layout">
+        <StateLoadingContainer message="Đang tải chi tiết hợp đồng..." />
       </div>
     );
   }
@@ -191,17 +191,12 @@ export default function ContractDetailDashboardPage() {
   if (isError || !contract) {
     return (
       <div className="page-layout">
-        <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
-          <p className="max-w-md text-center text-sm font-medium text-red-400">
-            Không thể tải chi tiết hợp đồng
-          </p>
-          <button
-            onClick={() => refetch()}
-            className="mt-6 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/5 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-          >
-            Thử lại
-          </button>
-        </div>
+        <StateShell
+          title="Đã xảy ra lỗi"
+          message="Không thể tải chi tiết hợp đồng từ hệ thống"
+          actionLabel="Thử lại"
+          onAction={() => refetch()}
+        />
       </div>
     );
   }

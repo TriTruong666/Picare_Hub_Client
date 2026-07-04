@@ -11,6 +11,7 @@ import { Pagination } from "@/components/custom_ui/Pagination";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
+import { StateShell, StateLoadingContainer } from "@/components/custom_ui/ShellState";
 import { useContractList } from "@/hooks/data/useContractHooks";
 import type { Contract, ContractStatus, ContractType } from "@/types/Contract";
 import { IoIosInformationCircleOutline } from "react-icons/io";
@@ -226,42 +227,26 @@ function ContractTable({
   onOpenDetail: (contract: Contract) => void;
 }) {
   if (isLoading) {
-    return (
-      <div className="flex min-h-100 flex-col items-center justify-center py-10">
-        <Spinner size="lg" />
-        <p className="mt-4 text-sm font-medium text-gray-500">
-          Đang tải dữ liệu...
-        </p>
-      </div>
-    );
+    return <StateLoadingContainer message="Đang tải dữ liệu..." />;
   }
 
   if (isError) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
-        <p className="max-w-md text-center text-sm font-medium text-red-400">
-          Đã xảy ra lỗi khi tải danh sách hợp đồng
-        </p>
-        <button
-          onClick={refetch}
-          className="mt-6 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/5 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-        >
-          Thử lại
-        </button>
-      </div>
+      <StateShell
+        title="Đã xảy ra lỗi"
+        message="Đã xảy ra lỗi khi tải danh sách hợp đồng"
+        actionLabel="Thử lại"
+        onAction={refetch}
+      />
     );
   }
 
   if (contracts.length === 0) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Danh sách trống
-        </h3>
-        <p className="mt-2 text-sm text-gray-500 dark:text-white/50">
-          Hệ thống chưa có hợp đồng nào được tạo
-        </p>
-      </div>
+      <StateShell
+        title="Danh sách trống"
+        message="Hệ thống chưa có hợp đồng nào được tạo"
+      />
     );
   }
 

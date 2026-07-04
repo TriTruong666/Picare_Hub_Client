@@ -14,6 +14,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import GlassSelect from "@/components/custom_ui/Select";
 import { Spinner } from "@/components/custom_ui/Spinner";
+import { StateShell, StateLoadingContainer } from "@/components/custom_ui/ShellState";
 import { PATHS } from "@/config/paths";
 import {
   useDeleteHubClient,
@@ -476,22 +477,21 @@ export default function HubClientEditPage() {
 
   if (isLoading) {
     return (
-      <div className="page-layout dashboard-theme flex min-h-[50vh] items-center justify-center">
-        <Spinner size="lg" />
+      <div className="page-layout dashboard-theme">
+        <StateLoadingContainer message="Đang tải thông tin client..." />
       </div>
     );
   }
 
   if (isError || !client) {
     return (
-      <div className="page-layout dashboard-theme flex min-h-[50vh] flex-col items-center justify-center gap-4">
-        <p className="text-sm text-red-400">Không tìm thấy client</p>
-        <button
-          onClick={() => navigate(PATHS.DASHBOARD.HUB_CLIENTS)}
-          className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-        >
-          <FiArrowLeft /> Quay lại
-        </button>
+      <div className="page-layout dashboard-theme">
+        <StateShell
+          title="Không tìm thấy client"
+          message="Yêu cầu truy cập thông tin client không hợp lệ hoặc client không tồn tại trong hệ thống."
+          actionLabel="Quay lại danh sách"
+          onAction={() => navigate(PATHS.DASHBOARD.HUB_CLIENTS)}
+        />
       </div>
     );
   }
