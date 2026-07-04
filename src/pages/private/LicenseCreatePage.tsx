@@ -1,6 +1,6 @@
 import type { ChangeEvent, ReactNode } from "react";
 import { useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   FiArrowLeft,
   FiPlus,
@@ -9,7 +9,6 @@ import {
   FiUpload,
   FiX,
   FiFileText,
-  FiCheck,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
@@ -50,7 +49,7 @@ function fileToBase64(file: File) {
 
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <label className="mb-1 block text-[11px] font-medium tracking-wider text-gray-500 uppercase dark:text-white/40">
+    <label className="mb-2 block text-[11px] font-medium text-gray-500 dark:text-white/40">
       {children}
     </label>
   );
@@ -79,7 +78,7 @@ function TextInput({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
-      className="placeholder:text-gray-455 hover:border-gray-405 h-10 w-full rounded-lg border border-gray-300 bg-white px-4 text-xs text-gray-700 transition-all outline-none hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/25 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+      className="h-11 w-full rounded-lg border border-gray-200 bg-gray-50/80 px-3.5 text-[13px] text-gray-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-[border-color,background-color,box-shadow] duration-200 outline-none placeholder:text-gray-400 hover:border-gray-300 hover:bg-white focus:border-indigo-500/50 focus:bg-white focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] dark:placeholder:text-white/25 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:focus:border-indigo-400/50 dark:focus:bg-indigo-500/[0.04] dark:focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)]"
     />
   );
 }
@@ -107,7 +106,7 @@ function TextareaInput({
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
-      className="placeholder:text-gray-455 hover:border-gray-405 w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-xs text-gray-700 transition-all outline-none hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/25 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+      className="w-full resize-none rounded-lg border border-gray-200 bg-gray-50/80 px-3.5 py-3 text-[13px] leading-5 text-gray-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-[border-color,background-color,box-shadow] duration-200 outline-none placeholder:text-gray-400 hover:border-gray-300 hover:bg-white focus:border-indigo-500/50 focus:bg-white focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] dark:placeholder:text-white/25 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:focus:border-indigo-400/50 dark:focus:bg-indigo-500/[0.04] dark:focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)]"
     />
   );
 }
@@ -141,7 +140,7 @@ function Switch({
         animate={{
           x: checked ? 18 : 0,
         }}
-        transition={{ type: "spring", stiffness: 500, damping: 28 }}
+        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
       />
     </motion.button>
   );
@@ -164,7 +163,11 @@ function ContractItemRow({
   c: LocalContractItem;
   idx: number;
   isSaving: boolean;
-  onUpdate: (id: string, key: keyof LocalContractItem, val: any) => void;
+  onUpdate: <K extends keyof LocalContractItem>(
+    id: string,
+    key: K,
+    val: LocalContractItem[K],
+  ) => void;
   onRemove: (id: string) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -217,7 +220,7 @@ function ContractItemRow({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.22 }}
-      className="relative flex flex-col gap-4 rounded-xl border border-gray-300 bg-white p-6 dark:border-white/10 dark:bg-white/5"
+      className="relative flex flex-col gap-5 border-b border-gray-200 py-6 first:pt-0 last:border-b-0 last:pb-0 dark:border-white/[0.08]"
     >
       <motion.button
         type="button"
@@ -225,7 +228,7 @@ function ContractItemRow({
         whileTap={{ scale: 0.95 }}
         onClick={() => onRemove(c.id)}
         disabled={isSaving}
-        className="absolute top-2 right-4 flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/10 text-red-500 transition-all hover:bg-red-500/10 dark:text-red-400"
+        className="absolute top-2 right-0 flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-600 transition-all hover:bg-red-500/20 dark:text-red-400"
       >
         <FiTrash2 className="text-sm" />
       </motion.button>
@@ -258,14 +261,19 @@ function ContractItemRow({
             onDragOver={handleDrag}
             onDragLeave={handleDrag}
             onDrop={handleDrop}
-            whileHover={!isSaving ? { borderColor: "rgba(99, 102, 241, 0.5)", translateY: -1 } : {}}
+            whileHover={
+              !isSaving
+                ? { borderColor: "rgba(99, 102, 241, 0.45)", y: -2 }
+                : {}
+            }
+            whileTap={!isSaving ? { scale: 0.995 } : undefined}
             onClick={() => !isSaving && fileInputRef.current?.click()}
-            className={`group relative flex h-36 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all duration-220 ${
+            className={`group relative flex min-h-40 w-full cursor-pointer items-center overflow-hidden rounded-xl border border-dashed p-5 transition-[border-color,background-color,box-shadow] duration-300 md:p-6 ${
               isDragActive
-                ? "border-indigo-500 bg-indigo-500/5 shadow-lg shadow-indigo-500/5 dark:bg-indigo-500/10"
+                ? "border-indigo-500 bg-indigo-500/10 shadow-[0_16px_40px_rgba(99,102,241,0.12)] dark:bg-indigo-500/[0.12]"
                 : c.file
-                ? "border-indigo-500/30 bg-indigo-500/3 dark:bg-indigo-500/5"
-                : "border-gray-300 bg-gray-50/50 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:bg-white/5"
+                  ? "border-indigo-500/30 bg-indigo-500/[0.06] dark:bg-indigo-500/[0.08]"
+                  : "border-gray-300 bg-gray-50/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-indigo-500/40 hover:bg-indigo-500/[0.035] hover:shadow-[0_14px_36px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/[0.025] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] dark:hover:border-indigo-400/35 dark:hover:bg-indigo-500/[0.06]"
             } ${isSaving ? "pointer-events-none opacity-60" : ""}`}
           >
             <AnimatePresence mode="wait">
@@ -275,21 +283,25 @@ function ContractItemRow({
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex flex-col items-center justify-center p-4 text-center"
+                  className="flex w-full items-center gap-4 text-left"
                 >
-                  <FiFileText className="mb-2 text-3xl text-indigo-500" />
-                  <span className="max-w-[320px] truncate text-xs font-normal text-gray-700 dark:text-white/60">
-                    {c.file.name} ({formatFileSize(c.file.size)})
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 ring-1 ring-indigo-500/15 dark:bg-indigo-500/15 dark:text-indigo-300">
+                    <FiFileText className="text-xl" />
                   </span>
-                  <span className="text-[10px] text-gray-400 mt-0.5">
-                    Sẵn sàng tải lên
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-semibold text-gray-900 dark:text-white/80">
+                      {c.file.name}
+                    </span>
+                    <span className="mt-1 block text-[11px] text-gray-500 dark:text-white/35">
+                      {formatFileSize(c.file.size)} · Sẵn sàng tải lên
+                    </span>
                   </span>
                   <motion.button
                     type="button"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleClearFile}
-                    className="text-red-555 mt-2.5 flex items-center gap-1 rounded bg-red-500/10 px-3 py-1.5 text-xs font-medium hover:bg-red-500/20"
+                    className="flex shrink-0 items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-2 text-[11px] font-semibold text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-400"
                   >
                     <FiX /> Gỡ file
                   </motion.button>
@@ -300,11 +312,15 @@ function ContractItemRow({
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
-                  className="flex flex-col items-center justify-center text-gray-400 group-hover:text-gray-500 dark:text-white/20"
+                  className="flex w-full flex-col items-center justify-center gap-4 text-center sm:flex-row sm:text-left"
                 >
-                  <FiUpload className="mb-2 text-3xl" />
-                  <span className="text-xs font-medium">
-                    Kéo thả hoặc chọn file tài liệu hợp đồng
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 ring-1 ring-indigo-500/15 transition-transform duration-300 group-hover:-translate-y-0.5 dark:bg-indigo-500/15 dark:text-indigo-300">
+                    <FiUpload className="text-xl" />
+                  </span>
+                  <span className="flex flex-col gap-1">
+                    <span className="text-[13px] font-semibold text-gray-800 dark:text-white/75">
+                      Kéo thả hoặc chọn file tài liệu hợp đồng
+                    </span>
                   </span>
                 </motion.div>
               )}
@@ -336,6 +352,7 @@ function ContractItemRow({
 
 export default function LicenseCreatePage() {
   const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
   const createMutation = useCreateLicense();
   const uploadMutation = useUploadS3Asset({ showSuccessToast: false });
 
@@ -364,10 +381,10 @@ export default function LicenseCreatePage() {
     setContracts(contracts.filter((c) => c.id !== id));
   };
 
-  const handleUpdateContractItem = (
+  const handleUpdateContractItem = <K extends keyof LocalContractItem>(
     id: string,
-    key: keyof LocalContractItem,
-    val: any,
+    key: K,
+    val: LocalContractItem[K],
   ) => {
     setContracts(
       contracts.map((c) => (c.id === id ? { ...c, [key]: val } : c)),
@@ -387,17 +404,17 @@ export default function LicenseCreatePage() {
     setSoftwares([...softwares, newItem]);
   };
 
-  const handleUpdateSoftware = (
+  const handleUpdateSoftware = <K extends keyof SoftwareItem>(
     index: number,
-    key: keyof SoftwareItem,
-    val: any,
+    key: K,
+    val: SoftwareItem[K],
   ) => {
     const updated = [...softwares];
     // If software type changes away from server, clear config
     if (key === "type" && val !== "server") {
       updated[index] = {
         ...updated[index],
-        type: val,
+        type: val as SoftwareItem["type"],
         serverConfig: [],
       };
     } else {
@@ -420,11 +437,11 @@ export default function LicenseCreatePage() {
   };
 
   // Update a server config entry field
-  const handleUpdateServerConfigField = (
+  const handleUpdateServerConfigField = <K extends keyof SoftwareServerConfig>(
     swIdx: number,
     cfgIdx: number,
-    key: keyof SoftwareServerConfig,
-    val: any,
+    key: K,
+    val: SoftwareServerConfig[K],
   ) => {
     const updated = [...softwares];
     const updatedCfg = [...updated[swIdx].serverConfig];
@@ -501,16 +518,30 @@ export default function LicenseCreatePage() {
       if (response.success) {
         navigate(PATHS.DASHBOARD.LICENSE_LIST);
       }
-    } catch (err: any) {
-      toast.error("Lỗi", err.message || "Đã xảy ra lỗi");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Đã xảy ra lỗi";
+      toast.error("Lỗi", message);
     }
   };
 
   const isSaving = createMutation.isPending || uploadMutation.isPending;
+  const reveal = {
+    hidden: { opacity: 0, y: reduceMotion ? 0 : 14 },
+    visible: { opacity: 1, y: 0 },
+  };
 
   return (
-    <div className="page-layout dashboard-theme">
-      <div className="mb-8 flex flex-col">
+    <div className="page-layout dashboard-theme pb-28 lg:pb-12">
+      <motion.header
+        initial="hidden"
+        animate="visible"
+        variants={reveal}
+        transition={{
+          duration: reduceMotion ? 0 : 0.5,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="mb-10 flex flex-col"
+      >
         <Breadcrumb
           items={[
             { label: "Trang chủ", path: PATHS.DASHBOARD.ROOT },
@@ -518,21 +549,22 @@ export default function LicenseCreatePage() {
             { label: "Tạo bản quyền" },
           ]}
         />
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="mt-5 flex flex-col gap-6 border-b border-gray-200 pb-7 md:flex-row md:items-end md:justify-between dark:border-white/[0.08]">
+          <div className="flex items-start gap-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate(PATHS.DASHBOARD.LICENSE_LIST)}
-              className="text-gray-655 flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white transition-all hover:border-gray-400 hover:bg-gray-55 hover:text-gray-909 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
+              aria-label="Quay lại danh sách bản quyền"
+              className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 transition-all duration-200 hover:border-gray-400 hover:text-gray-900 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/50 dark:hover:border-white/20 dark:hover:text-white"
             >
               <FiArrowLeft className="text-sm" />
             </motion.button>
-            <div>
-              <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl dark:text-white">
+            <div className="max-w-2xl">
+              <h1 className="text-3xl font-semibold text-gray-950 md:text-4xl dark:text-white">
                 Tạo bản quyền
               </h1>
-              <p className="mt-0.5 text-xs text-gray-400 dark:text-white/30">
+              <p className="mt-3 max-w-xl text-[13px] leading-5 text-gray-500 dark:text-white/40">
                 Thêm bản quyền sử dụng phần mềm và cấu hình liên kết
               </p>
             </div>
@@ -542,26 +574,33 @@ export default function LicenseCreatePage() {
             whileTap={{ scale: 0.98 }}
             onClick={handleSave}
             disabled={isSaving}
-            className="hover:bg-indigo-550 flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-xs font-medium text-white shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50"
+            className="hidden h-10 items-center gap-2 rounded-lg bg-indigo-600 px-5 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(79,70,229,0.2)] transition-all duration-200 hover:bg-indigo-500 active:scale-[0.98] disabled:opacity-50 md:flex"
           >
             {isSaving ? <Spinner size="sm" /> : <FiSave className="text-sm" />}
             Tạo bản quyền
           </motion.button>
         </div>
-      </div>
+      </motion.header>
 
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="grid grid-cols-1 gap-6 lg:grid-cols-3"
+        initial="hidden"
+        animate="visible"
+        variants={reveal}
+        transition={{
+          delay: reduceMotion ? 0 : 0.1,
+          duration: reduceMotion ? 0 : 0.55,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_320px]"
       >
-        <div className="flex flex-col gap-5 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-6">
           {/* Thông tin khách hàng */}
-          <section className="rounded-2xl border border-gray-300 bg-gray-50 p-6 dark:border-white/5 dark:bg-white/3">
-            <h2 className="text-gray-955 mb-5 text-sm font-medium dark:text-white/80">
-              Thông tin khách hàng
-            </h2>
+          <section className="border-b border-gray-200 pb-10 dark:border-white/[0.08]">
+            <div className="mb-6 border-b border-gray-200 pb-4 dark:border-white/[0.07]">
+              <h2 className="text-[13px] font-semibold text-gray-900 dark:text-white/85">
+                Thông tin khách hàng
+              </h2>
+            </div>
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
@@ -611,18 +650,20 @@ export default function LicenseCreatePage() {
           </section>
 
           {/* Hợp đồng liên quan */}
-          <section className="rounded-2xl border border-gray-300 bg-gray-50 p-6 dark:border-white/5 dark:bg-white/3">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-gray-955 text-sm font-medium dark:text-white/80">
-                Hợp đồng liên quan ({contracts.length})
-              </h2>
+          <section className="border-b border-gray-200 py-4 pb-10 dark:border-white/[0.08]">
+            <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-white/[0.07]">
+              <div>
+                <h2 className="text-[13px] font-semibold text-gray-900 dark:text-white/85">
+                  Hợp đồng liên quan ({contracts.length})
+                </h2>
+              </div>
               <motion.button
                 type="button"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleAddContractItem}
                 disabled={isSaving}
-                className="flex items-center gap-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/5 px-3 py-1.5 text-xs font-medium text-indigo-700 transition hover:bg-indigo-500/10 dark:text-indigo-400"
+                className="flex items-center gap-1.5 rounded-lg bg-indigo-500/10 px-3 py-2 text-[11px] font-semibold text-indigo-700 transition-all duration-200 hover:bg-indigo-500/20 active:scale-[0.98] dark:bg-indigo-500/15 dark:text-indigo-300 dark:hover:bg-indigo-500/25"
               >
                 <FiPlus className="text-xs" /> Thêm hợp đồng
               </motion.button>
@@ -651,17 +692,19 @@ export default function LicenseCreatePage() {
           </section>
 
           {/* Phần mềm */}
-          <section className="rounded-2xl border border-gray-300 bg-gray-50 p-6 dark:border-white/5 dark:bg-white/3">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-gray-955 text-sm font-medium dark:text-white/80">
-                Danh sách phần mềm kích hoạt
-              </h2>
+          <section className="py-4">
+            <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-white/[0.07]">
+              <div>
+                <h2 className="text-[13px] font-semibold text-gray-900 dark:text-white/85">
+                  Danh sách phần mềm kích hoạt
+                </h2>
+              </div>
               <motion.button
                 type="button"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleAddSoftware}
-                className="text-indigo-755 flex items-center gap-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/5 px-3 py-1.5 text-xs font-medium transition hover:bg-indigo-500/10 dark:text-indigo-400"
+                className="flex items-center gap-1.5 rounded-lg bg-indigo-500/10 px-3 py-2 text-[11px] font-semibold text-indigo-700 transition-all duration-200 hover:bg-indigo-500/20 active:scale-[0.98] dark:bg-indigo-500/15 dark:text-indigo-300 dark:hover:bg-indigo-500/25"
                 disabled={isSaving}
               >
                 <FiPlus className="text-xs" /> Thêm phần mềm
@@ -672,7 +715,7 @@ export default function LicenseCreatePage() {
               {softwares.map((sw, idx) => (
                 <div
                   key={idx}
-                  className="relative flex flex-col gap-4 rounded-xl border border-gray-300 bg-white p-6 dark:border-white/10 dark:bg-white/5"
+                  className="relative flex flex-col gap-5 border-b border-gray-200 py-7 first:pt-0 last:border-b-0 dark:border-white/[0.08]"
                 >
                   <motion.button
                     type="button"
@@ -680,12 +723,12 @@ export default function LicenseCreatePage() {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleRemoveSoftware(idx)}
                     disabled={isSaving}
-                    className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/10 text-red-500 transition-all hover:bg-red-500/10 dark:text-red-400"
+                    className="absolute top-4 right-0 flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-600 transition-all hover:bg-red-500/20 dark:text-red-400"
                   >
                     <FiTrash2 className="text-sm" />
                   </motion.button>
 
-                  <h3 className="text-indigo-550 dark:text-indigo-455 text-xs font-medium tracking-wider uppercase">
+                  <h3 className="text-indigo-550 dark:text-indigo-455 text-xs font-medium">
                     Phần mềm #{idx + 1}
                   </h3>
 
@@ -779,7 +822,7 @@ export default function LicenseCreatePage() {
                                   }
                                   placeholder="Tên service (ví dụ: hub-clients)"
                                   disabled={isSaving}
-                                  className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-xs text-gray-700 outline-none hover:border-gray-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                  className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50/80 px-3 text-xs text-gray-800 transition-all outline-none hover:border-gray-300 hover:bg-white focus:border-indigo-500/50 focus:bg-white focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)] dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white dark:hover:border-white/15 dark:focus:border-indigo-400/50"
                                 />
                               </div>
 
@@ -809,7 +852,7 @@ export default function LicenseCreatePage() {
                                   handleRemoveServerConfig(idx, cfgIdx)
                                 }
                                 disabled={isSaving}
-                                className="flex h-7 w-7 items-center justify-center rounded-md border border-red-500/10 text-red-500 hover:bg-red-500/10"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-400"
                               >
                                 <FiTrash2 className="text-[11px]" />
                               </motion.button>
@@ -860,10 +903,10 @@ export default function LicenseCreatePage() {
         </div>
 
         {/* Cột phải */}
-        <div className="flex flex-col gap-5">
+        <aside className="flex flex-col gap-10 xl:sticky xl:top-6 xl:self-start xl:border-l xl:border-gray-200 xl:pl-8 dark:xl:border-white/[0.08]">
           {/* Chi phí */}
-          <section className="rounded-xl border border-gray-300 bg-gray-50 p-6 dark:border-white/5 dark:bg-white/2">
-            <h2 className="mb-5 text-sm font-medium text-gray-955 dark:text-white/80">
+          <section className="border-b border-gray-200 pb-8 dark:border-white/[0.08]">
+            <h2 className="mb-5 text-[13px] font-semibold text-gray-900 dark:text-white/85">
               Chi phí
             </h2>
             <div>
@@ -880,8 +923,8 @@ export default function LicenseCreatePage() {
           </section>
 
           {/* Lưu ý */}
-          <section className="rounded-xl border border-gray-300 bg-gray-50 p-6 dark:border-white/5 dark:bg-white/2">
-            <h2 className="mb-4 text-sm font-medium text-gray-955 dark:text-white/80">
+          <section>
+            <h2 className="mb-4 text-[13px] font-semibold text-gray-900 dark:text-white/85">
               Lưu ý khi tạo bản quyền
             </h2>
             <div className="text-gray-455 space-y-2.5 text-xs leading-relaxed dark:text-white/30">
@@ -903,7 +946,7 @@ export default function LicenseCreatePage() {
               whileTap={{ scale: 0.98 }}
               onClick={handleSave}
               disabled={isSaving}
-              className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/5 px-4 py-2.5 text-xs font-medium text-indigo-700 transition hover:bg-indigo-500/10 dark:text-indigo-400"
+              className="mt-6 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(79,70,229,0.18)] transition-all duration-200 hover:bg-indigo-500 disabled:opacity-50"
             >
               {isSaving ? (
                 <Spinner size="sm" />
@@ -913,8 +956,21 @@ export default function LicenseCreatePage() {
               Tạo ngay
             </motion.button>
           </section>
-        </div>
+        </aside>
       </motion.div>
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white/90 p-3 backdrop-blur-xl md:hidden dark:border-white/10 dark:bg-[#090909]/90">
+        <motion.button
+          type="button"
+          whileTap={{ scale: reduceMotion ? 1 : 0.98 }}
+          onClick={handleSave}
+          disabled={isSaving}
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 text-xs font-semibold text-white disabled:opacity-50"
+        >
+          {isSaving ? <Spinner size="sm" /> : <FiSave className="text-sm" />}
+          Tạo bản quyền
+        </motion.button>
+      </div>
     </div>
   );
 }

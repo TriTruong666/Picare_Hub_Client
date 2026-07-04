@@ -19,7 +19,8 @@ export default function LicenseSupportPage() {
               Hỗ trợ kỹ thuật
             </h1>
             <p className="mt-0.5 text-xs text-gray-500 dark:text-white/40">
-              Yêu cầu hỗ trợ liên quan đến cấu hình máy chủ, kích hoạt và gia hạn bản quyền
+              Yêu cầu hỗ trợ liên quan đến cấu hình máy chủ, kích hoạt và gia
+              hạn bản quyền
             </p>
           </div>
         </div>
@@ -32,4 +33,3 @@ export default function LicenseSupportPage() {
     </div>
   );
 }
-
