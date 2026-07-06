@@ -9,31 +9,28 @@ export default function LicenseListPage() {
 
   return (
     <div className="page-layout dashboard-theme">
-      <div className="mb-8 flex flex-col">
-        <Breadcrumb
-          items={[
-            { label: "Trang chủ", path: PATHS.DASHBOARD.ROOT },
-            { label: "Bản quyền" },
-            { label: "Danh sách" },
-          ]}
-        />
-        <div className="mt-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl dark:text-white">
-              Danh sách bản quyền
-            </h1>
-            <p className="mt-0.5 text-xs text-gray-500 dark:text-white/40">
-              Quản lý và theo dõi thông tin bản quyền của các khách hàng
-            </p>
-          </div>
-          <button
-            onClick={() => navigate(PATHS.DASHBOARD.LICENSE_CREATE)}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 active:scale-95"
-          >
-            <FiPlus className="text-sm" />
-            Tạo bản quyền
-          </button>
+      <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div>
+          <Breadcrumb
+            items={[
+              { label: "Trang chủ", path: PATHS.DASHBOARD.ROOT },
+              { label: "Bản quyền" },
+              { label: "Danh sách" },
+            ]}
+          />
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl dark:text-white">
+            Danh sách bản quyền
+          </h1>
         </div>
+
+        <button
+          type="button"
+          onClick={() => navigate(PATHS.DASHBOARD.LICENSE_CREATE)}
+          className="flex w-fit items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-[13px] font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.03] hover:bg-indigo-500 active:scale-95 dark:bg-indigo-500 dark:shadow-indigo-500/10 dark:hover:bg-indigo-400"
+        >
+          <FiPlus />
+          Tạo bản quyền
+        </button>
       </div>
 
       <StateShell
@@ -45,4 +42,3 @@ export default function LicenseListPage() {
     </div>
   );
 }
-

@@ -9,14 +9,48 @@ export interface SoftwareServerConfig {
 }
 
 export interface SoftwareItem {
+  id?: string;
+  licenseId?: string;
   softwareId: string;
   name: string;
-  price: number;
+  price: string | number;
   status: string;
   domain: string;
   type: string;
   serverConfig: SoftwareServerConfig[];
   note: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface LicenseTicket {
+  id: string;
+  licenseId: string;
+  title: string;
+  message: string;
+  attachments: string[];
+  status: string;
+  cancelReason: string | null;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface License {
+  id: number;
+  licenseId: string;
+  licenseKey: string;
+  licenseContract: LicenseContract[];
+  yearlyCost: string | number;
+  oncePaymentStatus: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  note: string;
+  software: SoftwareItem[];
+  tickets: LicenseTicket[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateLicensePayload {
@@ -28,4 +62,24 @@ export interface CreateLicensePayload {
   licenseContract: LicenseContract[];
   note: string;
   software: SoftwareItem[];
+}
+
+export interface CreateLicenseTicketPayload {
+  title: string;
+  message: string;
+  attachments: string[];
+  note: string;
+}
+
+export interface Ticket {
+  id: string;
+  licenseId: string;
+  title: string;
+  message: string;
+  attachments: string[];
+  status: string;
+  cancelReason: string | null;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
 }
