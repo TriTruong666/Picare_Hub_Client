@@ -451,13 +451,13 @@ export default function LicenseCreatePage() {
   const handleRemoveServerConfig = (swIdx: number, cfgIdx: number) => {
     const updated = [...softwares];
     updated[swIdx].serverConfig = updated[swIdx].serverConfig.filter(
-      (_, i) => i !== cfgIdx,
+      (_: SoftwareServerConfig, i: number) => i !== cfgIdx,
     );
     setSoftwares(updated);
   };
 
   const handleRemoveSoftware = (index: number) => {
-    setSoftwares(softwares.filter((_, i) => i !== index));
+    setSoftwares(softwares.filter((_, i: number) => i !== index));
   };
 
   const uploadFileIfNeeded = async (file: File | null, fallbackUrl: string) => {
@@ -800,7 +800,7 @@ export default function LicenseCreatePage() {
 
                       {sw.serverConfig.length > 0 ? (
                         <div className="flex flex-col gap-3">
-                          {sw.serverConfig.map((cfg, cfgIdx) => (
+                          {sw.serverConfig.map((cfg: SoftwareServerConfig, cfgIdx: number) => (
                             <div
                               key={cfgIdx}
                               className="flex items-center gap-4 border-b border-gray-100 py-2 last:border-0 dark:border-white/5"

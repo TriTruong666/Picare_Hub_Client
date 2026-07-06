@@ -40,7 +40,7 @@ export default function LandingPage() {
                 to={PATHS.LOGIN_HUB}
                 className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-95"
               >
-                Dang nhap vao Hub
+                Đăng nhập vào HUB
               </Link>
             )}
           </div>

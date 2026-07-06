@@ -27,6 +27,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showProjects, setShowProjects] = useState(false);
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
   const loginMutation = useLogin();
   const queryClient = useQueryClient();
@@ -250,12 +252,19 @@ export default function LoginPage() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        onFocus={() => setIsEmailFocused(true)}
+                        onBlur={() => setIsEmailFocused(false)}
                         placeholder="name@company.com"
                         className="w-full bg-transparent py-3 text-sm text-white placeholder-white/20 transition-all outline-none"
                         required
                       />
                       <div className="absolute bottom-0 h-px w-full bg-white/10" />
-                      <div className="absolute bottom-0 h-px w-full origin-left scale-x-0 bg-linear-to-r from-[#E1A3F1] to-[#A3CFF1] transition-transform duration-500 ease-[0.16,1,0.3,1] group-focus-within:scale-x-100" />
+                      <motion.div
+                        className="absolute bottom-0 h-px w-full origin-left bg-linear-to-r from-[#E1A3F1] to-[#A3CFF1]"
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: isEmailFocused ? 1 : 0 }}
+                        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                      />
                     </div>
                   </motion.div>
 
@@ -279,6 +288,8 @@ export default function LoginPage() {
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
+                          onFocus={() => setIsPasswordFocused(true)}
+                          onBlur={() => setIsPasswordFocused(false)}
                           placeholder="••••••••"
                           className="w-full bg-transparent py-3 pr-10 text-sm text-white placeholder-white/20 transition-all outline-none"
                           required
@@ -296,7 +307,12 @@ export default function LoginPage() {
                         </button>
                       </div>
                       <div className="absolute bottom-0 h-px w-full bg-white/10" />
-                      <div className="absolute bottom-0 h-px w-full origin-left scale-x-0 bg-linear-to-r from-[#E1A3F1] to-[#A3CFF1] transition-transform duration-500 ease-[0.16,1,0.3,1] group-focus-within:scale-x-100" />
+                      <motion.div
+                        className="absolute bottom-0 h-px w-full origin-left bg-linear-to-r from-[#E1A3F1] to-[#A3CFF1]"
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: isPasswordFocused ? 1 : 0 }}
+                        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                      />
                     </div>
 
                     {/* Inline Error */}
