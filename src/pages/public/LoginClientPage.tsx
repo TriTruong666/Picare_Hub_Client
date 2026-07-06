@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { FiArrowUpRight } from "react-icons/fi";
 import type { HubClient } from "@/types/HubClient";
 import loginMockup from "@/assets/images/login_mockup.jpeg";
@@ -12,12 +12,26 @@ import {
   STATIC_HUB_CLIENTS,
 } from "@/constants/staticHubClients";
 
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.55,
+      delay: i * 0.12,
+      ease: [0.25, 1, 0.5, 1],
+    },
+  }),
+};
+
 // ─── Card ─────────────────────────────────────────────────────────────────────
 function ClientCard({ client, index }: { client: HubClient; index: number }) {
   const navigate = useNavigate();
-  const isActive = client.clientStatus === "active";
   const preferredMockup = client.clientMockupImage?.trim() || loginMockup;
   const [mockupSrc, setMockupSrc] = useState(preferredMockup);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const isActive = client.clientStatus === "active";
 
   const handleAccess = () => {
     if (!isActive) {
@@ -37,35 +51,32 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.35,
-        delay: index * 0.06,
-        ease: [0.25, 1, 0.5, 1],
-      }}
-      className="group relative flex flex-col border-r border-b border-white/[0.07] bg-[#050505] transition-colors duration-300 hover:bg-white/2"
+      custom={index}
+      initial="hidden"
+      animate="visible"
+      variants={cardVariants}
+      className="group relative flex flex-col border-r border-b border-white/[0.07] bg-[#050505]"
     >
-      {/* Accent top bar — visible on hover */}
-      <div
-        className="absolute top-0 left-0 h-px w-0 transition-all duration-1000 group-hover:w-full"
-        style={{ background: "#F6C9F9" }}
-      />
-
       <div className="flex flex-1 flex-col p-0">
         {/* Mockup Image Header */}
-        <div className="relative aspect-video w-full overflow-hidden border-b border-white/[0.07]">
+        <div className="relative aspect-video w-full overflow-hidden border-b border-white/[0.07] bg-[#0a0a0c]">
           <img
             src={mockupSrc}
             alt={client.clientName}
-            className="h-full w-full object-cover opacity-60 grayscale transition-all duration-500 group-hover:scale-105 group-hover:opacity-100 group-hover:grayscale-0"
-            onError={() => setMockupSrc(loginMockup)}
+            onLoad={() => setImageLoaded(true)}
+            className={`h-full w-full object-cover grayscale transition-[filter,transform,opacity] duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.03] group-hover:opacity-100 group-hover:grayscale-0 ${
+              imageLoaded ? "opacity-60" : "opacity-0"
+            }`}
+            onError={() => {
+              setMockupSrc(loginMockup);
+              setImageLoaded(true);
+            }}
           />
         </div>
 
         <div className="flex flex-1 flex-col px-6 py-6">
           {/* Title */}
-          <h2 className="font-bricolage mb-2.5 text-[15px] font-semibold tracking-tight text-white/80 transition-colors duration-300 group-hover:text-white">
+          <h2 className="font-bricolage mb-2.5 text-[15px] font-semibold tracking-tight text-white/80">
             {client.clientName}
           </h2>
 

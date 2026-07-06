@@ -387,6 +387,7 @@ export default function LicenseCreatePage() {
 
   const handleAddSoftware = () => {
     const newItem: any = {
+      softwareId: "",
       name: "",
       price: "",
       status: "active",
@@ -729,7 +730,17 @@ export default function LicenseCreatePage() {
                     Phần mềm #{idx + 1}
                   </h3>
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div>
+                      <FieldLabel>Mã phần mềm (Software ID)</FieldLabel>
+                      <TextInput
+                        id={`sw-softwareId-${idx}`}
+                        value={sw.softwareId || ""}
+                        onChange={(v) => handleUpdateSoftware(idx, "softwareId", v)}
+                        placeholder="Ví dụ: happycare_app"
+                        disabled={isSaving}
+                      />
+                    </div>
                     <div>
                       <FieldLabel>Tên phần mềm</FieldLabel>
                       <TextInput
@@ -819,7 +830,7 @@ export default function LicenseCreatePage() {
                                   }
                                   placeholder="Tên service (ví dụ: hub-clients)"
                                   disabled={isSaving}
-                                  className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50/80 px-3 text-xs text-gray-800 transition-all outline-none hover:border-gray-300 hover:bg-white focus:border-indigo-500/50 focus:bg-white focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)] dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white dark:hover:border-white/15 dark:focus:border-indigo-400/50"
+                                  className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50/80 px-3 text-xs text-gray-800 transition-all outline-none hover:border-gray-300 hover:bg-white focus:border-indigo-500/50 focus:bg-white focus:shadow-[0_0_0_3px_rgba(99,102,241,0.12)] dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:focus:border-indigo-400/50 dark:focus:bg-white/[0.06]"
                                 />
                               </div>
 

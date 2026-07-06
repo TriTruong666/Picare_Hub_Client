@@ -9,6 +9,7 @@ export interface SoftwareServerConfig {
 }
 
 export interface SoftwareItem {
+  softwareId: string;
   name: string;
   price: number;
   status: string;
