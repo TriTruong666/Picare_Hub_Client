@@ -163,11 +163,7 @@ function ContractItemRow({
   c: LocalContractItem;
   idx: number;
   isSaving: boolean;
-  onUpdate: <K extends keyof LocalContractItem>(
-    id: string,
-    key: K,
-    val: LocalContractItem[K],
-  ) => void;
+  onUpdate: (id: string, key: keyof LocalContractItem, val: any) => void;
   onRemove: (id: string) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -220,7 +216,7 @@ function ContractItemRow({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.22 }}
-      className="relative flex flex-col gap-5 border-b border-gray-200 py-6 first:pt-0 last:border-b-0 last:pb-0 dark:border-white/[0.08]"
+      className="relative flex flex-col gap-5 rounded-2xl border border-gray-300 bg-white/80 p-5 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-white/[0.03]"
     >
       <motion.button
         type="button"
@@ -228,9 +224,9 @@ function ContractItemRow({
         whileTap={{ scale: 0.95 }}
         onClick={() => onRemove(c.id)}
         disabled={isSaving}
-        className="absolute top-2 right-0 flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-600 transition-all hover:bg-red-500/20 dark:text-red-400"
+        className="absolute top-3 right-4 flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10 text-red-500 transition-all hover:bg-red-500/20 dark:text-red-400"
       >
-        <FiTrash2 className="text-sm" />
+        <FiTrash2 className="text-xs" />
       </motion.button>
 
       <div className="w-full">
@@ -244,7 +240,7 @@ function ContractItemRow({
         />
       </div>
 
-      <div className="mt-3 flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {/* Upload zone */}
         <div>
           <FieldLabel>File đính kèm</FieldLabel>
@@ -261,38 +257,33 @@ function ContractItemRow({
             onDragOver={handleDrag}
             onDragLeave={handleDrag}
             onDrop={handleDrop}
-            whileHover={
-              !isSaving
-                ? { borderColor: "rgba(99, 102, 241, 0.45)", y: -2 }
-                : {}
-            }
-            whileTap={!isSaving ? { scale: 0.995 } : undefined}
+            whileHover={!isSaving ? { scale: 1.005 } : {}}
             onClick={() => !isSaving && fileInputRef.current?.click()}
-            className={`group relative flex min-h-40 w-full cursor-pointer items-center overflow-hidden rounded-xl border border-dashed p-5 transition-[border-color,background-color,box-shadow] duration-300 md:p-6 ${
+            className={`group relative flex min-h-[96px] w-full cursor-pointer items-center overflow-hidden rounded-xl border border-dashed p-4 transition-all duration-300 md:p-5 ${
               isDragActive
-                ? "border-indigo-500 bg-indigo-500/10 shadow-[0_16px_40px_rgba(99,102,241,0.12)] dark:bg-indigo-500/[0.12]"
+                ? "border-indigo-500 bg-indigo-500/10 shadow-[0_16px_40px_rgba(99,102,241,0.12)]"
                 : c.file
-                  ? "border-indigo-500/30 bg-indigo-500/[0.06] dark:bg-indigo-500/[0.08]"
-                  : "border-gray-300 bg-gray-50/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-indigo-500/40 hover:bg-indigo-500/[0.035] hover:shadow-[0_14px_36px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/[0.025] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] dark:hover:border-indigo-400/35 dark:hover:bg-indigo-500/[0.06]"
+                  ? "border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06]"
+                  : "border-gray-300 bg-gray-50/50 hover:border-indigo-500/40 hover:bg-indigo-500/[0.02] dark:border-white/10 dark:bg-white/[0.01] dark:hover:border-indigo-400/30 dark:hover:bg-indigo-500/[0.04]"
             } ${isSaving ? "pointer-events-none opacity-60" : ""}`}
           >
             <AnimatePresence mode="wait">
               {c.file ? (
                 <motion.div
                   key="file-attached"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex w-full items-center gap-4 text-left"
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  className="flex w-full items-center gap-3.5 text-left"
                 >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 ring-1 ring-indigo-500/15 dark:bg-indigo-500/15 dark:text-indigo-300">
-                    <FiFileText className="text-xl" />
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/15 dark:bg-emerald-500/15 dark:text-emerald-400">
+                    <FiFileText className="text-lg" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-semibold text-gray-900 dark:text-white/80">
+                    <span className="block truncate text-xs font-semibold text-gray-900 dark:text-white/80">
                       {c.file.name}
                     </span>
-                    <span className="mt-1 block text-[11px] text-gray-500 dark:text-white/35">
+                    <span className="mt-1 block text-[10px] text-gray-500 dark:text-white/35">
                       {formatFileSize(c.file.size)} · Sẵn sàng tải lên
                     </span>
                   </span>
@@ -301,9 +292,9 @@ function ContractItemRow({
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleClearFile}
-                    className="flex shrink-0 items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-2 text-[11px] font-semibold text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-400"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-400"
                   >
-                    <FiX /> Gỡ file
+                    <FiX />
                   </motion.button>
                 </motion.div>
               ) : (
@@ -312,16 +303,19 @@ function ContractItemRow({
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
-                  className="flex w-full flex-col items-center justify-center gap-4 text-center sm:flex-row sm:text-left"
+                  className="flex w-full items-center gap-3 text-left"
                 >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 ring-1 ring-indigo-500/15 transition-transform duration-300 group-hover:-translate-y-0.5 dark:bg-indigo-500/15 dark:text-indigo-300">
-                    <FiUpload className="text-xl" />
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 ring-1 ring-indigo-500/15 transition-transform duration-300 group-hover:-translate-y-0.5 dark:bg-indigo-500/15 dark:text-indigo-300">
+                    <FiUpload className="text-base" />
                   </span>
-                  <span className="flex flex-col gap-1">
-                    <span className="text-[13px] font-semibold text-gray-800 dark:text-white/75">
-                      Kéo thả hoặc chọn file tài liệu hợp đồng
-                    </span>
-                  </span>
+                  <div>
+                    <p className="text-[12px] font-semibold text-gray-800 dark:text-white/75">
+                      Kéo thả hoặc nhấn để chọn file hợp đồng
+                    </p>
+                    <p className="text-[10px] text-gray-500 dark:text-white/35">
+                      Hỗ trợ PDF, DOCX tối đa 20MB
+                    </p>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -359,7 +353,7 @@ export default function LicenseCreatePage() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
-  const [yearlyCost, setYearlyCost] = useState(0);
+  const [yearlyCost, setYearlyCost] = useState<string | number>("");
   const [note, setNote] = useState("");
 
   // Contract list state (supports multiple uploads/inputs)
@@ -368,7 +362,7 @@ export default function LicenseCreatePage() {
   ]);
 
   // Software items state
-  const [softwares, setSoftwares] = useState<SoftwareItem[]>([]);
+  const [softwares, setSoftwares] = useState<any[]>([]);
 
   const handleAddContractItem = () => {
     setContracts([
@@ -392,9 +386,9 @@ export default function LicenseCreatePage() {
   };
 
   const handleAddSoftware = () => {
-    const newItem: SoftwareItem = {
+    const newItem: any = {
       name: "",
-      price: 0,
+      price: "",
       status: "active",
       domain: "",
       type: "client",
@@ -508,11 +502,14 @@ export default function LicenseCreatePage() {
         customerName,
         customerPhone,
         customerEmail,
-        yearlyCost,
+        yearlyCost: yearlyCost === "" ? 0 : parseFloat(String(yearlyCost)) || 0,
         oncePaymentStatus: "paid",
         licenseContract: processedContracts,
         note,
-        software: softwares,
+        software: softwares.map((sw) => ({
+          ...sw,
+          price: sw.price === "" ? 0 : parseFloat(String(sw.price)) || 0,
+        })),
       });
 
       if (response.success) {
@@ -749,7 +746,7 @@ export default function LicenseCreatePage() {
                         id={`sw-price-${idx}`}
                         value={sw.price}
                         onChange={(v) =>
-                          handleUpdateSoftware(idx, "price", parseFloat(v) || 0)
+                          handleUpdateSoftware(idx, "price", v as any)
                         }
                         placeholder="5000000"
                         type="number"
@@ -914,7 +911,7 @@ export default function LicenseCreatePage() {
               <TextInput
                 id="yearly-cost"
                 value={yearlyCost}
-                onChange={(v) => setYearlyCost(parseFloat(v) || 0)}
+                onChange={setYearlyCost}
                 placeholder="Ví dụ: 12000000"
                 type="number"
                 disabled={isSaving}
