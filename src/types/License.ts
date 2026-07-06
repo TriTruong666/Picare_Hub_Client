@@ -64,6 +64,17 @@ export interface CreateLicensePayload {
   software: SoftwareItem[];
 }
 
+export interface UpdateLicensePayload {
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  yearlyCost: number;
+  oncePaymentStatus: string;
+  licenseContract: LicenseContract[];
+  note: string;
+  software: SoftwareItem[];
+}
+
 export interface CreateLicenseTicketPayload {
   title: string;
   message: string;

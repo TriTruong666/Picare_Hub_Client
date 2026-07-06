@@ -111,6 +111,7 @@ function LicenseTable({
   refetch,
   onCreate,
 }: LicenseTableProps) {
+  const navigate = useNavigate();
   if (isLoading) {
     return (
       <div className="flex min-h-100 flex-col items-center justify-center py-10">
@@ -229,18 +230,15 @@ function LicenseTable({
               {/* Row 5: Thao tác */}
               <td className="p-4 text-center">
                 <div className="flex items-center justify-center gap-1">
-                  <Tooltip content="Chi tiết">
-                    <IconAction
-                      onClick={() =>
-                        console.log("Detail License:", license.licenseId)
-                      }
-                      icon={<FiEye />}
-                    />
-                  </Tooltip>
                   <Tooltip content="Chỉnh sửa">
                     <IconAction
                       onClick={() =>
-                        console.log("Edit License:", license.licenseId)
+                        navigate(
+                          PATHS.DASHBOARD.LICENSE_EDIT.replace(
+                            ":licenseId",
+                            license.licenseId,
+                          ),
+                        )
                       }
                       icon={<FiEdit2 />}
                     />
@@ -267,6 +265,9 @@ function LicenseTable({
 function PaymentStatusBadge({ status }: { status: string }) {
   if (status === "paid") {
     return <Badge type="success" value="Đã thanh toán" />;
+  }
+  if (status === "partialy_paid") {
+    return <Badge type="warning" value="Thanh toán một phần" />;
   }
   return <Badge type="error" value="Chưa thanh toán" />;
 }

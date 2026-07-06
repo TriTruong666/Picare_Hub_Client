@@ -6,6 +6,7 @@ import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
 import type {
   CreateLicensePayload,
   CreateLicenseTicketPayload,
+  UpdateLicensePayload,
 } from "@/types/License";
 
 /**
@@ -20,6 +21,38 @@ export function useCreateLicense() {
       if (data.success) {
         toast.success("Thành công", "Đã tạo bản quyền mới");
         queryClient.invalidateQueries({ queryKey: ["licenses"] });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
+}
+
+/**
+ * Hook cập nhật License
+ */
+export function useUpdateLicense() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: UpdateLicensePayload;
+    }) => LicenseService.updateLicense(id, payload),
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã cập nhật bản quyền");
+        queryClient.invalidateQueries({ queryKey: ["licenses"] });
+        queryClient.invalidateQueries({
+          queryKey: ["licenses", variables.id],
+        });
       } else {
         toast.error(
           "Thất bại",

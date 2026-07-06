@@ -5,12 +5,21 @@ import type {
   CreateLicenseTicketPayload,
   License,
   LicenseTicket,
+  UpdateLicensePayload,
 } from "@/types/License";
 
 export const createLicense = async (
   payload: CreateLicensePayload,
 ): Promise<BaseResponse<null>> => {
   const res = await hubAxiosClient.post("/api/v1/licenses", payload);
+  return res.data;
+};
+
+export const updateLicense = async (
+  id: string,
+  payload: UpdateLicensePayload,
+): Promise<BaseResponse<null>> => {
+  const res = await hubAxiosClient.put(`/api/v1/licenses/${id}`, payload);
   return res.data;
 };
 

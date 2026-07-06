@@ -34,6 +34,7 @@ export const PATHS = {
     HUB_CLIENT_CREATE: "/dashboard/hub-clients/create",
     HUB_CLIENT_EDIT: "/dashboard/hub-clients/:clientId/edit",
     LICENSE_CREATE: "/dashboard/licenses/create",
+    LICENSE_EDIT: "/dashboard/licenses/:licenseId/edit",
     LICENSE_LIST: "/dashboard/licenses",
     LICENSE_SUPPORT: "/dashboard/licenses/support",
   },

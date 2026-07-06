@@ -30,6 +30,7 @@ import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
 import HubClientDashboardPage from "@/pages/private/HubClientDashboardPage";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
 import LicenseCreatePage from "@/pages/private/LicenseCreatePage";
+import LicenseEditPage from "@/pages/private/LicenseEditPage";
 import LicenseListPage from "@/pages/private/LicenseListPage";
 import LicenseSupportPage from "@/pages/private/LicenseSupportPage";
 import { PATHS } from "./paths";
@@ -139,6 +140,11 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
         element: <LicenseCreatePage />,
         label: "Tạo bản quyền",
         showInSidebar: true,
+      },
+      {
+        path: PATHS.DASHBOARD.LICENSE_EDIT,
+        element: <LicenseEditPage />,
+        showInSidebar: false,
       },
       {
         path: PATHS.DASHBOARD.LICENSE_LIST,

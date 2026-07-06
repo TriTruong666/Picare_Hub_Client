@@ -1,5 +1,5 @@
 import type { ChangeEvent, ReactNode } from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   FiArrowLeft,
@@ -16,7 +16,11 @@ import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import GlassSelect from "@/components/custom_ui/Select";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { PATHS } from "@/config/paths";
-import { useCreateLicense } from "@/hooks/data/useLicenseHooks";
+import {
+  useCreateLicense,
+  useLicenseDetail,
+  useUpdateLicense,
+} from "@/hooks/data/useLicenseHooks";
 import { useUploadS3Asset } from "@/hooks/data/useS3Hooks";
 import type { SoftwareItem, SoftwareServerConfig } from "@/types/License";
 import { toast } from "@/hooks/useToast";
@@ -27,6 +31,11 @@ const CONTRACT_FILE_FOLDER = "contracts";
 const SOFTWARE_TYPE_OPTIONS = [
   { value: "client", label: "Client" },
   { value: "server", label: "Server" },
+];
+
+const PAYMENT_STATUS_OPTIONS = [
+  { value: "paid", label: "Đã thanh toán" },
+  { value: "unpaid", label: "Chưa thanh toán" },
 ];
 
 function fileToBase64(file: File) {
@@ -344,16 +353,34 @@ function ContractItemRow({
   );
 }
 
-export default function LicenseCreatePage() {
+type LicenseCreatePageProps = {
+  mode?: "create" | "edit";
+  licenseId?: string;
+};
+
+export default function LicenseCreatePage({
+  mode = "create",
+  licenseId = "",
+}: LicenseCreatePageProps) {
   const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
+  const isEdit = mode === "edit";
   const createMutation = useCreateLicense();
+  const updateMutation = useUpdateLicense();
+  const {
+    data: license,
+    isLoading: isLoadingLicense,
+    isError: isLicenseError,
+    refetch: refetchLicense,
+  } = useLicenseDetail(isEdit ? licenseId : "");
   const uploadMutation = useUploadS3Asset({ showSuccessToast: false });
+  const hydratedLicenseId = useRef<string | null>(null);
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [yearlyCost, setYearlyCost] = useState<string | number>("");
+  const [oncePaymentStatus, setOncePaymentStatus] = useState("paid");
   const [note, setNote] = useState("");
 
   // Contract list state (supports multiple uploads/inputs)
@@ -363,6 +390,36 @@ export default function LicenseCreatePage() {
 
   // Software items state
   const [softwares, setSoftwares] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!isEdit || !license || hydratedLicenseId.current === license.licenseId) {
+      return;
+    }
+
+    setCustomerName(license.customerName || "");
+    setCustomerPhone(license.customerPhone || "");
+    setCustomerEmail(license.customerEmail || "");
+    setYearlyCost(license.yearlyCost ?? "");
+    setOncePaymentStatus(license.oncePaymentStatus || "paid");
+    setNote(license.note || "");
+    setContracts(
+      license.licenseContract.length > 0
+        ? license.licenseContract.map((contract, index) => ({
+            id: `${license.licenseId}-contract-${index}`,
+            name: contract.name,
+            file: null,
+            url: contract.url,
+          }))
+        : [{ id: "init-1", name: "", file: null, url: "" }],
+    );
+    setSoftwares(
+      license.software.map((software) => ({
+        ...software,
+        serverConfig: software.serverConfig || [],
+      })),
+    );
+    hydratedLicenseId.current = license.licenseId;
+  }, [isEdit, license]);
 
   const handleAddContractItem = () => {
     setContracts([
@@ -480,7 +537,12 @@ export default function LicenseCreatePage() {
   };
 
   const handleSave = async () => {
-    if (createMutation.isPending || uploadMutation.isPending) return;
+    if (
+      createMutation.isPending ||
+      updateMutation.isPending ||
+      uploadMutation.isPending
+    )
+      return;
 
     if (!customerName) {
       toast.error("Lỗi", "Vui lòng nhập tên khách hàng");
@@ -499,19 +561,23 @@ export default function LicenseCreatePage() {
         }),
       );
 
-      const response = await createMutation.mutateAsync({
+      const payload = {
         customerName,
         customerPhone,
         customerEmail,
         yearlyCost: yearlyCost === "" ? 0 : parseFloat(String(yearlyCost)) || 0,
-        oncePaymentStatus: "paid",
+        oncePaymentStatus,
         licenseContract: processedContracts,
         note,
         software: softwares.map((sw) => ({
           ...sw,
           price: sw.price === "" ? 0 : parseFloat(String(sw.price)) || 0,
         })),
-      });
+      };
+
+      const response = isEdit
+        ? await updateMutation.mutateAsync({ id: licenseId, payload })
+        : await createMutation.mutateAsync(payload);
 
       if (response.success) {
         navigate(PATHS.DASHBOARD.LICENSE_LIST);
@@ -522,11 +588,35 @@ export default function LicenseCreatePage() {
     }
   };
 
-  const isSaving = createMutation.isPending || uploadMutation.isPending;
+  const isSaving =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    uploadMutation.isPending;
   const reveal = {
     hidden: { opacity: 0, y: reduceMotion ? 0 : 14 },
     visible: { opacity: 1, y: 0 },
   };
+
+  if (isEdit && isLoadingLicense) {
+    return (
+      <div className="page-layout dashboard-theme flex min-h-100 items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (isEdit && (!licenseId || isLicenseError || !license)) {
+    return (
+      <div className="page-layout dashboard-theme flex min-h-100 flex-col items-center justify-center gap-4 text-center">
+        <p className="text-sm text-red-500 dark:text-red-400">
+          Không thể tải thông tin bản quyền.
+        </p>
+        <button type="button" className="btn-secondary" onClick={() => refetchLicense()}>
+          Thử lại
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="page-layout dashboard-theme pb-28 lg:pb-12">
@@ -544,7 +634,7 @@ export default function LicenseCreatePage() {
           items={[
             { label: "Trang chủ", path: PATHS.DASHBOARD.ROOT },
             { label: "Bản quyền", path: PATHS.DASHBOARD.LICENSE_LIST },
-            { label: "Tạo bản quyền" },
+            { label: isEdit ? "Chỉnh sửa bản quyền" : "Tạo bản quyền" },
           ]}
         />
         <div className="mt-5 flex flex-col gap-6 border-b border-gray-200 pb-7 md:flex-row md:items-end md:justify-between dark:border-white/[0.08]">
@@ -560,10 +650,12 @@ export default function LicenseCreatePage() {
             </motion.button>
             <div className="max-w-2xl">
               <h1 className="text-3xl font-semibold text-gray-950 md:text-4xl dark:text-white">
-                Tạo bản quyền
+                {isEdit ? "Chỉnh sửa bản quyền" : "Tạo bản quyền"}
               </h1>
               <p className="mt-3 max-w-xl text-[13px] leading-5 text-gray-500 dark:text-white/40">
-                Thêm bản quyền sử dụng phần mềm và cấu hình liên kết
+                {isEdit
+                  ? "Cập nhật thông tin sử dụng phần mềm và cấu hình liên kết"
+                  : "Thêm bản quyền sử dụng phần mềm và cấu hình liên kết"}
               </p>
             </div>
           </div>
@@ -572,10 +664,14 @@ export default function LicenseCreatePage() {
             whileTap={{ scale: 0.98 }}
             onClick={handleSave}
             disabled={isSaving}
-            className="hidden h-10 items-center gap-2 rounded-lg bg-indigo-600 px-5 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(79,70,229,0.2)] transition-all duration-200 hover:bg-indigo-500 active:scale-[0.98] disabled:opacity-50 md:flex"
+            className={`hidden items-center gap-2 rounded-lg border text-xs font-semibold text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-50 md:flex ${
+              isEdit
+                ? "h-9 border-indigo-300/20 bg-indigo-600 px-3.5 shadow-[0_6px_18px_rgba(79,70,229,0.18)] hover:border-indigo-200/30 hover:bg-indigo-500"
+                : "h-10 border-transparent bg-indigo-600 px-5 shadow-[0_8px_24px_rgba(79,70,229,0.2)] hover:bg-indigo-500"
+            }`}
           >
             {isSaving ? <Spinner size="sm" /> : <FiSave className="text-sm" />}
-            Tạo bản quyền
+            {isEdit ? "Lưu thay đổi" : "Tạo bản quyền"}
           </motion.button>
         </div>
       </motion.header>
@@ -912,28 +1008,42 @@ export default function LicenseCreatePage() {
 
         {/* Cột phải */}
         <aside className="flex flex-col gap-10 xl:sticky xl:top-6 xl:self-start xl:border-l xl:border-gray-200 xl:pl-8 dark:xl:border-white/[0.08]">
-          {/* Chi phí */}
+          {/* Chi phí và thanh toán */}
           <section className="border-b border-gray-200 pb-8 dark:border-white/[0.08]">
             <h2 className="mb-5 text-[13px] font-semibold text-gray-900 dark:text-white/85">
-              Chi phí
+              {isEdit ? "Chi phí và thanh toán" : "Chi phí"}
             </h2>
-            <div>
-              <FieldLabel>Chi phí hàng năm (VND)</FieldLabel>
-              <TextInput
-                id="yearly-cost"
-                value={yearlyCost}
-                onChange={setYearlyCost}
-                placeholder="Ví dụ: 12000000"
-                type="number"
-                disabled={isSaving}
-              />
+            <div className="flex flex-col gap-4">
+              <div>
+                <FieldLabel>Chi phí hàng năm (VND)</FieldLabel>
+                <TextInput
+                  id="yearly-cost"
+                  value={yearlyCost}
+                  onChange={setYearlyCost}
+                  placeholder="Ví dụ: 12000000"
+                  type="number"
+                  disabled={isSaving}
+                />
+              </div>
+              {isEdit && (
+                <div>
+                  <FieldLabel>Trạng thái thanh toán</FieldLabel>
+                  <GlassSelect
+                    value={oncePaymentStatus}
+                    onChange={setOncePaymentStatus}
+                    options={PAYMENT_STATUS_OPTIONS}
+                    placeholder="Chọn trạng thái thanh toán"
+                    disabled={isSaving}
+                  />
+                </div>
+              )}
             </div>
           </section>
 
           {/* Lưu ý */}
           <section>
             <h2 className="mb-4 text-[13px] font-semibold text-gray-900 dark:text-white/85">
-              Lưu ý khi tạo bản quyền
+              {isEdit ? "Lưu ý khi chỉnh sửa bản quyền" : "Lưu ý khi tạo bản quyền"}
             </h2>
             <div className="text-gray-455 space-y-2.5 text-xs leading-relaxed dark:text-white/30">
               <p>
@@ -954,14 +1064,22 @@ export default function LicenseCreatePage() {
               whileTap={{ scale: 0.98 }}
               onClick={handleSave}
               disabled={isSaving}
-              className="mt-6 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(79,70,229,0.18)] transition-all duration-200 hover:bg-indigo-500 disabled:opacity-50"
+              className={`mt-6 flex items-center justify-center gap-2 rounded-lg border text-xs font-semibold text-white transition-all duration-200 disabled:opacity-50 ${
+                isEdit
+                  ? "h-9 w-fit border-indigo-300/20 bg-indigo-600 px-3.5 shadow-[0_6px_18px_rgba(79,70,229,0.16)] hover:border-indigo-200/30 hover:bg-indigo-500"
+                  : "h-10 w-full border-transparent bg-indigo-600 px-4 shadow-[0_8px_24px_rgba(79,70,229,0.18)] hover:bg-indigo-500"
+              }`}
             >
               {isSaving ? (
                 <Spinner size="sm" />
               ) : (
-                <FiPlus className="text-xs" />
+                isEdit ? (
+                  <FiSave className="text-xs" />
+                ) : (
+                  <FiPlus className="text-xs" />
+                )
               )}
-              Tạo ngay
+              {isEdit ? "Lưu thay đổi" : "Tạo ngay"}
             </motion.button>
           </section>
         </aside>
@@ -976,7 +1094,7 @@ export default function LicenseCreatePage() {
           className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 text-xs font-semibold text-white disabled:opacity-50"
         >
           {isSaving ? <Spinner size="sm" /> : <FiSave className="text-sm" />}
-          Tạo bản quyền
+          {isEdit ? "Lưu thay đổi" : "Tạo bản quyền"}
         </motion.button>
       </div>
     </div>
