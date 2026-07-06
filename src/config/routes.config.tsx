@@ -15,7 +15,6 @@ import LandingPage from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/public/LoginPage";
 import LoginClientPage from "@/pages/public/LoginClientPage";
 import LoginHubPage from "@/pages/public/LoginHubPage";
-import MyPage from "@/pages/public/MyPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
 import ContractCreatePage from "@/pages/private/ContractCreatePage";
 import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
@@ -31,6 +30,7 @@ import HubClientDashboardPage from "@/pages/private/HubClientDashboardPage";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
 import LicenseCreatePage from "@/pages/private/LicenseCreatePage";
 import LicenseEditPage from "@/pages/private/LicenseEditPage";
+import LicenseDetailPage from "@/pages/private/LicenseDetailPage";
 import LicenseListPage from "@/pages/private/LicenseListPage";
 import LicenseSupportPage from "@/pages/private/LicenseSupportPage";
 import { PATHS } from "./paths";
@@ -144,6 +144,11 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
       {
         path: PATHS.DASHBOARD.LICENSE_EDIT,
         element: <LicenseEditPage />,
+        showInSidebar: false,
+      },
+      {
+        path: PATHS.DASHBOARD.LICENSE_DETAIL,
+        element: <LicenseDetailPage />,
         showInSidebar: false,
       },
       {

@@ -117,7 +117,7 @@ function LicenseTable({
       <div className="flex min-h-100 flex-col items-center justify-center py-10">
         <Spinner size="lg" />
         <p className="mt-4 text-sm font-medium text-gray-500 dark:text-white/40">
-          Đang tải dữ liệu...
+          Đang tải dữ liệu…
         </p>
       </div>
     );
@@ -130,6 +130,7 @@ function LicenseTable({
           Đã xảy ra lỗi khi tải danh sách bản quyền
         </p>
         <button
+          type="button"
           onClick={refetch}
           className="mt-6 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/5 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
         >
@@ -149,6 +150,7 @@ function LicenseTable({
           Chưa có dữ liệu hiển thị. Bấm "Tạo bản quyền" để thêm bản ghi mới.
         </p>
         <button
+          type="button"
           onClick={onCreate}
           className="mt-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-xs font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
         >
@@ -230,6 +232,19 @@ function LicenseTable({
               {/* Row 5: Thao tác */}
               <td className="p-4 text-center">
                 <div className="flex items-center justify-center gap-1">
+                  <Tooltip content="Chi tiết">
+                    <IconAction
+                      onClick={() =>
+                        navigate(
+                          PATHS.DASHBOARD.LICENSE_DETAIL.replace(
+                            ":licenseId",
+                            license.licenseId,
+                          ),
+                        )
+                      }
+                      icon={<FiEye />}
+                    />
+                  </Tooltip>
                   <Tooltip content="Chỉnh sửa">
                     <IconAction
                       onClick={() =>

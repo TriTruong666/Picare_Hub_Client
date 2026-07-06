@@ -45,7 +45,7 @@ function SettingCard({
         </div>
         {children}
         {info && (
-          <div className="flex gap-3 rounded-lg border border-gray-300 px-4 py-3 text-gray-600 dark:border-border-dark dark:text-white/70">
+          <div className="dark:border-border-dark flex gap-3 rounded-lg border border-gray-300 px-4 py-3 text-gray-600 dark:text-white/70">
             <IoIosInformationCircleOutline className="mt-0.5 shrink-0" />
             {info}
           </div>
@@ -113,6 +113,7 @@ export function ProfileSettingDashboardPage() {
               value={user?.email || ""}
               aria-label="Email"
               className="input-primary"
+              readOnly
               disabled
             />
             <input
@@ -210,8 +211,13 @@ export function SecuritySettingDashboardPage() {
   );
 }
 
-function ConnectionCard({ connection }: { connection: CommercialSoftwareConnection }) {
-  const { software, health, customerName, isConnected, isChecking } = connection;
+function ConnectionCard({
+  connection,
+}: {
+  connection: CommercialSoftwareConnection;
+}) {
+  const { software, health, customerName, isConnected, isChecking } =
+    connection;
 
   return (
     <article className="group relative border border-gray-300 bg-white px-5 py-4 transition-colors hover:border-gray-400 dark:border-white/10 dark:bg-white/[0.025] dark:hover:border-white/20">
@@ -249,7 +255,7 @@ function ConnectionCard({ connection }: { connection: CommercialSoftwareConnecti
             }`}
           />
           <span
-            className={`text-[10px] font-semibold uppercase tracking-wide ${
+            className={`text-[10px] font-semibold tracking-wide uppercase ${
               isConnected
                 ? "text-emerald-600 dark:text-emerald-400"
                 : "text-red-600 dark:text-red-400"
@@ -266,7 +272,7 @@ function ConnectionCard({ connection }: { connection: CommercialSoftwareConnecti
 
       <div className="mt-4 grid grid-cols-2 gap-4 border-t border-gray-200 pt-3 dark:border-white/[0.07]">
         <div>
-          <p className="text-[9px] uppercase tracking-wider text-gray-400 dark:text-white/25">
+          <p className="text-[9px] tracking-wider text-gray-400 uppercase dark:text-white/25">
             Khách hàng
           </p>
           <p className="mt-1 truncate text-[11px] text-gray-700 dark:text-white/60">
@@ -274,18 +280,20 @@ function ConnectionCard({ connection }: { connection: CommercialSoftwareConnecti
           </p>
         </div>
         <div>
-          <p className="text-[9px] uppercase tracking-wider text-gray-400 dark:text-white/25">
+          <p className="text-[9px] tracking-wider text-gray-400 uppercase dark:text-white/25">
             Dịch vụ
           </p>
           <p className="mt-1 text-[11px] text-gray-700 tabular-nums dark:text-white/60">
-            {software.serverConfig?.filter((item) => item.active).length || 0} đang bật
+            {software.serverConfig?.filter((item) => item.active).length || 0}{" "}
+            đang bật
           </p>
         </div>
       </div>
 
       {health && (
         <p className="mt-3 text-[10px] text-gray-400 dark:text-white/30">
-          {health.app || software.softwareId} · v{health.version || "--"} · {health.env || "--"}
+          {health.app || software.softwareId} · v{health.version || "--"} ·{" "}
+          {health.env || "--"}
         </p>
       )}
     </article>
@@ -294,7 +302,9 @@ function ConnectionCard({ connection }: { connection: CommercialSoftwareConnecti
 
 export function SystemSettingDashboardPage() {
   const connections = useCommercialSoftwareConnections();
-  const connectedCount = connections.data.filter((item) => item.isConnected).length;
+  const connectedCount = connections.data.filter(
+    (item) => item.isConnected,
+  ).length;
 
   return (
     <Page>
@@ -311,7 +321,8 @@ export function SystemSettingDashboardPage() {
         }
         info={
           <span className="text-[13px]">
-            Chỉ server trả về <code>isConnectPicare: true</code> mới được xác nhận là kết nối với Core.
+            Chỉ server trả về <code>isConnectPicare: true</code> mới được xác
+            nhận là kết nối với Core.
           </span>
         }
       >
@@ -329,7 +340,8 @@ export function SystemSettingDashboardPage() {
               Chưa có phần mềm server
             </h2>
             <p className="mt-2 text-xs text-gray-500 dark:text-white/40">
-              Thêm software loại server trong bản quyền để theo dõi kết nối tại đây.
+              Thêm software loại server trong bản quyền để theo dõi kết nối tại
+              đây.
             </p>
           </div>
         ) : (
@@ -341,9 +353,6 @@ export function SystemSettingDashboardPage() {
               <h2 className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">
                 Picare Core Hub
               </h2>
-              <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-indigo-600/70 dark:text-indigo-300/60">
-                Connection center
-              </p>
               <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-emerald-600 dark:text-emerald-400">
                 <span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
                 Core đang hoạt động
