@@ -1,4 +1,4 @@
-export type sendEcontractMailTemplatePayload = {
+export type SendEcontractMailTemplatePayload = {
   smtpUser: string;
   mailFrom: string;
   mailFromName: string;
@@ -15,7 +15,7 @@ export type sendEcontractMailTemplatePayload = {
   replyTo: string;
 };
 
-export type sendLicenseActiveMailTemplatePayload = {
+export type SendLicenseActiveMailTemplatePayload = {
   smtpUser: string;
   mailFrom: string;
   mailFromName: string;

@@ -35,6 +35,7 @@ const SOFTWARE_TYPE_OPTIONS = [
 
 const PAYMENT_STATUS_OPTIONS = [
   { value: "paid", label: "Đã thanh toán" },
+  { value: "partialy_paid", label: "Thanh toán một phần" },
   { value: "unpaid", label: "Chưa thanh toán" },
 ];
 

@@ -1,17 +1,25 @@
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { FiDownload, FiEdit2, FiExternalLink, FiServer } from "react-icons/fi";
+import { FiDownload, FiEdit2, FiExternalLink, FiServer, FiMail } from "react-icons/fi";
+import { HiOutlineX } from "react-icons/hi";
 import { Link, useParams } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { formatDateTime, formatPrice } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
+import { Spinner } from "@/components/custom_ui/Spinner";
+import GlassSelect from "@/components/custom_ui/Select";
 import {
   StateLoadingContainer,
   StateShell,
 } from "@/components/custom_ui/ShellState";
 import { PATHS } from "@/config/paths";
 import { useLicenseDetail } from "@/hooks/data/useLicenseHooks";
+import { useSendLicenseActiveMailTemplate } from "@/hooks/data/useMailHooks";
+import { toast } from "@/hooks/useToast";
 import type {
+  License,
   LicenseContract,
   LicenseTicket,
   SoftwareItem,
@@ -62,6 +70,7 @@ function ticketBadge(status: string) {
 
 export default function LicenseDetailPage() {
   const { licenseId = "" } = useParams<{ licenseId: string }>();
+  const [isMailModalOpen, setIsMailModalOpen] = useState(false);
   const {
     data: license,
     isLoading,
@@ -121,23 +130,49 @@ export default function LicenseDetailPage() {
           </p>
         </div>
 
-        <Link
-          to={editPath}
-          className="inline-flex h-9 w-fit items-center justify-center gap-1.5 border border-gray-300 px-4 text-xs font-medium text-gray-700 transition hover:bg-gray-100 dark:border-white/10 dark:text-white dark:hover:bg-white/10"
-        >
-          <FiEdit2 />
-          Chỉnh sửa
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsMailModalOpen(true)}
+            className="inline-flex h-9 w-fit items-center justify-center gap-1.5 bg-indigo-600 px-4 text-xs font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <FiMail />
+            Gửi mail
+          </button>
+          <Link
+            to={editPath}
+            className="inline-flex h-9 w-fit items-center justify-center gap-1.5 border border-gray-300 px-4 text-xs font-medium text-gray-700 transition hover:bg-gray-100 dark:border-white/10 dark:text-white dark:hover:bg-white/10"
+          >
+            <FiEdit2 />
+            Chỉnh sửa
+          </Link>
+        </div>
       </header>
+
+      <AnimatePresence>
+        {isMailModalOpen && (
+          <LicenseActivationMailDialog
+            key={license.licenseId}
+            license={license}
+            onClose={() => setIsMailModalOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       <div className="space-y-4">
         <SectionBlock title="Thông tin bản quyền">
           <InfoGrid
             rows={[
               ["Mã bản quyền", license.licenseKey || license.licenseId],
-              ["Trạng thái thanh toán", paymentBadge(license.oncePaymentStatus)],
+              [
+                "Trạng thái thanh toán",
+                paymentBadge(license.oncePaymentStatus),
+              ],
               ["Tổng giá trị phần mềm", formatPrice(softwareTotal)],
-              ["Chi phí hàng năm", formatPrice(Number(license.yearlyCost || 0))],
+              [
+                "Chi phí hàng năm",
+                formatPrice(Number(license.yearlyCost || 0)),
+              ],
               ["Ngày tạo", formatDateTime(license.createdAt)],
               ["Cập nhật gần nhất", formatDateTime(license.updatedAt)],
             ]}
@@ -155,7 +190,9 @@ export default function LicenseDetailPage() {
           />
         </SectionBlock>
 
-        <SectionBlock title={`Hợp đồng liên quan (${license.licenseContract.length})`}>
+        <SectionBlock
+          title={`Hợp đồng liên quan (${license.licenseContract.length})`}
+        >
           <ContractTable contracts={license.licenseContract} />
         </SectionBlock>
 
@@ -171,7 +208,13 @@ export default function LicenseDetailPage() {
   );
 }
 
-function SectionBlock({ title, children }: { title: string; children: ReactNode }) {
+function SectionBlock({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
   return (
     <section className="border border-gray-400 dark:border-white/10">
       <div className="border-b border-gray-400 bg-gray-100/40 px-4 py-3 dark:border-white/10 dark:bg-white/[0.03]">
@@ -192,8 +235,12 @@ function InfoGrid({ rows }: { rows: Array<[string, ReactNode]> }) {
           key={label}
           className="grid grid-cols-1 gap-1.5 px-3 py-2.5 md:grid-cols-[170px_1fr]"
         >
-          <p className="text-[11px] text-gray-500 dark:text-white/40">{label}</p>
-          <div className="text-xs text-gray-800 dark:text-white/80">{value}</div>
+          <p className="text-[11px] text-gray-500 dark:text-white/40">
+            {label}
+          </p>
+          <div className="text-xs text-gray-800 dark:text-white/80">
+            {value}
+          </div>
         </div>
       ))}
     </div>
@@ -250,8 +297,18 @@ function SoftwareList({ software }: { software: SoftwareItem[] }) {
                 <h3 className="text-[13px] font-semibold text-gray-900 dark:text-white">
                   {item.name || item.softwareId}
                 </h3>
-                <Badge type={item.status === "active" ? "success" : "info"} value={item.status === "active" ? "Đang hoạt động" : item.status || "Không xác định"} />
-                <Badge type="indigo" value={item.type === "server" ? "Server" : "Client"} />
+                <Badge
+                  type={item.status === "active" ? "success" : "info"}
+                  value={
+                    item.status === "active"
+                      ? "Đang hoạt động"
+                      : item.status || "Không xác định"
+                  }
+                />
+                <Badge
+                  type="indigo"
+                  value={item.type === "server" ? "Server" : "Client"}
+                />
               </div>
               <p className="mt-2 text-[11px] text-gray-500 dark:text-white/40">
                 ID: {item.softwareId || "-"}
@@ -265,27 +322,38 @@ function SoftwareList({ software }: { software: SoftwareItem[] }) {
           <div className="mt-4 grid gap-3 border-t border-gray-200 pt-3 sm:grid-cols-2 dark:border-white/[0.07]">
             <DetailCell label="Domain">
               {item.domain ? (
-                <a href={/^https?:\/\//.test(item.domain) ? item.domain : `https://${item.domain}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-indigo-500">
+                <a
+                  href={
+                    /^https?:\/\//.test(item.domain)
+                      ? item.domain
+                      : `https://${item.domain}`
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 hover:text-indigo-500"
+                >
                   {item.domain} <FiExternalLink />
                 </a>
-              ) : "-"}
-            </DetailCell>
-            <DetailCell label="Kết nối Picare">
-              <span className={item.isConnectPicare ? "text-emerald-600 dark:text-emerald-400" : "text-gray-500 dark:text-white/40"}>
-                {item.isConnectPicare ? "Đã kết nối" : "Chưa kết nối"}
-              </span>
+              ) : (
+                "-"
+              )}
             </DetailCell>
           </div>
 
           {item.serverConfig?.length > 0 && (
             <div className="mt-4 border-t border-gray-200 pt-3 dark:border-white/[0.07]">
-              <p className="mb-2 text-[10px] uppercase tracking-wider text-gray-400 dark:text-white/30">
+              <p className="mb-2 text-[10px] tracking-wider text-gray-400 uppercase dark:text-white/30">
                 Cấu hình dịch vụ
               </p>
               <div className="flex flex-wrap gap-2">
                 {item.serverConfig.map((config) => (
-                  <span key={config.name} className="inline-flex items-center gap-1.5 border border-gray-300 px-2.5 py-1 text-[10px] text-gray-600 dark:border-white/10 dark:text-white/60">
-                    <span className={`size-1.5 rounded-full ${config.active ? "bg-emerald-400" : "bg-zinc-500"}`} />
+                  <span
+                    key={config.name}
+                    className="inline-flex items-center gap-1.5 border border-gray-300 px-2.5 py-1 text-[10px] text-gray-600 dark:border-white/10 dark:text-white/60"
+                  >
+                    <span
+                      className={`size-1.5 rounded-full ${config.active ? "bg-emerald-400" : "bg-zinc-500"}`}
+                    />
                     {config.name || "Chưa đặt tên"}
                   </span>
                 ))}
@@ -314,13 +382,11 @@ function TicketTable({ tickets }: { tickets: LicenseTicket[] }) {
       <table className="w-full min-w-180 border-collapse text-left">
         <thead className="bg-gray-100/40 dark:bg-white/[0.03]">
           <tr>
-            {[
-              "Tiêu đề",
-              "Nội dung",
-              "Trạng thái",
-              "Ngày tạo",
-            ].map((label) => (
-              <th key={label} className="border-b border-gray-400 px-3 py-2.5 text-[11px] font-medium text-gray-500 dark:border-white/10 dark:text-white/40">
+            {["Tiêu đề", "Nội dung", "Trạng thái", "Ngày tạo"].map((label) => (
+              <th
+                key={label}
+                className="border-b border-gray-400 px-3 py-2.5 text-[11px] font-medium text-gray-500 dark:border-white/10 dark:text-white/40"
+              >
                 {label}
               </th>
             ))}
@@ -329,10 +395,16 @@ function TicketTable({ tickets }: { tickets: LicenseTicket[] }) {
         <tbody className="divide-y divide-gray-400 dark:divide-white/10">
           {tickets.map((ticket) => (
             <tr key={ticket.id}>
-              <td className="px-3 py-2.5 text-xs font-medium text-gray-900 dark:text-white">{ticket.title || "-"}</td>
-              <td className="max-w-sm px-3 py-2.5 text-xs text-gray-600 dark:text-white/60">{ticket.message || "-"}</td>
+              <td className="px-3 py-2.5 text-xs font-medium text-gray-900 dark:text-white">
+                {ticket.title || "-"}
+              </td>
+              <td className="max-w-sm px-3 py-2.5 text-xs text-gray-600 dark:text-white/60">
+                {ticket.message || "-"}
+              </td>
               <td className="px-3 py-2.5">{ticketBadge(ticket.status)}</td>
-              <td className="px-3 py-2.5 text-xs text-gray-600 tabular-nums dark:text-white/60">{formatDateTime(ticket.createdAt)}</td>
+              <td className="px-3 py-2.5 text-xs text-gray-600 tabular-nums dark:text-white/60">
+                {formatDateTime(ticket.createdAt)}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -341,15 +413,415 @@ function TicketTable({ tickets }: { tickets: LicenseTicket[] }) {
   );
 }
 
-function DetailCell({ label, children }: { label: string; children: ReactNode }) {
+function DetailCell({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-white/30">{label}</p>
-      <div className="mt-1 text-[11px] text-gray-700 dark:text-white/60">{children}</div>
+      <p className="text-[10px] tracking-wider text-gray-400 uppercase dark:text-white/30">
+        {label}
+      </p>
+      <div className="mt-1 text-[11px] text-gray-700 dark:text-white/60">
+        {children}
+      </div>
     </div>
   );
 }
 
 function EmptyText({ children }: { children: ReactNode }) {
-  return <p className="py-6 text-center text-xs text-gray-500 dark:text-white/40">{children}</p>;
+  return (
+    <p className="py-6 text-center text-xs text-gray-500 dark:text-white/40">
+      {children}
+    </p>
+  );
+}
+
+interface LicenseActiveMailForm {
+  to: string;
+  softwareName: string;
+  serverSoftwareId: string;
+  clientSoftwareId: string;
+  licenseKey: string;
+  subject: string;
+  title: string;
+  intro: string;
+  message: string;
+  footer: string;
+}
+
+function normalizeSoftwareUrl(domain?: string) {
+  if (!domain) return "";
+  return /^https?:\/\//.test(domain) ? domain : `https://${domain}`;
+}
+
+function createActivationCopy(
+  license: License,
+  softwareName: string,
+  clientUrl: string,
+) {
+  return {
+    subject: `[Picare] Thông tin kích hoạt phần mềm ${softwareName}`,
+    title: `Thông tin kích hoạt phần mềm ${softwareName}`,
+    intro: `Kính gửi ${license.customerName || "Quý khách hàng"},`,
+    message: [
+      `Phần mềm ${softwareName} đã được kiểm thử và đã trực tuyến. Để kích hoạt, quý khách vui lòng làm theo hướng dẫn dưới đây:`,
+      "1. Truy cập vào phần mềm theo đường dẫn bên dưới.",
+      "2. Đăng nhập vào tài khoản Admin mà chúng tôi đã cung cấp.",
+      "3. Sau khi đăng nhập thành công, nhập ID phần mềm và Key kích hoạt.",
+      "4. Khi hoàn tất, phần mềm sẽ chính thức được kích hoạt.",
+      "Quý khách vui lòng sử dụng thông tin bên dưới để truy cập và sử dụng dịch vụ.",
+      `Đường dẫn phần mềm ${softwareName}: ${clientUrl}`,
+    ].join("\n"),
+    footer:
+      "Email này được gửi tự động từ hệ thống của công ty Picare Việt Nam. Vui lòng không chia sẻ ID phần mềm và Key kích hoạt.",
+  };
+}
+
+function createLicenseActiveMailForm(license: License): LicenseActiveMailForm {
+  const serverSoftware = license.software.find((software) => software.type === "server");
+  const clientSoftware = license.software.find((software) => software.type === "client");
+  const softwareName = serverSoftware?.name || clientSoftware?.name || "";
+  const clientUrl = normalizeSoftwareUrl(clientSoftware?.domain);
+
+  return {
+    to: license.customerEmail || "",
+    softwareName,
+    serverSoftwareId: serverSoftware?.softwareId || "",
+    clientSoftwareId: clientSoftware?.softwareId || "",
+    licenseKey: license.licenseKey || "",
+    ...createActivationCopy(license, softwareName, clientUrl),
+  };
+}
+
+function LicenseActivationMailDialog({
+  license,
+  onClose,
+}: {
+  license: License;
+  onClose: () => void;
+}) {
+  const sendMailMutation = useSendLicenseActiveMailTemplate();
+  const [form, setForm] = useState<LicenseActiveMailForm>(() =>
+    createLicenseActiveMailForm(license),
+  );
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  const isSending = sendMailMutation.isPending;
+  const serverSoftware = license.software.filter(
+    (software) => software.type === "server",
+  );
+  const clientSoftware = license.software.filter(
+    (software) => software.type === "client",
+  );
+  const selectedClient = clientSoftware.find(
+    (software) => software.softwareId === form.clientSoftwareId,
+  );
+  const clientUrl = normalizeSoftwareUrl(selectedClient?.domain);
+
+  const updateField = (field: keyof LicenseActiveMailForm, value: string) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSend = async () => {
+    const normalizedTo = form.to.trim();
+    const softwareName = form.softwareName.trim();
+
+    if (
+      !normalizedTo ||
+      !softwareName ||
+      !form.serverSoftwareId ||
+      !form.clientSoftwareId ||
+      !form.licenseKey.trim() ||
+      !form.subject.trim() ||
+      !form.title.trim() ||
+      !form.message.trim() ||
+      !form.footer.trim()
+    ) {
+      toast.error(
+        "Thiếu thông tin gửi mail",
+        "Vui lòng nhập email, tên phần mềm và chọn đủ Server/Client trước khi gửi.",
+      );
+      return;
+    }
+
+    const isDev = import.meta.env.DEV;
+    const response = await sendMailMutation.mutateAsync({
+      smtpUser: isDev ? "tritruonghoang3@gmail.com" : "picare-noreply@picare.vn",
+      mailFrom: isDev ? "tritruonghoang3@gmail.com" : "picare-noreply@picare.vn",
+      mailFromName: isDev ? "Picare Dev" : "Picare Việt Nam",
+      to: normalizedTo,
+      subject: form.subject.trim(),
+      title: form.title.trim(),
+      intro: form.intro.trim(),
+      bodyLines: form.message
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean),
+      clientUrl,
+      softwareId: form.serverSoftwareId,
+      licenseKey: form.licenseKey.trim(),
+      footer: form.footer.trim(),
+      replyTo: "picare-noreply@picare.vn",
+    });
+
+    if (response.success) {
+      onClose();
+    }
+  };
+
+  return (
+        <div
+          data-lenis-prevent
+          className="fixed inset-0 z-[300] flex items-center justify-center overflow-hidden p-4"
+          onWheel={(event) => event.stopPropagation()}
+        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !isSending && onClose()}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ type: "spring", duration: 0.3 }}
+            className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border backdrop-blur-xl"
+          >
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 bg-white/[0.04] p-4">
+              <div>
+                <h2 className="text-base font-semibold text-white">
+                  Gửi mail kích hoạt bản quyền
+                </h2>
+                <p className="mt-1 text-xs leading-5 text-white/45">
+                  Kiểm tra nội dung trước khi gửi email thông tin kích hoạt bản quyền cho khách hàng.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                disabled={isSending}
+                onClick={onClose}
+                className="rounded-md p-1.5 text-white/45 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <HiOutlineX className="size-4" />
+              </button>
+            </div>
+
+            <div
+              data-lenis-prevent
+              className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4"
+            >
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Email khách hàng
+                </span>
+                <input
+                  type="email"
+                  value={form.to}
+                  disabled={isSending}
+                  onChange={(event) => updateField("to", event.target.value)}
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Tên phần mềm
+                </span>
+                <input
+                  value={form.softwareName}
+                  disabled={isSending}
+                  onChange={(event) => {
+                    const softwareName = event.target.value;
+                    setForm((current) => ({
+                      ...current,
+                      softwareName,
+                      ...createActivationCopy(
+                        license,
+                        softwareName,
+                        clientUrl,
+                      ),
+                    }));
+                  }}
+                  placeholder="Ví dụ: Picare OMS"
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                    Phần mềm Server
+                  </span>
+                  <GlassSelect
+                    value={form.serverSoftwareId}
+                    disabled={isSending}
+                    placeholder="Chọn Server"
+                    options={serverSoftware.map((software) => ({
+                      value: software.softwareId,
+                      label: software.name || software.softwareId,
+                    }))}
+                    onChange={(value) => {
+                      const software = serverSoftware.find(
+                        (item) => item.softwareId === value,
+                      );
+                      const softwareName =
+                        software?.name || form.softwareName;
+                      setForm((current) => ({
+                        ...current,
+                        serverSoftwareId: value,
+                        softwareName,
+                        ...createActivationCopy(
+                          license,
+                          softwareName,
+                          clientUrl,
+                        ),
+                      }));
+                    }}
+                  />
+                  <span className="mt-1.5 block text-[10px] text-white/30">
+                    ID gửi đi: {form.serverSoftwareId || "Chưa chọn"}
+                  </span>
+                </label>
+
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                    Phần mềm Client
+                  </span>
+                  <GlassSelect
+                    value={form.clientSoftwareId}
+                    disabled={isSending}
+                    placeholder="Chọn Client"
+                    options={clientSoftware.map((software) => ({
+                      value: software.softwareId,
+                      label: software.name || software.softwareId,
+                    }))}
+                    onChange={(value) => {
+                      const selected = clientSoftware.find(
+                        (software) => software.softwareId === value,
+                      );
+                      const nextClientUrl = normalizeSoftwareUrl(
+                        selected?.domain,
+                      );
+                      setForm((current) => ({
+                        ...current,
+                        clientSoftwareId: value,
+                        ...createActivationCopy(
+                          license,
+                          current.softwareName,
+                          nextClientUrl,
+                        ),
+                      }));
+                    }}
+                  />
+                  <span className="mt-1.5 block truncate text-[10px] text-white/30">
+                    Đường dẫn: {clientUrl || "Chưa chọn"}
+                  </span>
+                </label>
+              </div>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Tiêu đề email
+                </span>
+                <input
+                  value={form.subject}
+                  disabled={isSending}
+                  onChange={(event) =>
+                    updateField("subject", event.target.value)
+                  }
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Tiêu đề nội dung
+                </span>
+                <input
+                  value={form.title}
+                  disabled={isSending}
+                  onChange={(event) => updateField("title", event.target.value)}
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Lời chào
+                </span>
+                <input
+                  value={form.intro}
+                  disabled={isSending}
+                  onChange={(event) => updateField("intro", event.target.value)}
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Nội dung hướng dẫn
+                </span>
+                <textarea
+                  value={form.message}
+                  disabled={isSending}
+                  rows={8}
+                  onChange={(event) =>
+                    updateField("message", event.target.value)
+                  }
+                  className="w-full resize-y rounded-lg border border-white/10 bg-white/[0.025] px-3 py-2 text-xs leading-5 text-white outline-none transition focus:border-white/25 disabled:opacity-50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                  Footer bảo mật
+                </span>
+                <textarea
+                  value={form.footer}
+                  disabled={isSending}
+                  rows={2}
+                  onChange={(event) => updateField("footer", event.target.value)}
+                  className="w-full resize-y rounded-lg border border-white/10 bg-white/[0.025] px-3 py-2 text-xs leading-5 text-white outline-none transition focus:border-white/25 disabled:opacity-50"
+                />
+              </label>
+            </div>
+
+            <div className="flex shrink-0 justify-end gap-2 border-t border-white/10 bg-white/[0.04] p-4">
+              <button
+                type="button"
+                disabled={isSending}
+                onClick={onClose}
+                className="inline-flex h-8 items-center rounded-md bg-[rgba(255,255,255,0.08)] px-3 text-xs text-white/75 transition hover:bg-[rgba(255,255,255,0.14)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 dark:bg-[rgba(255,255,255,0.08)] dark:hover:bg-[rgba(255,255,255,0.16)]"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                disabled={isSending}
+                onClick={handleSend}
+                className="flex h-8 items-center gap-1.5 rounded-md bg-indigo-600 px-3 text-xs font-semibold text-white shadow-sm shadow-indigo-500/20 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSending ? <Spinner size="sm" /> : <FiMail size={14} />}
+                Gửi mail
+              </button>
+            </div>
+          </motion.div>
+        </div>
+  );
 }
