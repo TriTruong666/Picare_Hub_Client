@@ -17,6 +17,13 @@ import LicenseCreatePage from "@/pages/private/LicenseCreatePage";
 import LicenseEditPage from "@/pages/private/LicenseEditPage";
 import LicenseListPage from "@/pages/private/LicenseListPage";
 import LicenseSupportPage from "@/pages/private/LicenseSupportPage";
+import SettingDashboardLayout from "@/layouts/SettingDashboardLayout";
+import {
+  ProfileSettingDashboardPage,
+  SecuritySettingDashboardPage,
+  StorageSettingDashboardPage,
+  SystemSettingDashboardPage,
+} from "@/pages/private/SettingDashboardPage";
 
 export default function PrivateRoutes() {
   return (
@@ -44,7 +51,12 @@ export default function PrivateRoutes() {
           <Route path="notifications" element={<PrivateStubPage />} />
           <Route path="messages" element={<PrivateStubPage />} />
           <Route path="profile" element={<PrivateStubPage />} />
-          <Route path="settings" element={<PrivateStubPage />} />
+          <Route path="settings" element={<SettingDashboardLayout />}>
+            <Route index element={<ProfileSettingDashboardPage />} />
+            <Route path="security" element={<SecuritySettingDashboardPage />} />
+            <Route path="storage" element={<StorageSettingDashboardPage />} />
+            <Route path="system" element={<SystemSettingDashboardPage />} />
+          </Route>
           <Route
             path="*"
             element={<Navigate to={PATHS.DASHBOARD.ROOT} replace />}

@@ -1,8 +1,10 @@
 import * as AuthService from "@/apis/auth.service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { LoginRequest } from "@/types/Auth";
+import type { ChangePasswordPayload, LoginRequest } from "@/types/Auth";
 import type { User } from "@/types/User";
 import { getApiErrorMessage } from "@/common/api.error";
+import { translateErrorMessage } from "@/common/api.error";
+import { toast } from "@/hooks/useToast";
 
 /**
  * Hook cho việc đăng nhập hệ thống
@@ -35,5 +37,23 @@ export function useLogout() {
       queryClient.setQueryData(["auth", "me"], null);
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
     },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (data: ChangePasswordPayload) =>
+      AuthService.changePassword(data),
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã đổi mật khẩu");
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (error) => toast.error("Lỗi", getApiErrorMessage(error)),
   });
 }

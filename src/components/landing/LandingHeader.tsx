@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/data/useAuthHooks";
 import { STATIC_HUB_CLIENTS } from "@/constants/staticHubClients";
 import { canAccessDashboard } from "@/config/dashboardAccess";
+import { PATHS } from "@/config/paths";
 
 export default function LandingHeader() {
   const [activeTab, setActiveTab] = useState("Giới thiệu");
@@ -279,7 +280,7 @@ export default function LandingHeader() {
                   {user?.name?.[0].toUpperCase() || "U"}
                 </div>
                 <span className="font-inter text-[13px] font-medium text-white/90 group-hover:text-white">
-                  Hi, {user?.name.split(" ")[0]}
+                  Hi, {user?.name?.split(" ")[0] || "User"}
                 </span>
                 <FiChevronDown
                   className={`text-white/40 transition-transform duration-300 ${isUserMenuOpen ? "rotate-180" : ""}`}
@@ -338,7 +339,7 @@ export default function LandingHeader() {
                         Hồ sơ của tôi
                       </Link>
                       <Link
-                        to="/settings"
+                        to={PATHS.DASHBOARD.SETTINGS.ROOT}
                         className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
                         onClick={() => setIsUserMenuOpen(false)}
                       >

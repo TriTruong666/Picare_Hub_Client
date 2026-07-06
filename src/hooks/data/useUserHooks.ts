@@ -68,3 +68,30 @@ export function useUpdateUser() {
     },
   });
 }
+
+export function useUpdateUserInfo() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      userId,
+      data,
+    }: {
+      userId: string;
+      data: Pick<UpdateUserPayload, "name" | "phone">;
+    }) => UserService.updateUserInfo(data, userId),
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã cập nhật thông tin cá nhân");
+        queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+        queryClient.invalidateQueries({ queryKey: ["users"] });
+      } else {
+        toast.error(
+          "Thất bại",
+          translateErrorMessage(data.error_code, data.message),
+        );
+      }
+    },
+    onError: (error) => toast.error("Lỗi", getApiErrorMessage(error)),
+  });
+}

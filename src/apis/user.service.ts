@@ -37,3 +37,11 @@ export async function updateUser(
   const res = await hubAxiosClient.put(`/api/v1/users/${userId}`, payload);
   return res.data;
 }
+
+export async function updateUserInfo(
+  payload: Pick<UpdateUserPayload, "name" | "phone">,
+  userId: string,
+): Promise<BaseResponse<null>> {
+  const res = await hubAxiosClient.put(`/api/v1/users/${userId}`, payload);
+  return res.data;
+}

@@ -25,7 +25,12 @@ export const PATHS = {
     NOTIFICATIONS: "/dashboard/notifications",
     MESSAGES: "/dashboard/messages",
     PROFILE: "/dashboard/profile",
-    SETTINGS: "/dashboard/settings",
+    SETTINGS: {
+      ROOT: "/dashboard/settings",
+      SECURITY: "/dashboard/settings/security",
+      STORAGE: "/dashboard/settings/storage",
+      SYSTEM: "/dashboard/settings/system",
+    },
     ACCOUNTS: "/dashboard/accounts",
     CONTRACTS: "/dashboard/contracts",
     QR_PRODUCTS: "/dashboard/qr-products",

@@ -208,7 +208,7 @@ function Navbar() {
                   </ProfileRouteLink>
 
                   <ProfileRouteLink
-                    to={PATHS.DASHBOARD.SETTINGS}
+                    to={PATHS.DASHBOARD.SETTINGS.ROOT}
                     icon={<FiSettings className="text-[15px] text-white/40" />}
                     onClick={() => setIsProfileOpen(false)}
                   >
@@ -341,7 +341,7 @@ function Sidebar() {
 
       <div className="space-y-1 border-t border-gray-300 px-3 py-4 dark:border-white/5">
         <SidebarItem
-          to={PATHS.DASHBOARD.SETTINGS}
+          to={PATHS.DASHBOARD.SETTINGS.ROOT}
           icon={<FiSettings />}
           label="Settings"
         />
