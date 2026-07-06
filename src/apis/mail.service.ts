@@ -1,10 +1,13 @@
 import type { BaseResponse } from "@/types/ApiResponse";
-import type { SendMailTemplatePayload } from "@/types/Mail";
+import type { sendEcontractMailTemplatePayload } from "@/types/Mail";
 import { hubAxiosClient } from "./client";
 
-export const sendMailTemplate = async (
-  payload: SendMailTemplatePayload,
+export const sendEcontractMailTemplate = async (
+  payload: sendEcontractMailTemplatePayload,
 ): Promise<BaseResponse<null>> => {
-  const res = await hubAxiosClient.post("/api/v1/mail/send-template", payload);
+  const res = await hubAxiosClient.post(
+    "/api/v1/mail/econtract-template",
+    payload,
+  );
   return res.data;
 };

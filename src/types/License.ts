@@ -17,6 +17,7 @@ export interface SoftwareItem {
   status: string;
   domain: string;
   type: string;
+  isConnectPicare?: boolean;
   serverConfig: SoftwareServerConfig[];
   note: string;
   createdAt?: string;

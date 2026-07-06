@@ -28,7 +28,6 @@ export const PATHS = {
     SETTINGS: {
       ROOT: "/dashboard/settings",
       SECURITY: "/dashboard/settings/security",
-      STORAGE: "/dashboard/settings/storage",
       SYSTEM: "/dashboard/settings/system",
     },
     ACCOUNTS: "/dashboard/accounts",

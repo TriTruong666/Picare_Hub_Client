@@ -6,7 +6,6 @@ import { PATHS } from "@/config/paths";
 const tabs = [
   { to: PATHS.DASHBOARD.SETTINGS.ROOT, label: "Tổng quan", end: true },
   { to: PATHS.DASHBOARD.SETTINGS.SECURITY, label: "Bảo mật" },
-  { to: PATHS.DASHBOARD.SETTINGS.STORAGE, label: "Tồn kho" },
   { to: PATHS.DASHBOARD.SETTINGS.SYSTEM, label: "Hệ thống" },
 ];
 

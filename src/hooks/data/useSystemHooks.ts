@@ -1,96 +1,67 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 
-import { getApiErrorMessage } from "@/common/api.error";
 import * as SystemService from "@/apis/system.service";
-import { toast } from "@/hooks/useToast";
-import type { SystemHealthResponse, SystemLogStatus } from "@/types/System";
-import { useFetch } from "../useQuery";
+import { useLicenses } from "@/hooks/data/useLicenseHooks";
+import type { SoftwareItem } from "@/types/License";
+import type { SystemHealthResponse } from "@/types/System";
 
-export type SystemHealthCardData = {
-  key: "hub" | "oms";
-  label: string;
+export type CommercialSoftwareConnection = {
+  key: string;
+  customerName: string;
+  licenseId: string;
+  software: SoftwareItem;
   health: SystemHealthResponse | null;
-  error: string | null;
+  isConnected: boolean;
+  isChecking: boolean;
 };
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error && error.message
-    ? error.message
-    : "Không thể kết nối tới dịch vụ";
-}
-
-export function useSystemHealth() {
-  return useQuery<SystemHealthCardData[]>({
-    queryKey: ["system-health"],
-    queryFn: async () => {
-      const [hubResult, omsResult] = await Promise.allSettled([
-        SystemService.getHubHealth(),
-        SystemService.getOmsHealth(),
-      ]);
-
-      return [
-        {
-          key: "hub" as const,
-          label: "Picare Core Hub",
-          health: hubResult.status === "fulfilled" ? hubResult.value : null,
-          error:
-            hubResult.status === "rejected"
-              ? getErrorMessage(hubResult.reason)
-              : null,
-        },
-        {
-          key: "oms" as const,
-          label: "Picare OMS",
-          health: omsResult.status === "fulfilled" ? omsResult.value : null,
-          error:
-            omsResult.status === "rejected"
-              ? getErrorMessage(omsResult.reason)
-              : null,
-        },
-      ];
-    },
-    refetchInterval: 30_000,
-  });
-}
-
-export function useSystemLogs(params: {
-  page: number;
-  limit: number;
-  status: SystemLogStatus | null;
-  search: string;
-}) {
-  return useFetch(["system-logs", params], () =>
-    SystemService.getSystemLogs({
-      ...params,
-      status: params.status || undefined,
-      search: params.search || undefined,
-    }),
+export function useCommercialSoftwareConnections() {
+  const licensesQuery = useLicenses({ page: 1, limit: 100 });
+  const servers = (licensesQuery.data || []).flatMap((license) =>
+    (license.software || [])
+      .filter((software) => software.type === "server")
+      .map((software) => ({
+        key: `${license.licenseId}-${software.softwareId}`,
+        customerName: license.customerName,
+        licenseId: license.licenseId,
+        software,
+      })),
   );
-}
 
-export function useDeleteSystemLogs() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (ids: string[]) =>
-      Promise.allSettled(ids.map(SystemService.deleteSystemLog)),
-    onSuccess: (results) => {
-      const successCount = results.filter(
-        (result) => result.status === "fulfilled" && result.value.success,
-      ).length;
-      queryClient.invalidateQueries({ queryKey: ["system-logs"] });
-
-      if (successCount === results.length) {
-        toast.success("Thành công", `Đã xóa ${successCount} log hệ thống.`);
-      } else if (successCount > 0) {
-        toast.warn(
-          "Xóa một phần",
-          `Đã xóa ${successCount}/${results.length} log hệ thống.`,
-        );
-      } else {
-        toast.error("Thất bại", "Không thể xóa log hệ thống.");
-      }
-    },
-    onError: (error) => toast.error("Lỗi", getApiErrorMessage(error)),
+  const healthQueries = useQueries({
+    queries: servers.map((server) => ({
+      queryKey: ["commercial-software-health", server.software.domain],
+      queryFn: () =>
+        SystemService.getCommercialSoftwareHealth(server.software.domain),
+      enabled: Boolean(server.software.domain),
+      retry: false,
+      refetchInterval: 30_000,
+    })),
   });
+
+  const data: CommercialSoftwareConnection[] = servers.map((server, index) => {
+    const health = healthQueries[index]?.data ?? null;
+    return {
+      ...server,
+      health,
+      isConnected:
+        server.software.isConnectPicare === true ||
+        health?.isConnectPicare === true,
+      isChecking: healthQueries[index]?.isFetching ?? false,
+    };
+  });
+
+  return {
+    data,
+    isLoading:
+      licensesQuery.isLoading || healthQueries.some((query) => query.isLoading),
+    isFetching:
+      licensesQuery.isFetching ||
+      healthQueries.some((query) => query.isFetching),
+    isError: licensesQuery.isError,
+    refetch: async () => {
+      await licensesQuery.refetch();
+      await Promise.all(healthQueries.map((query) => query.refetch()));
+    },
+  };
 }

@@ -21,7 +21,6 @@ import SettingDashboardLayout from "@/layouts/SettingDashboardLayout";
 import {
   ProfileSettingDashboardPage,
   SecuritySettingDashboardPage,
-  StorageSettingDashboardPage,
   SystemSettingDashboardPage,
 } from "@/pages/private/SettingDashboardPage";
 
@@ -54,7 +53,6 @@ export default function PrivateRoutes() {
           <Route path="settings" element={<SettingDashboardLayout />}>
             <Route index element={<ProfileSettingDashboardPage />} />
             <Route path="security" element={<SecuritySettingDashboardPage />} />
-            <Route path="storage" element={<StorageSettingDashboardPage />} />
             <Route path="system" element={<SystemSettingDashboardPage />} />
           </Route>
           <Route

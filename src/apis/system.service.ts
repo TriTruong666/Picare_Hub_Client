@@ -1,37 +1,19 @@
-import type { BasePaginatedResponse, BaseResponse } from "@/types/ApiResponse";
-import type {
-  SystemHealthResponse,
-  SystemLog,
-  SystemLogStatus,
-} from "@/types/System";
-import { hubAxiosClient, omsAxiosClient } from "./client";
+import axios from "axios";
 
-export async function getHubHealth(): Promise<SystemHealthResponse> {
-  const response = await hubAxiosClient.get<SystemHealthResponse>("/health");
-  return response.data;
+import type { SystemHealthResponse } from "@/types/System";
+
+function getHealthUrl(domain: string) {
+  const normalizedDomain = /^https?:\/\//i.test(domain)
+    ? domain
+    : `https://${domain}`;
+  return `${normalizedDomain.replace(/\/$/, "")}/health`;
 }
 
-export async function getOmsHealth(): Promise<SystemHealthResponse> {
-  const response = await omsAxiosClient.get<SystemHealthResponse>("/health");
-  return response.data;
-}
-
-export async function getSystemLogs(params: {
-  page: number;
-  limit: number;
-  status?: SystemLogStatus;
-  companyId?: string;
-  search?: string;
-}): Promise<BasePaginatedResponse<SystemLog[]>> {
-  const response = await omsAxiosClient.get("/api/v1/system-job-logs", {
-    params,
+export async function getCommercialSoftwareHealth(
+  domain: string,
+): Promise<SystemHealthResponse> {
+  const response = await axios.get<SystemHealthResponse>(getHealthUrl(domain), {
+    timeout: 8_000,
   });
-  return response.data;
-}
-
-export async function deleteSystemLog(
-  id: string,
-): Promise<BaseResponse<null>> {
-  const response = await omsAxiosClient.delete(`/api/v1/system-job-logs/${id}`);
   return response.data;
 }

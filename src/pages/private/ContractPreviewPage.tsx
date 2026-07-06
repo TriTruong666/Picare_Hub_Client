@@ -20,7 +20,7 @@ import {
   useContractDetail,
   useGenerateSignLink,
 } from "@/hooks/data/useContractHooks";
-import { useSendMailTemplate } from "@/hooks/data/useMailHooks";
+import { usesendEcontractMailTemplate } from "@/hooks/data/useMailHooks";
 import { useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
 import { toast } from "@/hooks/useToast";
 import type {
@@ -535,7 +535,7 @@ function SendPartnerMailModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const sendMailMutation = useSendMailTemplate();
+  const sendMailMutation = usesendEcontractMailTemplate();
   const generateSignLinkMutation = useGenerateSignLink();
   const [form, setForm] = useState<PartnerMailForm>(() =>
     createPartnerMailForm(contract),
@@ -575,7 +575,11 @@ function SendPartnerMailModal({
       return;
     }
 
+    const isDev = import.meta.env.DEV;
     const response = await sendMailMutation.mutateAsync({
+      smtpUser: isDev ? "tritruonghoang3@gmail.com" : "econtract@picare.vn",
+      mailFrom: isDev ? "tritruonghoang3@gmail.com" : "econtract@picare.vn",
+      mailFromName: isDev ? "Picare Dev" : "Picare E-Contract",
       to: normalizedTo,
       subject: normalizedSubject,
       title: form.title.trim() || normalizedSubject,
@@ -1644,9 +1648,7 @@ function ContractActionDock({
         ) : null}
         <DockButton
           label={
-            contract.status === "draft"
-              ? "Tải hợp đồng nháp"
-              : "Tải hợp đồng"
+            contract.status === "draft" ? "Tải hợp đồng nháp" : "Tải hợp đồng"
           }
           icon={<FiDownload />}
           onClick={handleDownloadContract}
