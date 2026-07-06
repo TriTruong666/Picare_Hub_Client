@@ -70,16 +70,3 @@ export interface CreateLicenseTicketPayload {
   attachments: string[];
   note: string;
 }
-
-export interface Ticket {
-  id: string;
-  licenseId: string;
-  title: string;
-  message: string;
-  attachments: string[];
-  status: string;
-  cancelReason: string | null;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
-}
