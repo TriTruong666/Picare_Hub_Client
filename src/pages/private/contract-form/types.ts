@@ -6,7 +6,10 @@ import type {
 } from "@/types/Contract";
 
 export type PartnerEntityType = "individual" | "company";
-export type SupportedContractType = "principle" | "appendix";
+export type SupportedContractType =
+  | "principle"
+  | "appendix"
+  | "livestream_responsibility_commitment";
 
 export type ContractFormCommonValues = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;

@@ -52,10 +52,28 @@ export type AppendixContractPayload = {
   products: AppendixContractProductPayload[];
 };
 
+export type LivestreamResponsibilityPersonalInfoPayload = {
+  fullName: string;
+  dateOfBirth: string;
+  position: string;
+  department: string;
+  permanentAddress: string;
+  citizenId: string;
+  citizenIdIssuedDate: string;
+  citizenIdIssuedPlace: string;
+};
+
+export type LivestreamResponsibilityCommitmentContractPayload = {
+  contractType: "livestream_responsibility_commitment";
+  ownerCompanyInfo: OwnerCompanyInfoPayload;
+  personalInfo: LivestreamResponsibilityPersonalInfoPayload;
+};
+
 export type UpdateContractPayload =
   | PrincipleContractPayload
   | ServiceContractPayload
-  | AppendixContractPayload;
+  | AppendixContractPayload
+  | LivestreamResponsibilityCommitmentContractPayload;
 
 export type CreateContractPayload = UpdateContractPayload;
 
@@ -102,6 +120,7 @@ export type ContractType =
   | "principle"
   | "appendix"
   | "service"
+  | "livestream_responsibility_commitment"
   | "digital"
   | "default";
 
@@ -258,6 +277,7 @@ export type Contract = {
   contractNumber: string;
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
+  personalInfo?: LivestreamResponsibilityPersonalInfoPayload | null;
   contractDueDate: string | null;
   contractData?:
     | PrincipleContractDataPayload

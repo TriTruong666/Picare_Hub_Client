@@ -32,6 +32,7 @@ import { useTaxPayerLookup } from "@/hooks/data/useTaxPayerHooks";
 import type {
   Contract,
   CreateContractPayload,
+  LivestreamResponsibilityPersonalInfoPayload,
   OwnerCompanyInfoPayload,
   PartnerCompanyInfoPayload,
 } from "@/types/Contract";
@@ -65,6 +66,8 @@ import {
 } from "./contract-form/variants/appendix/AppendixContractFields";
 import { principleContractVariant } from "./contract-form/variants/principle/principleContractVariant";
 import { PrincipleContractFields } from "./contract-form/variants/principle/PrincipleContractFields";
+import { LivestreamResponsibilityCommitmentFields } from "./contract-form/variants/livestream-responsibility-commitment/LivestreamResponsibilityCommitmentFields";
+import { livestreamResponsibilityCommitmentContractVariant } from "./contract-form/variants/livestream-responsibility-commitment/livestreamResponsibilityCommitmentContractVariant";
 import type { PartnerEntityType } from "./contract-form/types";
 
 type ContractFormMode = "create" | "edit";
@@ -256,6 +259,10 @@ export function ContractFormPage({
     });
   const [paymentTermDays, setPaymentTermDays] = useState("");
   const [creditLimit, setCreditLimit] = useState("");
+  const [personalInfo, setPersonalInfo] =
+    useState<LivestreamResponsibilityPersonalInfoPayload>(() =>
+      livestreamResponsibilityCommitmentContractVariant.createInitialValues(),
+    );
   const [appendixProducts, setAppendixProducts] = useState<
     AppendixProductRow[]
   >([createAppendixProductRow()]);
@@ -304,13 +311,15 @@ export function ContractFormPage({
     );
 
     setSelectedOwnerIndex(ownerIndex >= 0 ? ownerIndex : 0);
-    setPartnerCompanyInfo(initialContract.partnerCompanyInfo);
-    setPartnerEntityType(
-      initialContract.partnerCompanyInfo.mst ||
-        initialContract.partnerCompanyInfo.companyName
-        ? "company"
-        : "individual",
-    );
+    if (initialContract.contractType !== "livestream_responsibility_commitment") {
+      setPartnerCompanyInfo(initialContract.partnerCompanyInfo);
+      setPartnerEntityType(
+        initialContract.partnerCompanyInfo.mst ||
+          initialContract.partnerCompanyInfo.companyName
+          ? "company"
+          : "individual",
+      );
+    }
     setIsPartnerFormVisible(true);
     setTaxLookupMessage("");
     setSelectedContractType(
@@ -340,6 +349,18 @@ export function ContractFormPage({
       const hydrated = principleContractVariant.hydrate(initialContract);
       setPaymentTermDays(hydrated.paymentTermDays);
       setCreditLimit(hydrated.creditLimit);
+      return;
+    }
+
+    if (
+      initialContract.contractType ===
+      "livestream_responsibility_commitment"
+    ) {
+      setPersonalInfo(
+        livestreamResponsibilityCommitmentContractVariant.hydrate(
+          initialContract,
+        ),
+      );
     }
   }, [initialContract]);
 
@@ -436,7 +457,18 @@ export function ContractFormPage({
 
     setSelectedPrincipleContractId("");
     setAppendixProducts([createAppendixProductRow()]);
+    if (type === "livestream_responsibility_commitment") {
+      setIsPartnerFormVisible(false);
+      return;
+    }
     setIsPartnerFormVisible(isEditMode);
+  };
+
+  const updatePersonalInfoField = (
+    key: keyof LivestreamResponsibilityPersonalInfoPayload,
+    value: string,
+  ) => {
+    setPersonalInfo((current) => ({ ...current, [key]: value }));
   };
 
   const handlePrincipleContractSelect = (contractId: string) => {
@@ -506,6 +538,18 @@ export function ContractFormPage({
       );
     }
 
+    if (selectedContractType === "livestream_responsibility_commitment") {
+      return livestreamResponsibilityCommitmentContractVariant.validate(
+        personalInfo,
+        {
+          ownerCompanyInfo,
+          partnerCompanyInfo,
+          partnerEntityType,
+          contractDueDate: initialContract?.contractDueDate ?? null,
+        },
+      );
+    }
+
     return principleContractVariant.validate(
       { paymentTermDays, creditLimit },
       {
@@ -544,7 +588,12 @@ export function ContractFormPage({
             },
             commonValues,
           )
-        : CONTRACT_FORM_REGISTRY.principle.buildPayload(
+        : selectedContractType === "livestream_responsibility_commitment"
+          ? CONTRACT_FORM_REGISTRY.livestream_responsibility_commitment.buildPayload(
+              personalInfo,
+              commonValues,
+            )
+          : CONTRACT_FORM_REGISTRY.principle.buildPayload(
             { paymentTermDays, creditLimit },
             commonValues,
           );
@@ -682,14 +731,17 @@ export function ContractFormPage({
               </section>
             ) : null}
 
-            {selectedContractType === "principle" ? (
+            {selectedContractType === "principle" ||
+            selectedContractType === "livestream_responsibility_commitment" ? (
               <>
-                <PrincipleContractFields
-                  paymentTermDays={paymentTermDays}
-                  creditLimit={creditLimit}
-                  onPaymentTermDaysChange={setPaymentTermDays}
-                  onCreditLimitChange={setCreditLimit}
-                />
+                {selectedContractType === "principle" ? (
+                  <PrincipleContractFields
+                    paymentTermDays={paymentTermDays}
+                    creditLimit={creditLimit}
+                    onPaymentTermDaysChange={setPaymentTermDays}
+                    onCreditLimitChange={setCreditLimit}
+                  />
+                ) : null}
 
                 <section className="border-b border-black/10 py-6 dark:border-white/10">
                   <div className="mb-4 flex items-end justify-between gap-4">
@@ -754,6 +806,15 @@ export function ContractFormPage({
                   </div>
                 </section>
 
+                {selectedContractType ===
+                "livestream_responsibility_commitment" ? (
+                  <LivestreamResponsibilityCommitmentFields
+                    values={personalInfo}
+                    onChange={updatePersonalInfoField}
+                  />
+                ) : null}
+
+                {selectedContractType === "principle" ? (
                 <section className="border-b border-black/10 py-6 dark:border-white/10">
                   <SectionTitle>Công ty đối tác</SectionTitle>
 
@@ -923,6 +984,7 @@ export function ContractFormPage({
                     ) : null}
                   </div>
                 </section>
+                ) : null}
 
                 <div className="flex flex-col items-center gap-3 py-6">
                   <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">

@@ -1080,6 +1080,87 @@ function ContractDocument({
   );
 }
 
+function LivestreamResponsibilityCommitmentDocument({
+  contract,
+  partnerSignatureRef,
+  partnerSignatureRevealKey,
+}: {
+  contract: Contract;
+  partnerSignatureRef?: Ref<HTMLDivElement>;
+  partnerSignatureRevealKey?: number;
+}) {
+  const owner = contract.ownerCompanyInfo;
+  const personal = contract.personalInfo;
+  const todayDate = getVietnameseDate();
+  const hasOwnerSigned = contract.status === "owner_signed" || contract.status === "completed";
+  const hasPartnerSigned = contract.status === "completed";
+  const strong = (value?: string | null) => <strong className="font-semibold text-white/86">{value || "..."}</strong>;
+
+  return (
+    <motion.article initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="mx-auto w-full max-w-5xl pb-24">
+      <header className="grid gap-8 border-b border-white/10 pb-10 md:grid-cols-[1fr_1.15fr]">
+        <div>
+          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">{owner.companyName}</p>
+          <p className="mt-3 text-[13px] text-white/35">Số: {strong(contract.contractNumber || contract.contractId)}</p>
+        </div>
+        <div className="text-left md:text-center">
+          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">Cộng hòa xã hội chủ nghĩa Việt Nam</p>
+          <p className="mt-1 text-[13px] text-white/62">Độc lập – Tự do – Hạnh phúc</p>
+        </div>
+      </header>
+      <section className="pt-14 text-center">
+        <p className="text-[13px] text-white/35">TP.HCM, {strong(todayDate)}</p>
+        <h1 className="mx-auto mt-7 max-w-3xl text-3xl font-medium leading-tight tracking-[0.03em] text-white uppercase">Bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt động Livestream</h1>
+      </section>
+      <section className="mt-14"><ArticleTitle>Căn cứ lập cam kết</ArticleTitle><ClauseList items={[
+        "Căn cứ Bộ luật Lao động số 45/2019/QH14 và các văn bản hướng dẫn thi hành;",
+        "Căn cứ Luật Thương mại điện tử có hiệu lực từ ngày 01/07/2026;",
+        "Căn cứ Luật Quảng cáo và các văn bản hướng dẫn thi hành;",
+        "Căn cứ quy định của pháp luật về quản lý mỹ phẩm;",
+        `Căn cứ Nội quy lao động và các quy định nội bộ của ${owner.companyName}.`,
+      ]} /></section>
+      <p className="mt-10 text-[14px] leading-7 text-white/62">Hôm nay, {strong(todayDate)}, tại văn phòng Công ty, chúng tôi gồm:</p>
+      <section className="mt-8 text-[14px] leading-7 text-white/62">
+        <h2 className="font-semibold text-white/86 uppercase">Bên A: {owner.companyName} (Sau đây gọi là “Công ty”)</h2>
+        <p>Tên công ty: {strong(owner.companyName)}</p><p>Mã số thuế: {strong(owner.mst)}</p><p>Địa chỉ: {strong(owner.address)}</p><p>Người đại diện: {strong(owner.ownerName)} – {strong(owner.role)}</p>
+      </section>
+      <section className="mt-8 text-[14px] leading-7 text-white/62">
+        <h2 className="font-semibold text-white/86 uppercase">Bên B: Người lao động/Nhân viên Livestream (Người cam kết)</h2>
+        <p>Họ tên: {strong(personal?.fullName)}</p><p>Sinh ngày: {strong(personal?.dateOfBirth ? formatDate(personal.dateOfBirth) : "")}</p>
+        <p>Chức vụ: {strong(personal?.position)} · Phòng ban: {strong(personal?.department)}</p><p>Thường trú: {strong(personal?.permanentAddress)}</p>
+        <p>Số CCCD: {strong(personal?.citizenId)} · cấp ngày: {strong(personal?.citizenIdIssuedDate ? formatDate(personal.citizenIdIssuedDate) : "")} · tại: {strong(personal?.citizenIdIssuedPlace)}</p>
+      </section>
+      <p className="mt-8 text-[14px] leading-7 text-white/62">Bên B tự nguyện lập và ký bản cam kết này với Bên A nhằm đảm bảo tính tuân thủ pháp luật và bảo vệ hình ảnh thương hiệu của Công ty trong quá trình thực hiện Livestream bán hàng, cụ thể như sau:</p>
+      <section><ArticleTitle>Điều 1: Phạm vi và nội dung phát ngôn về sản phẩm</ArticleTitle><ClauseList items={[
+        "Chỉ giới thiệu, tư vấn và mô tả công dụng mỹ phẩm đúng theo tài liệu, kịch bản và phiếu công bố do Bên A cung cấp.",
+        "Không dùng ngôn từ, hình ảnh hoặc cách diễn đạt khiến khách hàng hiểu mỹ phẩm là thuốc hoặc có tác dụng điều trị; không dùng “Đặc trị”, “Trị dứt điểm”, “Cam kết khỏi bệnh 100%”, “Thuốc”, “Chữa bệnh”, “Thần dược” hoặc nội dung thổi phồng công dụng.",
+        "Không tự ý thêm công dụng, thành phần hoặc tính năng khi chưa được Bộ phận Chuyên môn/Quản lý phê duyệt bằng văn bản.",
+      ]} /></section>
+      <section><ArticleTitle>Điều 2: Chuẩn mực ngôn từ và hành vi trên nền tảng</ArticleTitle><ClauseList items={[
+        "Sử dụng ngôn từ lịch sự, văn minh; không chửi thề, nói bậy, thô tục, nhục mạ, phân biệt hoặc vi phạm thuần phong mỹ tục.",
+        "Tuân thủ chính sách của TikTok, Shopee, Facebook và các nền tảng Livestream; không hở hang, bạo lực hoặc xúi giục vi phạm pháp luật.",
+        "Không nhắc tên, bôi nhọ hoặc so sánh trực tiếp đối thủ; không tự ý thay đổi giá, voucher, khuyến mại, xuất xứ, chính sách đổi trả hoặc bảo hành.",
+      ]} /></section>
+      <section><ArticleTitle>Điều 3: Xử lý vi phạm và trách nhiệm bồi thường</ArticleTitle><ClauseList items={[
+        "Bên B chịu trách nhiệm cá nhân đối với án phạt hành chính hoặc hình phạt từ nền tảng do hành vi của mình gây ra.",
+        "Nếu vi phạm làm kênh của Bên A bị khóa, bóp tương tác, đánh gậy hoặc khóa vĩnh viễn, Bên B bồi thường toàn bộ thiệt hại doanh thu và chi phí xây dựng kênh.",
+        "Bên B bồi thường 100% khoản tiền phạt Bên A phải nộp do lỗi phát ngôn sai sự thật của Bên B.",
+        "Tùy mức độ vi phạm, Nhân viên có thể bị kỷ luật đến mức sa thải và phải bồi thường toàn bộ thiệt hại theo pháp luật.",
+      ]} /></section>
+      <section><ArticleTitle>Điều 4: Điều khoản chung</ArticleTitle><ClauseList items={[
+        "Bên B đã đọc, hiểu rõ nội dung cam kết và sẽ không thắc mắc, khiếu nại về sau.",
+        "Cam kết thay thế mọi trao đổi, đồng ý bằng miệng và thông báo bằng văn bản trước đây liên quan đến chủ đề này.",
+        "Cam kết có hiệu lực từ ngày ký và trong suốt quá trình làm việc; nghĩa vụ bảo mật và bồi thường vẫn được thực hiện sau khi chấm dứt hợp đồng lao động.",
+        "Cam kết được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản.",
+      ]} /></section>
+      <section className="mt-20 grid gap-12 border-t border-white/10 pt-12 md:grid-cols-2">
+        <SignatureBlock title="Người cam kết" name={personal?.fullName || ""} isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)} shouldAnimate={Boolean(partnerSignatureRevealKey)} revealKey={partnerSignatureRevealKey} signatureRef={partnerSignatureRef} />
+        <SignatureBlock title="Đại diện công ty" name={owner.ownerName} isSigned={hasOwnerSigned} />
+      </section>
+    </motion.article>
+  );
+}
+
 function AppendixContractDocument({
   contract,
   partnerSignatureRef,
@@ -1790,7 +1871,13 @@ function ContractPartnerSignPageShell({
 
   return (
     <main className="dashboard-theme min-h-screen bg-black px-5 py-10 text-white md:px-8">
-      {contract.contractType === "appendix" ? (
+      {contract.contractType === "livestream_responsibility_commitment" ? (
+        <LivestreamResponsibilityCommitmentDocument
+          contract={contract}
+          partnerSignatureRef={partnerSignatureRef}
+          partnerSignatureRevealKey={partnerSignatureRevealKey}
+        />
+      ) : contract.contractType === "appendix" ? (
         <AppendixContractDocument
           contract={contract}
           partnerSignatureRef={partnerSignatureRef}
