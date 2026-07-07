@@ -282,9 +282,9 @@ export default function IndividualCredentialUploadModal({
                 type="button"
                 disabled={isUploading}
                 onClick={handleSubmit}
-                className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-500 dark:shadow-indigo-500/10 dark:hover:bg-indigo-400"
               >
-                {isUploading ? <Spinner size="sm" color="black" /> : null}
+                {isUploading ? <Spinner size="sm" color="white" /> : null}
                 Tiếp tục
               </button>
             </div>

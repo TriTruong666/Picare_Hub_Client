@@ -1101,70 +1101,164 @@ function LivestreamResponsibilityCommitmentDocument({
   const owner = contract.ownerCompanyInfo;
   const personal = contract.personalInfo;
   const todayDate = getVietnameseDate();
-  const hasOwnerSigned = contract.status === "owner_signed" || contract.status === "completed";
+  const hasOwnerSigned =
+    contract.status === "owner_signed" || contract.status === "completed";
   const hasPartnerSigned = contract.status === "completed";
-  const strong = (value?: string | null) => <strong className="font-semibold text-white/86">{value || "..."}</strong>;
+  const strong = (value?: string | null) => (
+    <strong className="font-semibold text-white/86">{value || "..."}</strong>
+  );
 
   return (
-    <motion.article initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="mx-auto w-full max-w-5xl pb-24">
+    <motion.article
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      className="mx-auto w-full max-w-5xl pb-24"
+    >
       <header className="grid gap-8 border-b border-white/10 pb-10 md:grid-cols-[1fr_1.15fr]">
         <div>
-          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">{owner.companyName}</p>
-          <p className="mt-3 text-[13px] text-white/35">Số: {strong(contract.contractNumber || contract.contractId)}</p>
+          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">
+            {owner.companyName}
+          </p>
+          <p className="mt-3 text-[13px] text-white/35">
+            Số: {strong(contract.contractNumber || contract.contractId)}
+          </p>
         </div>
         <div className="text-left md:text-center">
-          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">Cộng hòa xã hội chủ nghĩa Việt Nam</p>
-          <p className="mt-1 text-[13px] text-white/62">Độc lập – Tự do – Hạnh phúc</p>
+          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">
+            Cộng hòa xã hội chủ nghĩa Việt Nam
+          </p>
+          <p className="mt-1 text-[13px] text-white/62">
+            Độc lập – Tự do – Hạnh phúc
+          </p>
         </div>
       </header>
       <section className="pt-14 text-center">
         <p className="text-[13px] text-white/35">TP.HCM, {strong(todayDate)}</p>
-        <h1 className="mx-auto mt-7 max-w-3xl text-3xl font-medium leading-tight tracking-[0.03em] text-white uppercase">Bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt động Livestream</h1>
+        <h1 className="mx-auto mt-7 max-w-3xl text-3xl leading-tight font-medium tracking-[0.03em] text-white uppercase">
+          Bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt động
+          Livestream
+        </h1>
       </section>
-      <section className="mt-14"><ArticleTitle>Căn cứ lập cam kết</ArticleTitle><ClauseList items={[
-        "Căn cứ Bộ luật Lao động số 45/2019/QH14 và các văn bản hướng dẫn thi hành;",
-        "Căn cứ Luật Thương mại điện tử có hiệu lực từ ngày 01/07/2026;",
-        "Căn cứ Luật Quảng cáo và các văn bản hướng dẫn thi hành;",
-        "Căn cứ quy định của pháp luật về quản lý mỹ phẩm;",
-        `Căn cứ Nội quy lao động và các quy định nội bộ của ${owner.companyName}.`,
-      ]} /></section>
-      <p className="mt-10 text-[14px] leading-7 text-white/62">Hôm nay, {strong(todayDate)}, tại văn phòng Công ty, chúng tôi gồm:</p>
+      <section className="mt-14">
+        <ArticleTitle>Căn cứ lập cam kết</ArticleTitle>
+        <ClauseList
+          items={[
+            "Căn cứ Bộ luật Lao động số 45/2019/QH14 và các văn bản hướng dẫn thi hành;",
+            "Căn cứ Luật Thương mại điện tử có hiệu lực từ ngày 01/07/2026;",
+            "Căn cứ Luật Quảng cáo và các văn bản hướng dẫn thi hành;",
+            "Căn cứ quy định của pháp luật về quản lý mỹ phẩm;",
+            `Căn cứ Nội quy lao động và các quy định nội bộ của ${owner.companyName}.`,
+          ]}
+        />
+      </section>
+      <p className="mt-10 text-[14px] leading-7 text-white/62">
+        Hôm nay, {strong(todayDate)}, tại văn phòng Công ty, chúng tôi gồm:
+      </p>
       <section className="mt-8 text-[14px] leading-7 text-white/62">
-        <h2 className="font-semibold text-white/86 uppercase">Bên A: {owner.companyName} (Sau đây gọi là “Công ty”)</h2>
-        <p>Tên công ty: {strong(owner.companyName)}</p><p>Mã số thuế: {strong(owner.mst)}</p><p>Địa chỉ: {strong(owner.address)}</p><p>Người đại diện: {strong(owner.ownerName)} – {strong(owner.role)}</p>
+        <h2 className="font-semibold text-white/86 uppercase">
+          Bên A: {owner.companyName} (Sau đây gọi là “Công ty”)
+        </h2>
+        <p>Tên công ty: {strong(owner.companyName)}</p>
+        <p>Mã số thuế: {strong(owner.mst)}</p>
+        <p>Địa chỉ: {strong(owner.address)}</p>
+        <p>
+          Người đại diện: {strong(owner.ownerName)} – {strong(owner.role)}
+        </p>
       </section>
       <section className="mt-8 text-[14px] leading-7 text-white/62">
-        <h2 className="font-semibold text-white/86 uppercase">Bên B: Người lao động/Nhân viên Livestream (Người cam kết)</h2>
-        <p>Họ tên: {strong(personal?.fullName)}</p><p>Sinh ngày: {strong(personal?.dateOfBirth ? formatDate(personal.dateOfBirth) : "")}</p>
-        <p>Chức vụ: {strong(personal?.position)} · Phòng ban: {strong(personal?.department)}</p><p>Thường trú: {strong(personal?.permanentAddress)}</p>
-        <p>Số CCCD: {strong(personal?.citizenId)} · cấp ngày: {strong(personal?.citizenIdIssuedDate ? formatDate(personal.citizenIdIssuedDate) : "")} · tại: {strong(personal?.citizenIdIssuedPlace)}</p>
+        <h2 className="font-semibold text-white/86 uppercase">
+          Bên B: Người lao động/Nhân viên Livestream (Người cam kết)
+        </h2>
+        <p>Họ tên: {strong(personal?.fullName)}</p>
+        <p>
+          Sinh ngày:{" "}
+          {strong(
+            personal?.dateOfBirth ? formatDate(personal.dateOfBirth) : "",
+          )}
+        </p>
+        <p>
+          Chức vụ: {strong(personal?.position)} · Phòng ban:{" "}
+          {strong(personal?.department)}
+        </p>
+        <p>Thường trú: {strong(personal?.permanentAddress)}</p>
+        <p>
+          Số CCCD: {strong(personal?.citizenId)} · cấp ngày:{" "}
+          {strong(
+            personal?.citizenIdIssuedDate
+              ? formatDate(personal.citizenIdIssuedDate)
+              : "",
+          )}{" "}
+          · tại: {strong(personal?.citizenIdIssuedPlace)}
+        </p>
       </section>
-      <p className="mt-8 text-[14px] leading-7 text-white/62">Bên B tự nguyện lập và ký bản cam kết này với Bên A nhằm đảm bảo tính tuân thủ pháp luật và bảo vệ hình ảnh thương hiệu của Công ty trong quá trình thực hiện Livestream bán hàng, cụ thể như sau:</p>
-      <section><ArticleTitle>Điều 1: Phạm vi và nội dung phát ngôn về sản phẩm</ArticleTitle><ClauseList items={[
-        "Chỉ giới thiệu, tư vấn và mô tả công dụng mỹ phẩm đúng theo tài liệu, kịch bản và phiếu công bố do Bên A cung cấp.",
-        "Không dùng ngôn từ, hình ảnh hoặc cách diễn đạt khiến khách hàng hiểu mỹ phẩm là thuốc hoặc có tác dụng điều trị; không dùng “Đặc trị”, “Trị dứt điểm”, “Cam kết khỏi bệnh 100%”, “Thuốc”, “Chữa bệnh”, “Thần dược” hoặc nội dung thổi phồng công dụng.",
-        "Không tự ý thêm công dụng, thành phần hoặc tính năng khi chưa được Bộ phận Chuyên môn/Quản lý phê duyệt bằng văn bản.",
-      ]} /></section>
-      <section><ArticleTitle>Điều 2: Chuẩn mực ngôn từ và hành vi trên nền tảng</ArticleTitle><ClauseList items={[
-        "Sử dụng ngôn từ lịch sự, văn minh; không chửi thề, nói bậy, thô tục, nhục mạ, phân biệt hoặc vi phạm thuần phong mỹ tục.",
-        "Tuân thủ chính sách của TikTok, Shopee, Facebook và các nền tảng Livestream; không hở hang, bạo lực hoặc xúi giục vi phạm pháp luật.",
-        "Không nhắc tên, bôi nhọ hoặc so sánh trực tiếp đối thủ; không tự ý thay đổi giá, voucher, khuyến mại, xuất xứ, chính sách đổi trả hoặc bảo hành.",
-      ]} /></section>
-      <section><ArticleTitle>Điều 3: Xử lý vi phạm và trách nhiệm bồi thường</ArticleTitle><ClauseList items={[
-        "Bên B chịu trách nhiệm cá nhân đối với án phạt hành chính hoặc hình phạt từ nền tảng do hành vi của mình gây ra.",
-        "Nếu vi phạm làm kênh của Bên A bị khóa, bóp tương tác, đánh gậy hoặc khóa vĩnh viễn, Bên B bồi thường toàn bộ thiệt hại doanh thu và chi phí xây dựng kênh.",
-        "Bên B bồi thường 100% khoản tiền phạt Bên A phải nộp do lỗi phát ngôn sai sự thật của Bên B.",
-        "Tùy mức độ vi phạm, Nhân viên có thể bị kỷ luật đến mức sa thải và phải bồi thường toàn bộ thiệt hại theo pháp luật.",
-      ]} /></section>
-      <section><ArticleTitle>Điều 4: Điều khoản chung</ArticleTitle><ClauseList items={[
-        "Bên B đã đọc, hiểu rõ nội dung cam kết và sẽ không thắc mắc, khiếu nại về sau.",
-        "Cam kết thay thế mọi trao đổi, đồng ý bằng miệng và thông báo bằng văn bản trước đây liên quan đến chủ đề này.",
-        "Cam kết có hiệu lực từ ngày ký và trong suốt quá trình làm việc; nghĩa vụ bảo mật và bồi thường vẫn được thực hiện sau khi chấm dứt hợp đồng lao động.",
-        "Cam kết được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản.",
-      ]} /></section>
+      <p className="mt-8 text-[14px] leading-7 text-white/62">
+        Bên B tự nguyện lập và ký bản cam kết này với Bên A nhằm đảm bảo tính
+        tuân thủ pháp luật và bảo vệ hình ảnh thương hiệu của Công ty trong quá
+        trình thực hiện Livestream bán hàng, cụ thể như sau:
+      </p>
+      <section>
+        <ArticleTitle>
+          Điều 1: Phạm vi và nội dung phát ngôn về sản phẩm
+        </ArticleTitle>
+        <ClauseList
+          items={[
+            "Chỉ giới thiệu, tư vấn và mô tả công dụng mỹ phẩm đúng theo tài liệu, kịch bản và phiếu công bố do Bên A cung cấp.",
+            "Không dùng ngôn từ, hình ảnh hoặc cách diễn đạt khiến khách hàng hiểu mỹ phẩm là thuốc hoặc có tác dụng điều trị; không dùng “Đặc trị”, “Trị dứt điểm”, “Cam kết khỏi bệnh 100%”, “Thuốc”, “Chữa bệnh”, “Thần dược” hoặc nội dung thổi phồng công dụng.",
+            "Không tự ý thêm công dụng, thành phần hoặc tính năng khi chưa được Bộ phận Chuyên môn/Quản lý phê duyệt bằng văn bản.",
+          ]}
+        />
+      </section>
+      <section>
+        <ArticleTitle>
+          Điều 2: Chuẩn mực ngôn từ và hành vi trên nền tảng
+        </ArticleTitle>
+        <ClauseList
+          items={[
+            "Sử dụng ngôn từ lịch sự, văn minh; không chửi thề, nói bậy, thô tục, nhục mạ, phân biệt hoặc vi phạm thuần phong mỹ tục.",
+            "Tuân thủ chính sách của TikTok, Shopee, Facebook và các nền tảng Livestream; không hở hang, bạo lực hoặc xúi giục vi phạm pháp luật.",
+            "Không nhắc tên, bôi nhọ hoặc so sánh trực tiếp đối thủ; không tự ý thay đổi giá, voucher, khuyến mại, xuất xứ, chính sách đổi trả hoặc bảo hành.",
+          ]}
+        />
+      </section>
+      <section>
+        <ArticleTitle>
+          Điều 3: Xử lý vi phạm và trách nhiệm bồi thường
+        </ArticleTitle>
+        <ClauseList
+          items={[
+            "Bên B chịu trách nhiệm cá nhân đối với án phạt hành chính hoặc hình phạt từ nền tảng do hành vi của mình gây ra.",
+            "Nếu vi phạm làm kênh của Bên A bị khóa, bóp tương tác, đánh gậy hoặc khóa vĩnh viễn, Bên B bồi thường toàn bộ thiệt hại doanh thu và chi phí xây dựng kênh.",
+            "Bên B bồi thường 100% khoản tiền phạt Bên A phải nộp do lỗi phát ngôn sai sự thật của Bên B.",
+            "Tùy mức độ vi phạm, Nhân viên có thể bị kỷ luật đến mức sa thải và phải bồi thường toàn bộ thiệt hại theo pháp luật.",
+          ]}
+        />
+      </section>
+      <section>
+        <ArticleTitle>Điều 4: Điều khoản chung</ArticleTitle>
+        <ClauseList
+          items={[
+            "Bên B đã đọc, hiểu rõ nội dung cam kết và sẽ không thắc mắc, khiếu nại về sau.",
+            "Cam kết thay thế mọi trao đổi, đồng ý bằng miệng và thông báo bằng văn bản trước đây liên quan đến chủ đề này.",
+            "Cam kết có hiệu lực từ ngày ký và trong suốt quá trình làm việc; nghĩa vụ bảo mật và bồi thường vẫn được thực hiện sau khi chấm dứt hợp đồng lao động.",
+            "Cam kết được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản.",
+          ]}
+        />
+      </section>
       <section className="mt-20 grid gap-12 border-t border-white/10 pt-12 md:grid-cols-2">
-        <SignatureBlock title="Người cam kết" name={personal?.fullName || ""} isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)} shouldAnimate={Boolean(partnerSignatureRevealKey)} revealKey={partnerSignatureRevealKey} signatureRef={partnerSignatureRef} />
-        <SignatureBlock title="Đại diện công ty" name={owner.ownerName} isSigned={hasOwnerSigned} />
+        <SignatureBlock
+          title="Người cam kết"
+          name={personal?.fullName || ""}
+          isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)}
+          shouldAnimate={Boolean(partnerSignatureRevealKey)}
+          revealKey={partnerSignatureRevealKey}
+          signatureRef={partnerSignatureRef}
+        />
+        <SignatureBlock
+          title="Đại diện công ty"
+          name={owner.ownerName}
+          isSigned={hasOwnerSigned}
+        />
       </section>
     </motion.article>
   );
@@ -1181,29 +1275,96 @@ function LivestreamResponsibilityCommitmentAppendixDocument({
 }) {
   const owner = contract.ownerCompanyInfo;
   const personal = contract.personalInfo;
-  const hasOwnerSigned = contract.status === "owner_signed" || contract.status === "completed";
+  const hasOwnerSigned =
+    contract.status === "owner_signed" || contract.status === "completed";
   const hasPartnerSigned = contract.status === "completed";
   return (
-    <motion.article initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="mx-auto w-full max-w-5xl pb-24">
+    <motion.article
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      className="mx-auto w-full max-w-5xl pb-24"
+    >
       <header className="grid gap-8 border-b border-white/10 pb-10 md:grid-cols-[1fr_1.15fr]">
-        <div><p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">{owner.companyName}</p><p className="mt-3 text-[13px] text-white/35">Số: <strong className="font-semibold text-white/72">{contract.contractNumber || contract.contractId}</strong></p></div>
-        <div className="text-left md:text-center"><p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">Cộng hòa xã hội chủ nghĩa Việt Nam</p><p className="mt-1 text-[13px] text-white/62">Độc lập – Tự do – Hạnh phúc</p></div>
+        <div>
+          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">
+            {owner.companyName}
+          </p>
+          <p className="mt-3 text-[13px] text-white/35">
+            Số:{" "}
+            <strong className="font-semibold text-white/72">
+              {contract.contractNumber || contract.contractId}
+            </strong>
+          </p>
+        </div>
+        <div className="text-left md:text-center">
+          <p className="text-[13px] font-medium tracking-[0.08em] text-white/80 uppercase">
+            Cộng hòa xã hội chủ nghĩa Việt Nam
+          </p>
+          <p className="mt-1 text-[13px] text-white/62">
+            Độc lập – Tự do – Hạnh phúc
+          </p>
+        </div>
       </header>
-      <section className="pt-14 text-center"><p className="text-[13px] text-white/35">TP.HCM, <strong className="font-semibold text-white/72">{getVietnameseDate()}</strong></p><h1 className="mx-auto mt-7 max-w-3xl text-3xl font-medium leading-tight tracking-[0.03em] text-white uppercase">Phụ lục bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt động Livestream</h1><p className="mx-auto mt-4 max-w-3xl text-[14px] italic leading-7 text-white/55">Phụ lục này là văn bản không thể tách rời của Bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt động Livestream.</p></section>
-      <section><ArticleTitle>I. Nguyên tắc áp dụng</ArticleTitle><ClauseList items={[
-        "Danh mục này quy định các từ khóa, cụm từ và nội dung không được sử dụng khi Livestream, quay video, đăng bài viết, trả lời bình luận, nhắn tin với khách hàng hoặc thực hiện hoạt động truyền thông dưới danh nghĩa Công ty.",
-        "Danh mục được xây dựng trên cơ sở pháp luật Việt Nam, quy định chuyên ngành về quảng cáo, mỹ phẩm, thương mại điện tử, chính sách nền tảng và quy định nội bộ Công ty.",
-        "Danh mục mang tính hướng dẫn tuân thủ, không giới hạn trách nhiệm đối với hành vi chưa được liệt kê; cách diễn đạt có ý nghĩa tương tự nội dung bị cấm đều được xem là vi phạm.",
-      ]} /></section>
-      {LIVESTREAM_APPENDIX_SECTIONS.map((section) => <section key={section.title}><ArticleTitle>{section.title}</ArticleTitle><p className="mt-4 text-[14px] leading-7 text-white/62">{section.intro}</p><ClauseList items={[...section.items]} /></section>)}
-      <section><ArticleTitle>X. Quy định áp dụng</ArticleTitle><ClauseList items={[
-        "Nhân viên xác nhận đã được phổ biến Danh mục từ khóa cấm và cam kết tuân thủ trong toàn bộ hoạt động truyền thông dưới danh nghĩa Công ty.",
-        "Danh mục này là Phụ lục không tách rời của Bản cam kết trách nhiệm và có giá trị áp dụng như Bản cam kết.",
-        "Khi pháp luật, chính sách nền tảng hoặc quy định nội bộ thay đổi, Công ty có quyền sửa đổi, bổ sung Danh mục mà không phải ký lại. Nhân viên có trách nhiệm nghiên cứu và tuân thủ nội dung được thông báo.",
-      ]} /></section>
+      <section className="pt-14 text-center">
+        <p className="text-[13px] text-white/35">
+          TP.HCM,{" "}
+          <strong className="font-semibold text-white/72">
+            {getVietnameseDate()}
+          </strong>
+        </p>
+        <h1 className="mx-auto mt-7 max-w-3xl text-3xl leading-tight font-medium tracking-[0.03em] text-white uppercase">
+          Phụ lục bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt
+          động Livestream
+        </h1>
+        <p className="mx-auto mt-4 max-w-3xl text-[14px] leading-7 text-white/55 italic">
+          Phụ lục này là văn bản không thể tách rời của Bản cam kết trách nhiệm
+          và xác nhận tuân thủ quy định hoạt động Livestream.
+        </p>
+      </section>
+      <section>
+        <ArticleTitle>I. Nguyên tắc áp dụng</ArticleTitle>
+        <ClauseList
+          items={[
+            "Danh mục này quy định các từ khóa, cụm từ và nội dung không được sử dụng khi Livestream, quay video, đăng bài viết, trả lời bình luận, nhắn tin với khách hàng hoặc thực hiện hoạt động truyền thông dưới danh nghĩa Công ty.",
+            "Danh mục được xây dựng trên cơ sở pháp luật Việt Nam, quy định chuyên ngành về quảng cáo, mỹ phẩm, thương mại điện tử, chính sách nền tảng và quy định nội bộ Công ty.",
+            "Danh mục mang tính hướng dẫn tuân thủ, không giới hạn trách nhiệm đối với hành vi chưa được liệt kê; cách diễn đạt có ý nghĩa tương tự nội dung bị cấm đều được xem là vi phạm.",
+          ]}
+        />
+      </section>
+      {LIVESTREAM_APPENDIX_SECTIONS.map((section) => (
+        <section key={section.title}>
+          <ArticleTitle>{section.title}</ArticleTitle>
+          <p className="mt-4 text-[14px] leading-7 text-white/62">
+            {section.intro}
+          </p>
+          <ClauseList items={[...section.items]} />
+        </section>
+      ))}
+      <section>
+        <ArticleTitle>X. Quy định áp dụng</ArticleTitle>
+        <ClauseList
+          items={[
+            "Nhân viên xác nhận đã được phổ biến Danh mục từ khóa cấm và cam kết tuân thủ trong toàn bộ hoạt động truyền thông dưới danh nghĩa Công ty.",
+            "Danh mục này là Phụ lục không tách rời của Bản cam kết trách nhiệm và có giá trị áp dụng như Bản cam kết.",
+            "Khi pháp luật, chính sách nền tảng hoặc quy định nội bộ thay đổi, Công ty có quyền sửa đổi, bổ sung Danh mục mà không phải ký lại. Nhân viên có trách nhiệm nghiên cứu và tuân thủ nội dung được thông báo.",
+          ]}
+        />
+      </section>
       <section className="mt-20 grid gap-12 border-t border-white/10 pt-12 md:grid-cols-2">
-        <SignatureBlock title="Người cam kết" name={personal?.fullName || ""} isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)} shouldAnimate={Boolean(partnerSignatureRevealKey)} revealKey={partnerSignatureRevealKey} signatureRef={partnerSignatureRef} />
-        <SignatureBlock title="Đại diện công ty" name={owner.ownerName} isSigned={hasOwnerSigned} />
+        <SignatureBlock
+          title="Người cam kết"
+          name={personal?.fullName || ""}
+          isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)}
+          shouldAnimate={Boolean(partnerSignatureRevealKey)}
+          revealKey={partnerSignatureRevealKey}
+          signatureRef={partnerSignatureRef}
+        />
+        <SignatureBlock
+          title="Đại diện công ty"
+          name={owner.ownerName}
+          isSigned={hasOwnerSigned}
+        />
       </section>
     </motion.article>
   );
@@ -1554,7 +1715,7 @@ function ContractCompletionModal({
                 className="h-auto w-full max-w-[260px] object-contain"
               />
 
-              <h2 className="mt-1 text-[20px] leading-7 font-semibold text-white">
+              <h2 className="mt-4 text-[20px] leading-7 font-semibold text-white">
                 Hợp đồng đã được ký thành công
               </h2>
 
@@ -1581,7 +1742,7 @@ function ContractCompletionModal({
               <button
                 type="button"
                 onClick={onDownload}
-                className="inline-flex h-10 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-black transition hover:bg-white/90"
+                className="inline-flex h-10 items-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95 dark:bg-indigo-500 dark:shadow-indigo-500/10 dark:hover:bg-indigo-400"
               >
                 <FiDownload size={14} />
                 Tải hợp đồng
@@ -1653,16 +1814,8 @@ function ContractActionDock({
     setIsHandwrittenSignatureOpen(true);
   };
 
-  function handleCredentialContinue(nextContract?: Contract) {
-    const activeContract = nextContract ?? contract;
-
-    if (isCredentialNameMatched(activeContract)) {
-      openHandwrittenSignatureFlow();
-      return;
-    }
-
-    setIsIndividualCredentialOpen(false);
-    setIsNameMismatchOpen(true);
+  function handleCredentialContinue() {
+    openHandwrittenSignatureFlow();
   }
 
   const handleReuploadCredentialFromWarning = () => {
@@ -1757,25 +1910,16 @@ function ContractActionDock({
           <DockButton
             label="Ký hợp đồng"
             icon={<FiPenTool className="text-emerald-400" />}
-            onClick={() => {
-              if (isLivestream) {
-                setIsIndividualCredentialOpen(true);
-                return;
-              }
-
-              setIsSignTypeModalOpen(true);
-            }}
+            onClick={() => setIsSignTypeModalOpen(true)}
           />
         ) : null}
       </motion.div>
 
-      {!isLivestream ? (
-        <PartnerSignTypeModal
-          isOpen={isSignTypeModalOpen}
-          onClose={() => setIsSignTypeModalOpen(false)}
-          onConfirm={handleSignTypeConfirm}
-        />
-      ) : null}
+      <PartnerSignTypeModal
+        isOpen={isSignTypeModalOpen}
+        onClose={() => setIsSignTypeModalOpen(false)}
+        onConfirm={handleSignTypeConfirm}
+      />
 
       <IndividualCredentialUploadModal
         contractId={contract.contractId}
@@ -1844,7 +1988,7 @@ function ContractPartnerSignPageShell({
 }: {
   contract: Contract;
   partnerToken?: string;
-  onRefresh: () => Promise<Contract | undefined> | void;
+  onRefresh: () => Promise<Contract | undefined>;
 }) {
   const downloadMutation = useDownloadS3Asset();
   const partnerSignatureRef = useRef<HTMLDivElement>(null);
@@ -1925,7 +2069,8 @@ function ContractPartnerSignPageShell({
 
   return (
     <main className="dashboard-theme min-h-screen bg-black px-5 py-10 text-white md:px-8">
-      {contract.contractType === "livestream_responsibility_commitment_appendix" ? (
+      {contract.contractType ===
+      "livestream_responsibility_commitment_appendix" ? (
         <LivestreamResponsibilityCommitmentAppendixDocument
           contract={contract}
           partnerSignatureRef={partnerSignatureRef}
@@ -1954,15 +2099,12 @@ function ContractPartnerSignPageShell({
         <ContractActionDock
           contract={contract}
           partnerToken={partnerToken}
-          onCredentialUploaded={async () => {
-            const response = await onRefresh();
-            return response?.data;
-          }}
+          onCredentialUploaded={onRefresh}
         />
       ) : null}
       <ContractCompletionModal
         isOpen={isCompletionModalOpen}
-        onClose={() => setIsCompletionModalOpen(false)}
+        onClose={() => window.location.reload()}
         onDownload={handleDownloadContract}
       />
     </main>
@@ -2020,7 +2162,10 @@ function ContractPartnerSignPageData() {
     <ContractPartnerSignPageShell
       contract={contract}
       partnerToken={partnerToken}
-      onRefresh={refetch}
+      onRefresh={async () => {
+        const result = await refetch();
+        return result.data?.data ?? undefined;
+      }}
     />
   );
 }

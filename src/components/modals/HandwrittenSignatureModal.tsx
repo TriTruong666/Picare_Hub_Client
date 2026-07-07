@@ -204,10 +204,10 @@ export default function HandwrittenSignatureModal({
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleSubmit}
-                className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-500 dark:shadow-indigo-500/10 dark:hover:bg-indigo-400"
               >
-                {isSubmitting ? <Spinner size="sm" color="black" /> : null}
-                Gửi chữ ký
+                {isSubmitting ? <Spinner size="sm" color="white" /> : null}
+                Xác nhận ký
               </button>
             </div>
           </motion.div>
