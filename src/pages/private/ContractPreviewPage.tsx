@@ -18,8 +18,10 @@ import { PATHS } from "@/config/paths";
 import {
   useCreateDraftDownloadContract,
   useContractDetail,
+  useGenerateSignLink,
 } from "@/hooks/data/useContractHooks";
 import { useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
+import { useSendEcontractMailTemplate } from "@/hooks/data/useMailHooks";
 import { toast } from "@/hooks/useToast";
 import type {
   Contract,
@@ -682,6 +684,9 @@ function SendPartnerMailModalController({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const generateSignLinkMutation = useGenerateSignLink();
+  const sendMailMutation = useSendEcontractMailTemplate();
+
   const [form, setForm] = useState<PartnerMailForm>(() =>
     createPartnerMailForm(contract),
   );

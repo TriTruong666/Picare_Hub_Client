@@ -1169,8 +1169,8 @@ function ContractOrganizationSigningForm({
             </div>
 
             <div className="rounded-xl border border-amber-200/25 bg-amber-100/40 px-4 py-3 text-xs leading-5 font-medium text-amber-950 dark:bg-amber-300/10 dark:text-amber-50">
-              Luồng này sẽ tạo phiên ký số cho bên mua và xuất bản hợp đồng
-              sau khi hoàn tất ký.
+              Phiên này sẽ tạo phiên ký số cho bên mua và xuất bản hợp đồng sau
+              khi hoàn tất ký.
             </div>
           </div>
 

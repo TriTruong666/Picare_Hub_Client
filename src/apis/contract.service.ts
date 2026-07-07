@@ -227,8 +227,8 @@ export const uploadOrganizationCredential = async (
   if (payload.power_of_attorney_image) {
     formData.append("power_of_attorney_image", payload.power_of_attorney_image);
   }
-  if (payload.gpd) {
-    formData.append("gpd", payload.gpd);
+  if (payload.gdp) {
+    formData.append("gdp", payload.gdp);
   }
   if (payload.ccddk) {
     formData.append("ccddk", payload.ccddk);

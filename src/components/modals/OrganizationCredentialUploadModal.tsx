@@ -104,7 +104,7 @@ function FileUploadCard({
         event.preventDefault();
         handleFile(event.dataTransfer.files?.[0]);
       }}
-      className="group relative min-h-[210px] cursor-pointer overflow-hidden rounded-xl border border-dashed border-white/12 bg-white/[0.025] p-4 transition hover:border-white/25 hover:bg-white/[0.04]"
+      className="group relative flex h-[250px] cursor-pointer flex-col justify-between overflow-hidden rounded-xl border border-dashed border-white/12 bg-white/[0.025] p-4 transition hover:border-white/25 hover:bg-white/[0.04]"
     >
       <input
         ref={inputRef}
@@ -117,14 +117,14 @@ function FileUploadCard({
 
       {file ? (
         <>
-          {kind === "pdf" ? (
-            <div className="flex h-40 w-full items-center justify-center rounded-lg border border-white/10 bg-white/[0.04]">
-              <div className="text-center">
-                <FiFileText className="mx-auto text-4xl text-white/75" />
-                <p className="mt-3 text-sm font-medium text-white">
+          {isPdfFile(file.file) ? (
+            <div className="flex h-[150px] w-full items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] p-3">
+              <div className="text-center min-w-0">
+                <FiFileText className="mx-auto text-3xl text-white/75" />
+                <p className="mt-2 truncate max-w-[220px] text-xs font-medium text-white">
                   {file.file.name}
                 </p>
-                <p className="mt-1 text-xs text-white/35">
+                <p className="mt-1 text-[10px] text-white/35">
                   PDF đã sẵn sàng tải lên
                 </p>
               </div>
@@ -133,11 +133,11 @@ function FileUploadCard({
             <img
               src={file.previewUrl}
               alt={label}
-              className="h-40 w-full rounded-lg object-cover"
+              className="h-[150px] w-full rounded-lg object-cover"
             />
           )}
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <div className="min-w-0">
+          <div className="mt-3 flex items-center justify-between gap-3 min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-white">{label}</p>
               <p className="truncate text-xs text-white/35">
                 {file.file.name}
@@ -150,23 +150,23 @@ function FileUploadCard({
                 event.stopPropagation();
                 onRemove();
               }}
-              className="rounded-lg border border-red-500/20 bg-red-500/10 p-2 text-red-300 transition hover:bg-red-500/20 disabled:opacity-40"
+              className="shrink-0 rounded-lg border border-red-500/20 bg-red-500/10 p-2 text-red-300 transition hover:bg-red-500/20 disabled:opacity-40"
             >
               <FiTrash2 size={15} />
             </button>
           </div>
         </>
       ) : (
-        <div className="flex h-full min-h-[178px] flex-col items-center justify-center text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-white/60">
+        <div className="flex h-full flex-col items-center justify-center text-center">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-white/60">
             {icon}
           </div>
-          <p className="mt-4 text-sm font-medium text-white">{label}</p>
-          <p className="mt-1 max-w-[240px] text-xs leading-5 text-white/38">
+          <p className="mt-3 text-sm font-medium text-white">{label}</p>
+          <p className="mt-1 max-w-[240px] text-xs leading-relaxed text-white/38">
             {description}
           </p>
-          <span className="mt-4 inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/55">
-            <FiUpload size={14} />
+          <span className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1 text-xs text-white/55">
+            <FiUpload size={13} />
             {placeholderLabel}
           </span>
         </div>
@@ -289,7 +289,7 @@ export default function OrganizationCredentialUploadModal({
       data: {
         business_license: businessLicenseFile.file,
         power_of_attorney_image: authorityFile?.file ?? null,
-        gpd: gpdFile?.file ?? null,
+        gdp: gpdFile?.file ?? null,
         ccddk: ccddkFile?.file ?? null,
       },
     });
@@ -422,9 +422,9 @@ export default function OrganizationCredentialUploadModal({
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleSubmit}
-                className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-500 dark:shadow-indigo-500/10 dark:hover:bg-indigo-400"
               >
-                {isSubmitting ? <Spinner size="sm" color="black" /> : null}
+                {isSubmitting ? <Spinner size="sm" /> : null}
                 Tiếp theo
               </button>
             </div>
