@@ -18,6 +18,11 @@ type PersonalField = {
 const PERSONAL_FIELDS: PersonalField[] = [
   { key: "fullName", label: "Họ và tên", placeholder: "Nguyễn Văn A" },
   {
+    key: "email",
+    label: "Email",
+    placeholder: "nguyenvana@example.com",
+  },
+  {
     key: "dateOfBirth",
     label: "Ngày sinh",
     placeholder: "Chọn ngày sinh",
@@ -84,6 +89,7 @@ export function LivestreamResponsibilityCommitmentFields({
             ) : (
               <TextInput
                 id={`personal-${field.key}`}
+                type={field.key === "email" ? "email" : "text"}
                 value={values[field.key]}
                 onChange={(value) => onChange(field.key, value)}
                 placeholder={field.placeholder}

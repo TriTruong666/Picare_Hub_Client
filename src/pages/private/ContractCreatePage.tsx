@@ -533,7 +533,12 @@ export function ContractFormPage({
     const parent = livestreamParentContracts.find(
       (contract) => contract.contractId === contractId,
     );
-    if (parent?.personalInfo) setPersonalInfo(parent.personalInfo);
+    const parentPersonalInfo =
+      parent?.personalInfo ??
+      (parent?.contractData && "personalInfo" in parent.contractData
+        ? parent.contractData.personalInfo
+        : null);
+    if (parentPersonalInfo) setPersonalInfo(parentPersonalInfo);
     setParentLivestreamOwner(parent?.ownerCompanyInfo ?? null);
   };
 

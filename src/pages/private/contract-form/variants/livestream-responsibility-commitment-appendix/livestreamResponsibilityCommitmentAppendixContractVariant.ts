@@ -1,4 +1,5 @@
 import type {
+  Contract,
   CreateContractPayload,
   LivestreamResponsibilityPersonalInfoPayload,
   OwnerCompanyInfoPayload,
@@ -10,6 +11,15 @@ export type LivestreamResponsibilityCommitmentAppendixFormValues = {
   personalInfo: LivestreamResponsibilityPersonalInfoPayload | null;
   ownerCompanyInfo: OwnerCompanyInfoPayload | null;
 };
+
+function getPersonalInfo(contract: Contract) {
+  return (
+    contract.personalInfo ??
+    (contract.contractData && "personalInfo" in contract.contractData
+      ? contract.contractData.personalInfo
+      : null)
+  );
+}
 
 export const livestreamResponsibilityCommitmentAppendixContractVariant: ContractVariantDefinition<
   "livestream_responsibility_commitment_appendix",
@@ -36,7 +46,7 @@ export const livestreamResponsibilityCommitmentAppendixContractVariant: Contract
     }
     return {
       parentContractId: contract.parentContractId ?? "",
-      personalInfo: contract.personalInfo ?? null,
+      personalInfo: getPersonalInfo(contract),
       ownerCompanyInfo: contract.ownerCompanyInfo,
     };
   },
@@ -47,6 +57,9 @@ export const livestreamResponsibilityCommitmentAppendixContractVariant: Contract
       !values.ownerCompanyInfo
     ) {
       return "Vui lòng chọn bản cam kết Livestream đã hoàn tất.";
+    }
+    if (Object.values(values.personalInfo).some((value) => !value.trim())) {
+      return "Hợp đồng Livestream gốc chưa có đầy đủ thông tin cá nhân.";
     }
     return null;
   },

@@ -1,4 +1,5 @@
 import type {
+  Contract,
   CreateContractPayload,
   LivestreamResponsibilityPersonalInfoPayload,
 } from "@/types/Contract";
@@ -11,8 +12,18 @@ function normalizeDateOnly(value: string) {
   return value.trim().split("T")[0];
 }
 
+function getPersonalInfo(contract: Contract) {
+  return (
+    contract.personalInfo ??
+    (contract.contractData && "personalInfo" in contract.contractData
+      ? contract.contractData.personalInfo
+      : null)
+  );
+}
+
 const EMPTY_VALUES: LivestreamResponsibilityCommitmentFormValues = {
   fullName: "",
+  email: "",
   dateOfBirth: "",
   position: "",
   department: "",
@@ -35,7 +46,7 @@ export const livestreamResponsibilityCommitmentContractVariant: ContractVariantD
       return { ...EMPTY_VALUES };
     }
 
-    return { ...EMPTY_VALUES, ...contract.personalInfo };
+    return { ...EMPTY_VALUES, ...getPersonalInfo(contract) };
   },
   validate: (values) => {
     if (Object.values(values).some((value) => !value.trim())) {

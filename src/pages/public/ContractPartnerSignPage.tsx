@@ -1706,7 +1706,7 @@ function ContractCompletionModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0, y: 14 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
-            className="dashboard-theme contract-surface relative w-full max-w-xl overflow-hidden rounded-2xl border"
+            className="contract-surface relative w-full max-w-xl overflow-hidden rounded-2xl border bg-black"
           >
             <div className="flex flex-col items-center px-8 pt-8 text-center">
               <img

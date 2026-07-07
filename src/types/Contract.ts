@@ -54,6 +54,7 @@ export type AppendixContractPayload = {
 
 export type LivestreamResponsibilityPersonalInfoPayload = {
   fullName: string;
+  email: string;
   dateOfBirth: string;
   position: string;
   department: string;
@@ -74,6 +75,14 @@ export type LivestreamResponsibilityCommitmentAppendixContractPayload = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   parentContractId: string;
   personalInfo: LivestreamResponsibilityPersonalInfoPayload;
+};
+
+export type LivestreamResponsibilityContractDataPayload = {
+  details?: ContractDetail[];
+  personalInfo: LivestreamResponsibilityPersonalInfoPayload;
+  contractDueDate?: string | null;
+  ownerCompanyInfo?: OwnerCompanyInfoPayload;
+  partnerCompanyInfo?: PartnerCompanyInfoPayload | null;
 };
 
 export type UpdateContractPayload =
@@ -293,6 +302,7 @@ export type Contract = {
     | PrincipleContractDataPayload
     | ServiceContractDataPayload
     | AppendixContractDataPayload
+    | LivestreamResponsibilityContractDataPayload
     | null;
   principleContractNumber?: string | null;
   principleContractSignedDate?: string | null;
