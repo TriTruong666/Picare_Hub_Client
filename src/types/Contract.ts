@@ -83,6 +83,8 @@ export type LivestreamResponsibilityContractDataPayload = {
   contractDueDate?: string | null;
   ownerCompanyInfo?: OwnerCompanyInfoPayload;
   partnerCompanyInfo?: PartnerCompanyInfoPayload | null;
+  parentContractId?: string | null;
+  parentContractCode?: string | null;
 };
 
 export type UpdateContractPayload =

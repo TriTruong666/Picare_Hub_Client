@@ -30,7 +30,7 @@ const EMPTY_VALUES: LivestreamResponsibilityCommitmentFormValues = {
   permanentAddress: "",
   citizenId: "",
   citizenIdIssuedDate: "",
-  citizenIdIssuedPlace: "",
+  citizenIdIssuedPlace: "Cục Cảnh sát QLHC về TTXH",
 };
 
 export const livestreamResponsibilityCommitmentContractVariant: ContractVariantDefinition<

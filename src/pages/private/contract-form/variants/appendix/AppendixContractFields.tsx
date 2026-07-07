@@ -74,6 +74,15 @@ export function AppendixProductEditor({
   );
 }
 
+function getPersonalInfo(contract: Contract) {
+  return (
+    contract.personalInfo ??
+    (contract.contractData && "personalInfo" in contract.contractData
+      ? contract.contractData.personalInfo
+      : null)
+  );
+}
+
 export function PrincipleContractSelect({
   contracts,
   selectedContractId,
@@ -96,11 +105,13 @@ export function PrincipleContractSelect({
   );
   const isEmpty = !isLoading && contracts.length === 0;
   const isLivestream = contractKind === "livestream";
-  const getPartyName = (contract: Contract) =>
-    isLivestream
-      ? contract.personalInfo?.fullName || "Chưa có tên người cam kết"
+  const getPartyName = (contract: Contract) => {
+    const personal = getPersonalInfo(contract);
+    return isLivestream
+      ? personal?.fullName || "Chưa có tên người cam kết"
       : contract.partnerCompanyInfo.companyName ||
-        contract.partnerCompanyInfo.ownerName;
+          contract.partnerCompanyInfo.ownerName;
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -256,7 +267,7 @@ export function PrincipleContractSelect({
                         {isLivestream ? "CCCD" : "MST"}:{" "}
                         <strong className="font-semibold text-white">
                           {isLivestream
-                            ? contract.personalInfo?.citizenId || "Không có"
+                            ? getPersonalInfo(contract)?.citizenId || "Không có"
                             : contract.partnerCompanyInfo.mst || "Không có"}
                         </strong>
                       </span>

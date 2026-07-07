@@ -106,21 +106,27 @@ export function ContractHistoryPanel({
               contract.contractType === "livestream_responsibility_commitment" ||
               contract.contractType === "livestream_responsibility_commitment_appendix";
 
+            const personal =
+              contract.personalInfo ??
+              (contract.contractData && "personalInfo" in contract.contractData
+                ? contract.contractData.personalInfo
+                : null);
+
             const partnerName = isLivestream
-              ? contract.personalInfo?.fullName || "Chưa có tên người cam kết"
+              ? personal?.fullName || "Chưa có tên người cam kết"
               : contract.partnerCompanyInfo?.companyName || "Chưa có tên đối tác";
 
             const ownerName = isLivestream
-              ? contract.personalInfo?.fullName || "Chưa có người cam kết"
+              ? personal?.fullName || "Chưa có người cam kết"
               : contract.partnerCompanyInfo?.ownerName || "Chưa có người đại diện";
 
             const roleOrPosition = isLivestream
-              ? contract.personalInfo?.position
+              ? personal?.position
               : contract.partnerCompanyInfo?.role;
 
             const taxOrIdLabel = isLivestream ? "CCCD" : "MST";
             const taxOrIdVal = isLivestream
-              ? contract.personalInfo?.citizenId
+              ? personal?.citizenId
               : contract.partnerCompanyInfo?.mst;
 
             const phone = isLivestream ? null : contract.partnerCompanyInfo?.phone;

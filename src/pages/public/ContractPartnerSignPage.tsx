@@ -36,6 +36,7 @@ type RefreshedContractHandler = () =>
   | undefined
   | Promise<Contract | undefined>;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function normalizeLegalName(value?: string | null) {
   return (value || "")
     .normalize("NFD")
@@ -60,22 +61,6 @@ function isLivestreamContract(contract: Contract) {
     contract.contractType === "livestream_responsibility_commitment" ||
     contract.contractType === "livestream_responsibility_commitment_appendix"
   );
-}
-
-function isCredentialNameMatched(contract: Contract) {
-  const credentialName = normalizeLegalName(
-    getIndividualCredentialName(contract),
-  );
-  const expectedName = isLivestreamContract(contract)
-    ? contract.personalInfo?.fullName
-    : contract.partnerCompanyInfo.ownerName;
-  const partnerOwnerName = normalizeLegalName(expectedName);
-
-  if (!credentialName || !partnerOwnerName) {
-    return true;
-  }
-
-  return credentialName === partnerOwnerName;
 }
 
 function formatCurrency(value: number) {
@@ -150,6 +135,10 @@ function getVietnameseDate(value?: string) {
   return `ngày ${String(date.getDate()).padStart(2, "0")} tháng ${String(
     date.getMonth() + 1,
   ).padStart(2, "0")} năm ${date.getFullYear()}`;
+}
+
+function getContractDisplayDate(contract: Contract) {
+  return contract.createdAt || contract.updatedAt || undefined;
 }
 
 function getPrincipleContractData(
@@ -498,7 +487,7 @@ function ContractDocument({
   const owner = contract.ownerCompanyInfo;
   const partner = contract.partnerCompanyInfo;
   const contractData = getPrincipleContractData(contract);
-  const todayDate = getVietnameseDate();
+  const todayDate = getVietnameseDate(getContractDisplayDate(contract));
   const creditLimit = formatCreditLimit(contractData.creditLimit);
   const contractNumber = contract.contractNumber;
   const hasOwnerSigned =
@@ -1100,7 +1089,7 @@ function LivestreamResponsibilityCommitmentDocument({
 }) {
   const owner = contract.ownerCompanyInfo;
   const personal = contract.personalInfo;
-  const todayDate = getVietnameseDate();
+  const todayDate = getVietnameseDate(getContractDisplayDate(contract));
   const hasOwnerSigned =
     contract.status === "owner_signed" || contract.status === "completed";
   const hasPartnerSigned = contract.status === "completed";
@@ -1181,6 +1170,7 @@ function LivestreamResponsibilityCommitmentDocument({
           Chức vụ: {strong(personal?.position)} · Phòng ban:{" "}
           {strong(personal?.department)}
         </p>
+        <p>Email: {strong(personal?.email)}</p>
         <p>Thường trú: {strong(personal?.permanentAddress)}</p>
         <p>
           Số CCCD: {strong(personal?.citizenId)} · cấp ngày:{" "}
@@ -1275,6 +1265,7 @@ function LivestreamResponsibilityCommitmentAppendixDocument({
 }) {
   const owner = contract.ownerCompanyInfo;
   const personal = contract.personalInfo;
+  const contractDate = getVietnameseDate(getContractDisplayDate(contract));
   const hasOwnerSigned =
     contract.status === "owner_signed" || contract.status === "completed";
   const hasPartnerSigned = contract.status === "completed";
@@ -1307,11 +1298,8 @@ function LivestreamResponsibilityCommitmentAppendixDocument({
         </div>
       </header>
       <section className="pt-14 text-center">
-        <p className="text-[13px] text-white/35">
-          TP.HCM,{" "}
-          <strong className="font-semibold text-white/72">
-            {getVietnameseDate()}
-          </strong>
+        <p className="text-[13px] font-semibold text-black/86 dark:text-white/86">
+          TP.HCM, {contractDate}
         </p>
         <h1 className="mx-auto mt-7 max-w-3xl text-3xl leading-tight font-medium tracking-[0.03em] text-white uppercase">
           Phụ lục bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt
@@ -1320,6 +1308,12 @@ function LivestreamResponsibilityCommitmentAppendixDocument({
         <p className="mx-auto mt-4 max-w-3xl text-[14px] leading-7 text-white/55 italic">
           Phụ lục này là văn bản không thể tách rời của Bản cam kết trách nhiệm
           và xác nhận tuân thủ quy định hoạt động Livestream.
+        </p>
+        <p className="mx-auto mt-3 max-w-3xl text-[14px] leading-7 text-white/62">
+          Áp dụng cho người cam kết:{" "}
+          <strong className="font-semibold text-white/86">
+            {personal?.fullName || "..."}
+          </strong>
         </p>
       </section>
       <section>
@@ -1381,8 +1375,9 @@ function AppendixContractDocument({
 }) {
   const owner = contract.ownerCompanyInfo;
   const partner = contract.partnerCompanyInfo;
-  const todayDate = getVietnameseDate();
-  const shortTodayDate = formatDate(new Date().toISOString());
+  const contractDate = getContractDisplayDate(contract);
+  const todayDate = getVietnameseDate(contractDate);
+  const shortTodayDate = formatDate(contractDate);
   const products = getAppendixProducts(contract);
   const hasOwnerSigned =
     contract.status === "owner_signed" || contract.status === "completed";
@@ -1785,10 +1780,15 @@ function ContractActionDock({
   const canPartnerSign = contract.status === "owner_signed";
   const isLivestream = isLivestreamContract(contract);
   const credentialName = getIndividualCredentialName(contract);
+  const personal =
+    contract.personalInfo ??
+    (contract.contractData && "personalInfo" in contract.contractData
+      ? contract.contractData.personalInfo
+      : null);
   const signatureSignerName =
     credentialName ||
     (isLivestream
-      ? contract.personalInfo?.fullName
+      ? personal?.fullName
       : contract.partnerCompanyInfo.ownerName) ||
     "";
 
@@ -1945,7 +1945,7 @@ function ContractActionDock({
         credentialName={credentialName}
         contractName={
           isLivestream
-            ? contract.personalInfo?.fullName || ""
+            ? personal?.fullName || ""
             : contract.partnerCompanyInfo.ownerName
         }
         onClose={() => setIsNameMismatchOpen(false)}

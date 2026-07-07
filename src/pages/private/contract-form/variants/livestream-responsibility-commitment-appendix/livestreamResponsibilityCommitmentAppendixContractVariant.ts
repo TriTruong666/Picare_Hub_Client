@@ -44,10 +44,25 @@ export const livestreamResponsibilityCommitmentAppendixContractVariant: Contract
         ownerCompanyInfo: null,
       };
     }
+
+    const parentContractId =
+      contract.parentContractId ||
+      (contract.contractData && "parentContractId" in contract.contractData
+        ? (contract.contractData.parentContractId as string)
+        : "") ||
+      "";
+
+    const ownerCompanyInfo =
+      contract.ownerCompanyInfo ||
+      (contract.contractData && "ownerCompanyInfo" in contract.contractData
+        ? contract.contractData.ownerCompanyInfo
+        : null) ||
+      null;
+
     return {
-      parentContractId: contract.parentContractId ?? "",
+      parentContractId,
       personalInfo: getPersonalInfo(contract),
-      ownerCompanyInfo: contract.ownerCompanyInfo,
+      ownerCompanyInfo,
     };
   },
   validate: (values) => {

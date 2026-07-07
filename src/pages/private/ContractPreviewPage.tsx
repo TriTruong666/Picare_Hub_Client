@@ -128,6 +128,41 @@ function getVietnameseDate(value?: string) {
   ).padStart(2, "0")} năm ${date.getFullYear()}`;
 }
 
+function getContractDisplayDate(contract: Contract) {
+  return contract.createdAt || contract.updatedAt || undefined;
+}
+
+function getContractMailTypeLabel(contractType: Contract["contractType"]) {
+  switch (contractType) {
+    case "appendix":
+      return "Phụ lục hợp đồng";
+    case "livestream_responsibility_commitment":
+      return "Bản cam kết livestream";
+    case "livestream_responsibility_commitment_appendix":
+      return "Phụ lục cam kết livestream";
+    case "service":
+      return "Hợp đồng dịch vụ";
+    case "principle":
+    default:
+      return "Hợp đồng nguyên tắc";
+  }
+}
+
+function getContractMailActionLabel(contractType: Contract["contractType"]) {
+  switch (contractType) {
+    case "appendix":
+    case "livestream_responsibility_commitment_appendix":
+      return "Xem phụ lục";
+    case "livestream_responsibility_commitment":
+      return "Xem bản cam kết";
+    case "service":
+      return "Xem hợp đồng dịch vụ";
+    case "principle":
+    default:
+      return "Xem hợp đồng";
+  }
+}
+
 function getPrincipleContractData(
   contract: Contract,
 ): PrincipleContractDataPayload {
@@ -476,57 +511,86 @@ type PartnerMailForm = {
   intro: string;
   message: string;
   replyTo: string;
+  actionLabel: string;
 };
-
-function getContractMailTypeLabel(contractType: Contract["contractType"]) {
-  return contractType === "appendix"
-    ? "Phụ lục hợp đồng"
-    : "Hợp đồng nguyên tắc";
-}
 
 function createPartnerMailForm(contract: Contract): PartnerMailForm {
   const partner = contract.partnerCompanyInfo;
   const personal = contract.personalInfo;
   const owner = contract.ownerCompanyInfo;
   const contractTypeLabel = getContractMailTypeLabel(contract.contractType);
+  const contractReference = contract.contractNumber || contract.contractId;
   const recipientName =
-    partner?.companyName || partner?.ownerName || personal?.fullName || "Quý đối tác";
+    personal?.fullName ||
+    partner?.companyName ||
+    partner?.ownerName ||
+    "Quý đối tác";
   const contractTypeNumberLabel =
     contract.contractType === "appendix"
       ? getAppendixPrincipleContractNumber(contract) || "không xác định"
-      : contract.contractNumber || contract.contractId;
+      : contractReference;
   const appendixProducts = getAppendixProducts(contract);
   const appendixProductNames = appendixProducts
     .map((product) => product.productName.trim())
     .filter(Boolean)
     .slice(0, 5);
 
-  const messageLines =
-    contract.contractType === "appendix"
-      ? [
-          `${owner.companyName} đã hoàn tất xử lý ${contractTypeLabel.toLowerCase()} số ${contract.contractNumber || contract.contractId}.`,
-          `Phụ lục này được đính kèm theo Hợp đồng nguyên tắc số ${contractTypeNumberLabel}.`,
-          appendixProductNames.length
-            ? `Danh sách sản phẩm trong phụ lục hiện tại gồm: ${appendixProductNames.join(", ")}.`
-            : "Phụ lục hiện tại đã có dữ liệu sản phẩm và có thể đối chiếu trực tiếp trên hệ thống.",
-          "Vui lòng kiểm tra lại toàn bộ nội dung, đặc biệt là thông tin công ty, danh mục sản phẩm, đơn giá, quy cách và các dữ liệu liên quan trước khi thực hiện bước ký tiếp theo.",
-          "Nếu cần chỉnh sửa, vui lòng phản hồi ngay email này để bộ phận phụ trách xử lý trước khi chốt hồ sơ.",
-          "Sau khi ký hoàn tất, trạng thái hợp đồng sẽ được cập nhật đồng bộ trên hệ thống.",
-        ]
-      : [
-          `${owner.companyName} đã hoàn tất ký số cho ${contractTypeLabel.toLowerCase()} số ${contract.contractNumber || contract.contractId}.`,
-          "Vui lòng mở file đính kèm để rà soát lại toàn bộ điều khoản, phạm vi hợp tác, thời hạn thanh toán, hạn mức công nợ và các thông tin pháp lý của hai bên.",
-          "Trong trường hợp cần xác nhận thêm nội dung nào trước khi ký, vui lòng phản hồi trực tiếp email này để chúng tôi hỗ trợ ngay.",
-          "Sau khi hoàn tất thao tác ký, hệ thống sẽ tự động cập nhật trạng thái và đồng bộ sang bước xử lý tiếp theo.",
-        ];
+  let messageLines: string[] = [];
+
+  switch (contract.contractType) {
+    case "appendix":
+      messageLines = [
+        `${owner.companyName} đã hoàn tất xử lý phụ lục hợp đồng số ${contractReference}.`,
+        `Phụ lục này được đính kèm theo Hợp đồng nguyên tắc số ${contractTypeNumberLabel}.`,
+        appendixProductNames.length
+          ? `Danh sách sản phẩm hiện có trong phụ lục gồm: ${appendixProductNames.join(", ")}.`
+          : "Phụ lục hiện đã có dữ liệu sản phẩm và có thể đối chiếu trực tiếp trên hệ thống.",
+        "Vui lòng rà soát kỹ thông tin công ty, danh mục sản phẩm, đơn giá (+VAT), quy cách đóng gói và các điều khoản liên quan trước khi ký xác nhận.",
+        "Nếu cần điều chỉnh nội dung, vui lòng phản hồi trực tiếp email này để bộ phận phụ trách cập nhật trước khi chốt hồ sơ.",
+      ];
+      break;
+    case "livestream_responsibility_commitment":
+      messageLines = [
+        `${owner.companyName} đã hoàn tất ký số cho Bản cam kết trách nhiệm hoạt động Livestream số ${contractReference}.`,
+        "Vui lòng kiểm tra lại đầy đủ thông tin cá nhân, phạm vi trách nhiệm, chuẩn mực phát ngôn, nghĩa vụ tuân thủ và trách nhiệm bồi thường trước khi xác nhận ký.",
+        "Đây là tài liệu ràng buộc trách nhiệm trong quá trình thực hiện Livestream dưới danh nghĩa công ty.",
+        "Nếu cần làm rõ nội dung trước khi ký, vui lòng phản hồi trực tiếp email này để được hỗ trợ.",
+      ];
+      break;
+    case "livestream_responsibility_commitment_appendix":
+      messageLines = [
+        `${owner.companyName} đã hoàn tất xử lý Phụ lục cam kết Livestream số ${contractReference}.`,
+        "Phụ lục này quy định danh mục nội dung, từ khóa và cách diễn đạt không được sử dụng trong hoạt động Livestream.",
+        "Vui lòng rà soát kỹ toàn bộ danh mục blacklist keywords và các nguyên tắc áp dụng trước khi ký xác nhận.",
+        "Nếu cần cập nhật hoặc giải thích thêm nội dung, vui lòng phản hồi trực tiếp email này để bộ phận phụ trách xử lý.",
+      ];
+      break;
+    case "service":
+      messageLines = [
+        `${owner.companyName} đã hoàn tất ký số cho Hợp đồng dịch vụ số ${contractReference}.`,
+        "Vui lòng kiểm tra lại phạm vi dịch vụ, nội dung triển khai, điều kiện thanh toán và các thông tin pháp lý liên quan trước khi ký xác nhận.",
+        "Nếu cần điều chỉnh nội dung, vui lòng phản hồi trực tiếp email này để được hỗ trợ.",
+      ];
+      break;
+    case "principle":
+    default:
+      messageLines = [
+        `${owner.companyName} đã hoàn tất ký số cho Hợp đồng nguyên tắc số ${contractReference}.`,
+        "Vui lòng rà soát lại toàn bộ điều khoản hợp tác, phương thức giao dịch, thời hạn thanh toán, hạn mức công nợ và các thông tin pháp lý của hai bên trước khi ký.",
+        "Trong trường hợp cần xác nhận thêm nội dung nào trước khi ký, vui lòng phản hồi trực tiếp email này để chúng tôi hỗ trợ ngay.",
+        "Sau khi hoàn tất thao tác ký, hệ thống sẽ tự động cập nhật trạng thái và đồng bộ sang bước xử lý tiếp theo.",
+      ];
+      break;
+  }
 
   return {
-    to: partner?.email || "",
-    subject: `[${contractTypeLabel}] ${contract.contractNumber || contract.contractId} đã sẵn sàng để xem và ký`,
+    to: personal?.email || partner?.email || "",
+    subject: `[${contractTypeLabel}] ${contractReference} đã sẵn sàng để xem và ký`,
     title: `Thông báo ${contractTypeLabel}`,
     intro: `Kính gửi ${recipientName},`,
     message: messageLines.join("\n"),
     replyTo: owner.email || "",
+    actionLabel: getContractMailActionLabel(contract.contractType),
   };
 }
 
@@ -594,58 +658,56 @@ function SendPartnerMailModal({
                 <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
                   Email đối tác
                 </span>
-                  <input
-                    type="email"
-                    value={form.to}
-                    disabled={isSending}
-                    onChange={(event) =>
-                      onUpdateField("to", event.target.value)
-                    }
-                    className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                  />
-                </label>
+                <input
+                  type="email"
+                  value={form.to}
+                  disabled={isSending}
+                  onChange={(event) => onUpdateField("to", event.target.value)}
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                />
+              </label>
 
               <label className="block">
                 <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
                   Tiêu đề
                 </span>
-                  <input
-                    value={form.subject}
-                    disabled={isSending}
-                    onChange={(event) =>
-                      onUpdateField("subject", event.target.value)
-                    }
-                    className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                  />
+                <input
+                  value={form.subject}
+                  disabled={isSending}
+                  onChange={(event) =>
+                    onUpdateField("subject", event.target.value)
+                  }
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                />
               </label>
 
               <label className="block">
                 <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
                   Lời mở đầu
                 </span>
-                  <input
-                    value={form.intro}
-                    disabled={isSending}
-                    onChange={(event) =>
-                      onUpdateField("intro", event.target.value)
-                    }
-                    className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                  />
+                <input
+                  value={form.intro}
+                  disabled={isSending}
+                  onChange={(event) =>
+                    onUpdateField("intro", event.target.value)
+                  }
+                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                />
               </label>
 
               <label className="block">
                 <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
                   Nội dung
                 </span>
-                  <textarea
-                    value={form.message}
-                    disabled={isSending}
-                    rows={5}
-                    onChange={(event) =>
-                      onUpdateField("message", event.target.value)
-                    }
-                    className="w-full resize-none border-b border-white/10 bg-transparent py-2 text-sm leading-6 text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                  />
+                <textarea
+                  value={form.message}
+                  disabled={isSending}
+                  rows={5}
+                  onChange={(event) =>
+                    onUpdateField("message", event.target.value)
+                  }
+                  className="w-full resize-none border-b border-white/10 bg-transparent py-2 text-sm leading-6 text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                />
               </label>
             </div>
 
@@ -712,11 +774,16 @@ function SendPartnerMailModalController({
     const normalizedSubject = form.subject.trim();
 
     if (!normalizedTo || !normalizedSubject) {
-      toast.error("Thiếu thông tin gửi mail", "Vui lòng kiểm tra email đối tác và tiêu đề.");
+      toast.error(
+        "Thiếu thông tin gửi mail",
+        "Vui lòng kiểm tra email đối tác và tiêu đề.",
+      );
       return;
     }
 
-    const signLinkResponse = await generateSignLinkMutation.mutateAsync(contract.contractId);
+    const signLinkResponse = await generateSignLinkMutation.mutateAsync(
+      contract.contractId,
+    );
 
     if (!signLinkResponse.success || !signLinkResponse.data?.signingUrl) {
       return;
@@ -735,7 +802,7 @@ function SendPartnerMailModalController({
         .split("\n")
         .map((line) => line.trim())
         .filter(Boolean),
-      actionLabel: "Xem hợp đồng",
+      actionLabel: form.actionLabel,
       actionUrl: signLinkResponse.data.signingUrl,
       footer:
         "Email này được gửi tự động từ hệ thống của công ty Picare Việt Nam. Vui lòng không chia sẻ đường dẫn nếu không có thẩm quyền.",
@@ -778,7 +845,7 @@ function ContractDocument({
   const owner = contract.ownerCompanyInfo;
   const partner = contract.partnerCompanyInfo;
   const contractData = getPrincipleContractData(contract);
-  const todayDate = getVietnameseDate();
+  const todayDate = getVietnameseDate(getContractDisplayDate(contract));
   const creditLimit = formatCreditLimit(contractData.creditLimit);
   const contractNumber = contract.contractNumber;
   const hasOwnerSigned =
@@ -1393,7 +1460,7 @@ function LivestreamResponsibilityCommitmentDocument({
 }) {
   const owner = contract.ownerCompanyInfo;
   const personal = contract.personalInfo;
-  const todayDate = getVietnameseDate();
+  const todayDate = getVietnameseDate(getContractDisplayDate(contract));
   const hasOwnerSigned =
     contract.status === "owner_signed" || contract.status === "completed";
   const hasPartnerSigned = contract.status === "completed";
@@ -1430,10 +1497,10 @@ function LivestreamResponsibilityCommitmentDocument({
       </header>
 
       <section className="pt-14 text-center">
-        <p className="text-[13px] text-black/35 dark:text-white/35">
-          TP.HCM, {strong(todayDate)}
+        <p className="text-[13px] font-semibold text-black/86 dark:text-white/86">
+          TP.HCM, {todayDate}
         </p>
-        <h1 className="mx-auto mt-7 max-w-3xl text-3xl font-medium leading-tight tracking-[0.03em] text-[#111111] uppercase dark:text-white">
+        <h1 className="mx-auto mt-7 max-w-3xl text-3xl leading-tight font-medium tracking-[0.03em] text-[#111111] uppercase dark:text-white">
           Bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt động
           Livestream
         </h1>
@@ -1462,18 +1529,35 @@ function LivestreamResponsibilityCommitmentDocument({
         <p>Tên công ty: {strong(owner.companyName)}</p>
         <p>Mã số thuế: {strong(owner.mst)}</p>
         <p>Địa chỉ: {strong(owner.address)}</p>
-        <p>Người đại diện: {strong(owner.ownerName)} – {strong(owner.role)}</p>
+        <p>
+          Người đại diện: {strong(owner.ownerName)} – {strong(owner.role)}
+        </p>
       </section>
       <section className="mt-8 text-[14px] leading-7 text-black/62 dark:text-white/62">
         <h2 className="font-semibold text-black/86 uppercase dark:text-white/86">
           Bên B: Người lao động/Nhân viên Livestream (Người cam kết)
         </h2>
         <p>Họ tên: {strong(personal?.fullName)}</p>
-        <p>Sinh ngày: {strong(personal?.dateOfBirth ? formatDate(personal.dateOfBirth) : "")}</p>
-        <p>Chức vụ: {strong(personal?.position)} · Phòng ban: {strong(personal?.department)}</p>
+        <p>
+          Sinh ngày:{" "}
+          {strong(
+            personal?.dateOfBirth ? formatDate(personal.dateOfBirth) : "",
+          )}
+        </p>
+        <p>
+          Chức vụ: {strong(personal?.position)} · Phòng ban:{" "}
+          {strong(personal?.department)}
+        </p>
+        <p>Email: {strong(personal?.email)}</p>
         <p>Thường trú: {strong(personal?.permanentAddress)}</p>
         <p>
-          Số CCCD: {strong(personal?.citizenId)} · cấp ngày: {strong(personal?.citizenIdIssuedDate ? formatDate(personal.citizenIdIssuedDate) : "")} · tại: {strong(personal?.citizenIdIssuedPlace)}
+          Số CCCD: {strong(personal?.citizenId)} · cấp ngày:{" "}
+          {strong(
+            personal?.citizenIdIssuedDate
+              ? formatDate(personal.citizenIdIssuedDate)
+              : "",
+          )}{" "}
+          · tại: {strong(personal?.citizenIdIssuedPlace)}
         </p>
       </section>
 
@@ -1483,32 +1567,72 @@ function LivestreamResponsibilityCommitmentDocument({
         trình thực hiện Livestream bán hàng, cụ thể như sau:
       </p>
 
-      <section><ArticleTitle>Điều 1: Phạm vi và nội dung phát ngôn về sản phẩm</ArticleTitle><ClauseList items={[
-        "Tuân thủ đúng hồ sơ công bố: Chỉ giới thiệu, tư vấn và mô tả công dụng của mỹ phẩm đúng theo tài liệu, kịch bản và phiếu công bố sản phẩm do Bên A cung cấp.",
-        "Không sử dụng ngôn từ cấm: Tuyệt đối không dùng từ ngữ, hình ảnh, âm thanh, ký hiệu hoặc cách diễn đạt khiến khách hàng hiểu mỹ phẩm là thuốc hoặc có tác dụng điều trị bệnh; không dùng các từ “Đặc trị”, “Trị dứt điểm”, “Cam kết khỏi bệnh 100%”, “Thuốc”, “Chữa bệnh”, “Thần dược” hoặc nội dung thổi phồng công dụng.",
-        "Không tự ý sáng tạo công dụng, thành phần hoặc tính năng của sản phẩm khi chưa được Bộ phận Chuyên môn/Quản lý của Bên A phê duyệt bằng văn bản.",
-      ]} /></section>
-      <section><ArticleTitle>Điều 2: Chuẩn mực ngôn từ và hành vi trên nền tảng</ArticleTitle><ClauseList items={[
-        "Sử dụng ngôn từ lịch sự, văn minh; không chửi thề, nói bậy, dùng từ thô tục, nhục mạ, phân biệt vùng miền, giới tính, tôn giáo hoặc vi phạm thuần phong mỹ tục Việt Nam.",
-        "Tuân thủ tuyệt đối chính sách của các nền tảng Livestream như TikTok, Shopee, Facebook; không có hành vi hở hang, bạo lực hoặc xúi giục vi phạm pháp luật.",
-        "Cạnh tranh lành mạnh: Không nhắc tên, bôi nhọ, chê bai hoặc so sánh trực tiếp đối thủ; không tự ý thay đổi giá, voucher, khuyến mại, xuất xứ, chính sách đổi trả hoặc bảo hành khi chưa được Công ty phê duyệt.",
-      ]} /></section>
-      <section><ArticleTitle>Điều 3: Xử lý vi phạm và trách nhiệm bồi thường</ArticleTitle><ClauseList items={[
-        "Bên B hiểu mọi phát ngôn trên Livestream đều đại diện cho hình ảnh Bên A và phải chịu trách nhiệm cá nhân đối với án phạt hành chính hoặc hình phạt từ nền tảng do hành vi của mình gây ra.",
-        "Nếu vi phạm làm kênh hoặc tài khoản của Bên A bị khóa, bóp tương tác, đánh gậy hoặc khóa vĩnh viễn, Bên B có trách nhiệm bồi thường toàn bộ thiệt hại về doanh thu và chi phí xây dựng kênh theo thiệt hại thực tế.",
-        "Bên B bồi thường 100% các khoản tiền phạt mà Bên A phải nộp cho cơ quan nhà nước do lỗi phát ngôn sai sự thật của Bên B.",
-        "Tùy mức độ vi phạm, Nhân viên có thể bị xử lý kỷ luật lao động đến mức sa thải và phải bồi thường toàn bộ thiệt hại theo quy định pháp luật.",
-      ]} /></section>
-      <section><ArticleTitle>Điều 4: Điều khoản chung</ArticleTitle><ClauseList items={[
-        "Bên B đã đọc, hiểu rõ nội dung cam kết và sẽ không thắc mắc, khiếu nại về sau.",
-        "Cam kết này thay thế mọi trao đổi, đồng ý bằng miệng và thông báo bằng văn bản trước đây liên quan đến chủ đề này.",
-        "Cam kết có hiệu lực từ ngày ký và trong suốt quá trình làm việc. Nghĩa vụ bảo mật và bồi thường thiệt hại vẫn được thực hiện sau khi chấm dứt hợp đồng lao động theo pháp luật và thỏa thuận giữa hai bên.",
-        "Cam kết được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản.",
-      ]} /></section>
+      <section>
+        <ArticleTitle>
+          Điều 1: Phạm vi và nội dung phát ngôn về sản phẩm
+        </ArticleTitle>
+        <ClauseList
+          items={[
+            "Tuân thủ đúng hồ sơ công bố: Chỉ giới thiệu, tư vấn và mô tả công dụng của mỹ phẩm đúng theo tài liệu, kịch bản và phiếu công bố sản phẩm do Bên A cung cấp.",
+            "Không sử dụng ngôn từ cấm: Tuyệt đối không dùng từ ngữ, hình ảnh, âm thanh, ký hiệu hoặc cách diễn đạt khiến khách hàng hiểu mỹ phẩm là thuốc hoặc có tác dụng điều trị bệnh; không dùng các từ “Đặc trị”, “Trị dứt điểm”, “Cam kết khỏi bệnh 100%”, “Thuốc”, “Chữa bệnh”, “Thần dược” hoặc nội dung thổi phồng công dụng.",
+            "Không tự ý sáng tạo công dụng, thành phần hoặc tính năng của sản phẩm khi chưa được Bộ phận Chuyên môn/Quản lý của Bên A phê duyệt bằng văn bản.",
+          ]}
+        />
+      </section>
+      <section>
+        <ArticleTitle>
+          Điều 2: Chuẩn mực ngôn từ và hành vi trên nền tảng
+        </ArticleTitle>
+        <ClauseList
+          items={[
+            "Sử dụng ngôn từ lịch sự, văn minh; không chửi thề, nói bậy, dùng từ thô tục, nhục mạ, phân biệt vùng miền, giới tính, tôn giáo hoặc vi phạm thuần phong mỹ tục Việt Nam.",
+            "Tuân thủ tuyệt đối chính sách của các nền tảng Livestream như TikTok, Shopee, Facebook; không có hành vi hở hang, bạo lực hoặc xúi giục vi phạm pháp luật.",
+            "Cạnh tranh lành mạnh: Không nhắc tên, bôi nhọ, chê bai hoặc so sánh trực tiếp đối thủ; không tự ý thay đổi giá, voucher, khuyến mại, xuất xứ, chính sách đổi trả hoặc bảo hành khi chưa được Công ty phê duyệt.",
+          ]}
+        />
+      </section>
+      <section>
+        <ArticleTitle>
+          Điều 3: Xử lý vi phạm và trách nhiệm bồi thường
+        </ArticleTitle>
+        <ClauseList
+          items={[
+            "Bên B hiểu mọi phát ngôn trên Livestream đều đại diện cho hình ảnh Bên A và phải chịu trách nhiệm cá nhân đối với án phạt hành chính hoặc hình phạt từ nền tảng do hành vi của mình gây ra.",
+            "Nếu vi phạm làm kênh hoặc tài khoản của Bên A bị khóa, bóp tương tác, đánh gậy hoặc khóa vĩnh viễn, Bên B có trách nhiệm bồi thường toàn bộ thiệt hại về doanh thu và chi phí xây dựng kênh theo thiệt hại thực tế.",
+            "Bên B bồi thường 100% các khoản tiền phạt mà Bên A phải nộp cho cơ quan nhà nước do lỗi phát ngôn sai sự thật của Bên B.",
+            "Tùy mức độ vi phạm, Nhân viên có thể bị xử lý kỷ luật lao động đến mức sa thải và phải bồi thường toàn bộ thiệt hại theo quy định pháp luật.",
+          ]}
+        />
+      </section>
+      <section>
+        <ArticleTitle>Điều 4: Điều khoản chung</ArticleTitle>
+        <ClauseList
+          items={[
+            "Bên B đã đọc, hiểu rõ nội dung cam kết và sẽ không thắc mắc, khiếu nại về sau.",
+            "Cam kết này thay thế mọi trao đổi, đồng ý bằng miệng và thông báo bằng văn bản trước đây liên quan đến chủ đề này.",
+            "Cam kết có hiệu lực từ ngày ký và trong suốt quá trình làm việc. Nghĩa vụ bảo mật và bồi thường thiệt hại vẫn được thực hiện sau khi chấm dứt hợp đồng lao động theo pháp luật và thỏa thuận giữa hai bên.",
+            "Cam kết được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản.",
+          ]}
+        />
+      </section>
 
       <section className="mt-20 grid gap-12 border-t border-black/10 pt-12 md:grid-cols-2 dark:border-white/10">
-        <SignatureBlock title="Người cam kết" name={personal?.fullName || ""} isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)} shouldAnimate={Boolean(partnerSignatureRevealKey)} revealKey={partnerSignatureRevealKey} signatureRef={partnerSignatureRef} />
-        <SignatureBlock title="Đại diện công ty" name={owner.ownerName} isSigned={hasOwnerSigned || Boolean(ownerSignatureRevealKey)} shouldAnimate={Boolean(ownerSignatureRevealKey)} revealKey={ownerSignatureRevealKey} signatureRef={ownerSignatureRef} />
+        <SignatureBlock
+          title="Người cam kết"
+          name={personal?.fullName || ""}
+          isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)}
+          shouldAnimate={Boolean(partnerSignatureRevealKey)}
+          revealKey={partnerSignatureRevealKey}
+          signatureRef={partnerSignatureRef}
+        />
+        <SignatureBlock
+          title="Đại diện công ty"
+          name={owner.ownerName}
+          isSigned={hasOwnerSigned || Boolean(ownerSignatureRevealKey)}
+          shouldAnimate={Boolean(ownerSignatureRevealKey)}
+          revealKey={ownerSignatureRevealKey}
+          signatureRef={ownerSignatureRef}
+        />
       </section>
     </motion.article>
   );
@@ -1529,33 +1653,106 @@ function LivestreamResponsibilityCommitmentAppendixDocument({
 }) {
   const owner = contract.ownerCompanyInfo;
   const personal = contract.personalInfo;
-  const hasOwnerSigned = contract.status === "owner_signed" || contract.status === "completed";
+  const contractDate = getVietnameseDate(getContractDisplayDate(contract));
+  const hasOwnerSigned =
+    contract.status === "owner_signed" || contract.status === "completed";
   const hasPartnerSigned = contract.status === "completed";
   return (
-    <motion.article initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="mx-auto w-full max-w-5xl pb-24">
+    <motion.article
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      className="mx-auto w-full max-w-5xl pb-24"
+    >
       <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
-        <div><p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">{owner.companyName}</p><p className="mt-3 text-[13px] text-black/35 dark:text-white/35">Số: <strong className="font-semibold text-black/72 dark:text-white/72">{contract.contractNumber || contract.contractId}</strong></p></div>
-        <div className="text-left md:text-center"><p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">Cộng hòa xã hội chủ nghĩa Việt Nam</p><p className="mt-1 text-[13px] text-black/62 dark:text-white/62">Độc lập – Tự do – Hạnh phúc</p></div>
+        <div>
+          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+            {owner.companyName}
+          </p>
+          <p className="mt-3 text-[13px] text-black/35 dark:text-white/35">
+            Số:{" "}
+            <strong className="font-semibold text-black/72 dark:text-white/72">
+              {contract.contractNumber || contract.contractId}
+            </strong>
+          </p>
+        </div>
+        <div className="text-left md:text-center">
+          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+            Cộng hòa xã hội chủ nghĩa Việt Nam
+          </p>
+          <p className="mt-1 text-[13px] text-black/62 dark:text-white/62">
+            Độc lập – Tự do – Hạnh phúc
+          </p>
+        </div>
       </header>
       <section className="pt-14 text-center">
-        <p className="text-[13px] text-black/35 dark:text-white/35">TP.HCM, <strong className="font-semibold text-black/72 dark:text-white/72">{getVietnameseDate()}</strong></p>
-        <h1 className="mx-auto mt-7 max-w-3xl text-3xl font-medium leading-tight tracking-[0.03em] text-[#111111] uppercase dark:text-white">Phụ lục bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt động Livestream</h1>
-        <p className="mx-auto mt-4 max-w-3xl text-[14px] italic leading-7 text-black/55 dark:text-white/55">Phụ lục này là văn bản không thể tách rời của Bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt động Livestream.</p>
+        <p className="text-[13px] text-black/35 dark:text-white/35">
+          TP.HCM,{" "}
+          <strong className="font-semibold text-black/72 dark:text-white/72">
+            {contractDate}
+          </strong>
+        </p>
+        <h1 className="mx-auto mt-7 max-w-3xl text-3xl leading-tight font-medium tracking-[0.03em] text-[#111111] uppercase dark:text-white">
+          Phụ lục bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt
+          động Livestream
+        </h1>
+        <p className="mx-auto mt-4 max-w-3xl text-[14px] leading-7 text-black/55 italic dark:text-white/55">
+          Phụ lục này là văn bản không thể tách rời của Bản cam kết trách nhiệm
+          và xác nhận tuân thủ quy định hoạt động Livestream.
+        </p>
+        <p className="mx-auto mt-3 max-w-3xl text-[14px] leading-7 text-black/62 dark:text-white/62">
+          Áp dụng cho người cam kết:{" "}
+          <strong className="font-semibold text-black/86 dark:text-white/86">
+            {personal?.fullName || "..."}
+          </strong>
+        </p>
       </section>
-      <section><ArticleTitle>I. Nguyên tắc áp dụng</ArticleTitle><ClauseList items={[
-        "Danh mục này quy định các từ khóa, cụm từ và nội dung không được sử dụng khi Livestream, quay video, đăng bài viết, trả lời bình luận, nhắn tin với khách hàng hoặc thực hiện hoạt động truyền thông dưới danh nghĩa Công ty.",
-        "Danh mục được xây dựng trên cơ sở pháp luật Việt Nam, quy định chuyên ngành về quảng cáo, mỹ phẩm, thương mại điện tử, chính sách nền tảng mạng xã hội và quy định nội bộ của Công ty.",
-        "Danh mục mang tính hướng dẫn tuân thủ, không giới hạn trách nhiệm của Nhân viên đối với hành vi vi phạm chưa được liệt kê; mọi cách diễn đạt có ý nghĩa tương tự hoặc làm khách hàng hiểu theo nội dung bị cấm đều được xem là vi phạm.",
-      ]} /></section>
-      {LIVESTREAM_APPENDIX_SECTIONS.map((section) => <section key={section.title}><ArticleTitle>{section.title}</ArticleTitle><p className="mt-4 text-[14px] leading-7 text-black/62 dark:text-white/62">{section.intro}</p><ClauseList items={[...section.items]} /></section>)}
-      <section><ArticleTitle>X. Quy định áp dụng</ArticleTitle><ClauseList items={[
-        "Nhân viên xác nhận đã được Công ty phổ biến và hướng dẫn đầy đủ Danh mục từ khóa cấm (Blacklist Keywords) này và cam kết tuân thủ trong toàn bộ hoạt động truyền thông dưới danh nghĩa Công ty.",
-        "Danh mục này là Phụ lục không tách rời của Bản cam kết trách nhiệm và có giá trị áp dụng như Bản cam kết.",
-        "Khi pháp luật, chính sách nền tảng hoặc quy định nội bộ thay đổi, Công ty có quyền sửa đổi, bổ sung Danh mục mà không phải ký lại Bản cam kết. Kể từ thời điểm được thông báo, Nhân viên có trách nhiệm nghiên cứu và tuân thủ đầy đủ nội dung cập nhật.",
-      ]} /></section>
+      <section>
+        <ArticleTitle>I. Nguyên tắc áp dụng</ArticleTitle>
+        <ClauseList
+          items={[
+            "Danh mục này quy định các từ khóa, cụm từ và nội dung không được sử dụng khi Livestream, quay video, đăng bài viết, trả lời bình luận, nhắn tin với khách hàng hoặc thực hiện hoạt động truyền thông dưới danh nghĩa Công ty.",
+            "Danh mục được xây dựng trên cơ sở pháp luật Việt Nam, quy định chuyên ngành về quảng cáo, mỹ phẩm, thương mại điện tử, chính sách nền tảng mạng xã hội và quy định nội bộ của Công ty.",
+            "Danh mục mang tính hướng dẫn tuân thủ, không giới hạn trách nhiệm của Nhân viên đối với hành vi vi phạm chưa được liệt kê; mọi cách diễn đạt có ý nghĩa tương tự hoặc làm khách hàng hiểu theo nội dung bị cấm đều được xem là vi phạm.",
+          ]}
+        />
+      </section>
+      {LIVESTREAM_APPENDIX_SECTIONS.map((section) => (
+        <section key={section.title}>
+          <ArticleTitle>{section.title}</ArticleTitle>
+          <p className="mt-4 text-[14px] leading-7 text-black/62 dark:text-white/62">
+            {section.intro}
+          </p>
+          <ClauseList items={[...section.items]} />
+        </section>
+      ))}
+      <section>
+        <ArticleTitle>X. Quy định áp dụng</ArticleTitle>
+        <ClauseList
+          items={[
+            "Nhân viên xác nhận đã được Công ty phổ biến và hướng dẫn đầy đủ Danh mục từ khóa cấm (Blacklist Keywords) này và cam kết tuân thủ trong toàn bộ hoạt động truyền thông dưới danh nghĩa Công ty.",
+            "Danh mục này là Phụ lục không tách rời của Bản cam kết trách nhiệm và có giá trị áp dụng như Bản cam kết.",
+            "Khi pháp luật, chính sách nền tảng hoặc quy định nội bộ thay đổi, Công ty có quyền sửa đổi, bổ sung Danh mục mà không phải ký lại Bản cam kết. Kể từ thời điểm được thông báo, Nhân viên có trách nhiệm nghiên cứu và tuân thủ đầy đủ nội dung cập nhật.",
+          ]}
+        />
+      </section>
       <section className="mt-20 grid gap-12 border-t border-black/10 pt-12 md:grid-cols-2 dark:border-white/10">
-        <SignatureBlock title="Người cam kết" name={personal?.fullName || ""} isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)} shouldAnimate={Boolean(partnerSignatureRevealKey)} revealKey={partnerSignatureRevealKey} signatureRef={partnerSignatureRef} />
-        <SignatureBlock title="Đại diện công ty" name={owner.ownerName} isSigned={hasOwnerSigned || Boolean(ownerSignatureRevealKey)} shouldAnimate={Boolean(ownerSignatureRevealKey)} revealKey={ownerSignatureRevealKey} signatureRef={ownerSignatureRef} />
+        <SignatureBlock
+          title="Người cam kết"
+          name={personal?.fullName || ""}
+          isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)}
+          shouldAnimate={Boolean(partnerSignatureRevealKey)}
+          revealKey={partnerSignatureRevealKey}
+          signatureRef={partnerSignatureRef}
+        />
+        <SignatureBlock
+          title="Đại diện công ty"
+          name={owner.ownerName}
+          isSigned={hasOwnerSigned || Boolean(ownerSignatureRevealKey)}
+          shouldAnimate={Boolean(ownerSignatureRevealKey)}
+          revealKey={ownerSignatureRevealKey}
+          signatureRef={ownerSignatureRef}
+        />
       </section>
     </motion.article>
   );
@@ -1576,8 +1773,9 @@ function AppendixContractDocument({
 }) {
   const owner = contract.ownerCompanyInfo;
   const partner = contract.partnerCompanyInfo;
-  const todayDate = getVietnameseDate();
-  const shortTodayDate = formatDate(new Date().toISOString());
+  const contractDate = getContractDisplayDate(contract);
+  const todayDate = getVietnameseDate(contractDate);
+  const shortTodayDate = formatDate(contractDate);
   const products = getAppendixProducts(contract);
   const hasOwnerSigned =
     contract.status === "owner_signed" || contract.status === "completed";
@@ -1977,7 +2175,8 @@ function ContractPreviewPageShell({
       <div className="fixed top-6 right-6 z-50">
         <ThemeToggle />
       </div>
-      {contract.contractType === "livestream_responsibility_commitment_appendix" ? (
+      {contract.contractType ===
+      "livestream_responsibility_commitment_appendix" ? (
         <LivestreamResponsibilityCommitmentAppendixDocument
           contract={contract}
           ownerSignatureRef={ownerSignatureRef}
@@ -2074,4 +2273,3 @@ function ContractPreviewPageData() {
 export default function ContractPreviewPage() {
   return <ContractPreviewPageData />;
 }
-
