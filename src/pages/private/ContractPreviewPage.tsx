@@ -18,9 +18,7 @@ import { PATHS } from "@/config/paths";
 import {
   useCreateDraftDownloadContract,
   useContractDetail,
-  useGenerateSignLink,
 } from "@/hooks/data/useContractHooks";
-import { usesendEcontractMailTemplate } from "@/hooks/data/useMailHooks";
 import { useDownloadS3Asset } from "@/hooks/data/useS3Hooks";
 import { toast } from "@/hooks/useToast";
 import type {
@@ -486,8 +484,11 @@ function getContractMailTypeLabel(contractType: Contract["contractType"]) {
 
 function createPartnerMailForm(contract: Contract): PartnerMailForm {
   const partner = contract.partnerCompanyInfo;
+  const personal = contract.personalInfo;
   const owner = contract.ownerCompanyInfo;
   const contractTypeLabel = getContractMailTypeLabel(contract.contractType);
+  const recipientName =
+    partner?.companyName || partner?.ownerName || personal?.fullName || "Quý đối tác";
   const contractTypeNumberLabel =
     contract.contractType === "appendix"
       ? getAppendixPrincipleContractNumber(contract) || "không xác định"
@@ -518,10 +519,10 @@ function createPartnerMailForm(contract: Contract): PartnerMailForm {
         ];
 
   return {
-    to: partner.email || "",
+    to: partner?.email || "",
     subject: `[${contractTypeLabel}] ${contract.contractNumber || contract.contractId} đã sẵn sàng để xem và ký`,
     title: `Thông báo ${contractTypeLabel}`,
-    intro: `Kính gửi ${partner.companyName || `${partner.ownerName || "Quý đối tác"}`},`,
+    intro: `Kính gửi ${recipientName},`,
     message: messageLines.join("\n"),
     replyTo: owner.email || "",
   };
@@ -531,75 +532,20 @@ function SendPartnerMailModal({
   contract,
   isOpen,
   onClose,
+  form,
+  isSending,
+  onUpdateField,
+  onSend,
 }: {
   contract: Contract;
   isOpen: boolean;
   onClose: () => void;
+  form: PartnerMailForm;
+  isSending: boolean;
+  onUpdateField: (field: keyof PartnerMailForm, value: string) => void;
+  onSend: () => void | Promise<void>;
 }) {
-  const sendMailMutation = usesendEcontractMailTemplate();
-  const generateSignLinkMutation = useGenerateSignLink();
-  const [form, setForm] = useState<PartnerMailForm>(() =>
-    createPartnerMailForm(contract),
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      setForm(createPartnerMailForm(contract));
-    }
-  }, [contract, isOpen]);
-
-  const isSending =
-    sendMailMutation.isPending || generateSignLinkMutation.isPending;
   const mailTypeLabel = getContractMailTypeLabel(contract.contractType);
-
-  const updateField = (field: keyof PartnerMailForm, value: string) => {
-    setForm((current) => ({ ...current, [field]: value }));
-  };
-
-  const handleSend = async () => {
-    const normalizedTo = form.to.trim();
-    const normalizedSubject = form.subject.trim();
-
-    if (!normalizedTo || !normalizedSubject) {
-      toast.error(
-        "Thiếu thông tin gửi mail",
-        "Vui lòng kiểm tra email đối tác và tiêu đề.",
-      );
-      return;
-    }
-
-    const signLinkResponse = await generateSignLinkMutation.mutateAsync(
-      contract.contractId,
-    );
-
-    if (!signLinkResponse.success || !signLinkResponse.data?.signingUrl) {
-      return;
-    }
-
-    const isDev = import.meta.env.DEV;
-    const response = await sendMailMutation.mutateAsync({
-      smtpUser: isDev ? "tritruonghoang3@gmail.com" : "econtract@picare.vn",
-      mailFrom: isDev ? "tritruonghoang3@gmail.com" : "econtract@picare.vn",
-      mailFromName: isDev ? "Picare Dev" : "Picare E-Contract",
-      to: normalizedTo,
-      subject: normalizedSubject,
-      title: form.title.trim() || normalizedSubject,
-      intro: form.intro.trim(),
-      bodyLines: form.message
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean),
-      actionLabel: "Xem hợp đồng",
-      actionUrl: signLinkResponse.data.signingUrl,
-      footer:
-        "Email này được gửi tự động từ hệ thống của công ty Picare Việt Nam. Vui lòng không chia sẻ đường dẫn nếu không có thẩm quyền.",
-      replyTo: form.replyTo.trim() || contract.ownerCompanyInfo.email || "",
-    });
-
-    if (response.success) {
-      onClose();
-    }
-  };
 
   return (
     <AnimatePresence>
@@ -646,54 +592,58 @@ function SendPartnerMailModal({
                 <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
                   Email đối tác
                 </span>
-                <input
-                  type="email"
-                  value={form.to}
-                  disabled={isSending}
-                  onChange={(event) => updateField("to", event.target.value)}
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
+                  <input
+                    type="email"
+                    value={form.to}
+                    disabled={isSending}
+                    onChange={(event) =>
+                      onUpdateField("to", event.target.value)
+                    }
+                    className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                  />
+                </label>
 
               <label className="block">
                 <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
                   Tiêu đề
                 </span>
-                <input
-                  value={form.subject}
-                  disabled={isSending}
-                  onChange={(event) =>
-                    updateField("subject", event.target.value)
-                  }
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
+                  <input
+                    value={form.subject}
+                    disabled={isSending}
+                    onChange={(event) =>
+                      onUpdateField("subject", event.target.value)
+                    }
+                    className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                  />
               </label>
 
               <label className="block">
                 <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
                   Lời mở đầu
                 </span>
-                <input
-                  value={form.intro}
-                  disabled={isSending}
-                  onChange={(event) => updateField("intro", event.target.value)}
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
+                  <input
+                    value={form.intro}
+                    disabled={isSending}
+                    onChange={(event) =>
+                      onUpdateField("intro", event.target.value)
+                    }
+                    className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                  />
               </label>
 
               <label className="block">
                 <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
                   Nội dung
                 </span>
-                <textarea
-                  value={form.message}
-                  disabled={isSending}
-                  rows={5}
-                  onChange={(event) =>
-                    updateField("message", event.target.value)
-                  }
-                  className="w-full resize-none border-b border-white/10 bg-transparent py-2 text-sm leading-6 text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
+                  <textarea
+                    value={form.message}
+                    disabled={isSending}
+                    rows={5}
+                    onChange={(event) =>
+                      onUpdateField("message", event.target.value)
+                    }
+                    className="w-full resize-none border-b border-white/10 bg-transparent py-2 text-sm leading-6 text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+                  />
               </label>
             </div>
 
@@ -709,7 +659,7 @@ function SendPartnerMailModal({
               <button
                 type="button"
                 disabled={isSending}
-                onClick={handleSend}
+                onClick={onSend}
                 className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSending ? <Spinner size="sm" /> : <FiMail size={14} />}
@@ -720,6 +670,90 @@ function SendPartnerMailModal({
         </div>
       ) : null}
     </AnimatePresence>
+  );
+}
+
+function SendPartnerMailModalController({
+  contract,
+  isOpen,
+  onClose,
+}: {
+  contract: Contract;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState<PartnerMailForm>(() =>
+    createPartnerMailForm(contract),
+  );
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setForm(createPartnerMailForm(contract));
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [contract, isOpen]);
+
+  const updateField = (field: keyof PartnerMailForm, value: string) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSend = async () => {
+    const normalizedTo = form.to.trim();
+    const normalizedSubject = form.subject.trim();
+
+    if (!normalizedTo || !normalizedSubject) {
+      toast.error("Thiếu thông tin gửi mail", "Vui lòng kiểm tra email đối tác và tiêu đề.");
+      return;
+    }
+
+    const signLinkResponse = await generateSignLinkMutation.mutateAsync(contract.contractId);
+
+    if (!signLinkResponse.success || !signLinkResponse.data?.signingUrl) {
+      return;
+    }
+
+    const isDev = import.meta.env.DEV;
+    const response = await sendMailMutation.mutateAsync({
+      smtpUser: isDev ? "tritruonghoang3@gmail.com" : "econtract@picare.vn",
+      mailFrom: isDev ? "tritruonghoang3@gmail.com" : "econtract@picare.vn",
+      mailFromName: isDev ? "Picare Dev" : "Picare E-Contract",
+      to: normalizedTo,
+      subject: normalizedSubject,
+      title: form.title.trim() || normalizedSubject,
+      intro: form.intro.trim(),
+      bodyLines: form.message
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean),
+      actionLabel: "Xem hợp đồng",
+      actionUrl: signLinkResponse.data.signingUrl,
+      footer:
+        "Email này được gửi tự động từ hệ thống của công ty Picare Việt Nam. Vui lòng không chia sẻ đường dẫn nếu không có thẩm quyền.",
+      replyTo: form.replyTo.trim() || contract.ownerCompanyInfo.email || "",
+    });
+
+    if (response.success) {
+      onClose();
+    }
+  };
+
+  return (
+    <SendPartnerMailModal
+      contract={contract}
+      isOpen={isOpen}
+      onClose={onClose}
+      form={form}
+      isSending={
+        sendMailMutation.isPending || generateSignLinkMutation.isPending
+      }
+      onUpdateField={updateField}
+      onSend={handleSend}
+    />
   );
 }
 
@@ -1866,7 +1900,7 @@ function ContractActionDock({
         onSigned={onSigned}
       />
 
-      <SendPartnerMailModal
+      <SendPartnerMailModalController
         contract={contract}
         isOpen={isSendMailOpen}
         onClose={() => setIsSendMailOpen(false)}
@@ -2035,3 +2069,4 @@ function ContractPreviewPageData() {
 export default function ContractPreviewPage() {
   return <ContractPreviewPageData />;
 }
+

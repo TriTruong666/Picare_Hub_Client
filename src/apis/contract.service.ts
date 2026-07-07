@@ -34,6 +34,23 @@ function getPartnerTokenRequestConfig(token?: string) {
   };
 }
 
+function normalizeContractDetailResponse(contract: Contract): Contract {
+  const contractData = contract.contractData as
+    | {
+        personalInfo?: Contract["personalInfo"];
+        partnerCompanyInfo?: Contract["partnerCompanyInfo"];
+      }
+    | null
+    | undefined;
+
+  return {
+    ...contract,
+    personalInfo: contract.personalInfo ?? contractData?.personalInfo ?? null,
+    partnerCompanyInfo:
+      contract.partnerCompanyInfo ?? contractData?.partnerCompanyInfo ?? null,
+  } as Contract;
+}
+
 export const createContract = async (
   payload: CreateContractPayload,
 ): Promise<BaseResponse<CreateContractResponse>> => {
@@ -76,6 +93,14 @@ export const getContractDetail = async (
     `/api/v1/contracts/${contractId}`,
     getPartnerTokenRequestConfig(token),
   );
+
+  if (res.data?.data) {
+    return {
+      ...res.data,
+      data: normalizeContractDetailResponse(res.data.data),
+    };
+  }
+
   return res.data;
 };
 

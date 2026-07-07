@@ -102,6 +102,29 @@ export function ContractHistoryPanel({
         <div>
           {contracts?.map((contract) => {
             const active = activeContractId === contract.contractId;
+            const isLivestream =
+              contract.contractType === "livestream_responsibility_commitment" ||
+              contract.contractType === "livestream_responsibility_commitment_appendix";
+
+            const partnerName = isLivestream
+              ? contract.personalInfo?.fullName || "Chưa có tên người cam kết"
+              : contract.partnerCompanyInfo?.companyName || "Chưa có tên đối tác";
+
+            const ownerName = isLivestream
+              ? contract.personalInfo?.fullName || "Chưa có người cam kết"
+              : contract.partnerCompanyInfo?.ownerName || "Chưa có người đại diện";
+
+            const roleOrPosition = isLivestream
+              ? contract.personalInfo?.position
+              : contract.partnerCompanyInfo?.role;
+
+            const taxOrIdLabel = isLivestream ? "CCCD" : "MST";
+            const taxOrIdVal = isLivestream
+              ? contract.personalInfo?.citizenId
+              : contract.partnerCompanyInfo?.mst;
+
+            const phone = isLivestream ? null : contract.partnerCompanyInfo?.phone;
+            const email = isLivestream ? null : contract.partnerCompanyInfo?.email;
 
             return (
               <button
@@ -149,26 +172,23 @@ export function ContractHistoryPanel({
                       <FiChevronRight className="mt-0.5 shrink-0 text-white/25 transition-transform group-hover:translate-x-0.5 group-hover:text-white/55" />
                     </div>
                     <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/45">
-                      {contract.partnerCompanyInfo.companyName ||
-                        "Chưa có tên đối tác"}
+                      {partnerName}
                     </p>
 
                     <div className="mt-3 space-y-1.5 text-xs leading-5 text-white/40">
                       <p className="truncate">
-                        {contract.partnerCompanyInfo.ownerName ||
-                          "Chưa có người đại diện"}
-                        {contract.partnerCompanyInfo.role
-                          ? ` · ${contract.partnerCompanyInfo.role}`
-                          : ""}
+                        {ownerName}
+                        {roleOrPosition ? ` · ${roleOrPosition}` : ""}
                       </p>
                       <p className="truncate">
-                        MST: {contract.partnerCompanyInfo.mst || "N/A"}
+                        {taxOrIdLabel}: {taxOrIdVal || "N/A"}
                       </p>
-                      <p className="truncate">
-                        {contract.partnerCompanyInfo.phone || "Chưa có SĐT"} ·{" "}
-                        {contract.partnerCompanyInfo.email || "Chưa có email"}
-                      </p>
-                      <p>Hết hạn: {formatDate(contract.contractDueDate)}</p>
+                      {!isLivestream && (
+                        <p className="truncate">
+                          {phone || "Chưa có SĐT"} · {email || "Chưa có email"}
+                        </p>
+                      )}
+                      <p>Hết hạn: {formatDate(contract.contractDueDate ?? "")}</p>
                     </div>
                   </div>
                 </div>

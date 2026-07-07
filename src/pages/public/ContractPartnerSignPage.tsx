@@ -55,13 +55,21 @@ function getIndividualCredentialName(contract: Contract) {
   );
 }
 
+function isLivestreamContract(contract: Contract) {
+  return (
+    contract.contractType === "livestream_responsibility_commitment" ||
+    contract.contractType === "livestream_responsibility_commitment_appendix"
+  );
+}
+
 function isCredentialNameMatched(contract: Contract) {
   const credentialName = normalizeLegalName(
     getIndividualCredentialName(contract),
   );
-  const partnerOwnerName = normalizeLegalName(
-    contract.partnerCompanyInfo.ownerName,
-  );
+  const expectedName = isLivestreamContract(contract)
+    ? contract.personalInfo?.fullName
+    : contract.partnerCompanyInfo.ownerName;
+  const partnerOwnerName = normalizeLegalName(expectedName);
 
   if (!credentialName || !partnerOwnerName) {
     return true;
@@ -1614,21 +1622,14 @@ function ContractActionDock({
   const [isOrganizationSigningOpen, setIsOrganizationSigningOpen] =
     useState(false);
   const canPartnerSign = contract.status === "owner_signed";
+  const isLivestream = isLivestreamContract(contract);
   const credentialName = getIndividualCredentialName(contract);
   const signatureSignerName =
-    credentialName || contract.partnerCompanyInfo.ownerName;
-
-  useEffect(() => {
-    if (!isIndividualCredentialOpen || !contract.individualCredential) return;
-    handleCredentialContinue(contract);
-  }, [contract, isIndividualCredentialOpen]);
-
-  useEffect(() => {
-    if (!isOrganizationCredentialOpen || !contract.organizationCredential) {
-      return;
-    }
-    handleOrganizationCredentialContinue(contract);
-  }, [contract, isOrganizationCredentialOpen]);
+    credentialName ||
+    (isLivestream
+      ? contract.personalInfo?.fullName
+      : contract.partnerCompanyInfo.ownerName) ||
+    "";
 
   const cleanupOppositeCredential = async (
     credentialType: "individual" | "organization",
@@ -1652,7 +1653,7 @@ function ContractActionDock({
     setIsHandwrittenSignatureOpen(true);
   };
 
-  const handleCredentialContinue = (nextContract?: Contract) => {
+  function handleCredentialContinue(nextContract?: Contract) {
     const activeContract = nextContract ?? contract;
 
     if (isCredentialNameMatched(activeContract)) {
@@ -1662,20 +1663,20 @@ function ContractActionDock({
 
     setIsIndividualCredentialOpen(false);
     setIsNameMismatchOpen(true);
-  };
+  }
 
   const handleReuploadCredentialFromWarning = () => {
     setIsNameMismatchOpen(false);
     setIsIndividualCredentialOpen(true);
   };
 
-  const handleOrganizationCredentialContinue = (nextContract?: Contract) => {
+  function handleOrganizationCredentialContinue() {
     setIsIndividualCredentialOpen(false);
     setIsNameMismatchOpen(false);
     setIsHandwrittenSignatureOpen(false);
     setIsOrganizationCredentialOpen(false);
     setIsOrganizationSigningOpen(true);
-  };
+  }
 
   const handleDownloadContract = () => {
     const key = getS3KeyFromUrl(contract.contractUrl);
@@ -1756,16 +1757,25 @@ function ContractActionDock({
           <DockButton
             label="Ký hợp đồng"
             icon={<FiPenTool className="text-emerald-400" />}
-            onClick={() => setIsSignTypeModalOpen(true)}
+            onClick={() => {
+              if (isLivestream) {
+                setIsIndividualCredentialOpen(true);
+                return;
+              }
+
+              setIsSignTypeModalOpen(true);
+            }}
           />
         ) : null}
       </motion.div>
 
-      <PartnerSignTypeModal
-        isOpen={isSignTypeModalOpen}
-        onClose={() => setIsSignTypeModalOpen(false)}
-        onConfirm={handleSignTypeConfirm}
-      />
+      {!isLivestream ? (
+        <PartnerSignTypeModal
+          isOpen={isSignTypeModalOpen}
+          onClose={() => setIsSignTypeModalOpen(false)}
+          onConfirm={handleSignTypeConfirm}
+        />
+      ) : null}
 
       <IndividualCredentialUploadModal
         contractId={contract.contractId}
@@ -1789,7 +1799,11 @@ function ContractActionDock({
       <LegalNameMismatchModal
         isOpen={isNameMismatchOpen}
         credentialName={credentialName}
-        contractName={contract.partnerCompanyInfo.ownerName}
+        contractName={
+          isLivestream
+            ? contract.personalInfo?.fullName || ""
+            : contract.partnerCompanyInfo.ownerName
+        }
         onClose={() => setIsNameMismatchOpen(false)}
         onContinue={openHandwrittenSignatureFlow}
         onReupload={handleReuploadCredentialFromWarning}
@@ -1799,7 +1813,7 @@ function ContractActionDock({
         contractId={contract.contractId}
         partnerToken={partnerToken}
         signerName={signatureSignerName}
-        signerEmail={contract.partnerCompanyInfo.email}
+        signerEmail={isLivestream ? "" : contract.partnerCompanyInfo.email}
         isOpen={isHandwrittenSignatureOpen}
         onClose={() => setIsHandwrittenSignatureOpen(false)}
         onSigned={async () => {
@@ -2012,8 +2026,5 @@ function ContractPartnerSignPageData() {
 }
 
 export default function ContractPartnerSignPage() {
-  const [searchParams] = useSearchParams();
-  const partnerToken = searchParams.get("token")?.trim() || undefined;
-
   return <ContractPartnerSignPageData />;
 }

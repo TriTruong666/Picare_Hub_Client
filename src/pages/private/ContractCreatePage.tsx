@@ -235,16 +235,37 @@ export function ContractFormPage({
     contractType: "principle",
   });
   const completedContracts = completedContractsData ?? [];
-  const {
-    data: completedLivestreamContractsData,
-    isLoading: isLoadingLivestreamContracts,
-  } = useContractList({
+  const { data: unsignedLivestreamContractsData, isLoading: isLoadingUnsignedLivestreamContracts } = useContractList({
+    page: 1,
+    limit: 100,
+    status: "unsigned",
+    contractType: "livestream_responsibility_commitment",
+  });
+  const { data: ownerSignedLivestreamContractsData, isLoading: isLoadingOwnerSignedLivestreamContracts } = useContractList({
+    page: 1,
+    limit: 100,
+    status: "owner_signed",
+    contractType: "livestream_responsibility_commitment",
+  });
+  const { data: completedLivestreamContractsData, isLoading: isLoadingCompletedLivestreamContracts } = useContractList({
     page: 1,
     limit: 100,
     status: "completed",
     contractType: "livestream_responsibility_commitment",
   });
-  const completedLivestreamContracts = completedLivestreamContractsData ?? [];
+  const livestreamParentContracts = [
+    ...(unsignedLivestreamContractsData ?? []),
+    ...(ownerSignedLivestreamContractsData ?? []),
+    ...(completedLivestreamContractsData ?? []),
+  ].filter(
+    (contract, index, contracts) =>
+      contracts.findIndex((item) => item.contractId === contract.contractId) ===
+      index,
+  );
+  const isLoadingLivestreamContracts =
+    isLoadingUnsignedLivestreamContracts ||
+    isLoadingOwnerSignedLivestreamContracts ||
+    isLoadingCompletedLivestreamContracts;
   const [selectedContractType, setSelectedContractType] =
     useState<RegisteredContractType | null>(
       initialContract && isRegisteredContractType(initialContract.contractType)
@@ -277,6 +298,8 @@ export function ContractFormPage({
     );
   const [parentLivestreamContractId, setParentLivestreamContractId] =
     useState("");
+  const [parentLivestreamOwner, setParentLivestreamOwner] =
+    useState<OwnerCompanyInfoPayload | null>(null);
   const [appendixProducts, setAppendixProducts] = useState<
     AppendixProductRow[]
   >([createAppendixProductRow()]);
@@ -326,13 +349,15 @@ export function ContractFormPage({
 
     setSelectedOwnerIndex(ownerIndex >= 0 ? ownerIndex : 0);
     if (initialContract.contractType !== "livestream_responsibility_commitment") {
-      setPartnerCompanyInfo(initialContract.partnerCompanyInfo);
-      setPartnerEntityType(
-        initialContract.partnerCompanyInfo.mst ||
-          initialContract.partnerCompanyInfo.companyName
-          ? "company"
-          : "individual",
-      );
+      if (initialContract.partnerCompanyInfo) {
+        setPartnerCompanyInfo(initialContract.partnerCompanyInfo);
+        setPartnerEntityType(
+          initialContract.partnerCompanyInfo.mst ||
+            initialContract.partnerCompanyInfo.companyName
+            ? "company"
+            : "individual",
+        );
+      }
     }
     setIsPartnerFormVisible(true);
     setTaxLookupMessage("");
@@ -388,6 +413,7 @@ export function ContractFormPage({
         );
       setParentLivestreamContractId(hydrated.parentContractId);
       if (hydrated.personalInfo) setPersonalInfo(hydrated.personalInfo);
+      setParentLivestreamOwner(hydrated.ownerCompanyInfo);
     }
   }, [initialContract]);
 
@@ -504,12 +530,11 @@ export function ContractFormPage({
 
   const handleParentLivestreamContractSelect = (contractId: string) => {
     setParentLivestreamContractId(contractId);
-    const parent = completedLivestreamContracts.find(
+    const parent = livestreamParentContracts.find(
       (contract) => contract.contractId === contractId,
     );
     if (parent?.personalInfo) setPersonalInfo(parent.personalInfo);
-    const ownerIndex = parent ? findOwnerTemplateIndex(parent) : -1;
-    if (ownerIndex >= 0) setSelectedOwnerIndex(ownerIndex);
+    setParentLivestreamOwner(parent?.ownerCompanyInfo ?? null);
   };
 
   const handlePrincipleContractSelect = (contractId: string) => {
@@ -596,7 +621,11 @@ export function ContractFormPage({
       "livestream_responsibility_commitment_appendix"
     ) {
       return livestreamResponsibilityCommitmentAppendixContractVariant.validate(
-        { parentContractId: parentLivestreamContractId, personalInfo },
+        {
+          parentContractId: parentLivestreamContractId,
+          personalInfo,
+          ownerCompanyInfo: parentLivestreamOwner,
+        },
         {
           ownerCompanyInfo,
           partnerCompanyInfo,
@@ -655,6 +684,7 @@ export function ContractFormPage({
                 {
                   parentContractId: parentLivestreamContractId,
                   personalInfo,
+                  ownerCompanyInfo: parentLivestreamOwner,
                 },
                 commonValues,
               )
@@ -813,13 +843,15 @@ export function ContractFormPage({
                 {selectedContractType ===
                 "livestream_responsibility_commitment_appendix" ? (
                   <LivestreamResponsibilityCommitmentAppendixFields
-                    contracts={completedLivestreamContracts}
+                    contracts={livestreamParentContracts}
                     selectedId={parentLivestreamContractId}
                     onSelect={handleParentLivestreamContractSelect}
                     isLoading={isLoadingLivestreamContracts}
                   />
                 ) : null}
 
+                {selectedContractType !==
+                "livestream_responsibility_commitment_appendix" ? (
                 <section className="border-b border-black/10 py-6 dark:border-white/10">
                   <div className="mb-4 flex items-end justify-between gap-4">
                     <SectionTitle>Công ty chủ sở hữu</SectionTitle>
@@ -882,6 +914,7 @@ export function ContractFormPage({
                     })}
                   </div>
                 </section>
+                ) : null}
 
                 {selectedContractType ===
                 "livestream_responsibility_commitment" ? (

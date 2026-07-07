@@ -79,11 +79,13 @@ export function PrincipleContractSelect({
   selectedContractId,
   isLoading,
   onChange,
+  contractKind = "principle",
 }: {
   contracts: Contract[];
   selectedContractId: string;
   isLoading: boolean;
   onChange: (contractId: string) => void;
+  contractKind?: "principle" | "livestream";
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -93,6 +95,12 @@ export function PrincipleContractSelect({
       contract.contractNumber === selectedContractId,
   );
   const isEmpty = !isLoading && contracts.length === 0;
+  const isLivestream = contractKind === "livestream";
+  const getPartyName = (contract: Contract) =>
+    isLivestream
+      ? contract.personalInfo?.fullName || "Chưa có tên người cam kết"
+      : contract.partnerCompanyInfo.companyName ||
+        contract.partnerCompanyInfo.ownerName;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -127,8 +135,7 @@ export function PrincipleContractSelect({
                 {selectedContract.contractNumber || selectedContract.contractId}
               </span>
               <span className="mt-1 block truncate text-xs text-black/52 dark:text-white/45">
-                {selectedContract.partnerCompanyInfo.companyName ||
-                  selectedContract.partnerCompanyInfo.ownerName}{" "}
+                {getPartyName(selectedContract)}{" "}
                 · {formatContractDate(selectedContract.createdAt) || "Chưa có ngày"}
               </span>
             </>
@@ -138,8 +145,12 @@ export function PrincipleContractSelect({
                 {isLoading
                   ? "Đang tải danh sách hợp đồng..."
                   : isEmpty
-                    ? "Không có hợp đồng nguyên tắc phù hợp"
-                    : "Chọn hợp đồng nguyên tắc"}
+                    ? isLivestream
+                      ? "Không có bản cam kết Livestream phù hợp"
+                      : "Không có hợp đồng nguyên tắc phù hợp"
+                    : isLivestream
+                      ? "Chọn bản cam kết Livestream"
+                      : "Chọn hợp đồng nguyên tắc"}
               </span>
               <span className="mt-1 block text-xs text-black/48 dark:text-white/38">
                 {isLoading
@@ -184,7 +195,9 @@ export function PrincipleContractSelect({
                   <FiSearch />
                 </div>
                 <p className="text-sm font-medium text-white">
-                  Không tìm thấy hợp đồng nguyên tắc
+                  {isLivestream
+                    ? "Không tìm thấy bản cam kết Livestream"
+                    : "Không tìm thấy hợp đồng nguyên tắc"}
                 </p>
                 <p className="max-w-xs text-xs leading-6 text-white/45">
                   Danh sách hiện tại chưa có hợp đồng phù hợp để tạo phụ lục.
@@ -218,8 +231,7 @@ export function PrincipleContractSelect({
                           </p>
                         </div>
                         <p className="mt-1 truncate text-xs text-white/48">
-                          {contract.partnerCompanyInfo.companyName ||
-                            contract.partnerCompanyInfo.ownerName}
+                          {getPartyName(contract)}
                         </p>
                       </div>
                       <span
@@ -241,9 +253,11 @@ export function PrincipleContractSelect({
                         </strong>
                       </span>
                       <span>
-                        MST:{" "}
+                        {isLivestream ? "CCCD" : "MST"}:{" "}
                         <strong className="font-semibold text-white">
-                          {contract.partnerCompanyInfo.mst || "Không có"}
+                          {isLivestream
+                            ? contract.personalInfo?.citizenId || "Không có"
+                            : contract.partnerCompanyInfo.mst || "Không có"}
                         </strong>
                       </span>
                       <span>
