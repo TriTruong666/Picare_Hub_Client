@@ -68,6 +68,8 @@ import { principleContractVariant } from "./contract-form/variants/principle/pri
 import { PrincipleContractFields } from "./contract-form/variants/principle/PrincipleContractFields";
 import { LivestreamResponsibilityCommitmentFields } from "./contract-form/variants/livestream-responsibility-commitment/LivestreamResponsibilityCommitmentFields";
 import { livestreamResponsibilityCommitmentContractVariant } from "./contract-form/variants/livestream-responsibility-commitment/livestreamResponsibilityCommitmentContractVariant";
+import { LivestreamResponsibilityCommitmentAppendixFields } from "./contract-form/variants/livestream-responsibility-commitment-appendix/LivestreamResponsibilityCommitmentAppendixFields";
+import { livestreamResponsibilityCommitmentAppendixContractVariant } from "./contract-form/variants/livestream-responsibility-commitment-appendix/livestreamResponsibilityCommitmentAppendixContractVariant";
 import type { PartnerEntityType } from "./contract-form/types";
 
 type ContractFormMode = "create" | "edit";
@@ -233,6 +235,16 @@ export function ContractFormPage({
     contractType: "principle",
   });
   const completedContracts = completedContractsData ?? [];
+  const {
+    data: completedLivestreamContractsData,
+    isLoading: isLoadingLivestreamContracts,
+  } = useContractList({
+    page: 1,
+    limit: 100,
+    status: "completed",
+    contractType: "livestream_responsibility_commitment",
+  });
+  const completedLivestreamContracts = completedLivestreamContractsData ?? [];
   const [selectedContractType, setSelectedContractType] =
     useState<RegisteredContractType | null>(
       initialContract && isRegisteredContractType(initialContract.contractType)
@@ -263,6 +275,8 @@ export function ContractFormPage({
     useState<LivestreamResponsibilityPersonalInfoPayload>(() =>
       livestreamResponsibilityCommitmentContractVariant.createInitialValues(),
     );
+  const [parentLivestreamContractId, setParentLivestreamContractId] =
+    useState("");
   const [appendixProducts, setAppendixProducts] = useState<
     AppendixProductRow[]
   >([createAppendixProductRow()]);
@@ -361,6 +375,19 @@ export function ContractFormPage({
           initialContract,
         ),
       );
+      return;
+    }
+
+    if (
+      initialContract.contractType ===
+      "livestream_responsibility_commitment_appendix"
+    ) {
+      const hydrated =
+        livestreamResponsibilityCommitmentAppendixContractVariant.hydrate(
+          initialContract,
+        );
+      setParentLivestreamContractId(hydrated.parentContractId);
+      if (hydrated.personalInfo) setPersonalInfo(hydrated.personalInfo);
     }
   }, [initialContract]);
 
@@ -461,6 +488,10 @@ export function ContractFormPage({
       setIsPartnerFormVisible(false);
       return;
     }
+    if (type === "livestream_responsibility_commitment_appendix") {
+      setIsPartnerFormVisible(false);
+      return;
+    }
     setIsPartnerFormVisible(isEditMode);
   };
 
@@ -469,6 +500,16 @@ export function ContractFormPage({
     value: string,
   ) => {
     setPersonalInfo((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleParentLivestreamContractSelect = (contractId: string) => {
+    setParentLivestreamContractId(contractId);
+    const parent = completedLivestreamContracts.find(
+      (contract) => contract.contractId === contractId,
+    );
+    if (parent?.personalInfo) setPersonalInfo(parent.personalInfo);
+    const ownerIndex = parent ? findOwnerTemplateIndex(parent) : -1;
+    if (ownerIndex >= 0) setSelectedOwnerIndex(ownerIndex);
   };
 
   const handlePrincipleContractSelect = (contractId: string) => {
@@ -550,6 +591,21 @@ export function ContractFormPage({
       );
     }
 
+    if (
+      selectedContractType ===
+      "livestream_responsibility_commitment_appendix"
+    ) {
+      return livestreamResponsibilityCommitmentAppendixContractVariant.validate(
+        { parentContractId: parentLivestreamContractId, personalInfo },
+        {
+          ownerCompanyInfo,
+          partnerCompanyInfo,
+          partnerEntityType,
+          contractDueDate: initialContract?.contractDueDate ?? null,
+        },
+      );
+    }
+
     return principleContractVariant.validate(
       { paymentTermDays, creditLimit },
       {
@@ -593,6 +649,15 @@ export function ContractFormPage({
               personalInfo,
               commonValues,
             )
+          : selectedContractType ===
+              "livestream_responsibility_commitment_appendix"
+            ? CONTRACT_FORM_REGISTRY.livestream_responsibility_commitment_appendix.buildPayload(
+                {
+                  parentContractId: parentLivestreamContractId,
+                  personalInfo,
+                },
+                commonValues,
+              )
           : CONTRACT_FORM_REGISTRY.principle.buildPayload(
             { paymentTermDays, creditLimit },
             commonValues,
@@ -732,7 +797,9 @@ export function ContractFormPage({
             ) : null}
 
             {selectedContractType === "principle" ||
-            selectedContractType === "livestream_responsibility_commitment" ? (
+            selectedContractType === "livestream_responsibility_commitment" ||
+            selectedContractType ===
+              "livestream_responsibility_commitment_appendix" ? (
               <>
                 {selectedContractType === "principle" ? (
                   <PrincipleContractFields
@@ -740,6 +807,16 @@ export function ContractFormPage({
                     creditLimit={creditLimit}
                     onPaymentTermDaysChange={setPaymentTermDays}
                     onCreditLimitChange={setCreditLimit}
+                  />
+                ) : null}
+
+                {selectedContractType ===
+                "livestream_responsibility_commitment_appendix" ? (
+                  <LivestreamResponsibilityCommitmentAppendixFields
+                    contracts={completedLivestreamContracts}
+                    selectedId={parentLivestreamContractId}
+                    onSelect={handleParentLivestreamContractSelect}
+                    isLoading={isLoadingLivestreamContracts}
                   />
                 ) : null}
 

@@ -1,4 +1,5 @@
 import type { LivestreamResponsibilityPersonalInfoPayload } from "@/types/Contract";
+import Calendar from "@/components/custom_ui/Calendar";
 import {
   FieldLabel,
   SectionTitle,
@@ -10,13 +11,18 @@ type PersonalField = {
   key: keyof LivestreamResponsibilityPersonalInfoPayload;
   label: string;
   placeholder: string;
-  type?: "text" | "date";
+  isDate?: boolean;
   multiline?: boolean;
 };
 
 const PERSONAL_FIELDS: PersonalField[] = [
   { key: "fullName", label: "Họ và tên", placeholder: "Nguyễn Văn A" },
-  { key: "dateOfBirth", label: "Ngày sinh", placeholder: "", type: "date" },
+  {
+    key: "dateOfBirth",
+    label: "Ngày sinh",
+    placeholder: "Chọn ngày sinh",
+    isDate: true,
+  },
   { key: "position", label: "Chức vụ", placeholder: "Nhân viên Livestream" },
   { key: "department", label: "Phòng ban", placeholder: "Kinh doanh" },
   {
@@ -29,8 +35,8 @@ const PERSONAL_FIELDS: PersonalField[] = [
   {
     key: "citizenIdIssuedDate",
     label: "Ngày cấp CCCD",
-    placeholder: "",
-    type: "date",
+    placeholder: "Chọn ngày cấp",
+    isDate: true,
   },
   {
     key: "citizenIdIssuedPlace",
@@ -59,7 +65,15 @@ export function LivestreamResponsibilityCommitmentFields({
             className={field.multiline ? "md:col-span-2" : ""}
           >
             <FieldLabel>{field.label}</FieldLabel>
-            {field.multiline ? (
+            {field.isDate ? (
+              <Calendar
+                value={values[field.key]}
+                onChange={(value) => onChange(field.key, value)}
+                placeholder={field.placeholder}
+                allowClear={false}
+                compact
+              />
+            ) : field.multiline ? (
               <TextareaInput
                 id={`personal-${field.key}`}
                 value={values[field.key]}
@@ -70,7 +84,6 @@ export function LivestreamResponsibilityCommitmentFields({
             ) : (
               <TextInput
                 id={`personal-${field.key}`}
-                type={field.type}
                 value={values[field.key]}
                 onChange={(value) => onChange(field.key, value)}
                 placeholder={field.placeholder}

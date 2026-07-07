@@ -31,6 +31,7 @@ import type {
   PartnerCompanyInfoPayload,
   PrincipleContractDataPayload,
 } from "@/types/Contract";
+import { LIVESTREAM_APPENDIX_SECTIONS } from "./contract-form/variants/livestream-responsibility-commitment-appendix/livestreamAppendixContent";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("vi-VN", {
@@ -1474,6 +1475,53 @@ function LivestreamResponsibilityCommitmentDocument({
   );
 }
 
+function LivestreamResponsibilityCommitmentAppendixDocument({
+  contract,
+  ownerSignatureRef,
+  ownerSignatureRevealKey,
+  partnerSignatureRef,
+  partnerSignatureRevealKey,
+}: {
+  contract: Contract;
+  ownerSignatureRef?: React.Ref<HTMLDivElement>;
+  ownerSignatureRevealKey?: number;
+  partnerSignatureRef?: React.Ref<HTMLDivElement>;
+  partnerSignatureRevealKey?: number;
+}) {
+  const owner = contract.ownerCompanyInfo;
+  const personal = contract.personalInfo;
+  const hasOwnerSigned = contract.status === "owner_signed" || contract.status === "completed";
+  const hasPartnerSigned = contract.status === "completed";
+  return (
+    <motion.article initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="mx-auto w-full max-w-5xl pb-24">
+      <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
+        <div><p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">{owner.companyName}</p><p className="mt-3 text-[13px] text-black/35 dark:text-white/35">Số: <strong className="font-semibold text-black/72 dark:text-white/72">{contract.contractNumber || contract.contractId}</strong></p></div>
+        <div className="text-left md:text-center"><p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">Cộng hòa xã hội chủ nghĩa Việt Nam</p><p className="mt-1 text-[13px] text-black/62 dark:text-white/62">Độc lập – Tự do – Hạnh phúc</p></div>
+      </header>
+      <section className="pt-14 text-center">
+        <p className="text-[13px] text-black/35 dark:text-white/35">TP.HCM, <strong className="font-semibold text-black/72 dark:text-white/72">{getVietnameseDate()}</strong></p>
+        <h1 className="mx-auto mt-7 max-w-3xl text-3xl font-medium leading-tight tracking-[0.03em] text-[#111111] uppercase dark:text-white">Phụ lục bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt động Livestream</h1>
+        <p className="mx-auto mt-4 max-w-3xl text-[14px] italic leading-7 text-black/55 dark:text-white/55">Phụ lục này là văn bản không thể tách rời của Bản cam kết trách nhiệm và xác nhận tuân thủ quy định hoạt động Livestream.</p>
+      </section>
+      <section><ArticleTitle>I. Nguyên tắc áp dụng</ArticleTitle><ClauseList items={[
+        "Danh mục này quy định các từ khóa, cụm từ và nội dung không được sử dụng khi Livestream, quay video, đăng bài viết, trả lời bình luận, nhắn tin với khách hàng hoặc thực hiện hoạt động truyền thông dưới danh nghĩa Công ty.",
+        "Danh mục được xây dựng trên cơ sở pháp luật Việt Nam, quy định chuyên ngành về quảng cáo, mỹ phẩm, thương mại điện tử, chính sách nền tảng mạng xã hội và quy định nội bộ của Công ty.",
+        "Danh mục mang tính hướng dẫn tuân thủ, không giới hạn trách nhiệm của Nhân viên đối với hành vi vi phạm chưa được liệt kê; mọi cách diễn đạt có ý nghĩa tương tự hoặc làm khách hàng hiểu theo nội dung bị cấm đều được xem là vi phạm.",
+      ]} /></section>
+      {LIVESTREAM_APPENDIX_SECTIONS.map((section) => <section key={section.title}><ArticleTitle>{section.title}</ArticleTitle><p className="mt-4 text-[14px] leading-7 text-black/62 dark:text-white/62">{section.intro}</p><ClauseList items={[...section.items]} /></section>)}
+      <section><ArticleTitle>X. Quy định áp dụng</ArticleTitle><ClauseList items={[
+        "Nhân viên xác nhận đã được Công ty phổ biến và hướng dẫn đầy đủ Danh mục từ khóa cấm (Blacklist Keywords) này và cam kết tuân thủ trong toàn bộ hoạt động truyền thông dưới danh nghĩa Công ty.",
+        "Danh mục này là Phụ lục không tách rời của Bản cam kết trách nhiệm và có giá trị áp dụng như Bản cam kết.",
+        "Khi pháp luật, chính sách nền tảng hoặc quy định nội bộ thay đổi, Công ty có quyền sửa đổi, bổ sung Danh mục mà không phải ký lại Bản cam kết. Kể từ thời điểm được thông báo, Nhân viên có trách nhiệm nghiên cứu và tuân thủ đầy đủ nội dung cập nhật.",
+      ]} /></section>
+      <section className="mt-20 grid gap-12 border-t border-black/10 pt-12 md:grid-cols-2 dark:border-white/10">
+        <SignatureBlock title="Người cam kết" name={personal?.fullName || ""} isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)} shouldAnimate={Boolean(partnerSignatureRevealKey)} revealKey={partnerSignatureRevealKey} signatureRef={partnerSignatureRef} />
+        <SignatureBlock title="Đại diện công ty" name={owner.ownerName} isSigned={hasOwnerSigned || Boolean(ownerSignatureRevealKey)} shouldAnimate={Boolean(ownerSignatureRevealKey)} revealKey={ownerSignatureRevealKey} signatureRef={ownerSignatureRef} />
+      </section>
+    </motion.article>
+  );
+}
+
 function AppendixContractDocument({
   contract,
   ownerSignatureRef,
@@ -1890,7 +1938,15 @@ function ContractPreviewPageShell({
       <div className="fixed top-6 right-6 z-50">
         <ThemeToggle />
       </div>
-      {contract.contractType === "livestream_responsibility_commitment" ? (
+      {contract.contractType === "livestream_responsibility_commitment_appendix" ? (
+        <LivestreamResponsibilityCommitmentAppendixDocument
+          contract={contract}
+          ownerSignatureRef={ownerSignatureRef}
+          ownerSignatureRevealKey={ownerSignatureRevealKey}
+          partnerSignatureRef={partnerSignatureRef}
+          partnerSignatureRevealKey={partnerSignatureRevealKey}
+        />
+      ) : contract.contractType === "livestream_responsibility_commitment" ? (
         <LivestreamResponsibilityCommitmentDocument
           contract={contract}
           ownerSignatureRef={ownerSignatureRef}

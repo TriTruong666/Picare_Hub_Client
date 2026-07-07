@@ -9,7 +9,8 @@ export type PartnerEntityType = "individual" | "company";
 export type SupportedContractType =
   | "principle"
   | "appendix"
-  | "livestream_responsibility_commitment";
+  | "livestream_responsibility_commitment"
+  | "livestream_responsibility_commitment_appendix";
 
 export type ContractFormCommonValues = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;

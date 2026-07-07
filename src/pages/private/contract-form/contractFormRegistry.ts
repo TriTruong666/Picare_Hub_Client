@@ -2,12 +2,15 @@ import type { ContractType } from "@/types/Contract";
 import { appendixContractVariant } from "./variants/appendix/appendixContractVariant";
 import { principleContractVariant } from "./variants/principle/principleContractVariant";
 import { livestreamResponsibilityCommitmentContractVariant } from "./variants/livestream-responsibility-commitment/livestreamResponsibilityCommitmentContractVariant";
+import { livestreamResponsibilityCommitmentAppendixContractVariant } from "./variants/livestream-responsibility-commitment-appendix/livestreamResponsibilityCommitmentAppendixContractVariant";
 
 export const CONTRACT_FORM_REGISTRY = {
   principle: principleContractVariant,
   appendix: appendixContractVariant,
   livestream_responsibility_commitment:
     livestreamResponsibilityCommitmentContractVariant,
+  livestream_responsibility_commitment_appendix:
+    livestreamResponsibilityCommitmentAppendixContractVariant,
 } as const;
 
 export type RegisteredContractType = keyof typeof CONTRACT_FORM_REGISTRY;

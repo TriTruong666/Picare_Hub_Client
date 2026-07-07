@@ -7,6 +7,10 @@ import type { ContractVariantDefinition } from "../../types";
 export type LivestreamResponsibilityCommitmentFormValues =
   LivestreamResponsibilityPersonalInfoPayload;
 
+function normalizeDateOnly(value: string) {
+  return value.trim().split("T")[0];
+}
+
 const EMPTY_VALUES: LivestreamResponsibilityCommitmentFormValues = {
   fullName: "",
   dateOfBirth: "",
@@ -43,9 +47,13 @@ export const livestreamResponsibilityCommitmentContractVariant: ContractVariantD
     ({
       contractType: "livestream_responsibility_commitment",
       ownerCompanyInfo: common.ownerCompanyInfo,
-      personalInfo: Object.fromEntries(
-        Object.entries(values).map(([key, value]) => [key, value.trim()]),
-      ) as LivestreamResponsibilityPersonalInfoPayload,
+      personalInfo: {
+        ...Object.fromEntries(
+          Object.entries(values).map(([key, value]) => [key, value.trim()]),
+        ),
+        dateOfBirth: normalizeDateOnly(values.dateOfBirth),
+        citizenIdIssuedDate: normalizeDateOnly(values.citizenIdIssuedDate),
+      } as LivestreamResponsibilityPersonalInfoPayload,
     }) satisfies Extract<
       CreateContractPayload,
       { contractType: "livestream_responsibility_commitment" }

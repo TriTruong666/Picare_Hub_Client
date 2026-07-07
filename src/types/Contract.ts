@@ -69,11 +69,19 @@ export type LivestreamResponsibilityCommitmentContractPayload = {
   personalInfo: LivestreamResponsibilityPersonalInfoPayload;
 };
 
+export type LivestreamResponsibilityCommitmentAppendixContractPayload = {
+  contractType: "livestream_responsibility_commitment_appendix";
+  ownerCompanyInfo: OwnerCompanyInfoPayload;
+  parentContractId: string;
+  personalInfo: LivestreamResponsibilityPersonalInfoPayload;
+};
+
 export type UpdateContractPayload =
   | PrincipleContractPayload
   | ServiceContractPayload
   | AppendixContractPayload
-  | LivestreamResponsibilityCommitmentContractPayload;
+  | LivestreamResponsibilityCommitmentContractPayload
+  | LivestreamResponsibilityCommitmentAppendixContractPayload;
 
 export type CreateContractPayload = UpdateContractPayload;
 
@@ -121,6 +129,7 @@ export type ContractType =
   | "appendix"
   | "service"
   | "livestream_responsibility_commitment"
+  | "livestream_responsibility_commitment_appendix"
   | "digital"
   | "default";
 
@@ -278,6 +287,7 @@ export type Contract = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;
   partnerCompanyInfo: PartnerCompanyInfoPayload;
   personalInfo?: LivestreamResponsibilityPersonalInfoPayload | null;
+  parentContractId?: string | null;
   contractDueDate: string | null;
   contractData?:
     | PrincipleContractDataPayload
