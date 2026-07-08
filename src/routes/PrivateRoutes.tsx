@@ -32,7 +32,14 @@ export default function PrivateRoutes() {
         <Route element={<DashboardLayout />}>
           <Route index element={<SummaryDashboardPage />} />
           <Route path="summary" element={<SummaryDashboardPage />} />
-          <Route path="accounts" element={<AccountDashboardPage />} />
+          <Route
+            path="accounts"
+            element={
+              <AuthGuard allowedRoles={["admin", "ceo"]}>
+                <AccountDashboardPage />
+              </AuthGuard>
+            }
+          />
           <Route
             path="contracts"
             element={
@@ -44,7 +51,9 @@ export default function PrivateRoutes() {
           <Route
             path="qr-products"
             element={
-              <AuthGuard allowedRoles={["admin", "ceo", "business_development"]}>
+              <AuthGuard
+                allowedRoles={["admin", "ceo", "business_development"]}
+              >
                 <QRProductDashboardPage />
               </AuthGuard>
             }
@@ -143,7 +152,14 @@ export default function PrivateRoutes() {
           <Route path="settings" element={<SettingDashboardLayout />}>
             <Route index element={<ProfileSettingDashboardPage />} />
             <Route path="security" element={<SecuritySettingDashboardPage />} />
-            <Route path="system" element={<SystemSettingDashboardPage />} />
+            <Route
+              path="system"
+              element={
+                <AuthGuard allowedRoles={["admin"]}>
+                  <SystemSettingDashboardPage />
+                </AuthGuard>
+              }
+            />
           </Route>
           <Route
             path="*"

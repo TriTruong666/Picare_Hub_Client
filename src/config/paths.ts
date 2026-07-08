@@ -42,5 +42,6 @@ export const PATHS = {
     LICENSE_EDIT: "/dashboard/licenses/:licenseId/edit",
     LICENSE_LIST: "/dashboard/licenses",
     LICENSE_SUPPORT: "/dashboard/licenses/support",
+    HELP: "/dashboard/help",
   },
 };

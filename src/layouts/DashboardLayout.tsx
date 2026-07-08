@@ -193,7 +193,9 @@ function Navbar() {
                 <div className="p-1">
                   <ProfileRouteLink
                     to={PATHS.HOME}
-                    icon={<IoBusinessOutline size={16} className="text-white/40" />}
+                    icon={
+                      <IoBusinessOutline size={16} className="text-white/40" />
+                    }
                     onClick={() => setIsProfileOpen(false)}
                   >
                     Hub Center
@@ -225,7 +227,9 @@ function Navbar() {
 
                   <ProfileRouteLink
                     to={PATHS.DASHBOARD.MESSAGES}
-                    icon={<FiMessageCircle className="text-[15px] text-white/40" />}
+                    icon={
+                      <FiMessageCircle className="text-[15px] text-white/40" />
+                    }
                     onClick={() => setIsProfileOpen(false)}
                   >
                     Tin nhắn
@@ -343,12 +347,12 @@ function Sidebar() {
         <SidebarItem
           to={PATHS.DASHBOARD.SETTINGS.ROOT}
           icon={<FiSettings />}
-          label="Settings"
+          label="Cài đặt"
         />
         <SidebarItem
-          to={PATHS.DASHBOARD.ROOT}
+          to={PATHS.DASHBOARD.HELP}
           icon={<HiOutlineQuestionMarkCircle />}
-          label="Help"
+          label="Trợ giúp"
         />
       </div>
     </aside>
