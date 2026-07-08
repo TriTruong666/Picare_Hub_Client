@@ -12,6 +12,7 @@ import type {
   ContractDocument,
   ContractSignature,
   ContractStatus,
+  ContractType,
   OwnerCompanyInfoPayload,
   PartnerCompanyInfoPayload,
 } from "@/types/Contract";
@@ -33,13 +34,16 @@ const CONTRACT_STATUS_BADGE: Record<
   completed: "success",
 };
 
-const CONTRACT_TYPE_LABELS = {
+const CONTRACT_TYPE_LABELS: Record<ContractType, string> = {
   principle: "Hợp đồng nguyên tắc",
   appendix: "Phụ lục hợp đồng",
   service: "Hợp đồng dịch vụ",
+  livestream_responsibility_commitment: "Cam kết trách nhiệm Livestream",
+  livestream_responsibility_commitment_appendix:
+    "Phụ lục cam kết Livestream",
   digital: "Hợp đồng điện tử",
   default: "Mặc định",
-} as const;
+};
 
 type OrganizationCredentialLike = {
   business_license?: string | null;
@@ -167,7 +171,7 @@ function getOrganizationCredentialData(raw: unknown) {
   };
 }
 
-function getContractTypeLabel(contractType: keyof typeof CONTRACT_TYPE_LABELS) {
+function getContractTypeLabel(contractType: ContractType) {
   return CONTRACT_TYPE_LABELS[contractType] || "Không xác định";
 }
 
@@ -280,8 +284,31 @@ export default function ContractDetailDashboardPage() {
 
         <SectionBlock title="Thông tin 2 bên">
           <div className="grid gap-0 md:grid-cols-2">
-            <PartyPanel title="Bên sở hữu" party={contract.ownerCompanyInfo} />
-            <PartyPanel title="Đối tác" party={contract.partnerCompanyInfo} />
+            <PartyPanel
+              title="Bên sở hữu"
+              party={contract.ownerCompanyInfo}
+              personalInfo={
+                !contract.ownerCompanyInfo
+                  ? contract.personalInfo ??
+                    (contract.contractData && "personalInfo" in contract.contractData
+                      ? (contract.contractData.personalInfo as any)
+                      : null)
+                  : null
+              }
+            />
+            <PartyPanel
+              title="Đối tác"
+              party={contract.partnerCompanyInfo}
+              fallbackName={contract.personalInfo?.fullName}
+              personalInfo={
+                !contract.partnerCompanyInfo
+                  ? contract.personalInfo ??
+                    (contract.contractData && "personalInfo" in contract.contractData
+                      ? (contract.contractData.personalInfo as any)
+                      : null)
+                  : null
+              }
+            />
           </div>
         </SectionBlock>
 
@@ -470,10 +497,40 @@ function InfoGrid({ rows }: { rows: Array<[string, React.ReactNode]> }) {
 function PartyPanel({
   title,
   party,
+  fallbackName,
+  personalInfo,
 }: {
   title: string;
-  party: OwnerCompanyInfoPayload | PartnerCompanyInfoPayload;
+  party: OwnerCompanyInfoPayload | PartnerCompanyInfoPayload | null;
+  fallbackName?: string | null;
+  personalInfo?: any;
 }) {
+  if (!party && personalInfo) {
+    return (
+      <div className="border-t border-gray-400 first:border-t-0 md:border-t-0 md:first:border-r dark:border-white/10">
+        <div className="border-b border-gray-400 px-3 py-2.5 dark:border-white/10">
+          <p className="text-xs font-semibold text-gray-900 dark:text-white">
+            {title} (Cá nhân)
+          </p>
+        </div>
+        <div className="divide-y divide-gray-400 dark:divide-white/10">
+          <PartyRow label="Họ và tên" value={personalInfo.fullName || "-"} />
+          <PartyRow label="Email" value={personalInfo.email || "-"} />
+          <PartyRow label="Điện thoại" value={personalInfo.phone || "-"} />
+          <PartyRow label="Chức vụ" value={personalInfo.position || "-"} />
+          <PartyRow label="Phòng ban" value={personalInfo.department || "-"} />
+          <PartyRow label="Số CCCD" value={personalInfo.citizenId || "-"} />
+          <PartyRow label="Ngày cấp CCCD" value={personalInfo.citizenIdIssuedDate || "-"} />
+          <PartyRow label="Nơi cấp CCCD" value={personalInfo.citizenIdIssuedPlace || "-"} />
+          <PartyRow label="Ngày sinh" value={personalInfo.dateOfBirth || "-"} />
+          <PartyRow label="Địa chỉ thường trú" value={personalInfo.permanentAddress || "-"} />
+        </div>
+      </div>
+    );
+  }
+
+  const displayName = party?.companyName || fallbackName || "-";
+
   return (
     <div className="border-t border-gray-400 first:border-t-0 md:border-t-0 md:first:border-r dark:border-white/10">
       <div className="border-b border-gray-400 px-3 py-2.5 dark:border-white/10">
@@ -482,14 +539,14 @@ function PartyPanel({
         </p>
       </div>
       <div className="divide-y divide-gray-400 dark:divide-white/10">
-        <PartyRow label="Tên công ty" value={party.companyName || "-"} />
-        <PartyRow label="Địa chỉ" value={party.address || "-"} />
-        <PartyRow label="Điện thoại" value={party.phone || "-"} />
-        <PartyRow label="Email" value={party.email || "-"} />
-        <PartyRow label="Tài khoản" value={party.bankInfo || "-"} />
-        <PartyRow label="Mã số thuế" value={party.mst || "-"} />
-        <PartyRow label="Đại diện" value={party.ownerName || "-"} />
-        <PartyRow label="Chức vụ" value={party.role || "-"} />
+        <PartyRow label="Tên công ty" value={displayName} />
+        <PartyRow label="Địa chỉ" value={party?.address || "-"} />
+        <PartyRow label="Điện thoại" value={party?.phone || "-"} />
+        <PartyRow label="Email" value={party?.email || "-"} />
+        <PartyRow label="Tài khoản" value={party?.bankInfo || "-"} />
+        <PartyRow label="Mã số thuế" value={party?.mst || "-"} />
+        <PartyRow label="Đại diện" value={party?.ownerName || "-"} />
+        <PartyRow label="Chức vụ" value={party?.role || "-"} />
       </div>
     </div>
   );

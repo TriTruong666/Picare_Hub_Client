@@ -2,13 +2,11 @@ import { useMemo, useState } from "react";
 import { FiEye, FiSearch } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
-import { formatDate } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import GlassSelect from "@/components/custom_ui/Select";
 import IconAction from "@/components/custom_ui/IconAction";
 import { Pagination } from "@/components/custom_ui/Pagination";
-import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
 import { StateShell, StateLoadingContainer } from "@/components/custom_ui/ShellState";
@@ -53,6 +51,9 @@ const CONTRACT_TYPE_LABELS: Record<ContractType, string> = {
   principle: "Hợp đồng nguyên tắc",
   appendix: "Phụ lục hợp đồng",
   service: "Hợp đồng dịch vụ",
+  livestream_responsibility_commitment: "Cam kết trách nhiệm Livestream",
+  livestream_responsibility_commitment_appendix:
+    "Phụ lục cam kết Livestream",
   digital: "Hợp đồng điện tử",
   default: "Mặc định",
 };
@@ -62,6 +63,14 @@ const CONTRACT_TYPE_OPTIONS = [
   { label: "Hợp đồng nguyên tắc", value: "principle" },
   { label: "Phụ lục hợp đồng", value: "appendix" },
   { label: "Hợp đồng dịch vụ", value: "service" },
+  {
+    label: "Cam kết trách nhiệm Livestream",
+    value: "livestream_responsibility_commitment",
+  },
+  {
+    label: "Phụ lục cam kết Livestream",
+    value: "livestream_responsibility_commitment_appendix",
+  },
   { label: "Hợp đồng điện tử", value: "digital" },
   { label: "Mặc định", value: "default" },
 ];
@@ -99,6 +108,21 @@ function getContractFileKey(contractUrl?: string | null) {
 
 function getContractTypeLabel(contractType: ContractType) {
   return CONTRACT_TYPE_LABELS[contractType] || "Không xác định";
+}
+
+function getContractPartnerDisplayName(contract: Contract) {
+  const personalInfo =
+    contract.personalInfo ??
+    (contract.contractData && "personalInfo" in contract.contractData
+      ? (contract.contractData.personalInfo as any)
+      : null);
+
+  return (
+    contract.partnerCompanyInfo?.companyName?.trim() ||
+    contract.partnerCompanyInfo?.ownerName?.trim() ||
+    personalInfo?.fullName?.trim() ||
+    "-"
+  );
 }
 
 export default function ContractDashboardPage() {
@@ -276,10 +300,7 @@ function ContractTable({
             const hasDocument = Boolean(
               getContractFileKey(contract.contractUrl),
             );
-            const partnerName =
-              contract.partnerCompanyInfo.companyName?.trim() ||
-              contract.partnerCompanyInfo.ownerName?.trim() ||
-              "-";
+            const partnerName = getContractPartnerDisplayName(contract);
             const contractTypeLabel = getContractTypeLabel(contract.contractType);
 
             return (
