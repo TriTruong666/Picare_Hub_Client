@@ -455,7 +455,7 @@ function LocalSignAppGuideModal({
             href={LOCAL_SIGN_APP_DOWNLOAD_URL}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-95"
+            className="flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition-all hover:bg-gray-100 active:scale-95"
           >
             <FiDownload size={15} />
             Tải ứng dụng

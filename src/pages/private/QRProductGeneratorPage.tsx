@@ -155,7 +155,8 @@ function ProductImagesUploadField({
               Tải ảnh sản phẩm đầu tiên
             </span>
             <span className="mt-2 max-w-sm text-xs leading-6 text-black/56 dark:text-white/38">
-              Có thể kéo thả hoặc bấm để chọn. Khi đã có ảnh, khu vực sẽ đổi sang dạng grid để thêm tiếp.
+              Có thể kéo thả hoặc bấm để chọn. Khi đã có ảnh, khu vực sẽ đổi
+              sang dạng grid để thêm tiếp.
             </span>
             <span className="mt-6 inline-flex items-center gap-2 border border-black/12 bg-black/[0.06] px-4 py-2 text-xs font-medium text-black/78 transition hover:bg-black/[0.1] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/72 dark:hover:bg-white/[0.08]">
               <FiUpload className="text-xs" />
@@ -268,13 +269,11 @@ function getInitialEditorContent(product?: ProductQR) {
 }
 
 function getInitialProductImages(product?: ProductQR): ProductImageItem[] {
-  return (product?.imageUrl ?? [])
-    .filter(Boolean)
-    .map((previewUrl, index) => ({
-      id: `existing-${product?.productId ?? "new"}-${index}`,
-      previewUrl,
-      fileName: `image-${index + 1}`,
-    }));
+  return (product?.imageUrl ?? []).filter(Boolean).map((previewUrl, index) => ({
+    id: `existing-${product?.productId ?? "new"}-${index}`,
+    previewUrl,
+    fileName: `image-${index + 1}`,
+  }));
 }
 
 function CreatedProductQRModal({
@@ -388,7 +387,7 @@ function DeleteProductQRModal({
                 <p className="text-sm font-semibold text-white">
                   Bạn có chắc chắn muốn xóa QR sản phẩm này?
                 </p>
-                <p className="mt-2 break-all text-sm text-white/45">
+                <p className="mt-2 text-sm break-all text-white/45">
                   QR của{" "}
                   <span className="font-semibold text-white">
                     {product.jsonContent.productName || product.productId}
@@ -458,7 +457,9 @@ export function QRProductFormPage({
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<ProductQR | null>(null);
   const [successModalHelperText, setSuccessModalHelperText] = useState("");
-  const [productToDelete, setProductToDelete] = useState<ProductQR | null>(null);
+  const [productToDelete, setProductToDelete] = useState<ProductQR | null>(
+    null,
+  );
 
   const isEditMode = mode === "edit";
   const isSubmitting = isEditMode
@@ -543,7 +544,9 @@ export function QRProductFormPage({
         productId: initialProduct.productId,
         data: {
           rawContent: normalizedContent,
-          images: productImages.flatMap((image) => (image.file ? [image.file] : [])),
+          images: productImages.flatMap((image) =>
+            image.file ? [image.file] : [],
+          ),
           note: initialProduct.note ?? null,
         },
       });
@@ -570,7 +573,9 @@ export function QRProductFormPage({
 
     const response = await createProductQRMutation.mutateAsync({
       rawContent: normalizedContent,
-      images: productImages.flatMap((image) => (image.file ? [image.file] : [])),
+      images: productImages.flatMap((image) =>
+        image.file ? [image.file] : [],
+      ),
       note: null,
     });
 
@@ -617,7 +622,7 @@ export function QRProductFormPage({
         <div className="flex min-w-0 flex-col">
           <header className="relative border-b border-black/10 pb-6 dark:border-white/10">
             <Link
-              to={PATHS.LOGIN}
+              to={PATHS.HOME}
               className="group mb-5 inline-flex w-fit items-center gap-2 text-xs font-medium text-black/55 transition duration-200 ease-out hover:text-[#111111] dark:text-white/55 dark:hover:text-white"
             >
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.05] transition duration-200 ease-out group-hover:-translate-x-0.5 group-hover:bg-black/[0.08] dark:bg-white/[0.06] dark:group-hover:bg-white/[0.1]">
@@ -628,7 +633,7 @@ export function QRProductFormPage({
             <div className="absolute top-0 right-0">
               <ThemeToggle />
             </div>
-            <h1 className="text-center text-2xl font-medium text-[#111111] dark:text-white md:text-3xl">
+            <h1 className="text-center text-2xl font-medium text-[#111111] md:text-3xl dark:text-white">
               {isEditMode
                 ? productTitle || "Chỉnh sửa QR sản phẩm"
                 : "Hệ thống soạn nội dung QR sản phẩm - Picare Việt Nam"}
@@ -725,7 +730,7 @@ export function QRProductFormPage({
                   <button
                     type="button"
                     onClick={openCurrentQrModal}
-                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.07] px-6 text-sm font-medium text-black/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.11] hover:text-[#111111] dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white active:translate-y-0 active:scale-[0.98]"
+                    className="inline-flex h-12 min-w-56 items-center justify-center rounded-full bg-black/[0.07] px-6 text-sm font-medium text-black/80 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-black/[0.11] hover:text-[#111111] active:translate-y-0 active:scale-[0.98] dark:bg-white/[0.07] dark:text-white/80 dark:hover:bg-white/[0.11] dark:hover:text-white"
                   >
                     Xem QR
                   </button>
@@ -779,4 +784,3 @@ export function QRProductFormPage({
 export default function QRProductGeneratorPage() {
   return <QRProductFormPage />;
 }
-

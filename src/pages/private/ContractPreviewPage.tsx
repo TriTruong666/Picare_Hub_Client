@@ -6,6 +6,7 @@ import {
   FiFilePlus,
   FiMail,
   FiPenTool,
+  FiPlus,
 } from "react-icons/fi";
 import { HiOutlineX } from "react-icons/hi";
 import { useNavigate, useParams } from "react-router-dom";
@@ -2053,6 +2054,11 @@ function ContractActionDock({
         transition={{ duration: 0.22, ease: "easeOut" }}
         className="contract-dock fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border p-2 backdrop-blur-xl"
       >
+        <DockButton
+          label="Tạo hợp đồng mới"
+          icon={<FiPlus />}
+          onClick={() => navigate(PATHS.CONTRACT_CREATE)}
+        />
         {canSignContract ? (
           <DockButton
             label="Ký hợp đồng"
