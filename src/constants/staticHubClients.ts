@@ -17,7 +17,7 @@ export const STATIC_HUB_CLIENTS: HubClient[] = [
     clientInternalUrl: PATHS.CONTRACT_CREATE,
     clientExternalUrl: PATHS.CONTRACT_CREATE,
     clientStatus: "active",
-    allowedRoles: ["admin", "finance"],
+    allowedRoles: ["admin", "finance", "hr", "ceo", "supply_chain"],
     note: "Static hub client",
     createdAt: "",
     updatedAt: "",
