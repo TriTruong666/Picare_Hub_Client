@@ -18,7 +18,7 @@ export default function AppRouter() {
       <Route
         path={PATHS.QR_PRODUCT_GENERATOR}
         element={
-          <AuthGuard>
+          <AuthGuard allowedRoles={["admin", "business_development"]}>
             <QRProductGeneratorPage />
           </AuthGuard>
         }
@@ -26,7 +26,7 @@ export default function AppRouter() {
       <Route
         path={PATHS.QR_PRODUCT_EDIT}
         element={
-          <AuthGuard>
+          <AuthGuard allowedRoles={["admin", "business_development"]}>
             <QRProductEditPage />
           </AuthGuard>
         }

@@ -33,22 +33,110 @@ export default function PrivateRoutes() {
           <Route index element={<SummaryDashboardPage />} />
           <Route path="summary" element={<SummaryDashboardPage />} />
           <Route path="accounts" element={<AccountDashboardPage />} />
-          <Route path="contracts" element={<ContractDashboardPage />} />
-          <Route path="qr-products" element={<QRProductDashboardPage />} />
+          <Route
+            path="contracts"
+            element={
+              <AuthGuard allowedRoles={["admin", "ceo", "hr", "finance"]}>
+                <ContractDashboardPage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="qr-products"
+            element={
+              <AuthGuard allowedRoles={["admin", "ceo", "business_development"]}>
+                <QRProductDashboardPage />
+              </AuthGuard>
+            }
+          />
           <Route
             path="contracts/:contractId"
-            element={<ContractDetailDashboardPage />}
+            element={
+              <AuthGuard allowedRoles={["admin", "ceo", "hr", "finance"]}>
+                <ContractDetailDashboardPage />
+              </AuthGuard>
+            }
           />
-          <Route path="storage" element={<StorageDashboardPage />} />
-          <Route path="storage/:folderId" element={<StorageFolderDetailPage />} />
-          <Route path="hub-clients" element={<HubClientDashboardPage />} />
-          <Route path="hub-clients/create" element={<HubClientCreatePage />} />
-          <Route path="hub-clients/:clientId/edit" element={<HubClientEditPage />} />
-          <Route path="licenses" element={<LicenseListPage />} />
-          <Route path="licenses/create" element={<LicenseCreatePage />} />
-          <Route path="licenses/:licenseId" element={<LicenseDetailPage />} />
-          <Route path="licenses/:licenseId/edit" element={<LicenseEditPage />} />
-          <Route path="licenses/support" element={<LicenseSupportPage />} />
+          <Route
+            path="storage"
+            element={
+              <AuthGuard allowedRoles={["admin"]}>
+                <StorageDashboardPage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="storage/:folderId"
+            element={
+              <AuthGuard allowedRoles={["admin"]}>
+                <StorageFolderDetailPage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="hub-clients"
+            element={
+              <AuthGuard allowedRoles={["admin"]}>
+                <HubClientDashboardPage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="hub-clients/create"
+            element={
+              <AuthGuard allowedRoles={["admin"]}>
+                <HubClientCreatePage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="hub-clients/:clientId/edit"
+            element={
+              <AuthGuard allowedRoles={["admin"]}>
+                <HubClientEditPage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="licenses"
+            element={
+              <AuthGuard allowedRoles={["admin"]}>
+                <LicenseListPage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="licenses/create"
+            element={
+              <AuthGuard allowedRoles={["admin"]}>
+                <LicenseCreatePage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="licenses/:licenseId"
+            element={
+              <AuthGuard allowedRoles={["admin"]}>
+                <LicenseDetailPage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="licenses/:licenseId/edit"
+            element={
+              <AuthGuard allowedRoles={["admin"]}>
+                <LicenseEditPage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="licenses/support"
+            element={
+              <AuthGuard allowedRoles={["admin"]}>
+                <LicenseSupportPage />
+              </AuthGuard>
+            }
+          />
           <Route path="notifications" element={<PrivateStubPage />} />
           <Route path="messages" element={<PrivateStubPage />} />
           <Route path="profile" element={<PrivateStubPage />} />

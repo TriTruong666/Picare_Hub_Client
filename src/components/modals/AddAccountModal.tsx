@@ -187,7 +187,7 @@ function RolePhase({
   onSelect: (role: CreateUserPayload["role"]) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {ROLE_OPTIONS.map((option) => (
         <RoleCard
           key={option.value}
@@ -264,7 +264,7 @@ export function AddAccountModal() {
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
             Tạo tài khoản mới
           </h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-[12px] text-gray-500 dark:text-gray-400">
             {step === 1
               ? "Chọn vai trò trước khi nhập thông tin tài khoản."
               : `Đang tạo tài khoản cho vai trò ${selectedRole?.label || ""}.`}

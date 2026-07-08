@@ -8,7 +8,16 @@ import ContractPreviewPage from "@/pages/private/ContractPreviewPage";
 
 export default function PrivateContractRoutes() {
   return (
-    <AuthGuard>
+    <AuthGuard
+      allowedRoles={[
+        "admin",
+        "finance",
+        "hr",
+        "ceo",
+        "supply_chain",
+        "admin_brand",
+      ]}
+    >
       <Routes>
         <Route path="create" element={<ContractCreatePage />} />
         <Route path=":contractId/edit" element={<ContractEditPage />} />

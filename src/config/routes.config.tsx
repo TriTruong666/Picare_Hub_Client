@@ -104,9 +104,10 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
   {
     path: PATHS.DASHBOARD.CONTRACTS,
     element: <ContractDashboardPage />,
-    label: "H\u1ee3p \u0111\u1ed3ng",
+    label: "Hợp đồng",
     icon: FiFileText,
     showInSidebar: true,
+    roles: ["admin", "ceo", "hr", "finance"],
   },
   {
     path: PATHS.DASHBOARD.QR_PRODUCTS,
@@ -114,13 +115,15 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     label: "QR Sản phẩm",
     icon: FiBox,
     showInSidebar: true,
+    roles: ["admin", "ceo", "business_development"],
   },
   {
     path: PATHS.DASHBOARD.STORAGE,
     element: <StorageDashboardPage />,
-    label: "L\u01b0u tr\u1eef",
+    label: "Lưu trữ",
     icon: FiArchive,
     showInSidebar: true,
+    roles: ["admin"],
   },
   {
     path: PATHS.DASHBOARD.HUB_CLIENTS,
@@ -128,12 +131,14 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     label: "Hub Clients",
     icon: FiGrid,
     showInSidebar: true,
+    roles: ["admin"],
   },
   {
     path: "/dashboard/licenses",
     label: "Bản quyền",
     icon: FiShield,
     showInSidebar: true,
+    roles: ["admin"],
     children: [
       {
         path: PATHS.DASHBOARD.LICENSE_CREATE,
