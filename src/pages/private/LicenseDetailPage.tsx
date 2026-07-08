@@ -298,11 +298,19 @@ function SoftwareList({ software }: { software: SoftwareItem[] }) {
                   {item.name || item.softwareId}
                 </h3>
                 <Badge
-                  type={item.status === "active" ? "success" : "info"}
+                  type={
+                    item.status === "active"
+                      ? "success"
+                      : item.status === "error"
+                        ? "warning"
+                        : "info"
+                  }
                   value={
                     item.status === "active"
                       ? "Đang hoạt động"
-                      : item.status || "Không xác định"
+                      : item.status === "error"
+                        ? "Tạm dừng"
+                        : item.status || "Không xác định"
                   }
                 />
                 <Badge

@@ -25,6 +25,7 @@ import { useUploadS3Asset } from "@/hooks/data/useS3Hooks";
 import type { SoftwareItem, SoftwareServerConfig } from "@/types/License";
 import { toast } from "@/hooks/useToast";
 import { formatFileSize } from "@/common/format";
+import ConfirmSoftwareStatusModal from "@/components/modals/ConfirmSoftwareStatusModal";
 
 const CONTRACT_FILE_FOLDER = "contracts";
 
@@ -392,6 +393,22 @@ export default function LicenseCreatePage({
   // Software items state
   const [softwares, setSoftwares] = useState<any[]>([]);
 
+  // State for software status confirmation modal
+  const [statusConfirmOpen, setStatusConfirmOpen] = useState(false);
+  const [statusTargetIdx, setStatusTargetIdx] = useState<number | null>(null);
+  const [statusTargetVal, setStatusTargetVal] = useState<"active" | "error" | null>(null);
+
+  const handleToggleStatusClick = (idx: number, target: "active" | "error") => {
+    setStatusTargetIdx(idx);
+    setStatusTargetVal(target);
+    setStatusConfirmOpen(true);
+  };
+
+  const handleConfirmStatusChange = () => {
+    if (statusTargetIdx === null || !statusTargetVal) return;
+    handleUpdateSoftware(statusTargetIdx, "status", statusTargetVal);
+  };
+
   useEffect(() => {
     if (!isEdit || !license || hydratedLicenseId.current === license.licenseId) {
       return;
@@ -416,6 +433,7 @@ export default function LicenseCreatePage({
     setSoftwares(
       license.software.map((software) => ({
         ...software,
+        status: software.status || "active",
         serverConfig: software.serverConfig || [],
       })),
     );
@@ -812,20 +830,37 @@ export default function LicenseCreatePage({
                   key={idx}
                   className="relative flex flex-col gap-5 border-b border-gray-200 py-7 first:pt-0 last:border-b-0 dark:border-white/[0.08]"
                 >
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleRemoveSoftware(idx)}
-                    disabled={isSaving}
-                    className="absolute top-4 right-0 flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-600 transition-all hover:bg-red-500/20 dark:text-red-400"
-                  >
-                    <FiTrash2 className="text-sm" />
-                  </motion.button>
-
-                  <h3 className="text-indigo-550 dark:text-indigo-455 text-xs font-medium">
-                    Phần mềm #{idx + 1}
-                  </h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-indigo-550 dark:text-indigo-455 text-xs font-medium">
+                      Phần mềm #{idx + 1}
+                    </h3>
+                    <div className="flex items-center gap-4">
+                      {isEdit && (
+                        <div className="flex items-center gap-2 select-none">
+                          <Switch
+                            checked={(sw.status || "active") === "active"}
+                            onChange={(val) =>
+                              handleToggleStatusClick(idx, val ? "active" : "error")
+                            }
+                            disabled={isSaving}
+                          />
+                          <span className="text-gray-500 text-xs font-medium dark:text-white/40">
+                            {(sw.status || "active") === "active" ? "Hoạt động" : "Tạm dừng"}
+                          </span>
+                        </div>
+                      )}
+                      <motion.button
+                        type="button"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleRemoveSoftware(idx)}
+                        disabled={isSaving}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-600 transition-all hover:bg-red-500/20 dark:text-red-400"
+                      >
+                        <FiTrash2 className="text-sm" />
+                      </motion.button>
+                    </div>
+                  </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div>
@@ -1098,6 +1133,22 @@ export default function LicenseCreatePage({
           {isEdit ? "Lưu thay đổi" : "Tạo bản quyền"}
         </motion.button>
       </div>
+
+      <ConfirmSoftwareStatusModal
+        isOpen={statusConfirmOpen}
+        softwareName={
+          statusTargetIdx !== null && softwares[statusTargetIdx]
+            ? softwares[statusTargetIdx].name || softwares[statusTargetIdx].softwareId || `Phần mềm #${statusTargetIdx + 1}`
+            : ""
+        }
+        targetStatus={statusTargetVal || "error"}
+        onClose={() => {
+          setStatusConfirmOpen(false);
+          setStatusTargetIdx(null);
+          setStatusTargetVal(null);
+        }}
+        onConfirm={handleConfirmStatusChange}
+      />
     </div>
   );
 }

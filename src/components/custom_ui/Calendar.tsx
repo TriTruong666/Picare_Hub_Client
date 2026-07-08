@@ -35,10 +35,30 @@ const MONTHS = [
   "Tháng 12",
 ];
 
-function formatDateDMY(isoString: string): string {
-  if (!isoString) return "";
-  const date = new Date(isoString);
-  if (isNaN(date.getTime())) return "";
+function formatDateToYYYYMMDD(date: Date): string {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getValidDate(value?: string) {
+  if (!value) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const parts = value.split("-");
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    return new Date(year, month, day);
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatDateDMY(value: string): string {
+  if (!value) return "";
+  const date = getValidDate(value);
+  if (!date) return "";
   const day = date.getDate().toString().padStart(2, "0");
   const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const year = date.getFullYear();
@@ -129,6 +149,7 @@ export default function Calendar({
   );
   
   const [inputValue, setInputValue] = useState(value ? formatDateDMY(value) : "");
+  const [isFocused, setIsFocused] = useState(false);
 
   const ref = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -144,14 +165,16 @@ export default function Calendar({
 
   // Synchronize state when the value prop changes
   useEffect(() => {
-    setInputValue(value ? formatDateDMY(value) : "");
+    if (!isFocused) {
+      setInputValue(value ? formatDateDMY(value) : "");
+    }
     if (value) {
       const date = getValidDate(value);
       if (date) {
         setViewDate(new Date(date.getFullYear(), date.getMonth(), 1));
       }
     }
-  }, [value]);
+  }, [value, isFocused]);
 
   useEffect(() => {
     const handler = (event: MouseEvent) => {
@@ -248,8 +271,9 @@ export default function Calendar({
   };
 
   const selectDate = (date: Date) => {
-    const normalized = startOfDay(date);
-    onChange(normalized.toISOString());
+    const ymd = formatDateToYYYYMMDD(date);
+    onChange(ymd);
+    setInputValue(formatDateDMY(ymd));
     setOpen(false);
   };
 
@@ -278,23 +302,24 @@ export default function Calendar({
     if (parsed) {
       const parsedTime = startOfDay(parsed).getTime();
       if (minTime === null || parsedTime >= minTime) {
-        onChange(startOfDay(parsed).toISOString());
+        onChange(formatDateToYYYYMMDD(parsed));
         setViewDate(new Date(parsed.getFullYear(), parsed.getMonth(), 1));
       }
     }
   };
 
   const handleInputBlur = () => {
+    setIsFocused(false);
     const parsed = parseDateString(inputValue);
     if (parsed) {
       const parsedTime = startOfDay(parsed).getTime();
       if (minTime !== null && parsedTime < minTime) {
-        toast.error("Ngày không hợp lệ", `Ngày chọn không được trước ngày ${formatDateDMY(minDate!.toISOString())}`);
+        toast.error("Ngày không hợp lệ", `Ngày chọn không được trước ngày ${formatDateDMY(formatDateToYYYYMMDD(minDate!))}`);
         setInputValue(value ? formatDateDMY(value) : "");
       } else {
-        const iso = startOfDay(parsed).toISOString();
-        onChange(iso);
-        setInputValue(formatDateDMY(iso));
+        const ymd = formatDateToYYYYMMDD(parsed);
+        onChange(ymd);
+        setInputValue(formatDateDMY(ymd));
       }
     } else {
       if (allowClear && !inputValue.trim()) {
@@ -329,6 +354,7 @@ export default function Calendar({
           onBlur={handleInputBlur}
           onKeyDown={handleKeyDown}
           onFocus={() => {
+            setIsFocused(true);
             if (selectedDate) {
               setViewDate(
                 new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
@@ -493,11 +519,7 @@ export default function Calendar({
   );
 }
 
-function getValidDate(value?: string) {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
+
 
 function startOfDay(date: Date) {
   const next = new Date(date);
