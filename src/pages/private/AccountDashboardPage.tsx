@@ -142,6 +142,7 @@ function AccountTable({
 
   const roleLabels: Record<User["role"], string> = {
     admin: "Quản trị viên",
+    admin_brand: "Admin Brand",
     ceo: "CEO",
     supply_chain: "Supply Chain",
     hr: "HR",

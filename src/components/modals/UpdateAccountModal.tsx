@@ -19,6 +19,7 @@ type UpdateFormState = {
 
 const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
   { value: "admin", label: "Admin" },
+  { value: "admin_brand", label: "Admin Brand" },
   { value: "ceo", label: "CEO" },
   { value: "supply_chain", label: "Supply Chain" },
   { value: "hr", label: "HR" },
@@ -75,7 +76,10 @@ export function UpdateAccountModal({ user }: { user: User }) {
     };
 
     if (!payload.name || !payload.email) {
-      toast.warning("Thiếu thông tin", "Vui lòng nhập đủ họ tên, email và vai trò.");
+      toast.warning(
+        "Thiếu thông tin",
+        "Vui lòng nhập đủ họ tên, email và vai trò.",
+      );
       return;
     }
 

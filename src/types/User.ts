@@ -22,12 +22,14 @@ export const USER_ROLES = [
   "business_development",
   "finance",
   "demo",
+  "admin_brand",
 ] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   admin: "Admin",
+  admin_brand: "Admin Brand",
   ceo: "CEO",
   supply_chain: "Supply Chain",
   hr: "HR",

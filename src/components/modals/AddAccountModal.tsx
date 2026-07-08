@@ -34,6 +34,14 @@ const ROLE_OPTIONS: RoleOption[] = [
     icon: "A",
   },
   {
+    value: "admin_brand",
+    label: "Admin Brand",
+    description: "Quản trị thương hiệu",
+    accentClass:
+      "from-rose-500/20 to-orange-500/20 text-rose-600 dark:text-rose-300",
+    icon: "AB",
+  },
+  {
     value: "ceo",
     label: "CEO",
     description: "Ban giám đốc",
