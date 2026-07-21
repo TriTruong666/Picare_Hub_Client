@@ -13,6 +13,7 @@ export type CustomPersonalContractFormValues = {
 };
 
 const EMPTY_PERSONAL_INFO: CustomPersonalInfoPayload = {
+  email: "",
   fullName: "",
   dateOfBirth: "",
   position: "",
