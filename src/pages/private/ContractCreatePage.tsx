@@ -84,7 +84,8 @@ const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
   {
     companyCode: "PIC",
     companyName: "CTY TNHH PICARE VIỆT NAM",
-    address: "2/35 Chấn Hưng, Phường Tân Hòa, Thành Phố Hồ Chí Minh",
+    address:
+      "38/11 Nguyễn Giản Thanh, Phường Hòa Hưng, Thành phố Hồ Chí Minh, Việt Nam",
     phone: "0918088123",
     email: "cskh@picare.vn",
     bankInfo: "204550429 Ngân hàng Á Châu  Chi Nhánh Bắc Hải TP HCM",
