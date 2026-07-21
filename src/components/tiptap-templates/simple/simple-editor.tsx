@@ -1,88 +1,88 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState } from "react"
-import { Extension } from "@tiptap/core"
-import { Plugin, PluginKey } from "@tiptap/pm/state"
-import { Decoration, DecorationSet } from "@tiptap/pm/view"
+import { useEffect, useRef, useState } from "react";
+import { Extension } from "@tiptap/core";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import {
   EditorContent,
   EditorContext,
   type Editor,
   type JSONContent,
   useEditor,
-} from "@tiptap/react"
+} from "@tiptap/react";
 
 // --- Tiptap Core Extensions ---
-import { StarterKit } from "@tiptap/starter-kit"
-import { Image } from "@tiptap/extension-image"
-import { TaskItem, TaskList } from "@tiptap/extension-list"
-import { TextAlign } from "@tiptap/extension-text-align"
-import { Typography } from "@tiptap/extension-typography"
-import { Highlight } from "@tiptap/extension-highlight"
-import { Subscript } from "@tiptap/extension-subscript"
-import { Superscript } from "@tiptap/extension-superscript"
-import { Selection } from "@tiptap/extensions"
+import { StarterKit } from "@tiptap/starter-kit";
+import { Image } from "@tiptap/extension-image";
+import { TaskItem, TaskList } from "@tiptap/extension-list";
+import { TextAlign } from "@tiptap/extension-text-align";
+import { Typography } from "@tiptap/extension-typography";
+import { Highlight } from "@tiptap/extension-highlight";
+import { Subscript } from "@tiptap/extension-subscript";
+import { Superscript } from "@tiptap/extension-superscript";
+import { Selection } from "@tiptap/extensions";
 
 // --- UI Primitives ---
-import { Button } from "@/components/tiptap-ui-primitive/button"
-import { Spacer } from "@/components/tiptap-ui-primitive/spacer"
+import { Button } from "@/components/tiptap-ui-primitive/button";
+import { Spacer } from "@/components/tiptap-ui-primitive/spacer";
 import {
   Toolbar,
   ToolbarGroup,
   ToolbarSeparator,
-} from "@/components/tiptap-ui-primitive/toolbar"
+} from "@/components/tiptap-ui-primitive/toolbar";
 
 // --- Tiptap Node ---
-import { ImageUploadNode } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension"
-import { HorizontalRule } from "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension"
-import "@/components/tiptap-node/blockquote-node/blockquote-node.scss"
-import "@/components/tiptap-node/code-block-node/code-block-node.scss"
-import "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss"
-import "@/components/tiptap-node/list-node/list-node.scss"
-import "@/components/tiptap-node/image-node/image-node.scss"
-import "@/components/tiptap-node/heading-node/heading-node.scss"
-import "@/components/tiptap-node/paragraph-node/paragraph-node.scss"
+import { ImageUploadNode } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension";
+import { HorizontalRule } from "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
+import "@/components/tiptap-node/blockquote-node/blockquote-node.scss";
+import "@/components/tiptap-node/code-block-node/code-block-node.scss";
+import "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss";
+import "@/components/tiptap-node/list-node/list-node.scss";
+import "@/components/tiptap-node/image-node/image-node.scss";
+import "@/components/tiptap-node/heading-node/heading-node.scss";
+import "@/components/tiptap-node/paragraph-node/paragraph-node.scss";
 
 // --- Tiptap UI ---
-import { HeadingDropdownMenu } from "@/components/tiptap-ui/heading-dropdown-menu"
-import { ImageUploadButton } from "@/components/tiptap-ui/image-upload-button"
-import { ListDropdownMenu } from "@/components/tiptap-ui/list-dropdown-menu"
-import { BlockquoteButton } from "@/components/tiptap-ui/blockquote-button"
-import { CodeBlockButton } from "@/components/tiptap-ui/code-block-button"
+import { HeadingDropdownMenu } from "@/components/tiptap-ui/heading-dropdown-menu";
+import { ImageUploadButton } from "@/components/tiptap-ui/image-upload-button";
+import { ListDropdownMenu } from "@/components/tiptap-ui/list-dropdown-menu";
+import { BlockquoteButton } from "@/components/tiptap-ui/blockquote-button";
+import { CodeBlockButton } from "@/components/tiptap-ui/code-block-button";
 import {
   ColorHighlightPopover,
   ColorHighlightPopoverContent,
   ColorHighlightPopoverButton,
-} from "@/components/tiptap-ui/color-highlight-popover"
+} from "@/components/tiptap-ui/color-highlight-popover";
 import {
   LinkPopover,
   LinkContent,
   LinkButton,
-} from "@/components/tiptap-ui/link-popover"
-import { MarkButton } from "@/components/tiptap-ui/mark-button"
-import { TextAlignButton } from "@/components/tiptap-ui/text-align-button"
-import { UndoRedoButton } from "@/components/tiptap-ui/undo-redo-button"
+} from "@/components/tiptap-ui/link-popover";
+import { MarkButton } from "@/components/tiptap-ui/mark-button";
+import { TextAlignButton } from "@/components/tiptap-ui/text-align-button";
+import { UndoRedoButton } from "@/components/tiptap-ui/undo-redo-button";
 
 // --- Icons ---
-import { ArrowLeftIcon } from "@/components/tiptap-icons/arrow-left-icon"
-import { HighlighterIcon } from "@/components/tiptap-icons/highlighter-icon"
-import { LinkIcon } from "@/components/tiptap-icons/link-icon"
+import { ArrowLeftIcon } from "@/components/tiptap-icons/arrow-left-icon";
+import { HighlighterIcon } from "@/components/tiptap-icons/highlighter-icon";
+import { LinkIcon } from "@/components/tiptap-icons/link-icon";
 
 // --- Hooks ---
-import { useIsBreakpoint } from "@/hooks/use-is-breakpoint"
-import { useWindowSize } from "@/hooks/use-window-size"
-import { useCursorVisibility } from "@/hooks/use-cursor-visibility"
+import { useIsBreakpoint } from "@/hooks/use-is-breakpoint";
+import { useWindowSize } from "@/hooks/use-window-size";
+import { useCursorVisibility } from "@/hooks/use-cursor-visibility";
 
 // --- Components ---
-import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle"
+import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle";
 
 // --- Lib ---
-import { cn, handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
+import { cn, handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 
 // --- Styles ---
-import "@/components/tiptap-templates/simple/simple-editor.scss"
+import "@/components/tiptap-templates/simple/simple-editor.scss";
 
-import content from "@/components/tiptap-templates/simple/data/content.json"
+import content from "@/components/tiptap-templates/simple/data/content.json";
 
 const PlaceholderAttributes = Extension.create<{ placeholder?: string }>({
   name: "placeholderAttributes",
@@ -90,41 +90,41 @@ const PlaceholderAttributes = Extension.create<{ placeholder?: string }>({
   addOptions() {
     return {
       placeholder: undefined,
-    }
+    };
   },
 
   addProseMirrorPlugins() {
-    const placeholder = this.options.placeholder
+    const placeholder = this.options.placeholder;
 
-    if (!placeholder) return []
+    if (!placeholder) return [];
 
     return [
       new Plugin({
         key: new PluginKey("placeholderAttributes"),
         props: {
           decorations(state) {
-            const decorations: Decoration[] = []
+            const decorations: Decoration[] = [];
 
             state.doc.descendants((node, pos) => {
               if (node.type.name !== "paragraph" || node.content.size > 0) {
-                return
+                return;
               }
 
               decorations.push(
                 Decoration.node(pos, pos + node.nodeSize, {
                   class: "is-empty",
                   "data-placeholder": placeholder,
-                })
-              )
-            })
+                }),
+              );
+            });
 
-            return DecorationSet.create(state.doc, decorations)
+            return DecorationSet.create(state.doc, decorations);
           },
         },
       }),
-    ]
+    ];
   },
-})
+});
 
 const MainToolbarContent = ({
   onHighlighterClick,
@@ -132,10 +132,10 @@ const MainToolbarContent = ({
   isMobile,
   showThemeToggle,
 }: {
-  onHighlighterClick: () => void
-  onLinkClick: () => void
-  isMobile: boolean
-  showThemeToggle: boolean
+  onHighlighterClick: () => void;
+  onLinkClick: () => void;
+  isMobile: boolean;
+  showThemeToggle: boolean;
 }) => {
   return (
     <>
@@ -208,15 +208,15 @@ const MainToolbarContent = ({
         </>
       ) : null}
     </>
-  )
-}
+  );
+};
 
 const MobileToolbarContent = ({
   type,
   onBack,
 }: {
-  type: "highlighter" | "link"
-  onBack: () => void
+  type: "highlighter" | "link";
+  onBack: () => void;
 }) => (
   <>
     <ToolbarGroup>
@@ -238,17 +238,21 @@ const MobileToolbarContent = ({
       <LinkContent />
     )}
   </>
-)
+);
 
 type SimpleEditorProps = {
-  content?: JSONContent | string
-  placeholder?: string
-  showThemeToggle?: boolean
-  wrapperClassName?: string
-  contentClassName?: string
-  editorClassName?: string
-  onChange?: (payload: { html: string; json: JSONContent; editor: Editor }) => void
-}
+  content?: JSONContent | string;
+  placeholder?: string;
+  showThemeToggle?: boolean;
+  wrapperClassName?: string;
+  contentClassName?: string;
+  editorClassName?: string;
+  onChange?: (payload: {
+    html: string;
+    json: JSONContent;
+    editor: Editor;
+  }) => void;
+};
 
 export function SimpleEditor({
   content: initialContent,
@@ -259,13 +263,13 @@ export function SimpleEditor({
   editorClassName,
   onChange,
 }: SimpleEditorProps = {}) {
-  const isMobile = useIsBreakpoint()
-  const { height } = useWindowSize()
+  const isMobile = useIsBreakpoint();
+  const { height } = useWindowSize();
   const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
-    "main"
-  )
-  const [toolbarHeight, setToolbarHeight] = useState(0)
-  const toolbarRef = useRef<HTMLDivElement>(null)
+    "main",
+  );
+  const [toolbarHeight, setToolbarHeight] = useState(0);
+  const toolbarRef = useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -306,50 +310,58 @@ export function SimpleEditor({
       }),
     ],
     content: initialContent ?? content,
-  })
+  });
+
+  useEffect(() => {
+    if (!editor || typeof initialContent !== "string") return;
+
+    if (editor.getHTML() !== initialContent) {
+      editor.commands.setContent(initialContent, false);
+    }
+  }, [editor, initialContent]);
 
   const rect = useCursorVisibility({
     editor,
     overlayHeight: toolbarHeight,
-  })
+  });
 
   useEffect(() => {
-    const toolbarNode = toolbarRef.current
+    const toolbarNode = toolbarRef.current;
 
-    if (!toolbarNode) return
+    if (!toolbarNode) return;
 
     const syncToolbarHeight = () => {
-      setToolbarHeight(toolbarNode.getBoundingClientRect().height)
-    }
+      setToolbarHeight(toolbarNode.getBoundingClientRect().height);
+    };
 
-    syncToolbarHeight()
+    syncToolbarHeight();
 
-    const resizeObserver = new ResizeObserver(syncToolbarHeight)
-    resizeObserver.observe(toolbarNode)
+    const resizeObserver = new ResizeObserver(syncToolbarHeight);
+    resizeObserver.observe(toolbarNode);
 
-    return () => resizeObserver.disconnect()
-  }, [])
+    return () => resizeObserver.disconnect();
+  }, []);
 
   useEffect(() => {
-    if (!editor || !onChange) return
+    if (!editor || !onChange) return;
 
     const emitChange = () => {
       onChange({
         html: editor.getHTML(),
         json: editor.getJSON(),
         editor,
-      })
-    }
+      });
+    };
 
-    emitChange()
-    editor.on("update", emitChange)
+    emitChange();
+    editor.on("update", emitChange);
 
     return () => {
-      editor.off("update", emitChange)
-    }
-  }, [editor, onChange])
+      editor.off("update", emitChange);
+    };
+  }, [editor, onChange]);
 
-  const activeMobileView = isMobile ? mobileView : "main"
+  const activeMobileView = isMobile ? mobileView : "main";
 
   return (
     <div className={cn("simple-editor-wrapper", wrapperClassName)}>
@@ -386,5 +398,5 @@ export function SimpleEditor({
         />
       </EditorContext.Provider>
     </div>
-  )
+  );
 }

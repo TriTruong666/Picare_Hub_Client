@@ -32,6 +32,37 @@ export type CustomOrganizationContractPayload = {
   rawContent: string;
 };
 
+export type CustomPersonalInfoPayload = {
+  fullName: string;
+  dateOfBirth: string;
+  position: string;
+  department: string;
+  permanentAddress: string;
+  citizenId: string;
+  citizenIdIssuedDate: string;
+  citizenIdIssuedPlace: string;
+};
+
+export type CustomPersonalContractDataPayload = {
+  title: string;
+  subTitle: string;
+  rawContent: string;
+  personalInfo: CustomPersonalInfoPayload;
+  details?: ContractDetail[];
+  contractDueDate?: string | null;
+  ownerCompanyInfo?: OwnerCompanyInfoPayload;
+  partnerCompanyInfo?: PartnerCompanyInfoPayload | null;
+};
+
+export type CustomPersonalContractPayload = {
+  contractType: "custom_personal";
+  ownerCompanyInfo: OwnerCompanyInfoPayload;
+  personalInfo: CustomPersonalInfoPayload;
+  title: string;
+  subTitle: string;
+  rawContent: string;
+};
+
 export type AppendixContractProductPayload = {
   origin?: string | null;
   rawContent?: string | null;
@@ -110,6 +141,7 @@ export type UpdateContractPayload =
   | PrincipleContractPayload
   | ServiceContractPayload
   | CustomOrganizationContractPayload
+  | CustomPersonalContractPayload
   | AppendixContractPayload
   | LivestreamResponsibilityCommitmentContractPayload
   | LivestreamResponsibilityCommitmentAppendixContractPayload;
@@ -160,6 +192,7 @@ export type ContractType =
   | "appendix"
   | "service"
   | "custom_organization"
+  | "custom_personal"
   | "livestream_responsibility_commitment"
   | "livestream_responsibility_commitment_appendix"
   | "digital"
@@ -325,6 +358,7 @@ export type Contract = {
     | PrincipleContractDataPayload
     | ServiceContractDataPayload
     | CustomOrganizationContractDataPayload
+    | CustomPersonalContractDataPayload
     | AppendixContractDataPayload
     | LivestreamResponsibilityContractDataPayload
     | null;

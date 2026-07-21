@@ -1,7 +1,11 @@
 import { useCallback } from "react";
 
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
-import { FieldLabel, SectionTitle, TextInput } from "../../common/FormPrimitives";
+import {
+  FieldLabel,
+  SectionTitle,
+  TextInput,
+} from "../../common/FormPrimitives";
 import type { CustomOrganizationContractFormValues } from "./customOrganizationContractVariant";
 
 export function CustomOrganizationContractFields({

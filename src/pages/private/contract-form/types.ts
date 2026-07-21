@@ -10,6 +10,7 @@ export type SupportedContractType =
   | "principle"
   | "appendix"
   | "custom_organization"
+  | "custom_personal"
   | "livestream_responsibility_commitment"
   | "livestream_responsibility_commitment_appendix";
 
@@ -38,4 +39,3 @@ export type ContractVariantDefinition<
     common: ContractFormCommonValues,
   ) => Extract<CreateContractPayload, { contractType: TType }>;
 };
-

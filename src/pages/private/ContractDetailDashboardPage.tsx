@@ -4,7 +4,10 @@ import { Link, useParams } from "react-router-dom";
 import { formatDateTime } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
-import { StateShell, StateLoadingContainer } from "@/components/custom_ui/ShellState";
+import {
+  StateShell,
+  StateLoadingContainer,
+} from "@/components/custom_ui/ShellState";
 import { PATHS } from "@/config/paths";
 import { useContractDetail } from "@/hooks/data/useContractHooks";
 import { toast } from "@/hooks/useToast";
@@ -39,9 +42,9 @@ const CONTRACT_TYPE_LABELS: Record<ContractType, string> = {
   appendix: "Phụ lục hợp đồng",
   service: "Hợp đồng dịch vụ",
   custom_organization: "Hợp đồng tuỳ chỉnh tổ chức",
+  custom_personal: "Hợp đồng tuỳ chỉnh cá nhân",
   livestream_responsibility_commitment: "Cam kết trách nhiệm Livestream",
-  livestream_responsibility_commitment_appendix:
-    "Phụ lục cam kết Livestream",
+  livestream_responsibility_commitment_appendix: "Phụ lục cam kết Livestream",
   digital: "Hợp đồng điện tử",
   default: "Mặc định",
 };
@@ -290,10 +293,11 @@ export default function ContractDetailDashboardPage() {
               party={contract.ownerCompanyInfo}
               personalInfo={
                 !contract.ownerCompanyInfo
-                  ? contract.personalInfo ??
-                    (contract.contractData && "personalInfo" in contract.contractData
+                  ? (contract.personalInfo ??
+                    (contract.contractData &&
+                    "personalInfo" in contract.contractData
                       ? (contract.contractData.personalInfo as any)
-                      : null)
+                      : null))
                   : null
               }
             />
@@ -303,10 +307,11 @@ export default function ContractDetailDashboardPage() {
               fallbackName={contract.personalInfo?.fullName}
               personalInfo={
                 !contract.partnerCompanyInfo
-                  ? contract.personalInfo ??
-                    (contract.contractData && "personalInfo" in contract.contractData
+                  ? (contract.personalInfo ??
+                    (contract.contractData &&
+                    "personalInfo" in contract.contractData
                       ? (contract.contractData.personalInfo as any)
-                      : null)
+                      : null))
                   : null
               }
             />
@@ -419,7 +424,8 @@ export default function ContractDetailDashboardPage() {
                     organizationCredential.gpdUrl ||
                     "Đã tải lên",
                   hasFile: Boolean(
-                    organizationCredential.gpdUrl || organizationCredential.gpdKey,
+                    organizationCredential.gpdUrl ||
+                    organizationCredential.gpdKey,
                   ),
                   onView: () =>
                     openS3Asset(
@@ -521,10 +527,19 @@ function PartyPanel({
           <PartyRow label="Chức vụ" value={personalInfo.position || "-"} />
           <PartyRow label="Phòng ban" value={personalInfo.department || "-"} />
           <PartyRow label="Số CCCD" value={personalInfo.citizenId || "-"} />
-          <PartyRow label="Ngày cấp CCCD" value={personalInfo.citizenIdIssuedDate || "-"} />
-          <PartyRow label="Nơi cấp CCCD" value={personalInfo.citizenIdIssuedPlace || "-"} />
+          <PartyRow
+            label="Ngày cấp CCCD"
+            value={personalInfo.citizenIdIssuedDate || "-"}
+          />
+          <PartyRow
+            label="Nơi cấp CCCD"
+            value={personalInfo.citizenIdIssuedPlace || "-"}
+          />
           <PartyRow label="Ngày sinh" value={personalInfo.dateOfBirth || "-"} />
-          <PartyRow label="Địa chỉ thường trú" value={personalInfo.permanentAddress || "-"} />
+          <PartyRow
+            label="Địa chỉ thường trú"
+            value={personalInfo.permanentAddress || "-"}
+          />
         </div>
       </div>
     );

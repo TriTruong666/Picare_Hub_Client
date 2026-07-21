@@ -141,6 +141,8 @@ function getContractMailTypeLabel(contractType: Contract["contractType"]) {
       return "Bản cam kết livestream";
     case "livestream_responsibility_commitment_appendix":
       return "Phụ lục cam kết livestream";
+    case "custom_personal":
+      return "Thỏa thuận công việc";
     case "service":
       return "Hợp đồng dịch vụ";
     case "principle":
@@ -156,6 +158,8 @@ function getContractMailActionLabel(contractType: Contract["contractType"]) {
       return "Xem phụ lục";
     case "livestream_responsibility_commitment":
       return "Xem bản cam kết";
+    case "custom_personal":
+      return "Xem thỏa thuận";
     case "service":
       return "Xem hợp đồng dịch vụ";
     case "principle":
@@ -517,7 +521,11 @@ type PartnerMailForm = {
 
 function createPartnerMailForm(contract: Contract): PartnerMailForm {
   const partner = contract.partnerCompanyInfo;
-  const personal = contract.personalInfo;
+  const personal =
+    contract.personalInfo ??
+    (contract.contractData && "personalInfo" in contract.contractData
+      ? contract.contractData.personalInfo
+      : null);
   const owner = contract.ownerCompanyInfo;
   const contractTypeLabel = getContractMailTypeLabel(contract.contractType);
   const contractReference = contract.contractNumber || contract.contractId;
@@ -564,6 +572,13 @@ function createPartnerMailForm(contract: Contract): PartnerMailForm {
         "Phụ lục này quy định danh mục nội dung, từ khóa và cách diễn đạt không được sử dụng trong hoạt động Livestream.",
         "Vui lòng rà soát kỹ toàn bộ danh mục blacklist keywords và các nguyên tắc áp dụng trước khi ký xác nhận.",
         "Nếu cần cập nhật hoặc giải thích thêm nội dung, vui lòng phản hồi trực tiếp email này để bộ phận phụ trách xử lý.",
+      ];
+      break;
+    case "custom_personal":
+      messageLines = [
+        `${owner.companyName} đã hoàn tất xử lý thỏa thuận công việc số ${contractReference}.`,
+        "Vui lòng kiểm tra lại thông tin cá nhân và toàn bộ nội dung thỏa thuận trước khi xác nhận ký.",
+        "Nếu cần điều chỉnh nội dung, vui lòng phản hồi trực tiếp email này để được hỗ trợ.",
       ];
       break;
     case "service":
@@ -827,6 +842,246 @@ function SendPartnerMailModalController({
       onUpdateField={updateField}
       onSend={handleSend}
     />
+  );
+}
+
+function CustomOrganizationContractDocument({
+  contract,
+  ownerSignatureRef,
+  ownerSignatureRevealKey,
+  partnerSignatureRef,
+  partnerSignatureRevealKey,
+}: {
+  contract: Contract;
+  ownerSignatureRef?: React.Ref<HTMLDivElement>;
+  ownerSignatureRevealKey?: number;
+  partnerSignatureRef?: React.Ref<HTMLDivElement>;
+  partnerSignatureRevealKey?: number;
+}) {
+  const owner = contract.ownerCompanyInfo;
+  const partner = contract.partnerCompanyInfo;
+  const contractData = contract.contractData;
+  const content =
+    contractData && "rawContent" in contractData ? contractData : null;
+  const hasOwnerSigned =
+    contract.status === "owner_signed" || contract.status === "completed";
+  const hasPartnerSigned = contract.status === "completed";
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      className="mx-auto w-full max-w-5xl pb-24"
+    >
+      <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
+        <div>
+          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+            {owner.companyName}
+          </p>
+          <p className="mt-3 text-[13px] text-black/35 dark:text-white/35">
+            Số:{" "}
+            <strong className="font-semibold text-black/72 dark:text-white/72">
+              {contract.contractNumber}
+            </strong>
+          </p>
+        </div>
+        <div className="text-left md:text-center">
+          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+            Cộng hòa xã hội chủ nghĩa Việt Nam
+          </p>
+          <p className="mt-1 text-[13px] text-black/62 dark:text-white/62">
+            Độc lập - Tự do - Hạnh phúc
+          </p>
+        </div>
+      </header>
+      <section className="pt-14 text-center">
+        <h1 className="mt-7 text-4xl font-medium tracking-[0.03em] text-[#111111] uppercase dark:text-white">
+          {content?.title || "Hợp đồng"}
+        </h1>
+        {content?.subTitle ? (
+          <p className="mt-3 text-[15px] text-black/62 dark:text-white/62">
+            {content.subTitle}
+          </p>
+        ) : null}
+        <p className="mt-3 text-[15px] text-black/62 dark:text-white/62">
+          Số{" "}
+          <strong className="font-semibold text-black/82 dark:text-white/82">
+            {contract.contractNumber}
+          </strong>
+        </p>
+      </section>
+      <PartySection title={`Bên A: ${owner.companyName}`} party={owner} />
+      <PartySection
+        title={`Bên B: ${partner.companyName || partner.ownerName}`}
+        party={partner}
+      />
+      <section
+        className="custom-contract-content mt-12 text-[14px] leading-9 tracking-[0.01em] text-black/62 dark:text-white/62 [&_strong]:text-[0.95rem] [&_strong]:font-semibold [&_strong]:text-[#111111] dark:[&_strong]:text-white"
+        dangerouslySetInnerHTML={{ __html: content?.rawContent || "" }}
+      />
+      <section className="mt-20 grid gap-12 border-t border-black/10 pt-12 md:grid-cols-2 dark:border-white/10">
+        <SignatureBlock
+          title="ĐẠI DIỆN BÊN A"
+          name={owner.ownerName}
+          isSigned={hasOwnerSigned || Boolean(ownerSignatureRevealKey)}
+          shouldAnimate={Boolean(ownerSignatureRevealKey)}
+          revealKey={ownerSignatureRevealKey}
+          signatureRef={ownerSignatureRef}
+        />
+        <SignatureBlock
+          title="ĐẠI DIỆN BÊN B"
+          name={partner.ownerName}
+          isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)}
+          shouldAnimate={Boolean(partnerSignatureRevealKey)}
+          revealKey={partnerSignatureRevealKey}
+          signatureRef={partnerSignatureRef}
+        />
+      </section>
+    </motion.article>
+  );
+}
+
+function CustomPersonalContractDocument({
+  contract,
+  ownerSignatureRef,
+  ownerSignatureRevealKey,
+  partnerSignatureRef,
+  partnerSignatureRevealKey,
+}: {
+  contract: Contract;
+  ownerSignatureRef?: React.Ref<HTMLDivElement>;
+  ownerSignatureRevealKey?: number;
+  partnerSignatureRef?: React.Ref<HTMLDivElement>;
+  partnerSignatureRevealKey?: number;
+}) {
+  const owner = contract.ownerCompanyInfo;
+  const contractData = contract.contractData;
+  const content =
+    contractData && "rawContent" in contractData ? contractData : null;
+  const personal =
+    content && "personalInfo" in content ? content.personalInfo : null;
+  const hasOwnerSigned =
+    contract.status === "owner_signed" || contract.status === "completed";
+  const hasPartnerSigned = contract.status === "completed";
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      className="mx-auto w-full max-w-5xl pb-24"
+    >
+      <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
+        <div>
+          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+            {owner.companyName}
+          </p>
+          <p className="mt-3 text-[13px] text-black/35 dark:text-white/35">
+            Số:{" "}
+            <strong className="font-semibold text-black/72 dark:text-white/72">
+              {contract.contractNumber}
+            </strong>
+          </p>
+        </div>
+        <div className="text-left md:text-center">
+          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+            Cộng hòa xã hội chủ nghĩa Việt Nam
+          </p>
+          <p className="mt-1 text-[13px] text-black/62 dark:text-white/62">
+            Độc lập - Tự do - Hạnh phúc
+          </p>
+        </div>
+      </header>
+      <section className="pt-14 text-center">
+        <h1 className="mt-7 text-4xl font-medium tracking-[0.03em] text-[#111111] uppercase dark:text-white">
+          {content?.title || "Thỏa thuận"}
+        </h1>
+        {content?.subTitle ? (
+          <p className="mt-3 text-[15px] text-black/62 dark:text-white/62">
+            {content.subTitle}
+          </p>
+        ) : null}
+        <p className="mt-3 text-[15px] text-black/62 dark:text-white/62">
+          Số{" "}
+          <strong className="font-semibold text-black/82 dark:text-white/82">
+            {contract.contractNumber}
+          </strong>
+        </p>
+      </section>
+      <PartySection title={`Bên A: ${owner.companyName}`} party={owner} />
+      <section className="mt-10 text-[14px] leading-9 text-black/62 dark:text-white/62">
+        <h2 className="font-semibold text-black/86 uppercase dark:text-white/86">
+          Bên B: Cá nhân
+        </h2>
+        <p>
+          Họ tên:{" "}
+          <strong className="font-semibold text-[#111111] dark:text-white">
+            {personal?.fullName || "..."}
+          </strong>
+        </p>
+        <p>
+          Ngày sinh:{" "}
+          <strong className="font-semibold text-[#111111] dark:text-white">
+            {personal?.dateOfBirth ? formatDate(personal.dateOfBirth) : "..."}
+          </strong>
+        </p>
+        <p>
+          Chức vụ:{" "}
+          <strong className="font-semibold text-[#111111] dark:text-white">
+            {personal?.position || "..."}
+          </strong>{" "}
+          · Phòng ban:{" "}
+          <strong className="font-semibold text-[#111111] dark:text-white">
+            {personal?.department || "..."}
+          </strong>
+        </p>
+        <p>
+          Địa chỉ thường trú:{" "}
+          <strong className="font-semibold text-[#111111] dark:text-white">
+            {personal?.permanentAddress || "..."}
+          </strong>
+        </p>
+        <p>
+          Số CCCD:{" "}
+          <strong className="font-semibold text-[#111111] dark:text-white">
+            {personal?.citizenId || "..."}
+          </strong>{" "}
+          · cấp ngày:{" "}
+          <strong className="font-semibold text-[#111111] dark:text-white">
+            {personal?.citizenIdIssuedDate
+              ? formatDate(personal.citizenIdIssuedDate)
+              : "..."}
+          </strong>{" "}
+          · tại:{" "}
+          <strong className="font-semibold text-[#111111] dark:text-white">
+            {personal?.citizenIdIssuedPlace || "..."}
+          </strong>
+        </p>
+      </section>
+      <section
+        className="custom-contract-content mt-12 text-[14px] leading-9 tracking-[0.025em] text-black/62 dark:text-white/62 [&_strong]:text-[0.95rem] [&_strong]:font-semibold [&_strong]:text-[#111111] dark:[&_strong]:text-white"
+        dangerouslySetInnerHTML={{ __html: content?.rawContent || "" }}
+      />
+      <section className="mt-20 grid gap-12 border-t border-black/10 pt-12 md:grid-cols-2 dark:border-white/10">
+        <SignatureBlock
+          title="ĐẠI DIỆN BÊN A"
+          name={owner.ownerName}
+          isSigned={hasOwnerSigned || Boolean(ownerSignatureRevealKey)}
+          shouldAnimate={Boolean(ownerSignatureRevealKey)}
+          revealKey={ownerSignatureRevealKey}
+          signatureRef={ownerSignatureRef}
+        />
+        <SignatureBlock
+          title="BÊN B"
+          name={personal?.fullName || "..."}
+          isSigned={hasPartnerSigned || Boolean(partnerSignatureRevealKey)}
+          shouldAnimate={Boolean(partnerSignatureRevealKey)}
+          revealKey={partnerSignatureRevealKey}
+          signatureRef={partnerSignatureRef}
+        />
+      </section>
+    </motion.article>
   );
 }
 
@@ -2200,6 +2455,22 @@ function ContractPreviewPageShell({
         />
       ) : contract.contractType === "appendix" ? (
         <AppendixContractDocument
+          contract={contract}
+          ownerSignatureRef={ownerSignatureRef}
+          ownerSignatureRevealKey={ownerSignatureRevealKey}
+          partnerSignatureRef={partnerSignatureRef}
+          partnerSignatureRevealKey={partnerSignatureRevealKey}
+        />
+      ) : contract.contractType === "custom_organization" ? (
+        <CustomOrganizationContractDocument
+          contract={contract}
+          ownerSignatureRef={ownerSignatureRef}
+          ownerSignatureRevealKey={ownerSignatureRevealKey}
+          partnerSignatureRef={partnerSignatureRef}
+          partnerSignatureRevealKey={partnerSignatureRevealKey}
+        />
+      ) : contract.contractType === "custom_personal" ? (
+        <CustomPersonalContractDocument
           contract={contract}
           ownerSignatureRef={ownerSignatureRef}
           ownerSignatureRevealKey={ownerSignatureRevealKey}

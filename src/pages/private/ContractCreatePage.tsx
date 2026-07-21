@@ -66,6 +66,11 @@ import {
   customOrganizationContractVariant,
   type CustomOrganizationContractFormValues,
 } from "./contract-form/variants/custom-organization/customOrganizationContractVariant";
+import { CustomPersonalContractFields } from "./contract-form/variants/custom-personal/CustomPersonalContractFields";
+import {
+  customPersonalContractVariant,
+  type CustomPersonalContractFormValues,
+} from "./contract-form/variants/custom-personal/customPersonalContractVariant";
 import { LivestreamResponsibilityCommitmentFields } from "./contract-form/variants/livestream-responsibility-commitment/LivestreamResponsibilityCommitmentFields";
 import { livestreamResponsibilityCommitmentContractVariant } from "./contract-form/variants/livestream-responsibility-commitment/livestreamResponsibilityCommitmentContractVariant";
 import { LivestreamResponsibilityCommitmentAppendixFields } from "./contract-form/variants/livestream-responsibility-commitment-appendix/LivestreamResponsibilityCommitmentAppendixFields";
@@ -304,6 +309,10 @@ export function ContractFormPage({
     useState<CustomOrganizationContractFormValues>(() =>
       customOrganizationContractVariant.createInitialValues(),
     );
+  const [customPersonalValues, setCustomPersonalValues] =
+    useState<CustomPersonalContractFormValues>(() =>
+      customPersonalContractVariant.createInitialValues(),
+    );
   const [personalInfo, setPersonalInfo] =
     useState<LivestreamResponsibilityPersonalInfoPayload>(() =>
       livestreamResponsibilityCommitmentContractVariant.createInitialValues(),
@@ -361,7 +370,8 @@ export function ContractFormPage({
 
     setSelectedOwnerIndex(ownerIndex >= 0 ? ownerIndex : 0);
     if (
-      initialContract.contractType !== "livestream_responsibility_commitment"
+      initialContract.contractType !== "livestream_responsibility_commitment" &&
+      initialContract.contractType !== "custom_personal"
     ) {
       if (initialContract.partnerCompanyInfo) {
         setPartnerCompanyInfo(initialContract.partnerCompanyInfo);
@@ -406,6 +416,13 @@ export function ContractFormPage({
     if (initialContract.contractType === "custom_organization") {
       setCustomOrganizationValues(
         customOrganizationContractVariant.hydrate(initialContract),
+      );
+      return;
+    }
+
+    if (initialContract.contractType === "custom_personal") {
+      setCustomPersonalValues(
+        customPersonalContractVariant.hydrate(initialContract),
       );
       return;
     }
@@ -529,6 +546,11 @@ export function ContractFormPage({
     if (type === "custom_organization") {
       setPartnerEntityType("company");
       setIsPartnerFormVisible(isEditMode);
+      return;
+    }
+
+    if (type === "custom_personal") {
+      setIsPartnerFormVisible(false);
       return;
     }
 
@@ -657,6 +679,15 @@ export function ContractFormPage({
       );
     }
 
+    if (selectedContractType === "custom_personal") {
+      return customPersonalContractVariant.validate(customPersonalValues, {
+        ownerCompanyInfo,
+        partnerCompanyInfo,
+        partnerEntityType,
+        contractDueDate: initialContract?.contractDueDate ?? null,
+      });
+    }
+
     if (
       selectedContractType === "livestream_responsibility_commitment_appendix"
     ) {
@@ -733,10 +764,15 @@ export function ContractFormPage({
                   customOrganizationValues,
                   commonValues,
                 )
-            : CONTRACT_FORM_REGISTRY.principle.buildPayload(
-                { paymentTermDays, creditLimit },
-                commonValues,
-              );
+              : selectedContractType === "custom_personal"
+                ? CONTRACT_FORM_REGISTRY.custom_personal.buildPayload(
+                    customPersonalValues,
+                    commonValues,
+                  )
+                : CONTRACT_FORM_REGISTRY.principle.buildPayload(
+                    { paymentTermDays, creditLimit },
+                    commonValues,
+                  );
 
     if (isEditMode && initialContract) {
       const response = await updateContractMutation.mutateAsync({
@@ -873,6 +909,7 @@ export function ContractFormPage({
 
             {selectedContractType === "principle" ||
             selectedContractType === "custom_organization" ||
+            selectedContractType === "custom_personal" ||
             selectedContractType === "livestream_responsibility_commitment" ||
             selectedContractType ===
               "livestream_responsibility_commitment_appendix" ? (
@@ -890,6 +927,13 @@ export function ContractFormPage({
                   <CustomOrganizationContractFields
                     values={customOrganizationValues}
                     onChange={setCustomOrganizationValues}
+                  />
+                ) : null}
+
+                {selectedContractType === "custom_personal" ? (
+                  <CustomPersonalContractFields
+                    values={customPersonalValues}
+                    onChange={setCustomPersonalValues}
                   />
                 ) : null}
 
@@ -1006,50 +1050,51 @@ export function ContractFormPage({
                                 option.value === "company",
                             )
                             .map((option) => {
-                            const selected = partnerEntityType === option.value;
+                              const selected =
+                                partnerEntityType === option.value;
 
-                            return (
-                              <motion.button
-                                key={option.value}
-                                type="button"
-                                onClick={() =>
-                                  handlePartnerEntityTypeChange(option.value)
-                                }
-                                whileHover={{ y: -2 }}
-                                whileTap={{ scale: 0.99 }}
-                                transition={{
-                                  type: "spring",
-                                  stiffness: 420,
-                                  damping: 30,
-                                }}
-                                className={`rounded-xl border p-4 text-left transition-all duration-300 ${
-                                  selected
-                                    ? "border-black/30 bg-black/[0.06] dark:border-white/35 dark:bg-white/6"
-                                    : "border-black/12 bg-white hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
-                                }`}
-                              >
-                                <div className="flex items-start justify-between gap-3">
-                                  <div>
-                                    <p className="text-sm font-medium text-[#111111] dark:text-white">
-                                      {option.title}
-                                    </p>
-                                    <p className="mt-1 text-xs leading-5 text-black/58 dark:text-white/45">
-                                      {option.description}
-                                    </p>
+                              return (
+                                <motion.button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() =>
+                                    handlePartnerEntityTypeChange(option.value)
+                                  }
+                                  whileHover={{ y: -2 }}
+                                  whileTap={{ scale: 0.99 }}
+                                  transition={{
+                                    type: "spring",
+                                    stiffness: 420,
+                                    damping: 30,
+                                  }}
+                                  className={`rounded-xl border p-4 text-left transition-all duration-300 ${
+                                    selected
+                                      ? "border-black/30 bg-black/[0.06] dark:border-white/35 dark:bg-white/6"
+                                      : "border-black/12 bg-white hover:border-black/22 hover:bg-white dark:border-white/10 dark:bg-white/2 dark:hover:border-white/20 dark:hover:bg-white/4"
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                      <p className="text-sm font-medium text-[#111111] dark:text-white">
+                                        {option.title}
+                                      </p>
+                                      <p className="mt-1 text-xs leading-5 text-black/58 dark:text-white/45">
+                                        {option.description}
+                                      </p>
+                                    </div>
+                                    <span
+                                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                                        selected
+                                          ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
+                                          : "border-black/15 text-transparent dark:border-white/15"
+                                      }`}
+                                    >
+                                      <FiCheck className="text-xs" />
+                                    </span>
                                   </div>
-                                  <span
-                                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
-                                      selected
-                                        ? "border-black/35 bg-[#111111] text-white dark:border-white/45 dark:bg-white dark:text-black"
-                                        : "border-black/15 text-transparent dark:border-white/15"
-                                    }`}
-                                  >
-                                    <FiCheck className="text-xs" />
-                                  </span>
-                                </div>
-                              </motion.button>
-                            );
-                          })}
+                                </motion.button>
+                              );
+                            })}
                         </div>
                       </div>
 

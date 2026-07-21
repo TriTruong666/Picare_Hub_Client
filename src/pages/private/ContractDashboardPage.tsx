@@ -9,7 +9,10 @@ import IconAction from "@/components/custom_ui/IconAction";
 import { Pagination } from "@/components/custom_ui/Pagination";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
-import { StateShell, StateLoadingContainer } from "@/components/custom_ui/ShellState";
+import {
+  StateShell,
+  StateLoadingContainer,
+} from "@/components/custom_ui/ShellState";
 import { useContractList } from "@/hooks/data/useContractHooks";
 import type { Contract, ContractStatus, ContractType } from "@/types/Contract";
 import { IoIosInformationCircleOutline } from "react-icons/io";
@@ -52,9 +55,9 @@ const CONTRACT_TYPE_LABELS: Record<ContractType, string> = {
   appendix: "Phụ lục hợp đồng",
   service: "Hợp đồng dịch vụ",
   custom_organization: "Hợp đồng tuỳ chỉnh tổ chức",
+  custom_personal: "Hợp đồng tuỳ chỉnh cá nhân",
   livestream_responsibility_commitment: "Cam kết trách nhiệm Livestream",
-  livestream_responsibility_commitment_appendix:
-    "Phụ lục cam kết Livestream",
+  livestream_responsibility_commitment_appendix: "Phụ lục cam kết Livestream",
   digital: "Hợp đồng điện tử",
   default: "Mặc định",
 };
@@ -65,6 +68,7 @@ const CONTRACT_TYPE_OPTIONS = [
   { label: "Phụ lục hợp đồng", value: "appendix" },
   { label: "Hợp đồng dịch vụ", value: "service" },
   { label: "Hợp đồng tuỳ chỉnh tổ chức", value: "custom_organization" },
+  { label: "Hợp đồng tuỳ chỉnh cá nhân", value: "custom_personal" },
   {
     label: "Cam kết trách nhiệm Livestream",
     value: "livestream_responsibility_commitment",
@@ -174,7 +178,7 @@ export default function ContractDashboardPage() {
               setPage(1);
               setSearch(event.target.value);
             }}
-            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 placeholder:text-gray-500 outline-none transition hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 transition outline-none placeholder:text-gray-500 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
           />
         </div>
         <div className="w-full xl:w-56">
@@ -219,7 +223,9 @@ export default function ContractDashboardPage() {
           onOpenPreview={(contract) =>
             navigate(getPreviewPath(contract.contractId))
           }
-          onOpenDetail={(contract) => navigate(getDetailPath(contract.contractId))}
+          onOpenDetail={(contract) =>
+            navigate(getDetailPath(contract.contractId))
+          }
         />
 
         {pagination ? (
@@ -303,7 +309,9 @@ function ContractTable({
               getContractFileKey(contract.contractUrl),
             );
             const partnerName = getContractPartnerDisplayName(contract);
-            const contractTypeLabel = getContractTypeLabel(contract.contractType);
+            const contractTypeLabel = getContractTypeLabel(
+              contract.contractType,
+            );
 
             return (
               <tr
@@ -316,7 +324,8 @@ function ContractTable({
                       {partnerName}
                     </p>
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Số hợp đồng: {contract.contractNumber || contract.contractId}
+                      Số hợp đồng:{" "}
+                      {contract.contractNumber || contract.contractId}
                     </p>
                     <p className="mt-1 truncate text-[13px] text-gray-600 dark:text-gray-300">
                       Loại hợp đồng: {contractTypeLabel}
