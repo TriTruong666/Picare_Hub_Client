@@ -61,6 +61,11 @@ import {
 } from "./contract-form/variants/appendix/AppendixContractFields";
 import { principleContractVariant } from "./contract-form/variants/principle/principleContractVariant";
 import { PrincipleContractFields } from "./contract-form/variants/principle/PrincipleContractFields";
+import { CustomOrganizationContractFields } from "./contract-form/variants/custom-organization/CustomOrganizationContractFields";
+import {
+  customOrganizationContractVariant,
+  type CustomOrganizationContractFormValues,
+} from "./contract-form/variants/custom-organization/customOrganizationContractVariant";
 import { LivestreamResponsibilityCommitmentFields } from "./contract-form/variants/livestream-responsibility-commitment/LivestreamResponsibilityCommitmentFields";
 import { livestreamResponsibilityCommitmentContractVariant } from "./contract-form/variants/livestream-responsibility-commitment/livestreamResponsibilityCommitmentContractVariant";
 import { LivestreamResponsibilityCommitmentAppendixFields } from "./contract-form/variants/livestream-responsibility-commitment-appendix/LivestreamResponsibilityCommitmentAppendixFields";
@@ -295,6 +300,10 @@ export function ContractFormPage({
     });
   const [paymentTermDays, setPaymentTermDays] = useState("");
   const [creditLimit, setCreditLimit] = useState("");
+  const [customOrganizationValues, setCustomOrganizationValues] =
+    useState<CustomOrganizationContractFormValues>(() =>
+      customOrganizationContractVariant.createInitialValues(),
+    );
   const [personalInfo, setPersonalInfo] =
     useState<LivestreamResponsibilityPersonalInfoPayload>(() =>
       livestreamResponsibilityCommitmentContractVariant.createInitialValues(),
@@ -391,6 +400,13 @@ export function ContractFormPage({
       const hydrated = principleContractVariant.hydrate(initialContract);
       setPaymentTermDays(hydrated.paymentTermDays);
       setCreditLimit(hydrated.creditLimit);
+      return;
+    }
+
+    if (initialContract.contractType === "custom_organization") {
+      setCustomOrganizationValues(
+        customOrganizationContractVariant.hydrate(initialContract),
+      );
       return;
     }
 
@@ -510,6 +526,12 @@ export function ContractFormPage({
       return;
     }
 
+    if (type === "custom_organization") {
+      setPartnerEntityType("company");
+      setIsPartnerFormVisible(isEditMode);
+      return;
+    }
+
     setSelectedPrincipleContractId("");
     setAppendixProducts([createAppendixProductRow()]);
     if (type === "livestream_responsibility_commitment") {
@@ -623,6 +645,18 @@ export function ContractFormPage({
       );
     }
 
+    if (selectedContractType === "custom_organization") {
+      return customOrganizationContractVariant.validate(
+        customOrganizationValues,
+        {
+          ownerCompanyInfo,
+          partnerCompanyInfo,
+          partnerEntityType,
+          contractDueDate: initialContract?.contractDueDate ?? null,
+        },
+      );
+    }
+
     if (
       selectedContractType === "livestream_responsibility_commitment_appendix"
     ) {
@@ -694,6 +728,11 @@ export function ContractFormPage({
                 },
                 commonValues,
               )
+            : selectedContractType === "custom_organization"
+              ? CONTRACT_FORM_REGISTRY.custom_organization.buildPayload(
+                  customOrganizationValues,
+                  commonValues,
+                )
             : CONTRACT_FORM_REGISTRY.principle.buildPayload(
                 { paymentTermDays, creditLimit },
                 commonValues,
@@ -833,6 +872,7 @@ export function ContractFormPage({
             ) : null}
 
             {selectedContractType === "principle" ||
+            selectedContractType === "custom_organization" ||
             selectedContractType === "livestream_responsibility_commitment" ||
             selectedContractType ===
               "livestream_responsibility_commitment_appendix" ? (
@@ -843,6 +883,13 @@ export function ContractFormPage({
                     creditLimit={creditLimit}
                     onPaymentTermDaysChange={setPaymentTermDays}
                     onCreditLimitChange={setCreditLimit}
+                  />
+                ) : null}
+
+                {selectedContractType === "custom_organization" ? (
+                  <CustomOrganizationContractFields
+                    values={customOrganizationValues}
+                    onChange={setCustomOrganizationValues}
                   />
                 ) : null}
 
@@ -930,7 +977,8 @@ export function ContractFormPage({
                   />
                 ) : null}
 
-                {selectedContractType === "principle" ? (
+                {selectedContractType === "principle" ||
+                selectedContractType === "custom_organization" ? (
                   <section className="border-b border-black/10 py-6 dark:border-white/10">
                     <SectionTitle>Công ty đối tác</SectionTitle>
 
@@ -950,7 +998,14 @@ export function ContractFormPage({
                               description:
                                 "Có bước nhập MST và kiểm tra thông tin doanh nghiệp.",
                             },
-                          ].map((option) => {
+                          ]
+                            .filter(
+                              (option) =>
+                                selectedContractType !==
+                                  "custom_organization" ||
+                                option.value === "company",
+                            )
+                            .map((option) => {
                             const selected = partnerEntityType === option.value;
 
                             return (

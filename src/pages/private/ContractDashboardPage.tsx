@@ -51,6 +51,7 @@ const CONTRACT_TYPE_LABELS: Record<ContractType, string> = {
   principle: "Hợp đồng nguyên tắc",
   appendix: "Phụ lục hợp đồng",
   service: "Hợp đồng dịch vụ",
+  custom_organization: "Hợp đồng tuỳ chỉnh tổ chức",
   livestream_responsibility_commitment: "Cam kết trách nhiệm Livestream",
   livestream_responsibility_commitment_appendix:
     "Phụ lục cam kết Livestream",
@@ -63,6 +64,7 @@ const CONTRACT_TYPE_OPTIONS = [
   { label: "Hợp đồng nguyên tắc", value: "principle" },
   { label: "Phụ lục hợp đồng", value: "appendix" },
   { label: "Hợp đồng dịch vụ", value: "service" },
+  { label: "Hợp đồng tuỳ chỉnh tổ chức", value: "custom_organization" },
   {
     label: "Cam kết trách nhiệm Livestream",
     value: "livestream_responsibility_commitment",

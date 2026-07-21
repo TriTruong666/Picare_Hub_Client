@@ -9,6 +9,7 @@ export type PartnerEntityType = "individual" | "company";
 export type SupportedContractType =
   | "principle"
   | "appendix"
+  | "custom_organization"
   | "livestream_responsibility_commitment"
   | "livestream_responsibility_commitment_appendix";
 
