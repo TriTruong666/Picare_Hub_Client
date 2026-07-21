@@ -23,7 +23,8 @@ export const customOrganizationContractVariant: ContractVariantDefinition<
 > = {
   type: "custom_organization",
   title: "Hợp đồng tuỳ chỉnh tổ chức",
-  description: "Soạn thảo hợp đồng HTML cho đối tác là tổ chức",
+  description:
+    "Chỉ sử dụng cho trường hợp không có mẫu sẵn hoặc đối tác muốn thay đổi nội dung hợp đồng. Dành cho công ty, tổ chức, hộ kinh doanh...",
   createInitialValues: emptyValues,
   hydrate: (contract) => {
     if (contract.contractType !== "custom_organization") return emptyValues();

@@ -9,12 +9,13 @@ import { livestreamResponsibilityCommitmentAppendixContractVariant } from "./var
 export const CONTRACT_FORM_REGISTRY = {
   principle: principleContractVariant,
   appendix: appendixContractVariant,
-  custom_organization: customOrganizationContractVariant,
-  custom_personal: customPersonalContractVariant,
+
   livestream_responsibility_commitment:
     livestreamResponsibilityCommitmentContractVariant,
   livestream_responsibility_commitment_appendix:
     livestreamResponsibilityCommitmentAppendixContractVariant,
+  custom_organization: customOrganizationContractVariant,
+  custom_personal: customPersonalContractVariant,
 } as const;
 
 export type RegisteredContractType = keyof typeof CONTRACT_FORM_REGISTRY;

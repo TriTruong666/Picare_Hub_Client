@@ -49,7 +49,8 @@ export const customPersonalContractVariant: ContractVariantDefinition<
 > = {
   type: "custom_personal",
   title: "Hợp đồng tuỳ chỉnh cá nhân",
-  description: "Soạn thảo hợp đồng HTML dành cho cá nhân",
+  description:
+    "Chỉ sử dụng cho trường hợp không có mẫu sẵn hoặc đối tác muốn thay đổi nội dung hợp đồng. Dành cho cá nhân",
   createInitialValues: emptyValues,
   hydrate: (contract) => {
     if (contract.contractType !== "custom_personal") return emptyValues();

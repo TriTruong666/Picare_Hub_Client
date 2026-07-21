@@ -33,6 +33,7 @@ export type CustomOrganizationContractPayload = {
 };
 
 export type CustomPersonalInfoPayload = {
+  email: string;
   fullName: string;
   dateOfBirth: string;
   position: string;

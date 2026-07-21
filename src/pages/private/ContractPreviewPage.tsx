@@ -358,7 +358,10 @@ function PartySection({
         {title}
       </h3>
       <div className="mt-3 space-y-1">
-        <FieldLine label="Tên công ty" value={party?.companyName || ""} />
+        <FieldLine
+          label="Tên công ty / Hộ kinh doanh"
+          value={party?.companyName || ""}
+        />
         <FieldLine label="Địa chỉ" value={party?.address || ""} />
         <FieldLine label="Điện thoại" value={party?.phone || ""} />
         <FieldLine label="Email" value={party?.email || ""} />
