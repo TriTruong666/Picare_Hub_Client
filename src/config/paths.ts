@@ -5,6 +5,7 @@
 export const PATHS = {
   // Public Paths
   HOME: "/",
+  TEST: "/test",
   MY_PAGE: "/quynhnhu",
   LOGIN: "/login", // Trang chon client hub
   LOGIN_CLIENT: "/login/client", // Form dang nhap cho client cu the

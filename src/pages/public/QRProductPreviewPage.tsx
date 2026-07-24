@@ -1,11 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  FiMoon,
-  FiShoppingCart,
-  FiSun,
-} from "react-icons/fi";
+import { FiMoon, FiShoppingCart, FiSun } from "react-icons/fi";
 import { Link, useParams } from "react-router-dom";
 
 import logo from "@/assets/images/logo.png";
@@ -368,6 +364,7 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
   const info = product.jsonContent;
   const productName = normalizeValue(info.productName) || "Sản phẩm";
   const productImages = (product.imageUrl ?? []).filter(Boolean);
+  const sku = normalizeValue(info.sku);
   const website = normalizeValue(info.website);
   const manufacturer = normalizeValue(info.manufacturer);
   const marketResponsible = normalizeValue(info.marketResponsible);
@@ -382,7 +379,7 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
   const storage = normalizeValue(info.storage);
   const extraContent = normalizeValue(info.unmappedContent);
   const highlights = [
-    // { label: "SKU", value: sku },
+    { label: "SKU", value: sku },
     { label: "Dung tích", value: volume },
     { label: "Quy cách", value: packageSpecification },
     { label: "Hạn dùng", value: shelfLife },

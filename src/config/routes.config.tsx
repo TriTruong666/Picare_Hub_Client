@@ -12,6 +12,7 @@ import {
 import type { Role } from "@/hooks/useAuth";
 import { canAccessDashboard } from "@/config/dashboardAccess";
 import LandingPage from "@/pages/public/LandingPage";
+import LandingPageTest from "@/pages/public/LandingPageTest";
 import LoginPage from "@/pages/public/LoginPage";
 import LoginClientPage from "@/pages/public/LoginClientPage";
 import LoginHubPage from "@/pages/public/LoginHubPage";
@@ -51,6 +52,10 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
     path: PATHS.HOME,
     element: <LandingPage />,
     index: true,
+  },
+  {
+    path: PATHS.TEST,
+    element: <LandingPageTest />,
   },
   {
     path: PATHS.LOGIN,
