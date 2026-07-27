@@ -13,6 +13,7 @@ import {
   FiTrash2,
   FiUpload,
 } from "react-icons/fi";
+import { useQueryClient } from "@tanstack/react-query";
 import { Navigate, useParams } from "react-router-dom";
 
 import { formatFileSize, formatRelativeTime } from "@/common/format";
@@ -165,10 +166,12 @@ export default function StorageFolderDetailPage() {
     };
   }, [currentRows, page]);
 
+  const queryClient = useQueryClient();
+
   const refreshAssetsAfterUpload = () => {
-    setAllAssets([]);
     setPage(1);
-    refetch();
+    queryClient.invalidateQueries({ queryKey: ["s3-assets"] });
+    queryClient.invalidateQueries({ queryKey: ["s3-folders"] });
   };
 
   const handleLoadMore = () => {
@@ -629,7 +632,7 @@ function StorageTable({
   onUpload: () => void;
   pagination: ReactNode;
 }) {
-  if (isLoading || isFetching) {
+  if ((isLoading || isFetching) && assets.length === 0) {
     return (
       <div className="flex min-h-100 flex-col items-center justify-center py-10">
         <Spinner size="lg" />

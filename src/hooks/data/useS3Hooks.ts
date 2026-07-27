@@ -20,6 +20,7 @@ type UseUploadS3AssetOptions = {
  */
 export function useUploadS3Asset(options?: UseUploadS3AssetOptions) {
   const { showSuccessToast = true, showErrorToast = true } = options ?? {};
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (request: UploadS3Request) => S3Service.uploadS3Asset(request),
@@ -28,6 +29,8 @@ export function useUploadS3Asset(options?: UseUploadS3AssetOptions) {
         if (showSuccessToast) {
           toast.success("Thành công", "Đã tải tập tin lên hệ thống");
         }
+        queryClient.invalidateQueries({ queryKey: ["s3-assets"] });
+        queryClient.invalidateQueries({ queryKey: ["s3-folders"] });
       } else if (showErrorToast) {
         toast.error(
           "Thất bại",
@@ -70,6 +73,7 @@ export function useDeleteS3Object() {
       if (data.success) {
         toast.success("Thành công", "Đã xóa tập tin");
         queryClient.invalidateQueries({ queryKey: ["s3-assets"] });
+        queryClient.invalidateQueries({ queryKey: ["s3-folders"] });
       } else {
         toast.error(
           "Thất bại",

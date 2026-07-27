@@ -3,6 +3,7 @@ import type { HubClient } from "@/types/HubClient";
 
 export const DIGITAL_CONTRACT_CLIENT_ID = "digital-contracts";
 export const QR_CODE_GENERATOR_CLIENT_ID = "qr-code-generator";
+export const DIGITAL_CATALOGUE_CLIENT_ID = "digital-catalogue";
 
 export const STATIC_HUB_CLIENTS: HubClient[] = [
   {
@@ -35,6 +36,23 @@ export const STATIC_HUB_CLIENTS: HubClient[] = [
     clientExternalUrl: PATHS.QR_PRODUCT_GENERATOR,
     clientStatus: "active",
     allowedRoles: ["admin", "business_development"],
+    note: "Static hub client",
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    clientId: DIGITAL_CATALOGUE_CLIENT_ID,
+    clientName: "Picare Catalogue",
+    clientDescription:
+      "Tạo, quản lý Catalogue kỹ thuật số giúp người dùng có cái nhìn trực quan về sản phẩm của hệ sinh thái Picare",
+    clientLogoImage:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1785137232920_upload1785137232920.png",
+    clientMockupImage:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1785137232920_upload1785137232920.png",
+    clientInternalUrl: PATHS.QR_PRODUCT_GENERATOR,
+    clientExternalUrl: PATHS.QR_PRODUCT_GENERATOR,
+    clientStatus: "active",
+    allowedRoles: ["admin", "business_development", "marketing"],
     note: "Static hub client",
     createdAt: "",
     updatedAt: "",
