@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BsQrCode } from "react-icons/bs";
-import { FiEdit3, FiExternalLink, FiPlus, FiX } from "react-icons/fi";
+import { FiEdit3, FiExternalLink, FiPlus, FiSearch, FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 import { formatDate } from "@/common/format";
@@ -120,6 +120,8 @@ function ProductQrModal({
 export default function QRProductDashboardPage() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<ProductQR | null>(
     null,
   );
@@ -134,7 +136,7 @@ export default function QRProductDashboardPage() {
   } = useProductQRList({
     page,
     limit: pageSize,
-    search: "",
+    search,
   });
 
   const pagination = (fullResponse as BasePaginatedResponse<ProductQR[]>)
@@ -158,6 +160,25 @@ export default function QRProductDashboardPage() {
           <FiPlus />
           Tạo QR sản phẩm
         </button>
+      </div>
+
+      <div className="mt-6 mb-6 flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1">
+          <FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-gray-400 dark:text-white/30" />
+          <input
+            id="product-qr-search"
+            type="text"
+            placeholder="Tìm kiếm theo tên sản phẩm..."
+            value={searchInput}
+            onChange={(event) => {
+              const value = event.target.value;
+              setSearchInput(value);
+              setSearch(value.trim());
+              setPage(1);
+            }}
+            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 placeholder:text-gray-500 outline-none transition hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+          />
+        </div>
       </div>
 
       <div className="my-8">

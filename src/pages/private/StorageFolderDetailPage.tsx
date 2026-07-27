@@ -10,6 +10,7 @@ import {
   FiImage,
   FiList,
   FiPlayCircle,
+  FiSearch,
   FiTrash2,
   FiUpload,
 } from "react-icons/fi";
@@ -82,6 +83,8 @@ export default function StorageFolderDetailPage() {
 
   const [viewMode, setViewMode] = useState<StorageViewMode>("grid");
   const [assetType, setAssetType] = useState<string>("");
+  const [searchInput, setSearchInput] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
   const [cursor, setCursor] = useState<string | undefined>();
   const [allAssets, setAllAssets] = useState<S3Asset[]>([]);
   const pageSize = 12;
@@ -112,6 +115,7 @@ export default function StorageFolderDetailPage() {
   } = useS3Assets({
     folder: folder?.name || folderId || "",
     assetType: assetType as "image" | "video" | "document" | "audio" | "",
+    search: search || undefined,
     limit: pageSize,
     cursor,
   });
@@ -135,7 +139,7 @@ export default function StorageFolderDetailPage() {
     return () => {
       canceled = true;
     };
-  }, [folder?.name, folderId, assetType]);
+  }, [folder?.name, folderId, assetType, search]);
 
   useEffect(() => {
     let canceled = false;
@@ -276,6 +280,25 @@ export default function StorageFolderDetailPage() {
             <FiUpload />
             Tải lên
           </button>
+        </div>
+      </div>
+
+      <div className="mt-6 mb-4 flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1">
+          <FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-gray-400 dark:text-white/30" />
+          <input
+            id="storage-asset-search"
+            type="text"
+            placeholder="Tìm kiếm theo tên file..."
+            value={searchInput}
+            onChange={(event) => {
+              const value = event.target.value;
+              setSearchInput(value);
+              setSearch(value.trim());
+              setCursor(undefined);
+            }}
+            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 placeholder:text-gray-500 outline-none transition hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+          />
         </div>
       </div>
 

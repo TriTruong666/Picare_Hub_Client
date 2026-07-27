@@ -239,14 +239,14 @@ export default function CataloguePublicGalleryPage() {
               aria-hidden="true"
             />
             <input
-              type="search"
+              type="text"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
               placeholder="Tìm catalogue"
               aria-label="Tìm catalogue"
-              className="h-full min-w-0 flex-1 bg-transparent text-[0.9375rem] font-normal text-white outline-none placeholder:text-white/28"
+              className="h-full min-w-0 flex-1 bg-transparent text-[0.9375rem] font-normal text-white outline-none placeholder:text-white/28 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
             />
             {searchInput ? (
               <button

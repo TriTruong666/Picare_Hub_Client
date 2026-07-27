@@ -96,6 +96,7 @@ export function useS3Assets(params: {
   visibility?: "public" | "private" | "";
   limit: number;
   cursor?: string;
+  search?: string;
 }) {
   return useFetch(["s3-assets", params], () => S3Service.getS3Assets(params));
 }

@@ -48,7 +48,7 @@ export const STATIC_HUB_CLIENTS: HubClient[] = [
     clientLogoImage:
       "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1785137232920_upload1785137232920.png",
     clientMockupImage:
-      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1785137232920_upload1785137232920.png",
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1785172408749_upload1785172408748.png",
     clientInternalUrl: PATHS.CATALOGUE.CREATE,
     clientExternalUrl: PATHS.CATALOGUE.CREATE,
     clientStatus: "active",
