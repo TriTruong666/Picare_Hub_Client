@@ -1,5 +1,3 @@
-import type { StringNullableChain } from "lodash";
-
 export type CreateProductQRPayload = {
   rawContent: string;
   images?: File[] | null;
@@ -18,6 +16,7 @@ export type UpdateProductQRPayload = {
 export type ProductQR = {
   productId: string;
   rawContent: string;
+  logo?: "picare" | "dermacoon";
   note?: string | null;
   jsonContent: ProductQRJson;
   createdAt: string;

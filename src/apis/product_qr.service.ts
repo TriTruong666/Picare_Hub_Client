@@ -22,6 +22,10 @@ function buildProductQRFormData(
     formData.append("note", payload.note);
   }
 
+  if (payload.logo) {
+    formData.append("logo", payload.logo);
+  }
+
   return formData;
 }
 

@@ -1,5 +1,9 @@
-import type { BaseResponse } from "@/types/ApiResponse";
-import type { CreateCataloguePayload } from "@/types/Catalogue";
+import type { BasePaginatedResponse, BaseResponse } from "@/types/ApiResponse";
+import type {
+  Catalogue,
+  CreateCataloguePayload,
+  UpdateCataloguePayload,
+} from "@/types/Catalogue";
 import { hubAxiosClient } from "./client";
 
 export const createCatalogue = async (
@@ -17,5 +21,38 @@ export const createCatalogue = async (
   const res = await hubAxiosClient.post("/api/v1/catalogues", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+  return res.data;
+};
+
+export const getListCatalogues = async (params: {
+  page: number;
+  limit: number;
+  search?: string;
+  status?: "ACTIVE" | "INACTIVE";
+}): Promise<BasePaginatedResponse<Catalogue[]>> => {
+  const res = await hubAxiosClient.get("/api/v1/catalogues", { params });
+  return res.data;
+};
+
+export const getDetailCatalogue = async (
+  catalogueId: string,
+): Promise<BaseResponse<Catalogue>> => {
+  const res = await hubAxiosClient.get(`/api/v1/catalogues/${catalogueId}`);
+  return res.data;
+};
+
+export const updateCatalogue = async (
+  catalogueId: string,
+  payload: UpdateCataloguePayload,
+) => {
+  const res = await hubAxiosClient.put(
+    `/api/v1/catalogues/${catalogueId}`,
+    payload,
+  );
+  return res.data;
+};
+
+export const deleteCatalogue = async (catalogueId: string) => {
+  const res = await hubAxiosClient.delete(`/api/v1/catalogues/${catalogueId}`);
   return res.data;
 };

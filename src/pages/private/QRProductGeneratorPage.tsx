@@ -16,6 +16,7 @@ import { HiOutlineX } from "react-icons/hi";
 import { Link, useNavigate } from "react-router-dom";
 
 import { ProductQRHistoryPanel } from "@/components/product-qr/ProductQRHistoryPanel";
+import GlassSelect from "@/components/custom_ui/Select";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
@@ -26,9 +27,10 @@ import {
   useUpdateProductQR,
 } from "@/hooks/data/useProductQRHooks";
 import { toast } from "@/hooks/useToast";
-import type { ProductQR } from "@/types/QRProduct";
+import type { CreateProductQRPayload, ProductQR } from "@/types/QRProduct";
 
 import "@/styles/qr-product-generator-page.scss";
+import { FieldLabel } from "./contract-form/common/FormPrimitives";
 
 const emptyEditorContent: JSONContent = {
   type: "doc",
@@ -36,17 +38,15 @@ const emptyEditorContent: JSONContent = {
 };
 
 type QRProductFormMode = "create" | "edit";
+type ProductQRLogo = NonNullable<CreateProductQRPayload["logo"]>;
+
+const PRODUCT_QR_LOGO_OPTIONS = [
+  { value: "picare", label: "Picare" },
+  { value: "dermacoon", label: "Dermacoon" },
+] satisfies { value: ProductQRLogo; label: string }[];
 
 function getProductPreviewPath(productId: string) {
   return PATHS.QR_PRODUCT_PREVIEW.replace(":productId", productId);
-}
-
-function FieldLabel({ children }: { children: ReactNode }) {
-  return (
-    <label className="mb-2 block text-[11px] font-medium tracking-[0.18em] text-black/38 uppercase dark:text-white/38">
-      {children}
-    </label>
-  );
 }
 
 type ProductImageItem = {
@@ -448,6 +448,9 @@ export function QRProductFormPage({
   const [rawContent, setRawContent] = useState(
     initialProduct?.rawContent ?? "",
   );
+  const [logo, setLogo] = useState<ProductQRLogo>(
+    initialProduct?.logo ?? "picare",
+  );
   const [productImages, setProductImages] = useState<ProductImageItem[]>(
     getInitialProductImages(initialProduct),
   );
@@ -474,6 +477,7 @@ export function QRProductFormPage({
 
   useEffect(() => {
     setRawContent(initialProduct?.rawContent ?? "");
+    setLogo(initialProduct?.logo ?? "picare");
 
     setProductImages((currentImages) => {
       currentImages.forEach(revokeImagePreview);
@@ -547,6 +551,7 @@ export function QRProductFormPage({
           images: productImages.flatMap((image) =>
             image.file ? [image.file] : [],
           ),
+          logo,
           note: initialProduct.note ?? null,
         },
       });
@@ -565,6 +570,7 @@ export function QRProductFormPage({
           linkUrl: response.data?.linkUrl || initialProduct.linkUrl,
           jsonContent: response.data?.jsonContent || initialProduct.jsonContent,
           updatedAt: response.data?.updatedAt || initialProduct.updatedAt,
+          logo: response.data?.logo ?? logo,
           note: initialProduct.note ?? null,
         });
       }
@@ -576,6 +582,7 @@ export function QRProductFormPage({
       images: productImages.flatMap((image) =>
         image.file ? [image.file] : [],
       ),
+      logo,
       note: null,
     });
 
@@ -653,6 +660,17 @@ export function QRProductFormPage({
           >
             <section className="border-b border-black/10 py-6 dark:border-white/10">
               <div className="mx-auto w-full max-w-[720px]">
+                <div className="mb-6 max-w-xs">
+                  <FieldLabel>Logo công ty</FieldLabel>
+                  <GlassSelect
+                    value={logo}
+                    options={PRODUCT_QR_LOGO_OPTIONS}
+                    onChange={(value) => setLogo(value as ProductQRLogo)}
+                    placeholder="Chọn logo công ty"
+                    disabled={isSubmitting || isDeleting}
+                  />
+                </div>
+
                 <ProductImagesUploadField
                   id="product-qr-image"
                   images={productImages}

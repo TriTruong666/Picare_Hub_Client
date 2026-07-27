@@ -182,7 +182,8 @@ function CatalogueImagesField({
                   Bộ ảnh catalogue
                 </p>
                 <p className="mt-1 text-xs text-black/48 dark:text-white/40">
-                  {images.length} ảnh đã chọn · Kéo thả card để sắp xếp thứ tự trang
+                  {images.length} ảnh đã chọn · Kéo thả card để sắp xếp thứ tự
+                  trang
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -260,13 +261,13 @@ function CatalogueImagesField({
                     className={`group relative overflow-hidden border transition-all duration-200 ${
                       disabled
                         ? ""
-                        : "cursor-grab active:cursor-grabbing hover:border-black/30 dark:hover:border-white/30"
+                        : "cursor-grab hover:border-black/30 active:cursor-grabbing dark:hover:border-white/30"
                     } ${
                       isBeingDragged
                         ? "scale-95 bg-black/[0.05] opacity-30 dark:bg-white/[0.05]"
                         : isTargetDrop
-                        ? "scale-[1.02] border-indigo-500 bg-indigo-50/50 ring-2 ring-indigo-500/50 dark:bg-indigo-500/10"
-                        : "border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.02]"
+                          ? "scale-[1.02] border-indigo-500 bg-indigo-50/50 ring-2 ring-indigo-500/50 dark:bg-indigo-500/10"
+                          : "border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.02]"
                     }`}
                   >
                     <div className="relative aspect-[210/297] w-full overflow-hidden bg-black/[0.04] dark:bg-white/[0.04]">
@@ -426,7 +427,7 @@ export default function CatalogueCreatePage() {
           <div className="absolute top-0 right-0">
             <ThemeToggle />
           </div>
-          <h1 className="text-center text-2xl font-medium md:text-3xl">
+          <h1 className="text-center text-2xl font-medium text-[#111111] md:text-3xl dark:text-white">
             Tạo catalogue sản phẩm
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-center text-xs leading-6 text-black/50 dark:text-white/42">
