@@ -47,6 +47,17 @@ export type S3Asset = {
   presignedUrl: string;
 };
 
+export type S3AssetsPagination = {
+  limit: number;
+  hasNext: boolean;
+  nextCursor?: string | null;
+};
+
+export type S3AssetsPage = {
+  assets: S3Asset[];
+  pagination: S3AssetsPagination;
+};
+
 export type S3Folder = {
   folderId: string;
   name: string;

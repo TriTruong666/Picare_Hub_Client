@@ -5,6 +5,7 @@ import PrivateRoutes from "./PrivateRoutes";
 import PrivateContractRoutes from "./PrivateContractRoutes";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
+import CataloguePublicPreviewPage from "@/pages/public/CataloguePublicPreviewPage";
 import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
 import CatalogueCreatePage from "@/pages/private/CatalogueCreatePage";
 import CatalogueEditPage from "@/pages/private/CatalogueEditPage";
@@ -50,6 +51,7 @@ export default function AppRouter() {
         }
       />
       <Route path={PATHS.QR_PRODUCT_PREVIEW} element={<QRProductPreviewPage />} />
+      <Route path={PATHS.CATALOGUE.PUBLIC_PREVIEW} element={<CataloguePublicPreviewPage />} />
 
       {/* Public Routes (Landing, Login, etc.) */}
       <Route path="/*" element={<PublicRoutes />} />

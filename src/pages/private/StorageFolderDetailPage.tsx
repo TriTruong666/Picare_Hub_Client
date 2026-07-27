@@ -22,7 +22,6 @@ import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import IconAction from "@/components/custom_ui/IconAction";
 import DeleteS3AssetModal from "@/components/modals/DeleteS3AssetModal";
 import UploadS3AssetsModal from "@/components/modals/UploadS3AssetsModal";
-import { Pagination } from "@/components/custom_ui/Pagination";
 import GlassSelect from "@/components/custom_ui/Select";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
@@ -32,7 +31,7 @@ import {
   useS3Assets,
   useS3Folders,
 } from "@/hooks/data/useS3Hooks";
-import type { S3Asset, S3Folder } from "@/types/S3";
+import type { S3Asset, S3AssetsPagination, S3Folder } from "@/types/S3";
 import clsx from "clsx";
 
 type StorageViewMode = "grid" | "table";
@@ -83,7 +82,7 @@ export default function StorageFolderDetailPage() {
 
   const [viewMode, setViewMode] = useState<StorageViewMode>("grid");
   const [assetType, setAssetType] = useState<string>("");
-  const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<string | undefined>();
   const [allAssets, setAllAssets] = useState<S3Asset[]>([]);
   const pageSize = 12;
 
@@ -106,7 +105,6 @@ export default function StorageFolderDetailPage() {
 
   const {
     data: assetsData,
-    fullResponse,
     isLoading: isLoadingAssets,
     isFetching: isFetchingAssets,
     isError,
@@ -115,15 +113,15 @@ export default function StorageFolderDetailPage() {
     folder: folder?.name || folderId || "",
     assetType: assetType as "image" | "video" | "document" | "audio" | "",
     limit: pageSize,
-    offset: (page - 1) * pageSize,
+    cursor,
   });
 
   const currentRows = useMemo(
-    () => (assetsData as S3Asset[] | undefined) || [],
+    () => assetsData?.assets ?? [],
     [assetsData],
   );
-  const totalAssets = fullResponse?.pagination?.totalRecords || 0;
-  const hasMore = allAssets.length < totalAssets;
+  const pagination = assetsData?.pagination;
+  const hasMore = pagination?.hasNext ?? false;
 
   useEffect(() => {
     let canceled = false;
@@ -131,13 +129,13 @@ export default function StorageFolderDetailPage() {
     queueMicrotask(() => {
       if (canceled) return;
       setAllAssets([]);
-      setPage(1);
+      setCursor(undefined);
     });
 
     return () => {
       canceled = true;
     };
-  }, [folderId, assetType]);
+  }, [folder?.name, folderId, assetType]);
 
   useEffect(() => {
     let canceled = false;
@@ -145,7 +143,7 @@ export default function StorageFolderDetailPage() {
     queueMicrotask(() => {
       if (canceled) return;
 
-      if (page === 1) {
+      if (!cursor) {
         setAllAssets(currentRows);
         return;
       }
@@ -164,18 +162,20 @@ export default function StorageFolderDetailPage() {
     return () => {
       canceled = true;
     };
-  }, [currentRows, page]);
+  }, [currentRows, cursor]);
 
   const queryClient = useQueryClient();
 
   const refreshAssetsAfterUpload = () => {
-    setPage(1);
+    setCursor(undefined);
     queryClient.invalidateQueries({ queryKey: ["s3-assets"] });
     queryClient.invalidateQueries({ queryKey: ["s3-folders"] });
   };
 
   const handleLoadMore = () => {
-    setPage((prev) => prev + 1);
+    if (pagination?.hasNext && pagination.nextCursor) {
+      setCursor(pagination.nextCursor);
+    }
   };
 
   const handleViewAsset = (asset: S3Asset) => {
@@ -187,8 +187,6 @@ export default function StorageFolderDetailPage() {
     const baseUrl = import.meta.env.VITE_HUB_API_URL;
     window.open(`${baseUrl}/api/v1/s3/view/${asset.s3Key}`, "_blank");
   };
-
-  const pagination = fullResponse?.pagination;
 
   if (isLoadingFolders) {
     return (
@@ -292,7 +290,7 @@ export default function StorageFolderDetailPage() {
 
       {viewMode === "table" ? (
         <StorageTable
-          assets={currentRows}
+          assets={allAssets}
           isLoading={isLoadingAssets}
           isFetching={isFetchingAssets}
           isError={isError}
@@ -302,11 +300,11 @@ export default function StorageFolderDetailPage() {
           onDownload={handleDownloadAsset}
           onUpload={() => setIsUploadModalOpen(true)}
           pagination={
-            <Pagination
-              page={page}
-              pageSize={pageSize}
-              total={totalAssets}
-              onPageChange={setPage}
+            <CursorLoadMoreControl
+              assetCount={allAssets.length}
+              hasMore={hasMore}
+              isFetching={isFetchingAssets}
+              onLoadMore={handleLoadMore}
             />
           }
         />
@@ -362,7 +360,7 @@ function StorageGridSection({
   onUpload,
   pagination,
 }: {
-  pagination: any;
+  pagination?: S3AssetsPagination;
   assets: S3Asset[];
   hasMore: boolean;
   isLoading: boolean;
@@ -426,7 +424,7 @@ function StorageGridSection({
                 <span>Tải thêm files</span>
                 <Badge
                   type="info"
-                  value={`${assets.length} / ${pagination?.totalRecords || 0}`}
+                  value={`${assets.length} tệp`}
                 />
               </>
             )}
@@ -441,6 +439,41 @@ function StorageGridSection({
         )}
       </div>
     </div>
+  );
+}
+
+function CursorLoadMoreControl({
+  assetCount,
+  hasMore,
+  isFetching,
+  onLoadMore,
+}: {
+  assetCount: number;
+  hasMore: boolean;
+  isFetching: boolean;
+  onLoadMore: () => void;
+}) {
+  if (!hasMore) {
+    return (
+      <p className="py-4 text-center text-[10px] tracking-widest text-gray-500 dark:text-white/20">
+        Hiển thị ({assetCount}) tệp
+      </p>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onLoadMore}
+      disabled={isFetching}
+      className={clsx(
+        "btn-secondary mx-auto flex gap-3 rounded-xl border-gray-300 bg-white py-3 text-xs shadow-sm transition-all hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10",
+        isFetching && "cursor-not-allowed opacity-50",
+      )}
+    >
+      {isFetching ? <Spinner size="sm" color="primary" /> : null}
+      <span>{isFetching ? "Đang tải thêm..." : `Tải thêm tệp (${assetCount})`}</span>
+    </button>
   );
 }
 

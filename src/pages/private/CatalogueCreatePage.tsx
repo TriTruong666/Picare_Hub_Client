@@ -4,7 +4,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   FiAlertTriangle,
   FiArrowLeft,
+  FiBookOpen,
   FiClock,
+  FiExternalLink,
   FiFileText,
   FiImage,
   FiMove,
@@ -630,15 +632,31 @@ export function CatalogueFormPage({
         }`}
       >
         <header className="relative border-b border-black/10 pb-6 dark:border-white/10">
-          <Link
-            to={PATHS.HOME}
-            className="group mb-5 inline-flex items-center gap-2 text-xs font-medium text-black/55 transition hover:text-black dark:text-white/55 dark:hover:text-white"
-          >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.05] transition group-hover:-translate-x-0.5 dark:bg-white/[0.06]">
-              <FiArrowLeft />
-            </span>
-            Quay về Hub
-          </Link>
+          <div className="mb-4 flex items-center justify-between">
+            <Link
+              to={PATHS.HOME}
+              className="group inline-flex items-center gap-2 text-xs font-medium text-black/55 transition hover:text-black dark:text-white/55 dark:hover:text-white"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.05] transition group-hover:-translate-x-0.5 dark:bg-white/[0.06]">
+                <FiArrowLeft />
+              </span>
+              Quay về Hub
+            </Link>
+
+            {isEditMode && initialCatalogue?.catalogueId ? (
+              <Link
+                to={`/catalogue/public/${initialCatalogue.catalogueId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-500/20 dark:text-rose-300"
+              >
+                <FiBookOpen className="h-3.5 w-3.5" />
+                <span>Xem Preview 3D</span>
+                <FiExternalLink className="h-3 w-3 opacity-70" />
+              </Link>
+            ) : null}
+          </div>
+
           <div className="absolute top-0 right-0">
             <ThemeToggle />
           </div>
@@ -696,7 +714,20 @@ export function CatalogueFormPage({
             </div>
           </section>
           <div className="flex flex-col items-center py-6">
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {isEditMode && initialCatalogue?.catalogueId ? (
+                <Link
+                  to={`/catalogue/public/${initialCatalogue.catalogueId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-5 text-sm font-medium text-rose-600 transition hover:-translate-y-0.5 hover:bg-rose-500/20 active:translate-y-0 dark:text-rose-300"
+                >
+                  <FiBookOpen className="h-4 w-4" />
+                  <span>Xem Preview 3D</span>
+                  <FiExternalLink className="h-3.5 w-3.5 opacity-60" />
+                </Link>
+              ) : null}
+
               {isEditMode ? (
                 <button
                   type="button"

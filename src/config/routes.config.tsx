@@ -17,6 +17,7 @@ import LoginPage from "@/pages/public/LoginPage";
 import LoginClientPage from "@/pages/public/LoginClientPage";
 import LoginHubPage from "@/pages/public/LoginHubPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
+import CataloguePublicPreviewPage from "@/pages/public/CataloguePublicPreviewPage";
 import ContractCreatePage from "@/pages/private/ContractCreatePage";
 import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
 import ContractEditPage from "@/pages/private/ContractEditPage";
@@ -71,10 +72,6 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
     path: PATHS.LOGIN_HUB,
     element: <LoginHubPage />,
   },
-  // {
-  //   path: PATHS.MY_PAGE,
-  //   element: <MyPage />,
-  // },
   {
     path: PATHS.PARTNER_SIGN,
     element: <ContractPartnerSignPage />,
@@ -83,13 +80,17 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
     path: PATHS.QR_PRODUCT_PREVIEW,
     element: <QRProductPreviewPage />,
   },
+  {
+    path: PATHS.CATALOGUE.PUBLIC_PREVIEW,
+    element: <CataloguePublicPreviewPage />,
+  },
 ];
 
 export const PRIVATE_ROUTES: RouteConfig[] = [
   {
     path: PATHS.DASHBOARD.ROOT,
     element: <SummaryDashboardPage />,
-    label: "T\u1ed5ng quan",
+    label: "Tổng quan",
     icon: FiLayout,
     showInSidebar: true,
     index: true,
@@ -97,14 +98,14 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
   {
     path: PATHS.DASHBOARD.SUMMARY,
     element: <SummaryDashboardPage />,
-    label: "T\u1ed5ng quan",
+    label: "Tổng quan",
     icon: FiLayout,
     showInSidebar: false,
   },
   {
     path: PATHS.DASHBOARD.ACCOUNTS,
     element: <AccountDashboardPage />,
-    label: "T\u00e0i kho\u1ea3n",
+    label: "Tài khoản",
     icon: FiUsers,
     showInSidebar: true,
   },

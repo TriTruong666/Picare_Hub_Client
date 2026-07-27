@@ -95,7 +95,7 @@ export function useS3Assets(params: {
   assetType?: "image" | "video" | "document" | "audio" | "";
   visibility?: "public" | "private" | "";
   limit: number;
-  offset: number;
+  cursor?: string;
 }) {
   return useFetch(["s3-assets", params], () => S3Service.getS3Assets(params));
 }

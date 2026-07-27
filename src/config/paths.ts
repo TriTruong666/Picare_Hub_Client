@@ -22,6 +22,7 @@ export const PATHS = {
     ROOT: "/catalogue",
     CREATE: "/catalogue/create",
     EDIT: "/catalogue/:catalogueId/edit",
+    PUBLIC_PREVIEW: "/catalogue/public/:catalogueId",
   },
 
   // Private Paths (Dashboard)

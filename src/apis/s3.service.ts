@@ -3,7 +3,7 @@ import type {
   CreateS3FolderPayload,
   GetPresignedURLRequest,
   GetPresignedURLResponse,
-  S3Asset,
+  S3AssetsPage,
   S3Folder,
   UpdateS3FolderPayload,
   UploadS3Request,
@@ -39,8 +39,10 @@ export async function getS3Assets(params: {
   assetType?: "image" | "video" | "document" | "audio" | "";
   visibility?: "public" | "private" | "";
   limit: number;
-  offset: number;
-}): Promise<BasePaginatedResponse<S3Asset[]>> {
+  // Không dùng offset nữa
+  // offset: number;
+  cursor?: string;
+}): Promise<BaseResponse<S3AssetsPage>> {
   const res = await hubAxiosClient.get(`/api/v1/s3/assets`, { params });
   return res.data;
 }
