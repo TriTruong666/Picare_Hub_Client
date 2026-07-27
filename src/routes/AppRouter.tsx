@@ -16,6 +16,14 @@ export default function AppRouter() {
       <Route path="/contracts/:contractId/sign-partner" element={<ContractPartnerSignPage />} />
       <Route path="/contracts/*" element={<PrivateContractRoutes />} />
       <Route
+        path={PATHS.CATALOGUE.CREATE}
+        element={
+          <AuthGuard allowedRoles={["admin", "business_development", "marketing"]}>
+            <QRProductGeneratorPage />
+          </AuthGuard>
+        }
+      />
+      <Route
         path={PATHS.QR_PRODUCT_GENERATOR}
         element={
           <AuthGuard allowedRoles={["admin", "business_development"]}>

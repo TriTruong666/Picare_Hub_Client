@@ -18,6 +18,10 @@ export const PATHS = {
   QR_PRODUCT_GENERATOR: "/qr-products/generator",
   QR_PRODUCT_PREVIEW: "/qr-products/:productId",
   QR_PRODUCT_EDIT: "/qr-products/:productId/edit",
+  CATALOGUE: {
+    ROOT: "/catalogue",
+    CREATE: "/catalogue/create",
+  },
 
   // Private Paths (Dashboard)
   DASHBOARD: {

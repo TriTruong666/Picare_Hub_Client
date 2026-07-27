@@ -196,6 +196,11 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     showInSidebar: false,
   },
   {
+    path: PATHS.CATALOGUE.CREATE,
+    element: <QRProductGeneratorPage />,
+    showInSidebar: false,
+  },
+  {
     path: PATHS.QR_PRODUCT_EDIT,
     element: <QRProductEditPage />,
     showInSidebar: false,
