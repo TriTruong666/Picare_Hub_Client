@@ -45,41 +45,41 @@ export const updateCatalogue = async (
   catalogueId: string,
   payload: UpdateCataloguePayload,
 ) => {
-  const hasFiles = payload.images && payload.images.length > 0;
+  const formData = new FormData();
 
-  if (hasFiles) {
-    const formData = new FormData();
-    if (payload.catalogueName)
-      formData.append("catalogueName", payload.catalogueName);
-    if (payload.note) formData.append("note", payload.note);
-    if (payload.status) formData.append("status", payload.status);
+  if (payload.catalogueName) {
+    formData.append("catalogueName", payload.catalogueName);
+  }
 
-    payload.images?.forEach((image) => formData.append("images", image));
+  if (payload.note !== undefined && payload.note !== null) {
+    formData.append("note", payload.note);
+  }
 
-    if (payload.details && payload.details.length > 0) {
-      formData.append("details", JSON.stringify(payload.details));
-    }
+  if (payload.status) {
+    formData.append("status", payload.status);
+  }
 
-    if (payload.removeDetailIds && payload.removeDetailIds.length > 0) {
-      formData.append(
-        "removeDetailIds",
-        JSON.stringify(payload.removeDetailIds),
-      );
-    }
+  if (payload.images && payload.images.length > 0) {
+    payload.images.forEach((image) => formData.append("images", image));
+  }
 
-    const res = await hubAxiosClient.put(
-      `/api/v1/catalogues/${catalogueId}`,
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      },
+  if (payload.details && payload.details.length > 0) {
+    formData.append("details", JSON.stringify(payload.details));
+  }
+
+  if (payload.removeDetailIds && payload.removeDetailIds.length > 0) {
+    formData.append(
+      "removeDetailIds",
+      JSON.stringify(payload.removeDetailIds),
     );
-    return res.data;
   }
 
   const res = await hubAxiosClient.put(
     `/api/v1/catalogues/${catalogueId}`,
-    payload,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    },
   );
   return res.data;
 };

@@ -598,9 +598,10 @@ export function CatalogueFormPage({
         payload: {
           catalogueName: name,
           note: note.trim() || undefined,
-          images: newFiles,
-          details,
-          removeDetailIds: removedDetailIds as any,
+          images: newFiles.length > 0 ? newFiles : undefined,
+          details: details.length > 0 ? details : undefined,
+          removeDetailIds:
+            removedDetailIds.length > 0 ? removedDetailIds : undefined,
         },
       });
 

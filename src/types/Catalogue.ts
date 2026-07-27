@@ -37,7 +37,7 @@ export type UpdateCataloguePayload = {
   status?: CatalogueStatus;
   details?: UpdateCatalogueDetailPayload[];
   // removeDetailIds nhận mảng JSON các catalogueDetailId cần xóa. Ảnh mới luôn được upload vào folder S3 public.
-  removeDetailIds?: CatalogueDetail[];
+  removeDetailIds?: string[];
 };
 
 export type UpdateCatalogueDetailPayload = {
