@@ -313,7 +313,9 @@ function CatalogueImagesField({
                     </div>
                     <div className="border-t border-black/8 px-3 py-2 text-[11px] text-black/60 dark:border-white/8 dark:text-white/40">
                       <p className="truncate font-medium">
-                        {image.fileName || image.file?.name || `Trang ${index + 1}`}
+                        {image.fileName ||
+                          image.file?.name ||
+                          `Trang ${index + 1}`}
                       </p>
                       {image.file ? (
                         <p className="mt-0.5 text-[10px] text-black/40 dark:text-white/30">
@@ -581,12 +583,23 @@ export function CatalogueFormPage({
 
     if (isEditMode && initialCatalogue) {
       const newFiles = images.flatMap((item) => (item.file ? [item.file] : []));
+      const details = images
+        .map((item, index) => ({
+          catalogueDetailId: item.catalogueDetailId,
+          sortOrder: index,
+        }))
+        .filter(
+          (item): item is { catalogueDetailId: string; sortOrder: number } =>
+            Boolean(item.catalogueDetailId),
+        );
+
       const response = await updateCatalogueMutation.mutateAsync({
         catalogueId: initialCatalogue.catalogueId,
         payload: {
           catalogueName: name,
           note: note.trim() || undefined,
           images: newFiles,
+          details,
           removeDetailIds: removedDetailIds as any,
         },
       });
@@ -642,26 +655,15 @@ export function CatalogueFormPage({
               </span>
               Quay về Hub
             </Link>
-
-            {isEditMode && initialCatalogue?.catalogueId ? (
-              <Link
-                to={`/catalogue/public/${initialCatalogue.catalogueId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-500/20 dark:text-rose-300"
-              >
-                <FiBookOpen className="h-3.5 w-3.5" />
-                <span>Xem Preview 3D</span>
-                <FiExternalLink className="h-3 w-3 opacity-70" />
-              </Link>
-            ) : null}
           </div>
 
           <div className="absolute top-0 right-0">
             <ThemeToggle />
           </div>
           <h1 className="text-center text-2xl font-medium text-[#111111] md:text-3xl dark:text-white">
-            {isEditMode ? catalogueName || "Chỉnh sửa catalogue" : "Tạo catalogue sản phẩm"}
+            {isEditMode
+              ? catalogueName || "Chỉnh sửa catalogue"
+              : "Tạo catalogue sản phẩm"}
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-center text-xs leading-6 text-black/50 dark:text-white/42">
             {isEditMode && initialCatalogue
@@ -735,7 +737,11 @@ export function CatalogueFormPage({
                   disabled={isDeleting || isSubmitting}
                   className="inline-flex h-12 min-w-44 items-center justify-center gap-2 rounded-full border border-red-400/25 bg-red-500/10 px-6 text-sm font-medium text-red-600 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-red-500/18 active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 dark:text-red-200"
                 >
-                  {isDeleting ? <Spinner size="sm" color="white" /> : <FiTrash2 />}
+                  {isDeleting ? (
+                    <Spinner size="sm" color="white" />
+                  ) : (
+                    <FiTrash2 />
+                  )}
                   Xóa Catalogue
                 </button>
               ) : null}

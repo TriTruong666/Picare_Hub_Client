@@ -3,20 +3,20 @@ export type CreateProductQRPayload = {
   images?: File[] | null;
   note?: string | null;
   // mặc định là picare
-  logo?: "picare" | "dermacoon";
+  logo?: "picare" | "dermacoon" | "trunghanh";
 };
 
 export type UpdateProductQRPayload = {
   rawContent: string;
   images?: File[] | null;
-  logo?: "picare" | "dermacoon";
+  logo?: "picare" | "dermacoon" | "trunghanh";
   note?: string | null;
 };
 
 export type ProductQR = {
   productId: string;
   rawContent: string;
-  logo?: "picare" | "dermacoon";
+  logo?: "picare" | "dermacoon" | "trunghanh";
   note?: string | null;
   jsonContent: ProductQRJson;
   createdAt: string;

@@ -138,6 +138,10 @@ function IconButton({
   );
 }
 
+/**
+ * Optimized Catalogue Page component with skeleton shimmer loading
+ * and async image decoding for ultra-smooth rendering.
+ */
 function CataloguePage({
   page,
   pageNumber,
@@ -149,6 +153,12 @@ function CataloguePage({
   side: "left" | "right" | "single";
   onOpen?: () => void;
 }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(false);
+  }, [page?.imageUrl]);
+
   if (!page) {
     return (
       <div
@@ -170,16 +180,87 @@ function CataloguePage({
       className="group relative block h-full w-full cursor-zoom-in overflow-hidden bg-[#f8f7f3] text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black dark:focus-visible:outline-white"
       aria-label={`Phóng to trang ${pageNumber}`}
     >
+      {/* Loading Skeleton */}
+      {!isLoaded && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#f0eee6] dark:bg-[#121212]">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-black/15 border-t-black/60 dark:border-white/15 dark:border-t-white/60" />
+        </div>
+      )}
+
       <img
         src={page.imageUrl}
         alt={`Trang ${pageNumber}`}
         draggable={false}
-        className="h-full w-full object-contain select-none"
+        loading="eager"
+        decoding="async"
+        onLoad={() => setIsLoaded(true)}
+        className={`h-full w-full object-contain select-none transition-opacity duration-300 ${
+          isLoaded ? "opacity-100" : "opacity-0"
+        }`}
       />
       <span
         className={`pointer-events-none absolute bottom-2.5 ${numberPosition} text-[10px] font-medium text-black/38 tabular-nums opacity-0 transition-opacity duration-200 group-hover:opacity-100`}
       >
         {pageNumber}
+      </span>
+    </motion.button>
+  );
+}
+
+/**
+ * Thumbnail item with lazy loading & skeleton for high performance drawer
+ */
+function ThumbnailItem({
+  page,
+  index,
+  active,
+  onClick,
+}: {
+  page: CatalogueDetail;
+  index: number;
+  active: boolean;
+  onClick: () => void;
+}) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <motion.button
+      data-active={active}
+      type="button"
+      onClick={onClick}
+      whileHover={{ scale: 1.08, y: -3 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{
+        type: "spring",
+        stiffness: 450,
+        damping: 25,
+      }}
+      className={`relative shrink-0 transition-[opacity,transform] duration-200 ${
+        active ? "translate-y-[-3px] opacity-100" : "opacity-48 hover:opacity-100"
+      }`}
+      aria-label={`Đi đến trang ${index + 1}`}
+    >
+      <div className="relative h-20 sm:h-24 overflow-hidden rounded">
+        {!isLoaded && (
+          <div className="absolute inset-0 bg-black/10 dark:bg-white/10 animate-pulse rounded" />
+        )}
+        <img
+          src={page.imageUrl}
+          alt={`Trang ${index + 1}`}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setIsLoaded(true)}
+          className={`h-20 w-auto border bg-white object-contain sm:h-24 rounded transition-opacity duration-200 ${
+            isLoaded ? "opacity-100" : "opacity-0"
+          } ${
+            active
+              ? "border-black/80 ring-2 ring-black/50 dark:border-white/90 dark:ring-white/60"
+              : "border-black/10 dark:border-white/10"
+          }`}
+        />
+      </div>
+      <span className="mt-1.5 block text-center text-[9px] font-semibold text-black/42 tabular-nums dark:text-white/42">
+        {index + 1}
       </span>
     </motion.button>
   );
@@ -194,6 +275,7 @@ function ZoomViewer({
 }) {
   const [scale, setScale] = useState(1);
   const [resetKey, setResetKey] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -290,8 +372,7 @@ function ZoomViewer({
       {/* Helper Badge when zoomed */}
       {scale > 1 && (
         <div className="pointer-events-none absolute top-4 left-4 z-40 rounded-full border border-white/15 bg-black/70 px-4 py-2 text-xs font-medium text-white/90 shadow-lg backdrop-blur-md">
-          💡 Kéo chuột để di chuyển xem từng chi tiết • Cuộn chuột để tăng/giảm
-          zoom
+          💡 Kéo chuột để di chuyển xem từng chi tiết • Cuộn chuột để tăng/giảm zoom
         </div>
       )}
 
@@ -302,11 +383,18 @@ function ZoomViewer({
         onClick={(event) => event.stopPropagation()}
         onDoubleClick={() => (scale > 1 ? handleReset() : setScale(2))}
       >
+        {!isLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Spinner size="lg" color="primary" />
+          </div>
+        )}
         <motion.img
           key={resetKey}
           src={imageUrl}
           alt="Trang catalogue phóng to sắc nét"
           draggable={false}
+          decoding="async"
+          onLoad={() => setIsLoaded(true)}
           animate={{ scale, x: 0, y: 0 }}
           drag={scale > 1}
           dragConstraints={{
@@ -317,7 +405,9 @@ function ZoomViewer({
           }}
           dragElastic={0.05}
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
-          className={`max-h-[88vh] max-w-[90vw] origin-center rounded-md object-contain shadow-[0_30px_90px_rgba(0,0,0,0.8)] select-none ${
+          className={`max-h-[88vh] max-w-[90vw] origin-center rounded-md object-contain shadow-[0_30px_90px_rgba(0,0,0,0.8)] select-none transition-opacity duration-200 ${
+            isLoaded ? "opacity-100" : "opacity-0"
+          } ${
             scale > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"
           }`}
         />
@@ -351,6 +441,27 @@ export default function CataloguePublicPreviewPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
+
+  const preloadedUrlsRef = useRef<Set<string>>(new Set());
+
+  // Performance Optimization: Smart Preloader for adjacent pages
+  useEffect(() => {
+    if (!pages || pages.length === 0) return;
+
+    // Preload window: 2 pages back, 5 pages ahead
+    const start = Math.max(0, currentPage - 2);
+    const end = Math.min(pages.length - 1, currentPage + 5);
+
+    for (let i = start; i <= end; i++) {
+      const url = pages[i]?.imageUrl;
+      if (url && !preloadedUrlsRef.current.has(url)) {
+        preloadedUrlsRef.current.add(url);
+        const img = new Image();
+        img.decoding = "async";
+        img.src = url;
+      }
+    }
+  }, [pages, currentPage]);
 
   const totalPages = pages.length;
   const currentSpread = getSpread(pages, currentPage, viewMode);
@@ -643,13 +754,72 @@ export default function CataloguePublicPreviewPage() {
       {/* MAIN STAGE */}
       <main className="relative flex min-h-0 flex-1 items-center justify-center px-12 py-5 sm:px-16 sm:py-6 lg:px-24">
         {/* Previous Side Nav Arrow */}
+        <Tooltip content="Trang trước" position="right">
+          <motion.button
+            type="button"
+            onClick={goPrevious}
+            disabled={!canGoPrevious || Boolean(flip)}
+            whileHover={{ scale: 1.1, x: -2 }}
+            whileTap={{ scale: 0.94 }}
+            className={`absolute left-3 sm:left-6 lg:left-8 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border text-base sm:text-lg shadow-md transition-all duration-200 ${
+              canGoPrevious && !flip
+                ? "border-black/15 bg-white/90 text-black hover:bg-black hover:text-white dark:border-white/20 dark:bg-neutral-900/90 dark:text-white dark:hover:bg-white dark:hover:text-black"
+                : "border-black/5 bg-black/5 text-black/25 dark:border-white/5 dark:bg-white/5 dark:text-white/25 cursor-not-allowed opacity-30"
+            }`}
+            aria-label="Trang trước"
+          >
+            <FiChevronLeft />
+          </motion.button>
+        </Tooltip>
 
-        {/* STAGE CONTAINER */}
+        {/* Next Side Nav Arrow */}
+        <Tooltip content="Trang tiếp theo" position="left">
+          <motion.button
+            type="button"
+            onClick={goNext}
+            disabled={!canGoNext || Boolean(flip)}
+            whileHover={{ scale: 1.1, x: 2 }}
+            whileTap={{ scale: 0.94 }}
+            className={`absolute right-3 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border text-base sm:text-lg shadow-md transition-all duration-200 ${
+              canGoNext && !flip
+                ? "border-black/15 bg-white/90 text-black hover:bg-black hover:text-white dark:border-white/20 dark:bg-neutral-900/90 dark:text-white dark:hover:bg-white dark:hover:text-black"
+                : "border-black/5 bg-black/5 text-black/25 dark:border-white/5 dark:bg-white/5 dark:text-white/25 cursor-not-allowed opacity-30"
+            }`}
+            aria-label="Trang tiếp theo"
+          >
+            <FiChevronRight />
+          </motion.button>
+        </Tooltip>
+
+        {/* STAGE CONTAINER WITH TOUCH SWIPE & MOUSE DRAG */}
         <motion.div
+          drag={!flip && !zoomImage ? "x" : false}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.15}
+          onDragEnd={(_event, info) => {
+            if (flip || zoomImage) return;
+
+            const swipeThreshold = 40; // minimum drag distance 40px
+            const velocityThreshold = 180; // fast flick velocity
+
+            if (
+              info.offset.x < -swipeThreshold ||
+              info.velocity.x < -velocityThreshold
+            ) {
+              // Swiped Left -> Go Next Page
+              if (canGoNext) goNext();
+            } else if (
+              info.offset.x > swipeThreshold ||
+              info.velocity.x > velocityThreshold
+            ) {
+              // Swiped Right -> Go Previous Page
+              if (canGoPrevious) goPrevious();
+            }
+          }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="relative"
+          className="relative cursor-grab active:cursor-grabbing touch-pan-y"
           style={{
             width:
               viewMode === "double"
@@ -731,6 +901,7 @@ export default function CataloguePublicPreviewPage() {
                         src={turningFrontPage.imageUrl}
                         alt=""
                         draggable={false}
+                        decoding="async"
                         className="h-full w-full object-contain select-none"
                       />
                       <motion.div
@@ -758,6 +929,7 @@ export default function CataloguePublicPreviewPage() {
                           src={turningBackPage.imageUrl}
                           alt=""
                           draggable={false}
+                          decoding="async"
                           className="h-full w-full object-contain select-none"
                         />
                         <motion.div
@@ -935,38 +1107,13 @@ export default function CataloguePublicPreviewPage() {
                   {pages.map((page, index) => {
                     const active = activePageIndexes.has(index);
                     return (
-                      <motion.button
+                      <ThumbnailItem
                         key={page.catalogueDetailId}
-                        data-active={active}
-                        type="button"
+                        page={page}
+                        index={index}
+                        active={active}
                         onClick={() => jumpToPage(index)}
-                        whileHover={{ scale: 1.08, y: -3 }}
-                        whileTap={{ scale: 0.95 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 450,
-                          damping: 25,
-                        }}
-                        className={`relative shrink-0 transition-[opacity,transform] duration-200 ${
-                          active
-                            ? "translate-y-[-3px] opacity-100"
-                            : "opacity-48 hover:opacity-100"
-                        }`}
-                        aria-label={`Đi đến trang ${index + 1}`}
-                      >
-                        <img
-                          src={page.imageUrl}
-                          alt={`Trang ${index + 1}`}
-                          className={`h-20 w-auto border bg-white object-contain sm:h-24 ${
-                            active
-                              ? "border-black/80 ring-2 ring-black/50 dark:border-white/90 dark:ring-white/60"
-                              : "border-black/10 dark:border-white/10"
-                          }`}
-                        />
-                        <span className="mt-1.5 block text-center text-[9px] font-semibold text-black/42 tabular-nums dark:text-white/42">
-                          {index + 1}
-                        </span>
-                      </motion.button>
+                      />
                     );
                   })}
                 </div>

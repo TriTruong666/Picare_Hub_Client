@@ -43,6 +43,7 @@ type ProductQRLogo = NonNullable<CreateProductQRPayload["logo"]>;
 const PRODUCT_QR_LOGO_OPTIONS = [
   { value: "picare", label: "Picare" },
   { value: "dermacoon", label: "Dermacoon" },
+  { value: "trunghanh", label: "Trung Hạnh" },
 ] satisfies { value: ProductQRLogo; label: string }[];
 
 function getProductPreviewPath(productId: string) {
