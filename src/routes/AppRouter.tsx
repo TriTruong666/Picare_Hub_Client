@@ -6,6 +6,7 @@ import PrivateContractRoutes from "./PrivateContractRoutes";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
 import CataloguePublicPreviewPage from "@/pages/public/CataloguePublicPreviewPage";
+import CataloguePublicGalleryPage from "@/pages/public/CataloguePublicGalleryPage";
 import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
 import CatalogueCreatePage from "@/pages/private/CatalogueCreatePage";
 import CatalogueEditPage from "@/pages/private/CatalogueEditPage";
@@ -16,12 +17,17 @@ export default function AppRouter() {
   return (
     <Routes>
       <Route path="/dashboard/*" element={<PrivateRoutes />} />
-      <Route path="/contracts/:contractId/sign-partner" element={<ContractPartnerSignPage />} />
+      <Route
+        path="/contracts/:contractId/sign-partner"
+        element={<ContractPartnerSignPage />}
+      />
       <Route path="/contracts/*" element={<PrivateContractRoutes />} />
       <Route
         path={PATHS.CATALOGUE.CREATE}
         element={
-          <AuthGuard allowedRoles={["admin", "business_development", "marketing"]}>
+          <AuthGuard
+            allowedRoles={["admin", "business_development", "marketing"]}
+          >
             <CatalogueCreatePage />
           </AuthGuard>
         }
@@ -29,7 +35,9 @@ export default function AppRouter() {
       <Route
         path={PATHS.CATALOGUE.EDIT}
         element={
-          <AuthGuard allowedRoles={["admin", "business_development", "marketing"]}>
+          <AuthGuard
+            allowedRoles={["admin", "business_development", "marketing"]}
+          >
             <CatalogueEditPage />
           </AuthGuard>
         }
@@ -50,8 +58,18 @@ export default function AppRouter() {
           </AuthGuard>
         }
       />
-      <Route path={PATHS.QR_PRODUCT_PREVIEW} element={<QRProductPreviewPage />} />
-      <Route path={PATHS.CATALOGUE.PUBLIC_PREVIEW} element={<CataloguePublicPreviewPage />} />
+      <Route
+        path={PATHS.QR_PRODUCT_PREVIEW}
+        element={<QRProductPreviewPage />}
+      />
+      <Route
+        path={PATHS.CATALOGUE.PUBLIC_GALLERY}
+        element={<CataloguePublicGalleryPage />}
+      />
+      <Route
+        path={PATHS.CATALOGUE.PUBLIC_PREVIEW}
+        element={<CataloguePublicPreviewPage />}
+      />
 
       {/* Public Routes (Landing, Login, etc.) */}
       <Route path="/*" element={<PublicRoutes />} />

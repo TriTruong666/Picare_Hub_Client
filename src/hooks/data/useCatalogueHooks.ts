@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import * as CatalogueService from "@/apis/catalogue.service";
 import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
@@ -23,6 +27,40 @@ export function useCatalogueList(params: CatalogueListParams) {
   return useFetch(["catalogues", "list", params], () =>
     CatalogueService.getListCatalogues(params),
   );
+}
+
+export function useInfiniteCatalogueList(
+  params: Omit<CatalogueListParams, "page">,
+) {
+  return useInfiniteQuery({
+    queryKey: ["catalogues", "infinite-list", params],
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
+      const response = await CatalogueService.getListCatalogues({
+        ...params,
+        page: pageParam,
+      });
+
+      if (!response.success) {
+        throw new Error(
+          response.message || "Đã xảy ra lỗi khi tải danh sách Catalogue",
+        );
+      }
+
+      return response;
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      const itemCount = lastPage.data?.length ?? 0;
+      const currentPage = lastPage.pagination?.currentPage ?? allPages.length;
+      const totalPages = lastPage.pagination?.totalPages;
+
+      if (totalPages !== undefined) {
+        return currentPage < totalPages ? currentPage + 1 : undefined;
+      }
+
+      return itemCount === params.limit ? currentPage + 1 : undefined;
+    },
+  });
 }
 
 /**

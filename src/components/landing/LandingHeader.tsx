@@ -19,8 +19,12 @@ import { STATIC_HUB_CLIENTS } from "@/constants/staticHubClients";
 import { canAccessDashboard } from "@/config/dashboardAccess";
 import { PATHS } from "@/config/paths";
 
-export default function LandingHeader() {
-  const [activeTab, setActiveTab] = useState("Giới thiệu");
+export default function LandingHeader({
+  initialActiveTab = "Giới thiệu",
+}: {
+  initialActiveTab?: string;
+}) {
+  const [activeTab, setActiveTab] = useState(initialActiveTab);
   const [isSystemMenuOpen, setIsSystemMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -46,17 +50,25 @@ export default function LandingHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const navItems = [
+  type NavItem = {
+    name: string;
+    hasDropdown: boolean;
+    href?: string;
+  };
+
+  const navItems: NavItem[] = [
     { name: "Giới thiệu", hasDropdown: false },
     { name: "Hệ thống", hasDropdown: true },
     { name: "Tính năng", hasDropdown: false },
     { name: "Liên hệ", hasDropdown: false },
+    {
+      name: "Catalogues",
+      hasDropdown: false,
+      href: "/catalogue/public/gallery",
+    },
   ];
 
-  const {
-    data: hubClients,
-    isLoading,
-  } = useHubClients({
+  const { data: hubClients, isLoading } = useHubClients({
     limit: 100,
     status: "active",
   });
@@ -120,6 +132,78 @@ export default function LandingHeader() {
           >
             {navItems.map((item) => {
               const isActive = activeTab === item.name;
+              const buttonClasses = `relative flex items-center gap-2 rounded-full px-5 py-2 font-sans text-[13px] font-medium transition-colors duration-300 ${
+                isActive ? "text-black" : "text-white hover:text-white"
+              }`;
+
+              const innerContent = (
+                <>
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-pill"
+                      className="bg-primary absolute inset-0 rounded-full"
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.6,
+                      }}
+                    />
+                  )}
+
+                  <span className="relative z-10 flex items-center gap-x-2">
+                    {item.name}
+                    {item.hasDropdown && (
+                      <motion.div
+                        animate={{
+                          rotate:
+                            item.hasDropdown && isSystemMenuOpen ? 180 : 0,
+                        }}
+                        className="flex items-center justify-center"
+                      >
+                        <FiChevronDown
+                          size={14}
+                          className={isActive ? "text-black" : ""}
+                        />
+                      </motion.div>
+                    )}
+                  </span>
+                </>
+              );
+
+              if (item.href && !item.hasDropdown) {
+                if (item.href.startsWith("/")) {
+                  return (
+                    <div key={item.name} className="relative">
+                      <Link
+                        to={item.href}
+                        onClick={() => {
+                          setActiveTab(item.name);
+                          setIsSystemMenuOpen(false);
+                        }}
+                        className={buttonClasses}
+                      >
+                        {innerContent}
+                      </Link>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={item.name} className="relative">
+                    <a
+                      href={item.href}
+                      onClick={() => {
+                        setActiveTab(item.name);
+                        setIsSystemMenuOpen(false);
+                      }}
+                      className={buttonClasses}
+                    >
+                      {innerContent}
+                    </a>
+                  </div>
+                );
+              }
+
               return (
                 <div key={item.name} className="relative">
                   <button
@@ -132,39 +216,9 @@ export default function LandingHeader() {
                         setIsSystemMenuOpen(false);
                       }
                     }}
-                    className={`relative flex items-center gap-2 rounded-full px-5 py-2 font-sans text-[13px] font-medium transition-colors duration-300 ${
-                      isActive ? "text-black" : "text-white hover:text-white"
-                    }`}
+                    className={buttonClasses}
                   >
-                    {isActive && (
-                      <motion.div
-                        layoutId="active-pill"
-                        className="bg-primary absolute inset-0 rounded-full"
-                        transition={{
-                          type: "spring",
-                          bounce: 0.2,
-                          duration: 0.6,
-                        }}
-                      />
-                    )}
-
-                    <span className="relative z-10 flex items-center gap-x-2">
-                      {item.name}
-                      {item.hasDropdown && (
-                        <motion.div
-                          animate={{
-                            rotate:
-                              item.hasDropdown && isSystemMenuOpen ? 180 : 0,
-                          }}
-                          className="flex items-center justify-center"
-                        >
-                          <FiChevronDown
-                            size={14}
-                            className={isActive ? "text-black" : ""}
-                          />
-                        </motion.div>
-                      )}
-                    </span>
+                    {innerContent}
                   </button>
                 </div>
               );
@@ -406,7 +460,10 @@ function HubClientCard({ item }: { item: HubClient }) {
     >
       <div className="relative overflow-hidden rounded-lg outline-1 outline-white/5 group-hover:outline-white/10">
         <img
-          src={item.clientLogoImage?.trim() || "https://framerusercontent.com/images/gTH5qA521PTXYmAuTkvadn5fso.png?width=1292&height=450"}
+          src={
+            item.clientLogoImage?.trim() ||
+            "https://framerusercontent.com/images/gTH5qA521PTXYmAuTkvadn5fso.png?width=1292&height=450"
+          }
           alt={item.clientName}
           className="h-44 w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
