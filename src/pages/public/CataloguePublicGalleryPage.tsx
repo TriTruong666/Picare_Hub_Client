@@ -113,7 +113,7 @@ function CatalogueCard({
             <div className="pointer-events-none absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-white/12 to-transparent opacity-60" />
 
             {/* SLEEK GLOWING BOTTOM LINE INDICATOR ON HOVER (MATCHING SEARCH BAR STYLE) */}
-            <div className="pointer-events-none absolute -bottom-px left-0 right-0 h-[2px] origin-left scale-x-0 bg-gradient-to-r from-white via-indigo-200 to-white opacity-0 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100 group-hover:opacity-100 shadow-[0_0_12px_rgba(255,255,255,0.8)]" />
+            <div className="pointer-events-none absolute right-0 -bottom-px left-0 h-[2px] origin-left scale-x-0 bg-gradient-to-r from-white via-indigo-200 to-white opacity-0 shadow-[0_0_12px_rgba(255,255,255,0.8)] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100 group-hover:opacity-100" />
           </div>
 
           {/* ITEM TITLE & METADATA */}
@@ -217,9 +217,12 @@ export default function CataloguePublicGalleryPage() {
             initial={{ opacity: 0, y: 36, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-[15ch] text-[clamp(2.75rem,5vw,4.375rem)] leading-[1.08] font-normal tracking-[-0.05em]"
+            className="max-w-[25ch] text-[clamp(2.75rem,5vw,4.375rem)] leading-[1.08] font-normal tracking-[-0.05em]"
           >
-            Một thư viện. Nhiều câu chuyện.
+            <span className="font-semibold text-[#77e1de]">
+              Picare Catalogues
+            </span>
+            . Những điều tuyệt vời cho cuộc sống của bạn.
           </motion.h1>
 
           {/* SEARCH INPUT BAR WITH LEFT-TO-RIGHT GLOWING ANIMATED LINE */}
@@ -261,7 +264,7 @@ export default function CataloguePublicGalleryPage() {
               initial={{ scaleX: 0 }}
               animate={{ scaleX: isSearchFocused ? 1 : 0 }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute -bottom-px left-0 right-0 h-[2px] origin-left bg-gradient-to-r from-white via-indigo-200 to-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
+              className="absolute right-0 -bottom-px left-0 h-[2px] origin-left bg-gradient-to-r from-white via-indigo-200 to-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
             />
           </motion.div>
         </section>

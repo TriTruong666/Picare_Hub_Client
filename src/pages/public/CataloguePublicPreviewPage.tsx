@@ -127,8 +127,8 @@ function IconButton({
         transition={{ type: "spring", stiffness: 350, damping: 20 }}
         className={`inline-flex size-10 shrink-0 items-center justify-center border-b text-[15px] transition-[color,background-color,border-color,opacity] duration-300 disabled:pointer-events-none disabled:opacity-20 ${
           active
-            ? "border-[#f0ede6] text-[#f0ede6]"
-            : "border-transparent text-white/42 hover:border-white/18 hover:text-[#f0ede6]"
+            ? "border-black text-black dark:border-[#f0ede6] dark:text-[#f0ede6]"
+            : "border-transparent text-black/50 hover:border-black/20 hover:text-black dark:text-white/42 dark:hover:border-white/18 dark:hover:text-[#f0ede6]"
         }`}
       >
         {children}
@@ -695,7 +695,7 @@ export default function CataloguePublicPreviewPage() {
   return (
     <div
       ref={containerRef}
-      className="relative flex h-[100dvh] min-h-[520px] w-full flex-col overflow-hidden bg-[#050505] font-normal text-[#f0ede6] antialiased selection:bg-[#f0ede6] selection:text-[#050505]"
+      className="relative flex h-[100dvh] min-h-[520px] w-full flex-col overflow-hidden bg-[#f5f4f0] font-normal text-[#111111] transition-colors duration-500 dark:bg-[#050505] dark:text-[#f0ede6] antialiased selection:bg-[#111111] selection:text-[#f5f4f0] dark:selection:bg-[#f0ede6] dark:selection:text-[#050505]"
       style={{
         fontFamily: '"OverusedGrotesk", "Helvetica Neue", sans-serif',
       }}
@@ -711,7 +711,7 @@ export default function CataloguePublicPreviewPage() {
           mass: 0.9,
           delay: 0.1,
         }}
-        className="relative z-40 mx-auto flex h-16 w-[min(calc(100%_-_2rem),87.5rem)] shrink-0 items-center justify-between border-b border-white/8"
+        className="relative z-40 mx-auto flex h-16 w-[min(calc(100%_-_2rem),87.5rem)] shrink-0 items-center justify-between border-b border-black/8 transition-colors duration-500 dark:border-white/8"
       >
         <motion.div
           initial={{ opacity: 0, x: -12 }}
@@ -725,7 +725,7 @@ export default function CataloguePublicPreviewPage() {
         >
           <Link
             to={PATHS.CATALOGUE.PUBLIC_GALLERY}
-            className="group flex min-w-0 items-center gap-1.5 text-[0.6875rem] font-normal tracking-[0.08em] text-white/42 uppercase transition-colors hover:text-white"
+            className="group flex min-w-0 items-center gap-1.5 text-[0.6875rem] font-normal tracking-[0.08em] text-black/50 uppercase transition-colors hover:text-black dark:text-white/42 dark:hover:text-white"
             aria-label="Về thư viện catalogue"
           >
             <FiChevronLeft className="transition-transform duration-300 group-hover:-translate-x-1" />
@@ -744,10 +744,10 @@ export default function CataloguePublicPreviewPage() {
           }}
           className="pointer-events-none absolute inset-x-28 top-1/2 -translate-y-1/2 text-center"
         >
-          <p className="truncate text-[0.8125rem] font-normal tracking-[-0.01em] text-white/78">
+          <p className="truncate text-[0.8125rem] font-normal tracking-[-0.01em] text-black/80 dark:text-white/78">
             {catalogue.catalogueName}
           </p>
-          <p className="mt-0.5 hidden text-[0.5625rem] font-normal tracking-[0.1em] text-white/30 uppercase tabular-nums sm:block">
+          <p className="mt-0.5 hidden text-[0.5625rem] font-normal tracking-[0.1em] text-black/40 uppercase tabular-nums dark:text-white/30 sm:block">
             {totalPages} trang
           </p>
         </motion.div>
@@ -778,7 +778,7 @@ export default function CataloguePublicPreviewPage() {
           >
             {isFullscreen ? <FiMinimize2 /> : <FiMaximize2 />}
           </IconButton>
-          <ThemeToggle className="!rounded-none !border-0 !border-b !border-transparent !bg-transparent !shadow-none !backdrop-blur-none hover:!border-white/18 hover:!bg-transparent dark:!bg-transparent [&_svg]:!text-white/42 hover:[&_svg]:!text-white dark:[&>span:first-child]:hidden" />
+          <ThemeToggle className="!h-10 !w-10 !rounded-none !border-0 !border-b !border-transparent !bg-transparent !shadow-none !backdrop-blur-none hover:!border-black/20 dark:hover:!border-white/18 hover:!bg-transparent dark:!bg-transparent" />
         </motion.div>
       </motion.header>
 
@@ -1012,7 +1012,7 @@ export default function CataloguePublicPreviewPage() {
           mass: 0.9,
           delay: 0.38,
         }}
-        className="relative z-40 mx-auto flex h-14 w-[min(calc(100%_-_2rem),87.5rem)] shrink-0 items-center justify-between border-t border-white/8"
+        className="relative z-40 mx-auto flex h-14 w-[min(calc(100%_-_2rem),87.5rem)] shrink-0 items-center justify-between border-t border-black/8 transition-colors duration-500 dark:border-white/8"
       >
         <motion.div
           initial={{ opacity: 0, x: -12 }}
@@ -1043,7 +1043,7 @@ export default function CataloguePublicPreviewPage() {
             <FiChevronRight />
           </IconButton>
 
-          <div className="mx-1 hidden h-4 w-px bg-white/10 sm:block" />
+          <div className="mx-1 hidden h-4 w-px bg-black/10 dark:bg-white/10 sm:block" />
 
           <IconButton
             label={isPlaying ? "Dừng tự động lật" : "Tự động lật"}
@@ -1078,8 +1078,8 @@ export default function CataloguePublicPreviewPage() {
           }}
           className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3"
         >
-          <span className="text-[0.625rem] font-normal tracking-[0.08em] text-white/32 tabular-nums">
-            <strong className="font-normal text-white/78">
+          <span className="text-[0.625rem] font-normal tracking-[0.08em] text-black/40 tabular-nums dark:text-white/32">
+            <strong className="font-normal text-black/80 dark:text-white/78">
               {currentPage + 1}
             </strong>
             <span className="px-1.5">/</span>
