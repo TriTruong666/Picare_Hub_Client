@@ -4,11 +4,14 @@ export type CreateProductQRPayload = {
   rawContent: string;
   images?: File[] | null;
   note?: string | null;
+  // mặc định là picare
+  logo?: "picare" | "dermacoon";
 };
 
 export type UpdateProductQRPayload = {
   rawContent: string;
   images?: File[] | null;
+  logo?: "picare" | "dermacoon";
   note?: string | null;
 };
 

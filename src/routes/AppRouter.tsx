@@ -6,6 +6,7 @@ import PrivateContractRoutes from "./PrivateContractRoutes";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
 import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
+import CatalogueCreatePage from "@/pages/private/CatalogueCreatePage";
 import QRProductEditPage from "@/pages/private/QRProductEditPage";
 import { AuthGuard } from "@/components/guards/AuthGuard";
 
@@ -19,7 +20,7 @@ export default function AppRouter() {
         path={PATHS.CATALOGUE.CREATE}
         element={
           <AuthGuard allowedRoles={["admin", "business_development", "marketing"]}>
-            <QRProductGeneratorPage />
+            <CatalogueCreatePage />
           </AuthGuard>
         }
       />

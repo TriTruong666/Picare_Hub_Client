@@ -22,6 +22,7 @@ import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
 import ContractEditPage from "@/pages/private/ContractEditPage";
 import ContractPreviewPage from "@/pages/private/ContractPreviewPage";
 import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
+import CatalogueCreatePage from "@/pages/private/CatalogueCreatePage";
 import QRProductEditPage from "@/pages/private/QRProductEditPage";
 import QRProductDashboardPage from "@/pages/private/QRProductDashboardPage";
 import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
@@ -197,7 +198,7 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
   },
   {
     path: PATHS.CATALOGUE.CREATE,
-    element: <QRProductGeneratorPage />,
+    element: <CatalogueCreatePage />,
     showInSidebar: false,
   },
   {
