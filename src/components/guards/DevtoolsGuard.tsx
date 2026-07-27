@@ -1,3 +1,4 @@
+/*
 import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -23,8 +24,12 @@ function isBlockedShortcut(event: KeyboardEvent) {
 
   return false;
 }
+*/
 
 export function DevtoolsGuard() {
+  return null;
+
+  /*
   const { user } = useAuth();
   const [isDevtoolsOpen, setIsDevtoolsOpen] = useState(false);
   const canShowToastRef = useRef(true);
@@ -115,4 +120,5 @@ export function DevtoolsGuard() {
       </div>
     </div>
   );
+  */
 }
