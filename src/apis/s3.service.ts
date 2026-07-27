@@ -17,7 +17,7 @@ export async function uploadS3Asset(
   const res = await hubAxiosClient.post("/api/v1/s3/upload", request);
   return res.data;
 }
-
+// Deploy bi loi
 export async function getPresignedURL(
   request: GetPresignedURLRequest,
 ): Promise<BaseResponse<GetPresignedURLResponse>> {
