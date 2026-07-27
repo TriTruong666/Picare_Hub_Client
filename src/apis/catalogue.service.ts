@@ -5,6 +5,17 @@ import { hubAxiosClient } from "./client";
 export const createCatalogue = async (
   payload: CreateCataloguePayload,
 ): Promise<BaseResponse<null>> => {
-  const res = await hubAxiosClient.post("/api/v1/catalogues", payload);
+  const formData = new FormData();
+  formData.append("catalogueName", payload.catalogueName);
+
+  if (payload.note?.trim()) {
+    formData.append("note", payload.note.trim());
+  }
+
+  payload.images.forEach((image) => formData.append("images", image));
+
+  const res = await hubAxiosClient.post("/api/v1/catalogues", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return res.data;
 };
