@@ -7,6 +7,7 @@ import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
 import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
 import CatalogueCreatePage from "@/pages/private/CatalogueCreatePage";
+import CatalogueEditPage from "@/pages/private/CatalogueEditPage";
 import QRProductEditPage from "@/pages/private/QRProductEditPage";
 import { AuthGuard } from "@/components/guards/AuthGuard";
 
@@ -21,6 +22,14 @@ export default function AppRouter() {
         element={
           <AuthGuard allowedRoles={["admin", "business_development", "marketing"]}>
             <CatalogueCreatePage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path={PATHS.CATALOGUE.EDIT}
+        element={
+          <AuthGuard allowedRoles={["admin", "business_development", "marketing"]}>
+            <CatalogueEditPage />
           </AuthGuard>
         }
       />

@@ -1,7 +1,8 @@
 import type { ChangeEvent, DragEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  FiAlertTriangle,
   FiArrowLeft,
   FiClock,
   FiFileText,
@@ -12,20 +13,35 @@ import {
   FiUpload,
   FiX,
 } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { HiOutlineX } from "react-icons/hi";
+import { Link, useNavigate } from "react-router-dom";
 
+import { CatalogueHistoryPanel } from "@/components/catalogue/CatalogueHistoryPanel";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 import { PATHS } from "@/config/paths";
-import { useCreateCatalogue } from "@/hooks/data/useCatalogueHooks";
+import {
+  useCreateCatalogue,
+  useDeleteCatalogue,
+  useUpdateCatalogue,
+} from "@/hooks/data/useCatalogueHooks";
 import { toast } from "@/hooks/useToast";
 import {
   FieldLabel,
   TextareaInput,
   TextInput,
 } from "@/pages/private/contract-form/common/FormPrimitives";
+import type { Catalogue } from "@/types/Catalogue";
 
-type ImageItem = { id: string; file: File; previewUrl: string };
+export type CatalogueFormMode = "create" | "edit";
+
+type ImageItem = {
+  id: string;
+  previewUrl: string;
+  file?: File;
+  catalogueDetailId?: string;
+  fileName?: string;
+};
 
 function formatFileSize(bytes: number) {
   return bytes < 1024 * 1024
@@ -282,39 +298,34 @@ function CatalogueImagesField({
                         <span>Trang {index + 1}</span>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRemove(image.id);
-                        }}
-                        disabled={disabled}
-                        aria-label={`Xóa ${image.file.name}`}
-                        className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
-                      >
-                        <FiX size={13} />
-                      </button>
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
+                        <button
+                          type="button"
+                          onClick={() => onRemove(image.id)}
+                          disabled={disabled}
+                          className="flex items-center gap-1 border border-red-500/30 bg-red-500/20 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-red-500/30"
+                        >
+                          <FiX /> Xóa
+                        </button>
+                      </div>
                     </div>
-                    <div className="border-t border-black/8 bg-white px-2.5 py-2 dark:border-white/8 dark:bg-[#111111]">
-                      <p className="truncate text-[11px] font-medium text-black/70 dark:text-white/65">
-                        {image.file.name}
+                    <div className="border-t border-black/8 px-3 py-2 text-[11px] text-black/60 dark:border-white/8 dark:text-white/40">
+                      <p className="truncate font-medium">
+                        {image.fileName || image.file?.name || `Trang ${index + 1}`}
                       </p>
-                      <p className="mt-0.5 text-[10px] text-black/42 dark:text-white/35">
-                        {formatFileSize(image.file.size)}
-                      </p>
+                      {image.file ? (
+                        <p className="mt-0.5 text-[10px] text-black/40 dark:text-white/30">
+                          {formatFileSize(image.file.size)}
+                        </p>
+                      ) : (
+                        <p className="mt-0.5 text-[10px] text-black/40 dark:text-white/30">
+                          Ảnh đã tải lên
+                        </p>
+                      )}
                     </div>
                   </div>
                 );
               })}
-              <button
-                type="button"
-                onClick={openPicker}
-                disabled={disabled}
-                className="flex aspect-[210/297] flex-col items-center justify-center border border-dashed border-black/15 text-black/52 transition hover:border-black/30 hover:bg-black/[0.03] disabled:opacity-40 dark:border-white/15 dark:text-white/48"
-              >
-                <FiUpload className="text-lg" />
-                <span className="mt-2 text-[11px] font-medium">Thêm ảnh</span>
-              </button>
             </div>
           </div>
         )}
@@ -323,23 +334,174 @@ function CatalogueImagesField({
   );
 }
 
-export default function CatalogueCreatePage() {
-  const createCatalogue = useCreateCatalogue();
-  const [catalogueName, setCatalogueName] = useState("");
-  const [note, setNote] = useState("");
-  const [images, setImages] = useState<ImageItem[]>([]);
-  const imagesRef = useRef<ImageItem[]>([]);
-  const isSubmitting = createCatalogue.isPending;
+function getInitialImages(catalogue?: Catalogue): ImageItem[] {
+  if (!catalogue?.details) return [];
+  return catalogue.details
+    .slice()
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((detail) => ({
+      id: detail.catalogueDetailId,
+      previewUrl: detail.imageUrl,
+      catalogueDetailId: detail.catalogueDetailId,
+      fileName: detail.imageKey.split("/").pop() || "image",
+    }));
+}
+
+function DeleteCatalogueModal({
+  catalogue,
+  isDeleting,
+  onClose,
+  onConfirm,
+}: {
+  catalogue: Catalogue | null;
+  isDeleting: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {catalogue ? (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !isDeleting && onClose()}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ type: "spring", duration: 0.3 }}
+            className="dashboard-theme relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#050505] text-white shadow-2xl backdrop-blur-xl"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 bg-white/5 p-6">
+              <h2 className="text-base font-semibold text-white">
+                Xóa Catalogue
+              </h2>
+
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={onClose}
+                className="rounded-lg p-2 text-white/45 transition hover:bg-white/10 hover:text-white"
+              >
+                <HiOutlineX className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="flex gap-4 p-6">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-400">
+                <FiAlertTriangle size={24} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-white">
+                  Bạn có chắc chắn muốn xóa catalogue này?
+                </p>
+                <p className="mt-2 text-sm break-all text-white/45">
+                  Catalogue{" "}
+                  <span className="font-semibold text-white">
+                    {catalogue.catalogueName || catalogue.catalogueId}
+                  </span>{" "}
+                  sẽ bị xóa vĩnh viễn và hành động này không thể hoàn tác.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t border-white/10 bg-white/5 p-6">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={onClose}
+                className="rounded-lg px-4 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={onConfirm}
+                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-500/25 transition-all hover:bg-red-500 active:scale-95 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Spinner size="sm" />
+                    Đang xóa...
+                  </>
+                ) : (
+                  <>
+                    <FiTrash2 size={14} />
+                    Xóa Catalogue
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+export function CatalogueFormPage({
+  mode = "create",
+  initialCatalogue,
+}: {
+  mode?: CatalogueFormMode;
+  initialCatalogue?: Catalogue;
+}) {
+  const navigate = useNavigate();
+  const createCatalogueMutation = useCreateCatalogue();
+  const updateCatalogueMutation = useUpdateCatalogue();
+  const deleteCatalogueMutation = useDeleteCatalogue();
+
+  const isEditMode = mode === "edit";
+  const [catalogueName, setCatalogueName] = useState(
+    initialCatalogue?.catalogueName ?? "",
+  );
+  const [note, setNote] = useState(initialCatalogue?.note ?? "");
+  const [removedDetailIds, setRemovedDetailIds] = useState<string[]>([]);
+  const [images, setImages] = useState<ImageItem[]>(() =>
+    getInitialImages(initialCatalogue),
+  );
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const imagesRef = useRef<ImageItem[]>(images);
+  const isSubmitting = isEditMode
+    ? updateCatalogueMutation.isPending
+    : createCatalogueMutation.isPending;
+  const isDeleting = deleteCatalogueMutation.isPending;
+
+  useEffect(() => {
+    if (initialCatalogue) {
+      setCatalogueName(initialCatalogue.catalogueName ?? "");
+      setNote(initialCatalogue.note ?? "");
+      setRemovedDetailIds([]);
+      setImages((current) => {
+        current.forEach((image) => {
+          if (image.file) URL.revokeObjectURL(image.previewUrl);
+        });
+        return getInitialImages(initialCatalogue);
+      });
+    }
+  }, [initialCatalogue]);
+
   useEffect(() => {
     imagesRef.current = images;
   }, [images]);
+
   useEffect(
-    () => () =>
-      imagesRef.current.forEach((image) =>
-        URL.revokeObjectURL(image.previewUrl),
-      ),
+    () => () => {
+      imagesRef.current.forEach((image) => {
+        if (image.file) URL.revokeObjectURL(image.previewUrl);
+      });
+    },
     [],
   );
+
   const addFiles = (files: File[]) => {
     const validImages = files.filter((file) => file.type.startsWith("image/"));
     if (!validImages.length) {
@@ -355,20 +517,32 @@ export default function CatalogueCreatePage() {
         id: `${file.name}-${file.lastModified}-${file.size}-${index}`,
         file,
         previewUrl: URL.createObjectURL(file),
+        fileName: file.name,
       })),
     ]);
   };
+
   const removeImage = (id: string) =>
     setImages((current) => {
       const image = current.find((item) => item.id === id);
-      if (image) URL.revokeObjectURL(image.previewUrl);
+      if (image?.file) URL.revokeObjectURL(image.previewUrl);
+      if (image?.catalogueDetailId) {
+        setRemovedDetailIds((prev) => [...prev, image.catalogueDetailId!]);
+      }
       return current.filter((item) => item.id !== id);
     });
+
   const removeAllImages = () =>
     setImages((current) => {
-      current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      current.forEach((item) => {
+        if (item.file) URL.revokeObjectURL(item.previewUrl);
+        if (item.catalogueDetailId) {
+          setRemovedDetailIds((prev) => [...prev, item.catalogueDetailId!]);
+        }
+      });
       return [];
     });
+
   const reorderImages = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
     setImages((prev) => {
@@ -378,6 +552,20 @@ export default function CatalogueCreatePage() {
       return updated;
     });
   };
+
+  const handleDelete = async () => {
+    if (!initialCatalogue?.catalogueId || isDeleting) return;
+
+    const response = await deleteCatalogueMutation.mutateAsync(
+      initialCatalogue.catalogueId,
+    );
+
+    if (response.success) {
+      setIsDeleteModalOpen(false);
+      navigate(PATHS.CATALOGUE.CREATE);
+    }
+  };
+
   const submit = async () => {
     const name = catalogueName.trim();
     if (!name) {
@@ -388,32 +576,59 @@ export default function CatalogueCreatePage() {
       toast.warning("Thiếu ảnh catalogue", "Vui lòng chọn ít nhất một ảnh.");
       return;
     }
-    const response = await createCatalogue.mutateAsync({
+
+    if (isEditMode && initialCatalogue) {
+      const newFiles = images.flatMap((item) => (item.file ? [item.file] : []));
+      const response = await updateCatalogueMutation.mutateAsync({
+        catalogueId: initialCatalogue.catalogueId,
+        payload: {
+          catalogueName: name,
+          note: note.trim() || undefined,
+          images: newFiles,
+          removeDetailIds: removedDetailIds as any,
+        },
+      });
+
+      if (response.success) {
+        setRemovedDetailIds([]);
+      }
+      return;
+    }
+
+    const response = await createCatalogueMutation.mutateAsync({
       catalogueName: name,
       note: note.trim() || undefined,
-      images: images.map((image) => image.file),
+      images: images.flatMap((item) => (item.file ? [item.file] : [])),
     });
+
     if (response.success) {
-      images.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+      images.forEach((image) => {
+        if (image.file) URL.revokeObjectURL(image.previewUrl);
+      });
       setImages([]);
       setCatalogueName("");
       setNote("");
     }
   };
+
   return (
     <main className="dashboard-theme min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
-      <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
+      {!isHistoryOpen ? (
         <button
           type="button"
-          disabled
-          title="Lịch sử catalogue sẽ sớm khả dụng"
-          aria-label="Lịch sử catalogue chưa khả dụng"
-          className="flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-full border border-black/10 bg-white text-black/35 opacity-70 dark:border-white/10 dark:bg-white dark:text-black/40"
+          onClick={() => setIsHistoryOpen(true)}
+          className="fixed top-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-[#111111] shadow-[0_14px_34px_rgba(0,0,0,0.14)] transition duration-250 ease-out hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(0,0,0,0.18)] active:translate-y-0 active:scale-95 dark:border-white/10 dark:bg-white dark:text-black dark:shadow-[0_14px_34px_rgba(0,0,0,0.34)] dark:hover:shadow-[0_18px_44px_rgba(0,0,0,0.42)]"
+          aria-label="Mở lịch sử catalogue"
         >
           <FiClock />
         </button>
-      </div>
-      <div className="mx-auto w-full max-w-5xl px-5 py-6 md:px-8 lg:px-10">
+      ) : null}
+
+      <div
+        className={`mx-auto w-full max-w-5xl px-5 py-6 transition-all duration-300 md:px-8 lg:px-10 ${
+          isHistoryOpen ? "lg:max-w-4xl lg:-translate-x-48" : ""
+        }`}
+      >
         <header className="relative border-b border-black/10 pb-6 dark:border-white/10">
           <Link
             to={PATHS.HOME}
@@ -428,10 +643,12 @@ export default function CatalogueCreatePage() {
             <ThemeToggle />
           </div>
           <h1 className="text-center text-2xl font-medium text-[#111111] md:text-3xl dark:text-white">
-            Tạo catalogue sản phẩm
+            {isEditMode ? catalogueName || "Chỉnh sửa catalogue" : "Tạo catalogue sản phẩm"}
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-center text-xs leading-6 text-black/50 dark:text-white/42">
-            Tải lên bộ ảnh để tạo catalogue kỹ thuật số cho sản phẩm của Picare.
+            {isEditMode && initialCatalogue
+              ? `ID: ${initialCatalogue.catalogueId}`
+              : "Tải lên bộ ảnh để tạo catalogue kỹ thuật số cho sản phẩm của Picare."}
           </p>
         </header>
         <motion.div
@@ -447,7 +664,7 @@ export default function CatalogueCreatePage() {
                   id="catalogue-name"
                   value={catalogueName}
                   onChange={setCatalogueName}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isDeleting}
                   placeholder="Ví dụ: Catalogue sản phẩm Picare 2026"
                   required
                 />
@@ -460,7 +677,7 @@ export default function CatalogueCreatePage() {
                   id="catalogue-note"
                   value={note}
                   onChange={setNote}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isDeleting}
                   placeholder="Thêm mô tả ngắn cho catalogue..."
                 />
               </div>
@@ -474,27 +691,62 @@ export default function CatalogueCreatePage() {
                 onRemove={removeImage}
                 onRemoveAll={removeAllImages}
                 onReorder={reorderImages}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isDeleting}
               />
             </div>
           </section>
           <div className="flex flex-col items-center py-6">
-            <button
-              type="button"
-              onClick={submit}
-              disabled={isSubmitting}
-              className="inline-flex h-12 min-w-56 items-center justify-center gap-2.5 rounded-full bg-white px-6 text-sm font-medium text-black shadow-[0_16px_45px_rgba(0,0,0,0.38)] transition hover:-translate-y-0.5 hover:bg-white/95 disabled:pointer-events-none disabled:bg-white/45 disabled:text-black/50 disabled:shadow-none"
-            >
-              {isSubmitting ? (
-                <Spinner size="sm" color="black" />
-              ) : (
-                <FiFileText />
-              )}
-              {isSubmitting ? "Đang tạo..." : "Tạo catalogue"}
-            </button>
+            <div className="flex items-center justify-center gap-3">
+              {isEditMode ? (
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  disabled={isDeleting || isSubmitting}
+                  className="inline-flex h-12 min-w-44 items-center justify-center gap-2 rounded-full border border-red-400/25 bg-red-500/10 px-6 text-sm font-medium text-red-600 transition duration-250 ease-out hover:-translate-y-0.5 hover:bg-red-500/18 active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 dark:text-red-200"
+                >
+                  {isDeleting ? <Spinner size="sm" color="white" /> : <FiTrash2 />}
+                  Xóa Catalogue
+                </button>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={submit}
+                disabled={isSubmitting || isDeleting}
+                className="inline-flex h-12 min-w-56 items-center justify-center gap-2.5 rounded-full bg-white px-6 text-sm font-medium text-black shadow-[0_16px_45px_rgba(0,0,0,0.38)] transition hover:-translate-y-0.5 hover:bg-white/95 disabled:pointer-events-none disabled:bg-white/45 disabled:text-black/50 disabled:shadow-none"
+              >
+                {isSubmitting ? (
+                  <Spinner size="sm" color="black" />
+                ) : (
+                  <FiFileText />
+                )}
+                {isSubmitting
+                  ? "Đang lưu..."
+                  : isEditMode
+                    ? "Lưu thay đổi"
+                    : "Tạo catalogue"}
+              </button>
+            </div>
           </div>
         </motion.div>
       </div>
+
+      <CatalogueHistoryPanel
+        activeCatalogueId={initialCatalogue?.catalogueId}
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+      />
+
+      <DeleteCatalogueModal
+        catalogue={isDeleteModalOpen ? (initialCatalogue ?? null) : null}
+        isDeleting={isDeleting}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+      />
     </main>
   );
+}
+
+export default function CatalogueCreatePage() {
+  return <CatalogueFormPage mode="create" />;
 }
