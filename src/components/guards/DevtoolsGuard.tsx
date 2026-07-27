@@ -30,7 +30,7 @@ export function DevtoolsGuard() {
   const canShowToastRef = useRef(true);
   const lastDevtoolsStateRef = useRef(false);
 
-  const shouldRestrict = !!user && user.role !== "admin";
+  const shouldRestrict = !!user;
 
   useEffect(() => {
     if (!shouldRestrict) {
