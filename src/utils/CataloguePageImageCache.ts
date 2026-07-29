@@ -63,6 +63,7 @@ function drainPreloadQueue() {
 export function getDecodedCataloguePageImage(
   url: string,
   priority = false,
+  eager = false,
 ): Promise<HTMLImageElement> {
   const cached = decodedImageCache.get(url);
   if (cached) {
@@ -86,7 +87,7 @@ export function getDecodedCataloguePageImage(
   });
   decodedImageCache.set(url, request);
 
-  const start = () => {
+  const start = (countsTowardsQueue: boolean) => {
     void loadImage(url)
       .then((image) => {
         decodedImageUrls.add(url);
@@ -96,15 +97,23 @@ export function getDecodedCataloguePageImage(
         rejectRequest(error);
       })
       .finally(() => {
-        activePreloads -= 1;
-        drainPreloadQueue();
+        if (countsTowardsQueue) {
+          activePreloads -= 1;
+          drainPreloadQueue();
+        }
       });
   };
 
-  const job = { url, start };
-  if (priority) preloadQueue.unshift(job);
-  else preloadQueue.push(job);
-  drainPreloadQueue();
+  if (eager) {
+    // Catalogue reader intentionally favours ready-to-flip artwork over
+    // network conservation: decode the entire initial catalogue at once.
+    start(false);
+  } else {
+    const job = { url, start: () => start(true) };
+    if (priority) preloadQueue.unshift(job);
+    else preloadQueue.push(job);
+    drainPreloadQueue();
+  }
   return request;
 }
 
@@ -112,9 +121,9 @@ export function isCataloguePageImageDecoded(url?: string) {
   return Boolean(url && decodedImageUrls.has(url));
 }
 
-/** Preload all catalogue pages, throttled to avoid saturating the network. */
+/** Preload and decode every catalogue page in parallel before reading begins. */
 export function preloadCataloguePageImages(urls: Iterable<string>) {
   for (const url of urls) {
-    if (url) void getDecodedCataloguePageImage(url).catch(() => undefined);
+    if (url) void getDecodedCataloguePageImage(url, false, true).catch(() => undefined);
   }
 }

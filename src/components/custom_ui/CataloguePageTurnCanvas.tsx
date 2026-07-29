@@ -1,7 +1,7 @@
 import { useEffect, useRef, type MutableRefObject } from "react";
 import { Mesh, Plane, Program, Renderer, Texture } from "ogl";
 
-import { getDecodedCataloguePageImage } from "@/pages/public/CataloguePageImageCache";
+import { getDecodedCataloguePageImage } from "@/utils/CataloguePageImageCache";
 
 type PageTurnDirection = "next" | "prev";
 
@@ -314,10 +314,10 @@ export function CataloguePageTurnCanvas({
         void getDecodedCataloguePageImage(backImageUrl, true)
           .then((img) => {
             if (cancelled || !gl) return;
-          backTexture.image = img;
-          backTexture.needsUpdate = true;
-          uniforms.uBackAspect.value = img.naturalWidth / img.naturalHeight;
-          uniforms.uBackReady.value = 1;
+            backTexture.image = img;
+            backTexture.needsUpdate = true;
+            uniforms.uBackAspect.value = img.naturalWidth / img.naturalHeight;
+            uniforms.uBackReady.value = 1;
           })
           .catch(() => {
             backTextureFailed = true;
@@ -359,13 +359,19 @@ export function CataloguePageTurnCanvas({
           previousTime = now;
         } else {
           // A critically damped-ish spring makes a released sheet settle naturally.
-          const deltaSeconds = Math.min(0.032, Math.max(0.001, (now - previousTime) / 1000));
+          const deltaSeconds = Math.min(
+            0.032,
+            Math.max(0.001, (now - previousTime) / 1000),
+          );
           previousTime = now;
           velocity += (requestedSettle - currentProgress) * 92 * deltaSeconds;
           velocity *= Math.exp(-15 * deltaSeconds);
           currentProgress += velocity * deltaSeconds;
 
-          if (Math.abs(requestedSettle - currentProgress) < 0.002 && Math.abs(velocity) < 0.012) {
+          if (
+            Math.abs(requestedSettle - currentProgress) < 0.002 &&
+            Math.abs(velocity) < 0.012
+          ) {
             currentProgress = requestedSettle;
             didSettle = true;
           }

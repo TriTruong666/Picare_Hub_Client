@@ -26,9 +26,10 @@ import { Link, useParams } from "react-router-dom";
 
 import { CataloguePageTurnCanvas } from "@/components/custom_ui/CataloguePageTurnCanvas";
 import {
+  getDecodedCataloguePageImage,
   isCataloguePageImageDecoded,
   preloadCataloguePageImages,
-} from "./CataloguePageImageCache";
+} from "../../utils/CataloguePageImageCache";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
@@ -222,6 +223,25 @@ function CataloguePage({
     loadedImageUrl === page?.imageUrl ||
     isCataloguePageImageDecoded(page?.imageUrl);
 
+  useEffect(() => {
+    const imageUrl = page?.imageUrl;
+    if (!imageUrl) return;
+
+    let isCurrent = true;
+    // Subscribe to the same decoded bitmap consumed by the OGL texture.
+    // This prevents the destination DOM page from doing a visibly-late
+    // second load while the leaf has already reached its final pose.
+    void getDecodedCataloguePageImage(imageUrl, true)
+      .then(() => {
+        if (isCurrent) setLoadedImageUrl(imageUrl);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [page?.imageUrl]);
+
   if (!page) {
     return (
       <div
@@ -405,7 +425,8 @@ export default function CataloguePublicPreviewPage() {
 
   const canGoPrevious = currentPage > 0;
   const canGoNext =
-    Math.max(currentSpread.leftIndex, currentSpread.rightIndex) < totalPages - 1;
+    Math.max(currentSpread.leftIndex, currentSpread.rightIndex) <
+    totalPages - 1;
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
@@ -475,7 +496,13 @@ export default function CataloguePublicPreviewPage() {
         targetPage,
         interaction: "auto",
         settleTo: null,
-        ...getFlipImageUrls(pages, currentPage, targetPage, viewMode, direction),
+        ...getFlipImageUrls(
+          pages,
+          currentPage,
+          targetPage,
+          viewMode,
+          direction,
+        ),
       });
     },
     [currentPage, flip, pages, totalPages, viewMode],
@@ -540,7 +567,13 @@ export default function CataloguePublicPreviewPage() {
           targetPage,
           interaction: "drag",
           settleTo: null,
-          ...getFlipImageUrls(pages, currentPage, targetPage, viewMode, direction),
+          ...getFlipImageUrls(
+            pages,
+            currentPage,
+            targetPage,
+            viewMode,
+            direction,
+          ),
         });
         event.currentTarget.setPointerCapture(event.pointerId);
       } else {
@@ -595,7 +628,7 @@ export default function CataloguePublicPreviewPage() {
     // Mobile GPU compositing can lag React's commit by more than one frame.
     // The canvas is already frozen on the destination page here, so retaining
     // it briefly gives the DOM image a seamless handoff instead of a flash.
-    window.setTimeout(() => setFlip(null), 100);
+    window.setTimeout(() => setFlip(null), 450);
   }, [flip]);
 
   const jumpToPage = useCallback(
