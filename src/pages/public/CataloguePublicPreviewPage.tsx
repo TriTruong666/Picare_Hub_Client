@@ -7,6 +7,7 @@ import {
   type PointerEvent,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { flushSync } from "react-dom";
 import {
   FiCheck,
   FiChevronLeft,
@@ -542,11 +543,16 @@ export default function CataloguePublicPreviewPage() {
   }, []);
 
   const completeFlip = useCallback(() => {
-    setFlip((active) => {
-      if (active) setCurrentPage(active.targetPage);
-      return null;
+    if (!flip) return;
+
+    // The WebGL leaf is the last visible frame of the old spread. Commit the
+    // destination DOM synchronously before removing that leaf, otherwise one
+    // browser frame can expose the previous pages (12–13) before 14–15 paints.
+    flushSync(() => {
+      setCurrentPage(flip.targetPage);
+      setFlip(null);
     });
-  }, []);
+  }, [flip]);
 
   const jumpToPage = useCallback(
     (page: number) => {
@@ -929,10 +935,7 @@ export default function CataloguePublicPreviewPage() {
                       backImageUrl={turningBackPage?.imageUrl}
                       direction={flip.direction}
                       durationMs={PAGE_TURN_DURATION * 1000}
-                      onComplete={() => {
-                        setCurrentPage(flip.targetPage);
-                        setFlip(null);
-                      }}
+                      onComplete={completeFlip}
                     />
                   </div>
                 ) : null}
@@ -1483,10 +1486,7 @@ export default function CataloguePublicPreviewPage() {
                           backImageUrl={turningBackPage?.imageUrl}
                           direction={flip.direction}
                           durationMs={PAGE_TURN_DURATION * 1000}
-                          onComplete={() => {
-                            setCurrentPage(flip.targetPage);
-                            setFlip(null);
-                          }}
+                          onComplete={completeFlip}
                         />
                       </div>
                     ) : null}
