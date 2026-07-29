@@ -44,6 +44,8 @@ type FlipState = {
   targetPage: number;
   interaction: "auto" | "drag";
   settleTo: 0 | 1 | null;
+  frontImageUrl: string;
+  backImageUrl?: string;
 };
 
 type Spread = {
@@ -134,6 +136,30 @@ function getPreviousPage(
     return Math.max(currentPage - 1, 0);
   }
   return currentPage <= 2 ? 0 : currentPage - 2;
+}
+
+function getFlipImageUrls(
+  pages: CatalogueDetail[],
+  currentPage: number,
+  targetPage: number,
+  viewMode: ViewMode,
+  direction: FlipDirection,
+) {
+  const source = getSpread(pages, currentPage, viewMode);
+  const destination = getSpread(pages, targetPage, viewMode);
+  const front =
+    direction === "next"
+      ? (source.rightPage ?? source.leftPage)
+      : (source.leftPage ?? source.rightPage);
+  const back =
+    direction === "next"
+      ? (destination.leftPage ?? destination.rightPage)
+      : (destination.rightPage ?? destination.leftPage);
+
+  return {
+    frontImageUrl: front?.imageUrl ?? "",
+    backImageUrl: back?.imageUrl,
+  };
 }
 
 function IconButton({
@@ -444,7 +470,13 @@ export default function CataloguePublicPreviewPage() {
         setIsPlaying(false);
       }
 
-      setFlip({ direction, targetPage, interaction: "auto", settleTo: null });
+      setFlip({
+        direction,
+        targetPage,
+        interaction: "auto",
+        settleTo: null,
+        ...getFlipImageUrls(pages, currentPage, targetPage, viewMode, direction),
+      });
     },
     [currentPage, flip, pages, totalPages, viewMode],
   );
@@ -503,7 +535,13 @@ export default function CataloguePublicPreviewPage() {
           direction === "next"
             ? getNextPage(currentPage, totalPages, viewMode)
             : getPreviousPage(currentPage, viewMode);
-        setFlip({ direction, targetPage, interaction: "drag", settleTo: null });
+        setFlip({
+          direction,
+          targetPage,
+          interaction: "drag",
+          settleTo: null,
+          ...getFlipImageUrls(pages, currentPage, targetPage, viewMode, direction),
+        });
         event.currentTarget.setPointerCapture(event.pointerId);
       } else {
         flipProgressRef.current = Math.min(
@@ -514,7 +552,7 @@ export default function CataloguePublicPreviewPage() {
 
       event.preventDefault();
     },
-    [canGoNext, canGoPrevious, currentPage, totalPages, viewMode],
+    [canGoNext, canGoPrevious, currentPage, pages, totalPages, viewMode],
   );
 
   const releasePagePointer = useCallback(
@@ -548,12 +586,13 @@ export default function CataloguePublicPreviewPage() {
     if (!flip) return;
 
     // The WebGL leaf is the last visible frame of the old spread. Commit the
-    // destination DOM synchronously before removing that leaf, otherwise one
-    // browser frame can expose the previous pages (12–13) before 14–15 paints.
+    // destination DOM synchronously, then leave the final canvas frame in
+    // place for one compositor frame. This prevents the old spread flashing
+    // between the leaf and its destination spread.
     flushSync(() => {
       setCurrentPage(flip.targetPage);
-      setFlip(null);
     });
+    window.requestAnimationFrame(() => setFlip(null));
   }, [flip]);
 
   const jumpToPage = useCallback(
@@ -679,15 +718,6 @@ export default function CataloguePublicPreviewPage() {
     flip?.direction === "next"
       ? targetSpread.rightIndex
       : currentSpread.rightIndex;
-
-  const turningFrontPage =
-    flip?.direction === "next"
-      ? (currentSpread.rightPage ?? currentSpread.leftPage)
-      : (currentSpread.leftPage ?? currentSpread.rightPage);
-  const turningBackPage =
-    flip?.direction === "next"
-      ? (targetSpread.leftPage ?? targetSpread.rightPage)
-      : (targetSpread.rightPage ?? targetSpread.leftPage);
 
   const activePageIndexes = new Set([
     currentSpread.leftIndex,
@@ -884,11 +914,11 @@ export default function CataloguePublicPreviewPage() {
                 ) : null}
 
                 {/* 3D BOOK LEAF FLIP LAYER WITH OGL WEBGL CANVAS */}
-                {flip && turningFrontPage ? (
+                {flip?.frontImageUrl ? (
                   <div className="absolute inset-0 z-30">
                     <CataloguePageTurnCanvas
-                      frontImageUrl={turningFrontPage.imageUrl}
-                      backImageUrl={turningBackPage?.imageUrl}
+                      frontImageUrl={flip.frontImageUrl}
+                      backImageUrl={flip.backImageUrl}
                       direction={flip.direction}
                       durationMs={PAGE_TURN_DURATION * 1000}
                       progressRef={
@@ -929,11 +959,11 @@ export default function CataloguePublicPreviewPage() {
                 ) : null}
 
                 {/* 3D SINGLE-PAGE FLIP LEAF LAYER WITH OGL WEBGL CANVAS */}
-                {flip && turningFrontPage ? (
+                {flip?.frontImageUrl ? (
                   <div className="absolute inset-0 z-30 h-full w-full">
                     <CataloguePageTurnCanvas
-                      frontImageUrl={turningFrontPage.imageUrl}
-                      backImageUrl={turningBackPage?.imageUrl}
+                      frontImageUrl={flip.frontImageUrl}
+                      backImageUrl={flip.backImageUrl}
                       direction={flip.direction}
                       durationMs={PAGE_TURN_DURATION * 1000}
                       onComplete={completeFlip}
@@ -1240,7 +1270,7 @@ export default function CataloguePublicPreviewPage() {
                     ) : null}
 
                     {/* Replaced by the interactive OGL leaf below. Kept disabled while preserving the old markup. */}
-                    {renderLegacyZoomFlip && flip && turningFrontPage ? (
+                    {renderLegacyZoomFlip && flip?.frontImageUrl ? (
                       <motion.div
                         initial={{
                           rotateY: 0,
@@ -1321,7 +1351,7 @@ export default function CataloguePublicPreviewPage() {
                           }}
                         >
                           <img
-                            src={turningFrontPage.imageUrl}
+                            src={flip.frontImageUrl}
                             alt=""
                             draggable={false}
                             decoding="async"
@@ -1370,7 +1400,7 @@ export default function CataloguePublicPreviewPage() {
                         </motion.div>
 
                         {/* BACK SIDE OF TURNING LEAF */}
-                        {turningBackPage ? (
+                        {flip.backImageUrl ? (
                           <motion.div
                             initial={{
                               borderTopRightRadius: "0px",
@@ -1409,7 +1439,7 @@ export default function CataloguePublicPreviewPage() {
                             }}
                           >
                             <img
-                              src={turningBackPage.imageUrl}
+                              src={flip.backImageUrl}
                               alt=""
                               draggable={false}
                               decoding="async"
@@ -1432,11 +1462,11 @@ export default function CataloguePublicPreviewPage() {
                         ) : null}
                       </motion.div>
                     ) : null}
-                    {flip && turningFrontPage ? (
+                    {flip?.frontImageUrl ? (
                       <div className="absolute inset-0 z-30">
                         <CataloguePageTurnCanvas
-                          frontImageUrl={turningFrontPage.imageUrl}
-                          backImageUrl={turningBackPage?.imageUrl}
+                          frontImageUrl={flip.frontImageUrl}
+                          backImageUrl={flip.backImageUrl}
                           direction={flip.direction}
                           durationMs={PAGE_TURN_DURATION * 1000}
                           progressRef={
@@ -1480,11 +1510,11 @@ export default function CataloguePublicPreviewPage() {
                     ) : null}
 
                     {/* 3D SINGLE-PAGE FLIP LEAF LAYER WITH OGL WEBGL CANVAS */}
-                    {flip && turningFrontPage ? (
+                    {flip?.frontImageUrl ? (
                       <div className="absolute inset-0 z-30 h-full w-full">
                         <CataloguePageTurnCanvas
-                          frontImageUrl={turningFrontPage.imageUrl}
-                          backImageUrl={turningBackPage?.imageUrl}
+                          frontImageUrl={flip.frontImageUrl}
+                          backImageUrl={flip.backImageUrl}
                           direction={flip.direction}
                           durationMs={PAGE_TURN_DURATION * 1000}
                           onComplete={completeFlip}
