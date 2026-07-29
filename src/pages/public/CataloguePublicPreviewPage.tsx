@@ -372,16 +372,14 @@ export default function CataloguePublicPreviewPage() {
   }, [pages]);
 
   const totalPages = pages.length;
-  const currentSpread = getSpread(pages, currentPage, viewMode, isMobile);
+  const currentSpread = getSpread(pages, currentPage, viewMode);
   const targetSpread = flip
-    ? getSpread(pages, flip.targetPage, viewMode, isMobile)
+    ? getSpread(pages, flip.targetPage, viewMode)
     : currentSpread;
 
   const canGoPrevious = currentPage > 0;
-  const canGoNext = isMobile
-    ? currentPage < totalPages - 1
-    : Math.max(currentSpread.leftIndex, currentSpread.rightIndex) <
-      totalPages - 1;
+  const canGoNext =
+    Math.max(currentSpread.leftIndex, currentSpread.rightIndex) < totalPages - 1;
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
@@ -438,7 +436,7 @@ export default function CataloguePublicPreviewPage() {
     (direction: FlipDirection, targetPage: number) => {
       if (flip || targetPage === currentPage) return;
 
-      const destination = getSpread(pages, targetPage, viewMode, isMobile);
+      const destination = getSpread(pages, targetPage, viewMode);
       if (
         Math.max(destination.leftIndex, destination.rightIndex) >=
         totalPages - 1
@@ -448,18 +446,18 @@ export default function CataloguePublicPreviewPage() {
 
       setFlip({ direction, targetPage, interaction: "auto", settleTo: null });
     },
-    [currentPage, flip, isMobile, pages, totalPages, viewMode],
+    [currentPage, flip, pages, totalPages, viewMode],
   );
 
   const goNext = useCallback(() => {
     if (!canGoNext) return;
-    startFlip("next", getNextPage(currentPage, totalPages, viewMode, isMobile));
-  }, [canGoNext, currentPage, isMobile, startFlip, totalPages, viewMode]);
+    startFlip("next", getNextPage(currentPage, totalPages, viewMode));
+  }, [canGoNext, currentPage, startFlip, totalPages, viewMode]);
 
   const goPrevious = useCallback(() => {
     if (!canGoPrevious) return;
-    startFlip("prev", getPreviousPage(currentPage, viewMode, isMobile));
-  }, [canGoPrevious, currentPage, isMobile, startFlip, viewMode]);
+    startFlip("prev", getPreviousPage(currentPage, viewMode));
+  }, [canGoPrevious, currentPage, startFlip, viewMode]);
 
   const handlePagePointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
@@ -503,8 +501,8 @@ export default function CataloguePublicPreviewPage() {
         );
         const targetPage =
           direction === "next"
-            ? getNextPage(currentPage, totalPages, viewMode, isMobile)
-            : getPreviousPage(currentPage, viewMode, isMobile);
+            ? getNextPage(currentPage, totalPages, viewMode)
+            : getPreviousPage(currentPage, viewMode);
         setFlip({ direction, targetPage, interaction: "drag", settleTo: null });
         event.currentTarget.setPointerCapture(event.pointerId);
       } else {
@@ -516,7 +514,7 @@ export default function CataloguePublicPreviewPage() {
 
       event.preventDefault();
     },
-    [canGoNext, canGoPrevious, currentPage, isMobile, totalPages, viewMode],
+    [canGoNext, canGoPrevious, currentPage, totalPages, viewMode],
   );
 
   const releasePagePointer = useCallback(
@@ -561,7 +559,7 @@ export default function CataloguePublicPreviewPage() {
   const jumpToPage = useCallback(
     (page: number) => {
       const clampedPage = Math.max(0, Math.min(page, totalPages - 1));
-      const targetPage = normalizePageForMode(clampedPage, viewMode, isMobile);
+      const targetPage = normalizePageForMode(clampedPage, viewMode);
       if (targetPage === currentPage) {
         setShowThumbnails(false);
         return;
@@ -570,7 +568,7 @@ export default function CataloguePublicPreviewPage() {
       startFlip(targetPage > currentPage ? "next" : "prev", targetPage);
       setShowThumbnails(false);
     },
-    [currentPage, isMobile, startFlip, totalPages, viewMode],
+    [currentPage, startFlip, totalPages, viewMode],
   );
 
   useEffect(() => {
@@ -686,9 +684,8 @@ export default function CataloguePublicPreviewPage() {
     flip?.direction === "next"
       ? (currentSpread.rightPage ?? currentSpread.leftPage)
       : (currentSpread.leftPage ?? currentSpread.rightPage);
-  const turningBackPage = isMobile
-    ? (targetSpread.rightPage ?? targetSpread.leftPage)
-    : flip?.direction === "next"
+  const turningBackPage =
+    flip?.direction === "next"
       ? (targetSpread.leftPage ?? targetSpread.rightPage)
       : (targetSpread.rightPage ?? targetSpread.leftPage);
 
