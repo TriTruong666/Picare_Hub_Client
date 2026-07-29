@@ -470,6 +470,10 @@ export default function CataloguePublicPreviewPage() {
         lastX: event.clientX,
         startedAt: performance.now(),
       };
+      // Capture immediately on touch. A large mobile spread extends beyond
+      // its visible stage, so waiting until the first move lets the browser
+      // cancel the gesture before the reader's drag handler receives it.
+      event.currentTarget.setPointerCapture(event.pointerId);
     },
     [flip],
   );
@@ -820,7 +824,7 @@ export default function CataloguePublicPreviewPage() {
             mass: 1,
             delay: 0.25,
           }}
-          className="relative shrink-0 cursor-grab touch-pan-y active:cursor-grabbing"
+          className="relative shrink-0 cursor-grab touch-none active:cursor-grabbing sm:touch-pan-y"
           style={{
             width: isMobile
               ? "calc(70dvh * 1.414)"
@@ -1166,7 +1170,7 @@ export default function CataloguePublicPreviewPage() {
                 opacity: 0,
               }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="relative shrink-0 cursor-grab touch-pan-y active:cursor-grabbing"
+              className="relative shrink-0 cursor-grab touch-none active:cursor-grabbing sm:touch-pan-y"
               style={{
                 width: isMobile
                   ? "calc(80dvh * 1.414)"
