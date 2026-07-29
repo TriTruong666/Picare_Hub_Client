@@ -743,7 +743,7 @@ export default function CataloguePublicPreviewPage() {
             damping: 20,
             delay: 0.25,
           }}
-          className="pointer-events-none absolute inset-x-28 top-1/2 -translate-y-1/2 text-center"
+          className="pointer-events-none absolute inset-x-28 top-1/2 hidden -translate-y-1/2 text-center sm:block"
         >
           <p className="truncate text-[0.8125rem] font-normal tracking-[-0.01em] text-black/80 dark:text-white/78">
             {catalogue.catalogueName}
