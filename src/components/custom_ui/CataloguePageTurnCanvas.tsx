@@ -79,6 +79,7 @@ uniform float uBackAspect;
 uniform float uPageAspect;
 uniform float uFrontReady;
 uniform float uBackReady;
+uniform float uProgress;
 
 varying vec2 vUv;
 varying float vDepth;
@@ -114,10 +115,10 @@ vec4 sampleContained(sampler2D image, vec2 sourceUv, float imageAspect) {
 void main() {
   vec4 color;
 
-  bool isFront = gl_FrontFacing;
-  if (vDepth < -0.01) {
-    isFront = false;
-  }
+  // Winding becomes numerically unstable when a curved leaf reaches its
+  // final 180° pose. Progress is the reliable physical side: before the
+  // hinge crossing we show the front; after it we show the reverse page.
+  bool isFront = uProgress < 0.5;
 
   // Never show the temporary 2x2 paper texture. Before the decoded image is
   // on the GPU, leave this face transparent and keep the existing DOM page
@@ -201,6 +202,8 @@ export function CataloguePageTurnCanvas({
     let cancelled = false;
     let didFinish = false;
     let didSettle = false;
+    let frontTextureFailed = false;
+    let backTextureFailed = false;
 
     const finish = () => {
       if (didFinish || cancelled) return;
@@ -301,7 +304,11 @@ export function CataloguePageTurnCanvas({
           uniforms.uFrontAspect.value = img.naturalWidth / img.naturalHeight;
           uniforms.uFrontReady.value = 1;
         })
-        .catch(() => {});
+        .catch(() => {
+          // Keep the face transparent, but never leave the reader locked in a
+          // pending flip when a single source image fails to decode.
+          frontTextureFailed = true;
+        });
 
       if (backImageUrl) {
         void getDecodedCataloguePageImage(backImageUrl, true)
@@ -312,7 +319,9 @@ export function CataloguePageTurnCanvas({
           uniforms.uBackAspect.value = img.naturalWidth / img.naturalHeight;
           uniforms.uBackReady.value = 1;
           })
-          .catch(() => {});
+          .catch(() => {
+            backTextureFailed = true;
+          });
       }
 
       let startedAt: number | null = null;
@@ -325,7 +334,10 @@ export function CataloguePageTurnCanvas({
         // Don't advance a flip against white placeholder paper. The cached
         // decoder normally resolves immediately; on a cold image it simply
         // keeps the current DOM spread visible until both faces are usable.
-        if (uniforms.uFrontReady.value < 0.5 || uniforms.uBackReady.value < 0.5) {
+        if (
+          (uniforms.uFrontReady.value < 0.5 && !frontTextureFailed) ||
+          (uniforms.uBackReady.value < 0.5 && !backTextureFailed)
+        ) {
           renderer.render({ scene: mesh, clear: true });
           animationFrame = requestAnimationFrame(render);
           return;
