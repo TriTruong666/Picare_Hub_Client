@@ -77,6 +77,8 @@ uniform sampler2D tBack;
 uniform float uFrontAspect;
 uniform float uBackAspect;
 uniform float uPageAspect;
+uniform float uFrontReady;
+uniform float uBackReady;
 
 varying vec2 vUv;
 varying float vDepth;
@@ -115,6 +117,14 @@ void main() {
   bool isFront = gl_FrontFacing;
   if (vDepth < -0.01) {
     isFront = false;
+  }
+
+  // Never show the temporary 2x2 paper texture. Before the decoded image is
+  // on the GPU, leave this face transparent and keep the existing DOM page
+  // visible underneath.
+  if ((isFront && uFrontReady < 0.5) || (!isFront && uBackReady < 0.5)) {
+    gl_FragColor = vec4(0.0);
+    return;
   }
 
   if (isFront) {
@@ -243,6 +253,8 @@ export function CataloguePageTurnCanvas({
         uFrontAspect: { value: 0.707 },
         uBackAspect: { value: 0.707 },
         uPageAspect: { value: 0.707 },
+        uFrontReady: { value: 0 },
+        uBackReady: { value: 0 },
         tFront: { value: frontTexture },
         tBack: { value: backTexture },
       };
@@ -287,6 +299,7 @@ export function CataloguePageTurnCanvas({
           frontTexture.image = img;
           frontTexture.needsUpdate = true;
           uniforms.uFrontAspect.value = img.naturalWidth / img.naturalHeight;
+          uniforms.uFrontReady.value = 1;
         })
         .catch(() => {});
 
@@ -294,19 +307,34 @@ export function CataloguePageTurnCanvas({
         void getDecodedCataloguePageImage(backImageUrl, true)
           .then((img) => {
             if (cancelled || !gl) return;
-            backTexture.image = img;
-            backTexture.needsUpdate = true;
-            uniforms.uBackAspect.value = img.naturalWidth / img.naturalHeight;
+          backTexture.image = img;
+          backTexture.needsUpdate = true;
+          uniforms.uBackAspect.value = img.naturalWidth / img.naturalHeight;
+          uniforms.uBackReady.value = 1;
           })
           .catch(() => {});
       }
 
-      const startedAt = performance.now();
+      let startedAt: number | null = null;
       let currentProgress = progressRef?.current ?? 0;
       let velocity = 0;
       let previousTime = startedAt;
       const render = (now: number) => {
         if (cancelled || !renderer) return;
+
+        // Don't advance a flip against white placeholder paper. The cached
+        // decoder normally resolves immediately; on a cold image it simply
+        // keeps the current DOM spread visible until both faces are usable.
+        if (uniforms.uFrontReady.value < 0.5 || uniforms.uBackReady.value < 0.5) {
+          renderer.render({ scene: mesh, clear: true });
+          animationFrame = requestAnimationFrame(render);
+          return;
+        }
+
+        if (startedAt === null) {
+          startedAt = now;
+          previousTime = now;
+        }
 
         const requestedSettle = settleRef.current;
         if (!progressRef) {
