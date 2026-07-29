@@ -592,7 +592,10 @@ export default function CataloguePublicPreviewPage() {
     flushSync(() => {
       setCurrentPage(flip.targetPage);
     });
-    window.requestAnimationFrame(() => setFlip(null));
+    // Mobile GPU compositing can lag React's commit by more than one frame.
+    // The canvas is already frozen on the destination page here, so retaining
+    // it briefly gives the DOM image a seamless handoff instead of a flash.
+    window.setTimeout(() => setFlip(null), 100);
   }, [flip]);
 
   const jumpToPage = useCallback(
