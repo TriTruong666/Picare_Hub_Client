@@ -410,6 +410,7 @@ export default function CataloguePublicPreviewPage() {
   const [copied, setCopied] = useState(false);
   const [isBookZoomed, setIsBookZoomed] = useState(false);
   const [renderLegacyZoomFlip] = useState(false);
+  const [mobilePageFocus, setMobilePageFocus] = useState<"left" | "right">("right");
 
   // Image fidelity is more important than conserving memory in this reader:
   // warm every catalogue image after data arrives so the WebGL leaf never has
@@ -542,6 +543,7 @@ export default function CataloguePublicPreviewPage() {
         lastX: event.clientX,
         startedAt: performance.now(),
       };
+      event.currentTarget.setPointerCapture(event.pointerId);
     },
     [],
   );
@@ -594,6 +596,7 @@ export default function CataloguePublicPreviewPage() {
             direction,
           ),
         });
+        event.currentTarget.setPointerCapture(event.pointerId);
       } else {
         flipProgressRef.current = Math.min(
           0.98,
@@ -642,6 +645,7 @@ export default function CataloguePublicPreviewPage() {
     // between the leaf and its destination spread.
     flushSync(() => {
       setCurrentPage(flip.targetPage);
+      setMobilePageFocus("right");
     });
     // Mobile GPU compositing can lag React's commit by more than one frame.
     // The canvas is already frozen on the destination page here, so retaining
@@ -916,13 +920,21 @@ export default function CataloguePublicPreviewPage() {
           onPointerCancel={releasePagePointer}
           initial={{
             opacity: 0,
-            x: "0%",
+            x: isMobile
+              ? mobilePageFocus === "right"
+                ? "-25%"
+                : "25%"
+              : "0%",
             y: 36,
             scale: 0.95,
           }}
           animate={{
             opacity: 1,
-            x: "0%",
+            x: isMobile
+              ? mobilePageFocus === "right"
+                ? "-25%"
+                : "25%"
+              : "0%",
             y: 0,
             scale: 1,
           }}
@@ -933,10 +945,10 @@ export default function CataloguePublicPreviewPage() {
             mass: 1,
             delay: 0.25,
           }}
-          className="relative shrink-0 cursor-grab touch-pan-y active:cursor-grabbing"
+          className="relative shrink-0 cursor-grab touch-none active:cursor-grabbing sm:touch-pan-y"
           style={{
             width: isMobile
-              ? "min(96vw, calc((100dvh - 10rem) * 1.414))"
+              ? "calc(70dvh * 1.414)"
               : "min(88vw, calc((100dvh - 13.5rem) * 1.414))",
             aspectRatio: "1.414 / 1",
             perspective: "2800px",
@@ -1056,6 +1068,31 @@ export default function CataloguePublicPreviewPage() {
             )}
           </div>
         </motion.div>
+        {isMobile ? (
+          <button
+            type="button"
+            onClick={() =>
+              setMobilePageFocus((side) =>
+                side === "right" ? "left" : "right",
+              )
+            }
+            className="absolute top-3 left-3 z-50 inline-flex h-10 items-center gap-1.5 border border-white/16 bg-black/70 px-3 text-xs text-white/85 shadow-lg backdrop-blur-md transition-colors active:bg-black"
+            aria-label={
+              mobilePageFocus === "right"
+                ? "Xem trang bên trái"
+                : "Xem trang bên phải"
+            }
+          >
+            {mobilePageFocus === "right" ? (
+              <FiChevronLeft className="size-4" />
+            ) : (
+              <FiChevronRight className="size-4" />
+            )}
+            <span>
+              {mobilePageFocus === "right" ? "Trang trái" : "Trang phải"}
+            </span>
+          </button>
+        ) : null}
       </main>
 
       {/* FOOTER */}
@@ -1264,25 +1301,37 @@ export default function CataloguePublicPreviewPage() {
               onPointerUp={releasePagePointer}
               onPointerCancel={releasePagePointer}
               initial={{
-                x: "0%",
+                x: isMobile
+                  ? mobilePageFocus === "right"
+                    ? "-25%"
+                    : "25%"
+                  : "0%",
                 scale: 0.94,
                 opacity: 0,
               }}
               animate={{
-                x: "0%",
+                x: isMobile
+                  ? mobilePageFocus === "right"
+                    ? "-25%"
+                    : "25%"
+                  : "0%",
                 scale: 1,
                 opacity: 1,
               }}
               exit={{
-                x: "0%",
+                x: isMobile
+                  ? mobilePageFocus === "right"
+                    ? "-25%"
+                    : "25%"
+                  : "0%",
                 scale: 0.94,
                 opacity: 0,
               }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="relative shrink-0 cursor-grab touch-pan-y active:cursor-grabbing"
+              className="relative shrink-0 cursor-grab touch-none active:cursor-grabbing sm:touch-pan-y"
               style={{
                 width: isMobile
-                  ? "min(98vw, calc((100dvh - 4rem) * 1.414))"
+                  ? "calc(80dvh * 1.414)"
                   : "min(96vw, calc((100dvh - 3rem) * 1.414))",
                 aspectRatio: "1.414 / 1",
                 perspective: "3000px",
