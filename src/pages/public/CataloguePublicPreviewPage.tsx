@@ -15,10 +15,9 @@ import {
   FiChevronRight,
   FiCopy,
   FiGrid,
-  FiMaximize2,
-  FiMinimize2,
   FiPause,
   FiPlay,
+  FiRefreshCw,
   FiX,
   FiZoomIn,
   FiZoomOut,
@@ -27,6 +26,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { CataloguePageTurnCanvas } from "@/components/custom_ui/CataloguePageTurnCanvas";
 import {
+  clearCataloguePageImageCache,
   getCachedCataloguePageDisplayUrl,
   getDecodedCataloguePageImage,
   isCataloguePageImageDecoded,
@@ -535,7 +535,6 @@ export default function CataloguePublicPreviewPage() {
   } | null>(null);
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isBookZoomed, setIsBookZoomed] = useState(false);
   const [renderLegacyZoomFlip] = useState(false);
@@ -598,16 +597,6 @@ export default function CataloguePublicPreviewPage() {
       document.removeEventListener("visibilitychange", cancelWhenHidden);
     };
   }, [resetTurnInteraction]);
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === containerRef.current);
-    };
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () =>
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, []);
 
   // Auto-scroll active thumbnail into view when drawer opens or page changes
   useEffect(() => {
@@ -911,30 +900,11 @@ export default function CataloguePublicPreviewPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goNext, goPrevious, isBookZoomed, jumpToPage, totalPages]);
 
-  const toggleFullscreen = async () => {
-    const orientation = screen.orientation as unknown as {
-      lock?: (orientation: string) => Promise<void>;
-      unlock?: () => void;
-    };
-
-    if (document.fullscreenElement) {
-      await document.exitFullscreen?.();
-      try {
-        orientation?.unlock?.();
-      } catch {
-        // Some mobile browsers do not expose orientation unlock.
-      }
-      return;
-    }
-
-    await containerRef.current?.requestFullscreen?.();
-    if (isMobile) {
-      try {
-        await orientation?.lock?.("landscape");
-      } catch {
-        // iOS Safari intentionally does not permit webpages to force rotation.
-      }
-    }
+  const refreshCatalogueImages = () => {
+    resetTurnInteraction();
+    clearCataloguePageImageCache();
+    toast.info("Đang làm mới ảnh", "Tải lại catalogue không dùng cache cũ...");
+    window.setTimeout(() => window.location.reload(), 180);
   };
 
   const handleCopyLink = async () => {
@@ -1089,11 +1059,11 @@ export default function CataloguePublicPreviewPage() {
             {copied ? <FiCheck /> : <FiCopy />}
           </IconButton>
           <IconButton
-            label={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
-            onClick={toggleFullscreen}
+            label="Làm mới ảnh"
+            onClick={refreshCatalogueImages}
             position="bottom"
           >
-            {isFullscreen ? <FiMinimize2 /> : <FiMaximize2 />}
+            <FiRefreshCw />
           </IconButton>
           <ThemeToggle className="!h-10 !w-10 !rounded-none !border-0 !border-b !border-transparent !bg-transparent !shadow-none !backdrop-blur-none hover:!border-black/20 hover:!bg-transparent dark:!bg-transparent dark:hover:!border-white/18" />
         </motion.div>

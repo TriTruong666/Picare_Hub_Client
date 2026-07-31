@@ -4,6 +4,15 @@ const displayImageUrlCache = new Map<string, string>();
 const preloadQueue: Array<{ url: string; start: () => void }> = [];
 let activePreloads = 0;
 const MAX_CONCURRENT_PRELOADS = 4;
+const FORCE_NETWORK_RELOAD_KEY = "picare.catalogue.force-network-reload";
+let forceNetworkReload = false;
+
+try {
+  forceNetworkReload = sessionStorage.getItem(FORCE_NETWORK_RELOAD_KEY) === "1";
+  sessionStorage.removeItem(FORCE_NETWORK_RELOAD_KEY);
+} catch {
+  // Storage can be unavailable in private browsing contexts.
+}
 
 function imageCrossOrigin(img: HTMLImageElement) {
   try {
@@ -17,7 +26,11 @@ async function loadImage(url: string, displayCacheKey: string): Promise<HTMLImag
   if (!url) throw new Error("Invalid image URL");
 
   try {
-    const response = await fetch(url, { mode: "cors", cache: "force-cache" });
+    const response = await fetch(url, {
+      mode: "cors",
+      // A reader refresh must bypass a possibly opaque/stale HTTP cache entry.
+      cache: forceNetworkReload ? "reload" : "force-cache",
+    });
     if (response.ok) {
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
@@ -128,6 +141,28 @@ export function isCataloguePageImageDecoded(url?: string) {
 
 export function getCachedCataloguePageDisplayUrl(url: string) {
   return displayImageUrlCache.get(url) ?? url;
+}
+
+/**
+ * Drop reader-owned decoded/Blob images and make the next reader load re-fetch
+ * the images from S3 instead of accepting a stale browser-cache response.
+ */
+export function clearCataloguePageImageCache() {
+  decodedImageCache.clear();
+  decodedImageUrls.clear();
+  preloadQueue.splice(0, preloadQueue.length);
+  activePreloads = 0;
+  for (const objectUrl of new Set(displayImageUrlCache.values())) {
+    if (objectUrl.startsWith("blob:")) URL.revokeObjectURL(objectUrl);
+  }
+  displayImageUrlCache.clear();
+  forceNetworkReload = true;
+
+  try {
+    sessionStorage.setItem(FORCE_NETWORK_RELOAD_KEY, "1");
+  } catch {
+    // The in-memory flag still covers the current page.
+  }
 }
 
 /** Preload and decode every catalogue page in parallel before reading begins. */
