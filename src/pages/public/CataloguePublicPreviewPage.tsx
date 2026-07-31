@@ -4,8 +4,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type MutableRefObject,
-  type PointerEvent,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { flushSync } from "react-dom";
@@ -46,8 +44,6 @@ type FlipDirection = "next" | "prev";
 type FlipState = {
   direction: FlipDirection;
   targetPage: number;
-  interaction: "auto" | "drag";
-  settleTo: 0 | 1 | null;
   frontImageUrl: string;
   backImageUrl?: string;
   renderer: "webgl" | "css";
@@ -284,13 +280,11 @@ function CssPageTurnFallback({
 
 function CatalogueTurnLayer({
   flip,
-  progressRef,
   onComplete,
   onCancel,
   onWebglUnavailable,
 }: {
   flip: FlipState | null;
-  progressRef: MutableRefObject<number>;
   onComplete: () => void;
   onCancel: () => void;
   onWebglUnavailable: () => void;
@@ -316,8 +310,6 @@ function CatalogueTurnLayer({
         backImageUrl={flip.backImageUrl}
         direction={flip.direction}
         durationMs={PAGE_TURN_DURATION * 1000}
-        progressRef={flip.interaction === "drag" ? progressRef : undefined}
-        settleTo={flip.settleTo}
         onComplete={onComplete}
         onCancel={onCancel}
         onUnavailable={onWebglUnavailable}
@@ -524,29 +516,20 @@ export default function CataloguePublicPreviewPage() {
       window.matchMedia("(max-width: 767px)").matches,
   );
   const [flip, setFlip] = useState<FlipState | null>(null);
-  const flipProgressRef = useRef(0);
   const flipQueueRef = useRef<FlipDirection[]>([]);
-  const dragRef = useRef<{
-    pointerId: number;
-    startX: number;
-    lastX: number;
-    startedAt: number;
-    direction?: FlipDirection;
-  } | null>(null);
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isBookZoomed, setIsBookZoomed] = useState(false);
   const [renderLegacyZoomFlip] = useState(false);
   const [mobilePageFocus, setMobilePageFocus] = useState<"left" | "right">("right");
+  const [showTapHint, setShowTapHint] = useState(true);
   const lastWebglFallbackToastRef = useRef(0);
 
   // A responsive breakpoint change can unmount/remount the active turn layer
   // while its pointer is captured. Never leave that partial turn (or queued
   // clicks behind it) alive, otherwise navigation appears frozen afterwards.
   const resetTurnInteraction = useCallback(() => {
-    dragRef.current = null;
-    flipProgressRef.current = 0;
     flipQueueRef.current = [];
     setFlip(null);
   }, []);
@@ -557,6 +540,11 @@ export default function CataloguePublicPreviewPage() {
   useEffect(() => {
     preloadCataloguePageImages(pages.map((page) => page.imageUrl));
   }, [pages]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setShowTapHint(false), 3000);
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   const totalPages = pages.length;
   const currentSpread = getSpread(pages, currentPage, viewMode);
@@ -639,8 +627,6 @@ export default function CataloguePublicPreviewPage() {
       setFlip({
         direction,
         targetPage,
-        interaction: "auto",
-        settleTo: null,
         renderer: "webgl",
         ...getFlipImageUrls(
           pages,
@@ -697,103 +683,6 @@ export default function CataloguePublicPreviewPage() {
     [canGoNext, canGoPrevious, goNext, goPrevious, isMobile],
   );
 
-  const handlePagePointerDown = useCallback(
-    (event: PointerEvent<HTMLDivElement>) => {
-      if (event.pointerType === "mouse" && event.button !== 0) return;
-      dragRef.current = {
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        lastX: event.clientX,
-        startedAt: performance.now(),
-      };
-    },
-    [],
-  );
-
-  const handlePagePointerMove = useCallback(
-    (event: PointerEvent<HTMLDivElement>) => {
-      const drag = dragRef.current;
-      if (!drag || drag.pointerId !== event.pointerId) return;
-
-      const deltaX = event.clientX - drag.startX;
-      drag.lastX = event.clientX;
-      if (flip) {
-        if (Math.abs(deltaX) >= 24) {
-          enqueueFlip(deltaX < 0 ? "next" : "prev");
-          dragRef.current = null;
-          event.preventDefault();
-        }
-        return;
-      }
-      if (!drag.direction && Math.abs(deltaX) < 10) return;
-
-      const direction: FlipDirection =
-        drag.direction ?? (deltaX < 0 ? "next" : "prev");
-      if (!drag.direction) {
-        const canTurn = direction === "next" ? canGoNext : canGoPrevious;
-        if (!canTurn) {
-          dragRef.current = null;
-          return;
-        }
-
-        drag.direction = direction;
-        flipProgressRef.current = Math.min(
-          0.98,
-          Math.abs(deltaX) / Math.max(1, event.currentTarget.clientWidth / 2),
-        );
-        const targetPage =
-          direction === "next"
-            ? getNextPage(currentPage, totalPages, viewMode)
-            : getPreviousPage(currentPage, viewMode);
-        setFlip({
-          direction,
-          targetPage,
-          interaction: "drag",
-          settleTo: null,
-          renderer: "webgl",
-          ...getFlipImageUrls(
-            pages,
-            currentPage,
-            targetPage,
-            viewMode,
-            direction,
-          ),
-        });
-        event.currentTarget.setPointerCapture(event.pointerId);
-      } else {
-        flipProgressRef.current = Math.min(
-          0.98,
-          Math.abs(deltaX) / Math.max(1, event.currentTarget.clientWidth / 2),
-        );
-      }
-
-      event.preventDefault();
-    },
-    [canGoNext, canGoPrevious, currentPage, enqueueFlip, flip, pages, totalPages, viewMode],
-  );
-
-  const releasePagePointer = useCallback(
-    (event: PointerEvent<HTMLDivElement>) => {
-      const drag = dragRef.current;
-      if (!drag || drag.pointerId !== event.pointerId) return;
-      dragRef.current = null;
-      if (!drag.direction) return;
-
-      const elapsed = Math.max(1, performance.now() - drag.startedAt);
-      const velocity = (drag.lastX - drag.startX) / elapsed;
-      const progress = flipProgressRef.current;
-      const commit =
-        progress > 0.42 ||
-        (drag.direction === "next" ? velocity < -0.55 : velocity > 0.55);
-      setFlip((active) =>
-        active?.interaction === "drag"
-          ? { ...active, settleTo: commit ? 1 : 0 }
-          : active,
-      );
-    },
-    [],
-  );
-
   const cancelInteractiveFlip = useCallback(() => {
     resetTurnInteraction();
   }, [resetTurnInteraction]);
@@ -809,7 +698,7 @@ export default function CataloguePublicPreviewPage() {
     }
     setFlip((active) =>
       active?.renderer === "webgl"
-        ? { ...active, renderer: "css", interaction: "auto", settleTo: null }
+        ? { ...active, renderer: "css" }
         : active,
     );
   }, []);
@@ -1073,10 +962,6 @@ export default function CataloguePublicPreviewPage() {
       <main className="relative flex min-h-0 flex-1 items-center justify-center px-11 py-3 sm:px-16 lg:px-24">
         {/* STAGE CONTAINER WITH TOUCH SWIPE & MOUSE DRAG */}
         <motion.div
-          onPointerDown={handlePagePointerDown}
-          onPointerMove={handlePagePointerMove}
-          onPointerUp={releasePagePointer}
-          onPointerCancel={releasePagePointer}
           initial={{
             opacity: 0,
             x: isMobile
@@ -1104,7 +989,7 @@ export default function CataloguePublicPreviewPage() {
             mass: 1,
             delay: 0.25,
           }}
-          className="relative shrink-0 cursor-grab touch-none active:cursor-grabbing sm:touch-pan-y"
+          className="relative shrink-0 select-none"
           style={{
             width: isMobile
               ? "calc(70dvh * 1.414)"
@@ -1171,7 +1056,6 @@ export default function CataloguePublicPreviewPage() {
                 {/* 3D BOOK LEAF FLIP LAYER WITH OGL WEBGL CANVAS */}
                 <CatalogueTurnLayer
                   flip={flip}
-                  progressRef={flipProgressRef}
                   onComplete={completeFlip}
                   onCancel={cancelInteractiveFlip}
                   onWebglUnavailable={handleWebglUnavailable}
@@ -1206,7 +1090,6 @@ export default function CataloguePublicPreviewPage() {
                 {/* 3D SINGLE-PAGE FLIP LEAF LAYER WITH OGL WEBGL CANVAS */}
                 <CatalogueTurnLayer
                   flip={flip}
-                  progressRef={flipProgressRef}
                   onComplete={completeFlip}
                   onCancel={cancelInteractiveFlip}
                   onWebglUnavailable={handleWebglUnavailable}
@@ -1215,6 +1098,19 @@ export default function CataloguePublicPreviewPage() {
             )}
           </div>
         </motion.div>
+        <AnimatePresence>
+          {showTapHint ? (
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.98 }}
+              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+              className="pointer-events-none absolute bottom-5 z-40 border border-black/12 bg-[#f5f4f0]/92 px-3 py-2 text-xs text-black/68 shadow-lg backdrop-blur-md dark:border-white/15 dark:bg-[#111111]/92 dark:text-white/75"
+            >
+              Bấm vào trang trái hoặc phải để lật
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
         {isMobile ? (
           <button
             type="button"
@@ -1470,10 +1366,6 @@ export default function CataloguePublicPreviewPage() {
             {/* Zoomed Book Stage Container */}
             <motion.div
               onClick={(e) => e.stopPropagation()}
-              onPointerDown={handlePagePointerDown}
-              onPointerMove={handlePagePointerMove}
-              onPointerUp={releasePagePointer}
-              onPointerCancel={releasePagePointer}
               initial={{
                 x: isMobile
                   ? mobilePageFocus === "right"
@@ -1502,7 +1394,7 @@ export default function CataloguePublicPreviewPage() {
                 opacity: 0,
               }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="relative shrink-0 cursor-grab touch-none active:cursor-grabbing sm:touch-pan-y"
+              className="relative shrink-0 select-none"
               style={{
                 width: isMobile
                   ? "calc(80dvh * 1.414)"
@@ -1773,7 +1665,6 @@ export default function CataloguePublicPreviewPage() {
                     ) : null}
                     <CatalogueTurnLayer
                       flip={flip}
-                      progressRef={flipProgressRef}
                       onComplete={completeFlip}
                       onCancel={cancelInteractiveFlip}
                       onWebglUnavailable={handleWebglUnavailable}
@@ -1810,7 +1701,6 @@ export default function CataloguePublicPreviewPage() {
                     {/* 3D SINGLE-PAGE FLIP LEAF LAYER WITH OGL WEBGL CANVAS */}
                     <CatalogueTurnLayer
                       flip={flip}
-                      progressRef={flipProgressRef}
                       onComplete={completeFlip}
                       onCancel={cancelInteractiveFlip}
                       onWebglUnavailable={handleWebglUnavailable}
