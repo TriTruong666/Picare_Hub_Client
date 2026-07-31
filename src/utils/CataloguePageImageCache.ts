@@ -13,7 +13,28 @@ function imageCrossOrigin(img: HTMLImageElement) {
   }
 }
 
-async function loadImage(url: string): Promise<HTMLImageElement> {
+/**
+ * Keep the request used by WebGL separate from a prior plain <img> request.
+ * Browsers may otherwise reuse an opaque image-cache entry, which taints the
+ * canvas even if the later request asks for CORS.
+ */
+export function getCatalogueWebglImageUrl(imageUrl: string) {
+  if (!imageUrl || imageUrl.startsWith("data:") || imageUrl.startsWith("blob:")) {
+    return imageUrl;
+  }
+
+  try {
+    const url = new URL(imageUrl, window.location.href);
+    url.searchParams.set("cors", "true");
+    return url.toString();
+  } catch {
+    // Preserve malformed/relative values so the caller reports the real load
+    // failure instead of hiding it behind URL parsing.
+    return imageUrl;
+  }
+}
+
+async function loadImage(url: string, displayCacheKey: string): Promise<HTMLImageElement> {
   if (!url) throw new Error("Invalid image URL");
 
   try {
@@ -23,17 +44,20 @@ async function loadImage(url: string): Promise<HTMLImageElement> {
       const objectUrl = URL.createObjectURL(blob);
       return await new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
+        imageCrossOrigin(img);
         img.onload = () => {
           void img.decode().catch(() => undefined).finally(() => {
             // Retain the Blob URL for DOM <img> and thumbnails. This avoids a
             // second S3 request after the WebGL texture has already decoded.
             displayImageUrlCache.set(url, objectUrl);
+            displayImageUrlCache.set(displayCacheKey, objectUrl);
             resolve(img);
           });
         };
         img.onerror = () => {
           URL.revokeObjectURL(objectUrl);
           displayImageUrlCache.delete(url);
+          displayImageUrlCache.delete(displayCacheKey);
           reject(new Error("Blob image load failed"));
         };
         img.src = objectUrl;
@@ -45,9 +69,7 @@ async function loadImage(url: string): Promise<HTMLImageElement> {
 
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image();
-    if (!url.startsWith("data:") && !url.startsWith("blob:")) {
-      imageCrossOrigin(img);
-    }
+    imageCrossOrigin(img);
     img.decoding = "async";
     img.onload = () => {
       void img.decode().catch(() => undefined).finally(() => resolve(img));
@@ -69,12 +91,13 @@ export function getDecodedCataloguePageImage(
   priority = false,
   eager = false,
 ): Promise<HTMLImageElement> {
-  const cached = decodedImageCache.get(url);
+  const requestUrl = getCatalogueWebglImageUrl(url);
+  const cached = decodedImageCache.get(requestUrl);
   if (cached) {
     // A reader can reach a page before background warming gets to it. Move that
     // pending decode to the front instead of showing a white WebGL placeholder.
     if (priority) {
-      const queuedIndex = preloadQueue.findIndex((job) => job.url === url);
+      const queuedIndex = preloadQueue.findIndex((job) => job.url === requestUrl);
       if (queuedIndex > 0) {
         const [queuedJob] = preloadQueue.splice(queuedIndex, 1);
         if (queuedJob) preloadQueue.unshift(queuedJob);
@@ -89,15 +112,16 @@ export function getDecodedCataloguePageImage(
     resolveRequest = resolve;
     rejectRequest = reject;
   });
-  decodedImageCache.set(url, request);
+  decodedImageCache.set(requestUrl, request);
 
   const start = (countsTowardsQueue: boolean) => {
-    void loadImage(url)
+    void loadImage(requestUrl, url)
       .then((image) => {
         decodedImageUrls.add(url);
+        decodedImageUrls.add(requestUrl);
         resolveRequest(image);
       }, (error) => {
-        decodedImageCache.delete(url);
+        decodedImageCache.delete(requestUrl);
         rejectRequest(error);
       })
       .finally(() => {
@@ -113,7 +137,7 @@ export function getDecodedCataloguePageImage(
     // network conservation: decode the entire initial catalogue at once.
     start(false);
   } else {
-    const job = { url, start: () => start(true) };
+    const job = { url: requestUrl, start: () => start(true) };
     if (priority) preloadQueue.unshift(job);
     else preloadQueue.push(job);
     drainPreloadQueue();

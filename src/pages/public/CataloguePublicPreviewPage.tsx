@@ -37,6 +37,7 @@ import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
 import { useCatalogueDetail } from "@/hooks/data/useCatalogueHooks";
+import { toast } from "@/hooks/useToast";
 import type { CatalogueDetail } from "@/types/Catalogue";
 
 type ViewMode = "double" | "single";
@@ -533,6 +534,7 @@ export default function CataloguePublicPreviewPage() {
   const [isBookZoomed, setIsBookZoomed] = useState(false);
   const [renderLegacyZoomFlip] = useState(false);
   const [mobilePageFocus, setMobilePageFocus] = useState<"left" | "right">("right");
+  const lastWebglFallbackToastRef = useRef(0);
 
   // Image fidelity is more important than conserving memory in this reader:
   // warm every catalogue image after data arrives so the WebGL leaf never has
@@ -657,6 +659,30 @@ export default function CataloguePublicPreviewPage() {
     startFlip("prev", getPreviousPage(currentPage, viewMode));
   }, [canGoPrevious, currentPage, enqueueFlip, flip, startFlip, viewMode]);
 
+  const handleMobilePageTap = useCallback(
+    (side: "left" | "right") => {
+      if (!isMobile) {
+        setIsBookZoomed(true);
+        return;
+      }
+
+      if (mobilePageFocus !== side) {
+        setMobilePageFocus(side);
+        return;
+      }
+
+      if (side === "right") {
+        if (canGoNext) goNext();
+        else toast.info("Đã ở trang cuối");
+      } else if (canGoPrevious) {
+        goPrevious();
+      } else {
+        toast.info("Đã ở trang đầu");
+      }
+    },
+    [canGoNext, canGoPrevious, goNext, goPrevious, isMobile, mobilePageFocus],
+  );
+
   const handlePagePointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       if (event.pointerType === "mouse" && event.button !== 0) return;
@@ -761,6 +787,14 @@ export default function CataloguePublicPreviewPage() {
   }, []);
 
   const handleWebglUnavailable = useCallback(() => {
+    const now = Date.now();
+    if (now - lastWebglFallbackToastRef.current > 5000) {
+      lastWebglFallbackToastRef.current = now;
+      toast.warning(
+        "Không thể tạo hiệu ứng 3D cho ảnh này",
+        "Ảnh không cho phép WebGL đọc dữ liệu (thường do CORS). Đã dùng hiệu ứng thay thế.",
+      );
+    }
     setFlip((active) =>
       active?.renderer === "webgl"
         ? { ...active, renderer: "css", interaction: "auto", settleTo: null }
@@ -1102,7 +1136,7 @@ export default function CataloguePublicPreviewPage() {
                       displayLeftIndex >= 0 ? displayLeftIndex + 1 : undefined
                     }
                     side="left"
-                    onClick={() => setIsBookZoomed(true)}
+                    onClick={() => handleMobilePageTap("left")}
                   />
                 </div>
                 <div className="relative h-full w-1/2 overflow-hidden">
@@ -1112,7 +1146,7 @@ export default function CataloguePublicPreviewPage() {
                       displayRightIndex >= 0 ? displayRightIndex + 1 : undefined
                     }
                     side="right"
-                    onClick={() => setIsBookZoomed(true)}
+                    onClick={() => handleMobilePageTap("right")}
                   />
                 </div>
                 <div className="pointer-events-none absolute inset-y-0 left-1/2 z-20 w-px bg-black/70" />
@@ -1157,7 +1191,7 @@ export default function CataloguePublicPreviewPage() {
                     displayLeftIndex >= 0 ? displayLeftIndex + 1 : undefined
                   }
                   side="single"
-                  onClick={() => setIsBookZoomed(true)}
+                  onClick={() => handleMobilePageTap("right")}
                 />
 
                 {/* Underside Paper Shadow during Flip */}
@@ -1474,7 +1508,8 @@ export default function CataloguePublicPreviewPage() {
                         side="left"
                         isZoomed
                         onClick={() => {
-                          if (canGoPrevious && !flip) goPrevious();
+                          if (isMobile) handleMobilePageTap("left");
+                          else if (canGoPrevious && !flip) goPrevious();
                         }}
                       />
                     </div>
@@ -1489,7 +1524,8 @@ export default function CataloguePublicPreviewPage() {
                         side="right"
                         isZoomed
                         onClick={() => {
-                          if (canGoNext && !flip) goNext();
+                          if (isMobile) handleMobilePageTap("right");
+                          else if (canGoNext && !flip) goNext();
                         }}
                       />
                     </div>
