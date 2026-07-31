@@ -542,10 +542,6 @@ export default function CataloguePublicPreviewPage() {
         lastX: event.clientX,
         startedAt: performance.now(),
       };
-      // Capture immediately on touch. A large mobile spread extends beyond
-      // its visible stage, so waiting until the first move lets the browser
-      // cancel the gesture before the reader's drag handler receives it.
-      event.currentTarget.setPointerCapture(event.pointerId);
     },
     [],
   );
@@ -598,7 +594,6 @@ export default function CataloguePublicPreviewPage() {
             direction,
           ),
         });
-        event.currentTarget.setPointerCapture(event.pointerId);
       } else {
         flipProgressRef.current = Math.min(
           0.98,
@@ -921,15 +916,13 @@ export default function CataloguePublicPreviewPage() {
           onPointerCancel={releasePagePointer}
           initial={{
             opacity: 0,
-            // Keep the reading page centred; the previous page may overflow
-            // off-screen on phones, like a real open book held close.
-            x: isMobile ? "-25%" : "0%",
+            x: "0%",
             y: 36,
             scale: 0.95,
           }}
           animate={{
             opacity: 1,
-            x: isMobile ? "-25%" : "0%",
+            x: "0%",
             y: 0,
             scale: 1,
           }}
@@ -940,10 +933,10 @@ export default function CataloguePublicPreviewPage() {
             mass: 1,
             delay: 0.25,
           }}
-          className="relative shrink-0 cursor-grab touch-none active:cursor-grabbing sm:touch-pan-y"
+          className="relative shrink-0 cursor-grab touch-pan-y active:cursor-grabbing"
           style={{
             width: isMobile
-              ? "calc(70dvh * 1.414)"
+              ? "min(96vw, calc((100dvh - 10rem) * 1.414))"
               : "min(88vw, calc((100dvh - 13.5rem) * 1.414))",
             aspectRatio: "1.414 / 1",
             perspective: "2800px",
@@ -1271,25 +1264,25 @@ export default function CataloguePublicPreviewPage() {
               onPointerUp={releasePagePointer}
               onPointerCancel={releasePagePointer}
               initial={{
-                x: isMobile ? "-25%" : "0%",
+                x: "0%",
                 scale: 0.94,
                 opacity: 0,
               }}
               animate={{
-                x: isMobile ? "-25%" : "0%",
+                x: "0%",
                 scale: 1,
                 opacity: 1,
               }}
               exit={{
-                x: isMobile ? "-25%" : "0%",
+                x: "0%",
                 scale: 0.94,
                 opacity: 0,
               }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="relative shrink-0 cursor-grab touch-none active:cursor-grabbing sm:touch-pan-y"
+              className="relative shrink-0 cursor-grab touch-pan-y active:cursor-grabbing"
               style={{
                 width: isMobile
-                  ? "calc(80dvh * 1.414)"
+                  ? "min(98vw, calc((100dvh - 4rem) * 1.414))"
                   : "min(96vw, calc((100dvh - 3rem) * 1.414))",
                 aspectRatio: "1.414 / 1",
                 perspective: "3000px",
