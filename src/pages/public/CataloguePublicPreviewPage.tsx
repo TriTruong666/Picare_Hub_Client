@@ -396,6 +396,7 @@ export default function CataloguePublicPreviewPage() {
   );
   const [flip, setFlip] = useState<FlipState | null>(null);
   const flipProgressRef = useRef(0);
+  const flipQueueRef = useRef<FlipDirection[]>([]);
   const dragRef = useRef<{
     pointerId: number;
     startX: number;
@@ -508,19 +509,33 @@ export default function CataloguePublicPreviewPage() {
     [currentPage, flip, pages, totalPages, viewMode],
   );
 
+  const enqueueFlip = useCallback((direction: FlipDirection) => {
+    const queue = flipQueueRef.current;
+    if (queue.length < 3) queue.push(direction);
+    else queue[queue.length - 1] = direction;
+  }, []);
+
   const goNext = useCallback(() => {
+    if (flip) {
+      enqueueFlip("next");
+      return;
+    }
     if (!canGoNext) return;
     startFlip("next", getNextPage(currentPage, totalPages, viewMode));
-  }, [canGoNext, currentPage, startFlip, totalPages, viewMode]);
+  }, [canGoNext, currentPage, enqueueFlip, flip, startFlip, totalPages, viewMode]);
 
   const goPrevious = useCallback(() => {
+    if (flip) {
+      enqueueFlip("prev");
+      return;
+    }
     if (!canGoPrevious) return;
     startFlip("prev", getPreviousPage(currentPage, viewMode));
-  }, [canGoPrevious, currentPage, startFlip, viewMode]);
+  }, [canGoPrevious, currentPage, enqueueFlip, flip, startFlip, viewMode]);
 
   const handlePagePointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
-      if (flip || (event.pointerType === "mouse" && event.button !== 0)) return;
+      if (event.pointerType === "mouse" && event.button !== 0) return;
       dragRef.current = {
         pointerId: event.pointerId,
         startX: event.clientX,
@@ -532,7 +547,7 @@ export default function CataloguePublicPreviewPage() {
       // cancel the gesture before the reader's drag handler receives it.
       event.currentTarget.setPointerCapture(event.pointerId);
     },
-    [flip],
+    [],
   );
 
   const handlePagePointerMove = useCallback(
@@ -542,6 +557,14 @@ export default function CataloguePublicPreviewPage() {
 
       const deltaX = event.clientX - drag.startX;
       drag.lastX = event.clientX;
+      if (flip) {
+        if (Math.abs(deltaX) >= 24) {
+          enqueueFlip(deltaX < 0 ? "next" : "prev");
+          dragRef.current = null;
+          event.preventDefault();
+        }
+        return;
+      }
       if (!drag.direction && Math.abs(deltaX) < 10) return;
 
       const direction: FlipDirection =
@@ -585,7 +608,7 @@ export default function CataloguePublicPreviewPage() {
 
       event.preventDefault();
     },
-    [canGoNext, canGoPrevious, currentPage, pages, totalPages, viewMode],
+    [canGoNext, canGoPrevious, currentPage, enqueueFlip, flip, pages, totalPages, viewMode],
   );
 
   const releasePagePointer = useCallback(
@@ -630,6 +653,19 @@ export default function CataloguePublicPreviewPage() {
     // it briefly gives the DOM image a seamless handoff instead of a flash.
     window.setTimeout(() => setFlip(null), 450);
   }, [flip]);
+
+  useEffect(() => {
+    if (flip) return;
+
+    const direction = flipQueueRef.current.shift();
+    if (!direction) return;
+
+    if (direction === "next" && canGoNext) {
+      startFlip("next", getNextPage(currentPage, totalPages, viewMode));
+    } else if (direction === "prev" && canGoPrevious) {
+      startFlip("prev", getPreviousPage(currentPage, viewMode));
+    }
+  }, [canGoNext, canGoPrevious, currentPage, flip, startFlip, totalPages, viewMode]);
 
   const jumpToPage = useCallback(
     (page: number) => {
@@ -688,12 +724,29 @@ export default function CataloguePublicPreviewPage() {
   }, [goNext, goPrevious, isBookZoomed, jumpToPage, totalPages]);
 
   const toggleFullscreen = async () => {
+    const orientation = screen.orientation as unknown as {
+      lock?: (orientation: string) => Promise<void>;
+      unlock?: () => void;
+    };
+
     if (document.fullscreenElement) {
       await document.exitFullscreen?.();
+      try {
+        orientation?.unlock?.();
+      } catch {
+        // Some mobile browsers do not expose orientation unlock.
+      }
       return;
     }
 
     await containerRef.current?.requestFullscreen?.();
+    if (isMobile) {
+      try {
+        await orientation?.lock?.("landscape");
+      } catch {
+        // iOS Safari intentionally does not permit webpages to force rotation.
+      }
+    }
   };
 
   const handleCopyLink = async () => {
@@ -1038,7 +1091,7 @@ export default function CataloguePublicPreviewPage() {
         >
           <IconButton
             label={canGoPrevious ? "Trang trước" : "Đang ở trang đầu"}
-            disabled={!canGoPrevious || Boolean(flip)}
+            disabled={!canGoPrevious}
             onClick={goPrevious}
             position="top"
           >
@@ -1047,7 +1100,7 @@ export default function CataloguePublicPreviewPage() {
 
           <IconButton
             label={canGoNext ? "Trang tiếp theo" : "Đang ở trang cuối"}
-            disabled={!canGoNext || Boolean(flip)}
+            disabled={!canGoNext}
             onClick={goNext}
             position="top"
           >
