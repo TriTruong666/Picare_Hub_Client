@@ -1,5 +1,6 @@
 const decodedImageCache = new Map<string, Promise<HTMLImageElement>>();
 const decodedImageUrls = new Set<string>();
+const displayImageUrlCache = new Map<string, string>();
 const preloadQueue: Array<{ url: string; start: () => void }> = [];
 let activePreloads = 0;
 const MAX_CONCURRENT_PRELOADS = 4;
@@ -16,7 +17,7 @@ async function loadImage(url: string): Promise<HTMLImageElement> {
   if (!url) throw new Error("Invalid image URL");
 
   try {
-    const response = await fetch(url, { mode: "cors" });
+    const response = await fetch(url, { mode: "cors", cache: "force-cache" });
     if (response.ok) {
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
@@ -24,12 +25,15 @@ async function loadImage(url: string): Promise<HTMLImageElement> {
         const img = new Image();
         img.onload = () => {
           void img.decode().catch(() => undefined).finally(() => {
-            URL.revokeObjectURL(objectUrl);
+            // Retain the Blob URL for DOM <img> and thumbnails. This avoids a
+            // second S3 request after the WebGL texture has already decoded.
+            displayImageUrlCache.set(url, objectUrl);
             resolve(img);
           });
         };
         img.onerror = () => {
           URL.revokeObjectURL(objectUrl);
+          displayImageUrlCache.delete(url);
           reject(new Error("Blob image load failed"));
         };
         img.src = objectUrl;
@@ -119,6 +123,10 @@ export function getDecodedCataloguePageImage(
 
 export function isCataloguePageImageDecoded(url?: string) {
   return Boolean(url && decodedImageUrls.has(url));
+}
+
+export function getCachedCataloguePageDisplayUrl(url: string) {
+  return displayImageUrlCache.get(url) ?? url;
 }
 
 /** Preload and decode every catalogue page in parallel before reading begins. */

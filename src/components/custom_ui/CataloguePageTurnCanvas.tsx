@@ -16,6 +16,8 @@ type CataloguePageTurnCanvasProps = {
   settleTo?: 0 | 1 | null;
   onComplete?: () => void;
   onCancel?: () => void;
+  /** Called when WebGL cannot use either source image (for example CORS). */
+  onUnavailable?: () => void;
 };
 
 const vertexShader = `
@@ -172,10 +174,12 @@ export function CataloguePageTurnCanvas({
   settleTo = null,
   onComplete,
   onCancel,
+  onUnavailable,
 }: CataloguePageTurnCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const completeRef = useRef(onComplete);
   const cancelRef = useRef(onCancel);
+  const unavailableRef = useRef(onUnavailable);
   const settleRef = useRef(settleTo);
 
   useEffect(() => {
@@ -185,6 +189,10 @@ export function CataloguePageTurnCanvas({
   useEffect(() => {
     cancelRef.current = onCancel;
   }, [onCancel]);
+
+  useEffect(() => {
+    unavailableRef.current = onUnavailable;
+  }, [onUnavailable]);
 
   useEffect(() => {
     settleRef.current = settleTo;
@@ -204,6 +212,13 @@ export function CataloguePageTurnCanvas({
     let didSettle = false;
     let frontTextureFailed = false;
     let backTextureFailed = false;
+    let didReportUnavailable = false;
+
+    const reportUnavailable = () => {
+      if (didReportUnavailable || cancelled) return;
+      didReportUnavailable = true;
+      unavailableRef.current?.();
+    };
 
     const finish = () => {
       if (didFinish || cancelled) return;
@@ -308,6 +323,7 @@ export function CataloguePageTurnCanvas({
           // Keep the face transparent, but never leave the reader locked in a
           // pending flip when a single source image fails to decode.
           frontTextureFailed = true;
+          reportUnavailable();
         });
 
       if (backImageUrl) {
@@ -321,6 +337,7 @@ export function CataloguePageTurnCanvas({
           })
           .catch(() => {
             backTextureFailed = true;
+            reportUnavailable();
           });
       }
 
@@ -382,7 +399,7 @@ export function CataloguePageTurnCanvas({
         try {
           renderer.render({ scene: mesh, clear: true });
         } catch {
-          finish();
+          reportUnavailable();
           return;
         }
 
@@ -400,6 +417,7 @@ export function CataloguePageTurnCanvas({
 
       animationFrame = requestAnimationFrame(render);
     } catch {
+      reportUnavailable();
       window.setTimeout(finish, durationMs);
     }
 

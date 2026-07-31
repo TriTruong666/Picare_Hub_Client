@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type MutableRefObject,
   type PointerEvent,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -26,6 +27,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { CataloguePageTurnCanvas } from "@/components/custom_ui/CataloguePageTurnCanvas";
 import {
+  getCachedCataloguePageDisplayUrl,
   getDecodedCataloguePageImage,
   isCataloguePageImageDecoded,
   preloadCataloguePageImages,
@@ -47,6 +49,7 @@ type FlipState = {
   settleTo: 0 | 1 | null;
   frontImageUrl: string;
   backImageUrl?: string;
+  renderer: "webgl" | "css";
 };
 
 type Spread = {
@@ -201,6 +204,125 @@ function IconButton({
   );
 }
 
+function CssPageTurnFallback({
+  frontImageUrl,
+  backImageUrl = frontImageUrl,
+  direction,
+  duration,
+  onComplete,
+}: {
+  frontImageUrl: string;
+  backImageUrl?: string;
+  direction: FlipDirection;
+  duration: number;
+  onComplete: () => void;
+}) {
+  const isNext = direction === "next";
+
+  return (
+    <motion.div
+      initial={{ rotateY: 0, skewY: 0, rotateZ: 0, scaleY: 1 }}
+      animate={{
+        rotateY: isNext ? -180 : 180,
+        skewY: isNext ? [0, -5, 0] : [0, 5, 0],
+        rotateZ: isNext ? [0, -1.5, 0] : [0, 1.5, 0],
+        scaleY: [1, 0.975, 1],
+      }}
+      transition={{
+        duration,
+        times: [0, 0.5, 1],
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      onAnimationComplete={onComplete}
+      className="absolute inset-y-0 z-30 overflow-visible"
+      style={{
+        left: isNext ? "50%" : "0%",
+        width: "50%",
+        transformOrigin: isNext ? "left center" : "right center",
+        transformStyle: "preserve-3d",
+      }}
+    >
+      <div
+        className="absolute inset-0 overflow-hidden bg-[#f8f7f3] shadow-[0_22px_60px_rgba(0,0,0,0.48)]"
+        style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
+      >
+        <img
+          src={getCachedCataloguePageDisplayUrl(frontImageUrl)}
+          alt=""
+          draggable={false}
+          className="h-full w-full object-contain"
+        />
+        <div
+          className={`pointer-events-none absolute inset-y-0 w-12 blur-md ${
+            isNext
+              ? "right-0 bg-linear-to-l from-black/45 to-transparent"
+              : "left-0 bg-linear-to-r from-black/45 to-transparent"
+          }`}
+        />
+      </div>
+      <div
+        className="absolute inset-0 overflow-hidden bg-[#f8f7f3]"
+        style={{
+          backfaceVisibility: "hidden",
+          WebkitBackfaceVisibility: "hidden",
+          transform: "rotateY(180deg) translateZ(0.1px)",
+        }}
+      >
+        <img
+          src={getCachedCataloguePageDisplayUrl(backImageUrl)}
+          alt=""
+          draggable={false}
+          className="h-full w-full object-contain"
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+function CatalogueTurnLayer({
+  flip,
+  progressRef,
+  onComplete,
+  onCancel,
+  onWebglUnavailable,
+}: {
+  flip: FlipState | null;
+  progressRef: MutableRefObject<number>;
+  onComplete: () => void;
+  onCancel: () => void;
+  onWebglUnavailable: () => void;
+}) {
+  if (!flip?.frontImageUrl) return null;
+
+  if (flip.renderer === "css") {
+    return (
+      <CssPageTurnFallback
+        frontImageUrl={flip.frontImageUrl}
+        backImageUrl={flip.backImageUrl}
+        direction={flip.direction}
+        duration={PAGE_TURN_DURATION}
+        onComplete={onComplete}
+      />
+    );
+  }
+
+  return (
+    <div className="absolute inset-0 z-30">
+      <CataloguePageTurnCanvas
+        frontImageUrl={flip.frontImageUrl}
+        backImageUrl={flip.backImageUrl}
+        direction={flip.direction}
+        durationMs={PAGE_TURN_DURATION * 1000}
+        progressRef={flip.interaction === "drag" ? progressRef : undefined}
+        settleTo={flip.settleTo}
+        onComplete={onComplete}
+        onCancel={onCancel}
+        onUnavailable={onWebglUnavailable}
+      />
+    </div>
+  );
+}
+
 /**
  * Optimized Catalogue Page component with skeleton shimmer loading
  * and async image decoding for ultra-smooth rendering.
@@ -281,7 +403,7 @@ function CataloguePage({
       )}
 
       <img
-        src={page.imageUrl}
+        src={getCachedCataloguePageDisplayUrl(page.imageUrl)}
         alt={`Trang ${pageNumber}`}
         draggable={false}
         loading="eager"
@@ -352,7 +474,7 @@ function ThumbnailItem({
           <div className="absolute inset-0 animate-pulse bg-white/8" />
         )}
         <img
-          src={page.imageUrl}
+          src={getCachedCataloguePageDisplayUrl(page.imageUrl)}
           alt={`Trang ${index + 1}`}
           loading="lazy"
           decoding="async"
@@ -498,6 +620,7 @@ export default function CataloguePublicPreviewPage() {
         targetPage,
         interaction: "auto",
         settleTo: null,
+        renderer: "webgl",
         ...getFlipImageUrls(
           pages,
           currentPage,
@@ -588,6 +711,7 @@ export default function CataloguePublicPreviewPage() {
           targetPage,
           interaction: "drag",
           settleTo: null,
+          renderer: "webgl",
           ...getFlipImageUrls(
             pages,
             currentPage,
@@ -634,6 +758,14 @@ export default function CataloguePublicPreviewPage() {
   const cancelInteractiveFlip = useCallback(() => {
     dragRef.current = null;
     setFlip(null);
+  }, []);
+
+  const handleWebglUnavailable = useCallback(() => {
+    setFlip((active) =>
+      active?.renderer === "webgl"
+        ? { ...active, renderer: "css", interaction: "auto", settleTo: null }
+        : active,
+    );
   }, []);
 
   const completeFlip = useCallback(() => {
@@ -1008,24 +1140,13 @@ export default function CataloguePublicPreviewPage() {
                 ) : null}
 
                 {/* 3D BOOK LEAF FLIP LAYER WITH OGL WEBGL CANVAS */}
-                {flip?.frontImageUrl ? (
-                  <div className="absolute inset-0 z-30">
-                    <CataloguePageTurnCanvas
-                      frontImageUrl={flip.frontImageUrl}
-                      backImageUrl={flip.backImageUrl}
-                      direction={flip.direction}
-                      durationMs={PAGE_TURN_DURATION * 1000}
-                      progressRef={
-                        flip.interaction === "drag"
-                          ? flipProgressRef
-                          : undefined
-                      }
-                      settleTo={flip.settleTo}
-                      onComplete={completeFlip}
-                      onCancel={cancelInteractiveFlip}
-                    />
-                  </div>
-                ) : null}
+                <CatalogueTurnLayer
+                  flip={flip}
+                  progressRef={flipProgressRef}
+                  onComplete={completeFlip}
+                  onCancel={cancelInteractiveFlip}
+                  onWebglUnavailable={handleWebglUnavailable}
+                />
               </>
             ) : (
               /* SINGLE-PAGE MODE WITH 3D CURVED PAPER FLIP */
@@ -1053,17 +1174,13 @@ export default function CataloguePublicPreviewPage() {
                 ) : null}
 
                 {/* 3D SINGLE-PAGE FLIP LEAF LAYER WITH OGL WEBGL CANVAS */}
-                {flip?.frontImageUrl ? (
-                  <div className="absolute inset-0 z-30 h-full w-full">
-                    <CataloguePageTurnCanvas
-                      frontImageUrl={flip.frontImageUrl}
-                      backImageUrl={flip.backImageUrl}
-                      direction={flip.direction}
-                      durationMs={PAGE_TURN_DURATION * 1000}
-                      onComplete={completeFlip}
-                    />
-                  </div>
-                ) : null}
+                <CatalogueTurnLayer
+                  flip={flip}
+                  progressRef={flipProgressRef}
+                  onComplete={completeFlip}
+                  onCancel={cancelInteractiveFlip}
+                  onWebglUnavailable={handleWebglUnavailable}
+                />
               </div>
             )}
           </div>
@@ -1593,24 +1710,13 @@ export default function CataloguePublicPreviewPage() {
                         ) : null}
                       </motion.div>
                     ) : null}
-                    {flip?.frontImageUrl ? (
-                      <div className="absolute inset-0 z-30">
-                        <CataloguePageTurnCanvas
-                          frontImageUrl={flip.frontImageUrl}
-                          backImageUrl={flip.backImageUrl}
-                          direction={flip.direction}
-                          durationMs={PAGE_TURN_DURATION * 1000}
-                          progressRef={
-                            flip.interaction === "drag"
-                              ? flipProgressRef
-                              : undefined
-                          }
-                          settleTo={flip.settleTo}
-                          onComplete={completeFlip}
-                          onCancel={cancelInteractiveFlip}
-                        />
-                      </div>
-                    ) : null}
+                    <CatalogueTurnLayer
+                      flip={flip}
+                      progressRef={flipProgressRef}
+                      onComplete={completeFlip}
+                      onCancel={cancelInteractiveFlip}
+                      onWebglUnavailable={handleWebglUnavailable}
+                    />
                   </>
                 ) : (
                   /* SINGLE PAGE SPREAD IN ZOOMED VIEW WITH 3D FLIP */
@@ -1641,17 +1747,13 @@ export default function CataloguePublicPreviewPage() {
                     ) : null}
 
                     {/* 3D SINGLE-PAGE FLIP LEAF LAYER WITH OGL WEBGL CANVAS */}
-                    {flip?.frontImageUrl ? (
-                      <div className="absolute inset-0 z-30 h-full w-full">
-                        <CataloguePageTurnCanvas
-                          frontImageUrl={flip.frontImageUrl}
-                          backImageUrl={flip.backImageUrl}
-                          direction={flip.direction}
-                          durationMs={PAGE_TURN_DURATION * 1000}
-                          onComplete={completeFlip}
-                        />
-                      </div>
-                    ) : null}
+                    <CatalogueTurnLayer
+                      flip={flip}
+                      progressRef={flipProgressRef}
+                      onComplete={completeFlip}
+                      onCancel={cancelInteractiveFlip}
+                      onWebglUnavailable={handleWebglUnavailable}
+                    />
                   </div>
                 )}
               </div>
