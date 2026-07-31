@@ -249,6 +249,7 @@ function CssPageTurnFallback({
       >
         <img
           src={getCachedCataloguePageDisplayUrl(frontImageUrl)}
+          crossOrigin="anonymous"
           alt=""
           draggable={false}
           className="h-full w-full object-contain"
@@ -271,6 +272,7 @@ function CssPageTurnFallback({
       >
         <img
           src={getCachedCataloguePageDisplayUrl(backImageUrl)}
+          crossOrigin="anonymous"
           alt=""
           draggable={false}
           className="h-full w-full object-contain"
@@ -334,12 +336,14 @@ function CataloguePage({
   side,
   onClick,
   isZoomed = false,
+  isMobile = false,
 }: {
   page: CatalogueDetail | null;
   pageNumber?: number;
   side: "left" | "right" | "single";
   onClick?: () => void;
   isZoomed?: boolean;
+  isMobile?: boolean;
 }) {
   const [loadedImageUrl, setLoadedImageUrl] = useState<string | null>(null);
   const isLoaded =
@@ -384,10 +388,10 @@ function CataloguePage({
       whileHover={{ scale: isZoomed ? 1 : 1.004 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className={`group relative block h-full w-full overflow-hidden bg-[#f8f7f3] text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white ${
-        isZoomed ? "cursor-pointer" : "cursor-zoom-in"
+        isZoomed || isMobile ? "cursor-pointer" : "cursor-zoom-in"
       }`}
       aria-label={
-        isZoomed
+        isZoomed || isMobile
           ? side === "left"
             ? `Trang ${pageNumber} (Trang trước)`
             : side === "right"
@@ -405,6 +409,7 @@ function CataloguePage({
 
       <img
         src={getCachedCataloguePageDisplayUrl(page.imageUrl)}
+        crossOrigin="anonymous"
         alt={`Trang ${pageNumber}`}
         draggable={false}
         loading="eager"
@@ -476,6 +481,7 @@ function ThumbnailItem({
         )}
         <img
           src={getCachedCataloguePageDisplayUrl(page.imageUrl)}
+          crossOrigin="anonymous"
           alt={`Trang ${index + 1}`}
           loading="lazy"
           decoding="async"
@@ -536,6 +542,16 @@ export default function CataloguePublicPreviewPage() {
   const [mobilePageFocus, setMobilePageFocus] = useState<"left" | "right">("right");
   const lastWebglFallbackToastRef = useRef(0);
 
+  // A responsive breakpoint change can unmount/remount the active turn layer
+  // while its pointer is captured. Never leave that partial turn (or queued
+  // clicks behind it) alive, otherwise navigation appears frozen afterwards.
+  const resetTurnInteraction = useCallback(() => {
+    dragRef.current = null;
+    flipProgressRef.current = 0;
+    flipQueueRef.current = [];
+    setFlip(null);
+  }, []);
+
   // Image fidelity is more important than conserving memory in this reader:
   // warm every catalogue image after data arrives so the WebGL leaf never has
   // to expose a placeholder while it is being held or turned.
@@ -557,17 +573,31 @@ export default function CataloguePublicPreviewPage() {
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
     const handleChange = () => {
+      resetTurnInteraction();
       setIsMobile(media.matches);
       if (media.matches) {
         setCurrentPage((page) => Math.max(page, 0));
-        setFlip(null);
       }
     };
 
     handleChange();
     media.addEventListener("change", handleChange);
     return () => media.removeEventListener("change", handleChange);
-  }, []);
+  }, [resetTurnInteraction]);
+
+  useEffect(() => {
+    const cancelInterruptedTurn = () => resetTurnInteraction();
+    const cancelWhenHidden = () => {
+      if (document.visibilityState === "hidden") cancelInterruptedTurn();
+    };
+
+    window.addEventListener("blur", cancelInterruptedTurn);
+    document.addEventListener("visibilitychange", cancelWhenHidden);
+    return () => {
+      window.removeEventListener("blur", cancelInterruptedTurn);
+      document.removeEventListener("visibilitychange", cancelWhenHidden);
+    };
+  }, [resetTurnInteraction]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -666,11 +696,6 @@ export default function CataloguePublicPreviewPage() {
         return;
       }
 
-      if (mobilePageFocus !== side) {
-        setMobilePageFocus(side);
-        return;
-      }
-
       if (side === "right") {
         if (canGoNext) goNext();
         else toast.info("Đã ở trang cuối");
@@ -680,7 +705,7 @@ export default function CataloguePublicPreviewPage() {
         toast.info("Đã ở trang đầu");
       }
     },
-    [canGoNext, canGoPrevious, goNext, goPrevious, isMobile, mobilePageFocus],
+    [canGoNext, canGoPrevious, goNext, goPrevious, isMobile],
   );
 
   const handlePagePointerDown = useCallback(
@@ -692,7 +717,6 @@ export default function CataloguePublicPreviewPage() {
         lastX: event.clientX,
         startedAt: performance.now(),
       };
-      event.currentTarget.setPointerCapture(event.pointerId);
     },
     [],
   );
@@ -782,9 +806,8 @@ export default function CataloguePublicPreviewPage() {
   );
 
   const cancelInteractiveFlip = useCallback(() => {
-    dragRef.current = null;
-    setFlip(null);
-  }, []);
+    resetTurnInteraction();
+  }, [resetTurnInteraction]);
 
   const handleWebglUnavailable = useCallback(() => {
     const now = Date.now();
@@ -1136,6 +1159,7 @@ export default function CataloguePublicPreviewPage() {
                       displayLeftIndex >= 0 ? displayLeftIndex + 1 : undefined
                     }
                     side="left"
+                    isMobile={isMobile}
                     onClick={() => handleMobilePageTap("left")}
                   />
                 </div>
@@ -1146,6 +1170,7 @@ export default function CataloguePublicPreviewPage() {
                       displayRightIndex >= 0 ? displayRightIndex + 1 : undefined
                     }
                     side="right"
+                    isMobile={isMobile}
                     onClick={() => handleMobilePageTap("right")}
                   />
                 </div>
@@ -1191,6 +1216,7 @@ export default function CataloguePublicPreviewPage() {
                     displayLeftIndex >= 0 ? displayLeftIndex + 1 : undefined
                   }
                   side="single"
+                  isMobile={isMobile}
                   onClick={() => handleMobilePageTap("right")}
                 />
 
@@ -1444,6 +1470,33 @@ export default function CataloguePublicPreviewPage() {
               <FiX className="size-6" />
             </motion.button>
 
+            {isMobile ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setMobilePageFocus((side) =>
+                    side === "right" ? "left" : "right",
+                  );
+                }}
+                className="fixed top-5 left-5 z-50 inline-flex h-10 items-center gap-1.5 border border-white/16 bg-black/70 px-3 text-xs text-white/85 shadow-lg backdrop-blur-md transition-colors active:bg-black"
+                aria-label={
+                  mobilePageFocus === "right"
+                    ? "Xem trang bên trái"
+                    : "Xem trang bên phải"
+                }
+              >
+                {mobilePageFocus === "right" ? (
+                  <FiChevronLeft className="size-4" />
+                ) : (
+                  <FiChevronRight className="size-4" />
+                )}
+                <span>
+                  {mobilePageFocus === "right" ? "Trang trái" : "Trang phải"}
+                </span>
+              </button>
+            ) : null}
+
             {/* Zoomed Book Stage Container */}
             <motion.div
               onClick={(e) => e.stopPropagation()}
@@ -1636,6 +1689,7 @@ export default function CataloguePublicPreviewPage() {
                         >
                           <img
                             src={flip.frontImageUrl}
+                            crossOrigin="anonymous"
                             alt=""
                             draggable={false}
                             decoding="async"
@@ -1724,6 +1778,7 @@ export default function CataloguePublicPreviewPage() {
                           >
                             <img
                               src={flip.backImageUrl}
+                              crossOrigin="anonymous"
                               alt=""
                               draggable={false}
                               decoding="async"
