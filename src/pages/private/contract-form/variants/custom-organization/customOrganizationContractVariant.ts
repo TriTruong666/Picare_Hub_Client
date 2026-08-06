@@ -9,12 +9,14 @@ export type CustomOrganizationContractFormValues = {
   title: string;
   subTitle: string;
   rawContent: string;
+  legalRegulation: string;
 };
 
 const emptyValues = (): CustomOrganizationContractFormValues => ({
   title: "",
   subTitle: "",
   rawContent: "",
+  legalRegulation: "",
 });
 
 export const customOrganizationContractVariant: ContractVariantDefinition<
@@ -36,6 +38,7 @@ export const customOrganizationContractVariant: ContractVariantDefinition<
       title: data.title ?? "",
       subTitle: data.subTitle ?? "",
       rawContent: data.rawContent ?? "",
+      legalRegulation: data.legalRegulation ?? "",
     };
   },
   validate: (values, common) => {
@@ -57,6 +60,7 @@ export const customOrganizationContractVariant: ContractVariantDefinition<
       title: values.title.trim(),
       subTitle: values.subTitle.trim(),
       rawContent: values.rawContent.trim(),
+      legalRegulation: values.legalRegulation.trim() || null,
     }) satisfies Extract<
       CreateContractPayload,
       { contractType: "custom_organization" }

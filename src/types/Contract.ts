@@ -17,6 +17,7 @@ export type CustomOrganizationContractDataPayload = {
   title: string;
   subTitle: string;
   rawContent: string;
+  legalRegulation?: string | null;
   details?: ContractDetail[];
   contractDueDate?: string | null;
   ownerCompanyInfo?: OwnerCompanyInfoPayload;
@@ -30,6 +31,7 @@ export type CustomOrganizationContractPayload = {
   title: string;
   subTitle: string;
   rawContent: string;
+  legalRegulation?: string | null;
 };
 
 export type CustomPersonalInfoPayload = {
@@ -48,6 +50,7 @@ export type CustomPersonalContractDataPayload = {
   title: string;
   subTitle: string;
   rawContent: string;
+  legalRegulation?: string | null;
   personalInfo: CustomPersonalInfoPayload;
   details?: ContractDetail[];
   contractDueDate?: string | null;
@@ -62,6 +65,7 @@ export type CustomPersonalContractPayload = {
   title: string;
   subTitle: string;
   rawContent: string;
+  legalRegulation?: string | null;
 };
 
 export type AppendixContractProductPayload = {

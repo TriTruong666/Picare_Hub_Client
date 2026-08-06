@@ -24,6 +24,15 @@ export function CustomOrganizationContractFields({
     [onChange, values],
   );
 
+  const handleLegalRegulationChange = useCallback(
+    ({ html }: { html: string }) => {
+      if (html !== values.legalRegulation) {
+        onChange({ ...values, legalRegulation: html });
+      }
+    },
+    [onChange, values],
+  );
+
   return (
     <section className="border-b border-black/10 py-6 dark:border-white/10">
       <SectionTitle>Nội dung hợp đồng</SectionTitle>
@@ -45,6 +54,18 @@ export function CustomOrganizationContractFields({
             value={values.subTitle}
             onChange={(subTitle) => onChange({ ...values, subTitle })}
             placeholder="(Về việc hợp tác kinh doanh)"
+          />
+        </div>
+        <div>
+          <FieldLabel>Quy định pháp lý</FieldLabel>
+          <SimpleEditor
+            content={values.legalRegulation}
+            placeholder="Nhập quy định pháp lý..."
+            showThemeToggle={false}
+            wrapperClassName="min-h-[260px] bg-white dark:bg-[#050505]"
+            contentClassName="min-h-[200px]"
+            editorClassName="min-h-[200px]"
+            onChange={handleLegalRegulationChange}
           />
         </div>
         <div>

@@ -65,6 +65,15 @@ export function CustomPersonalContractFields({
     [onChange, values],
   );
 
+  const handleLegalRegulationChange = useCallback(
+    ({ html }: { html: string }) => {
+      if (html !== values.legalRegulation) {
+        onChange({ ...values, legalRegulation: html });
+      }
+    },
+    [onChange, values],
+  );
+
   const updatePersonalInfo = (
     key: keyof CustomPersonalInfoPayload,
     value: string,
@@ -97,6 +106,18 @@ export function CustomPersonalContractFields({
               value={values.subTitle}
               onChange={(subTitle) => onChange({ ...values, subTitle })}
               placeholder="(Áp dụng cho nhân sự)"
+            />
+          </div>
+          <div>
+            <FieldLabel>Quy định pháp lý</FieldLabel>
+            <SimpleEditor
+              content={values.legalRegulation}
+              placeholder="Nhập quy định pháp lý..."
+              showThemeToggle={false}
+              wrapperClassName="min-h-[260px] bg-white dark:bg-[#050505]"
+              contentClassName="min-h-[200px]"
+              editorClassName="min-h-[200px]"
+              onChange={handleLegalRegulationChange}
             />
           </div>
           <div>

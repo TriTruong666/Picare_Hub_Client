@@ -907,18 +907,19 @@ function CustomOrganizationContractDocument({
             {content.subTitle}
           </p>
         ) : null}
-        <p className="mt-3 text-[15px] text-black/62 dark:text-white/62">
-          Số{" "}
-          <strong className="font-semibold text-black/82 dark:text-white/82">
-            {contract.contractNumber}
-          </strong>
-        </p>
       </section>
+      {content?.legalRegulation ? (
+        <section
+          className="custom-contract-content mt-8 text-[14px] leading-9 tracking-[0.01em] text-black/62 dark:text-white/62 [&_strong]:text-[0.95rem] [&_strong]:font-semibold [&_strong]:text-[#111111] dark:[&_strong]:text-white"
+          dangerouslySetInnerHTML={{ __html: content.legalRegulation }}
+        />
+      ) : null}
       <PartySection title={`Bên A: ${owner.companyName}`} party={owner} />
       <PartySection
         title={`Bên B: ${partner.companyName || partner.ownerName}`}
         party={partner}
       />
+
       <section
         className="custom-contract-content mt-12 text-[14px] leading-9 tracking-[0.01em] text-black/62 dark:text-white/62 [&_strong]:text-[0.95rem] [&_strong]:font-semibold [&_strong]:text-[#111111] dark:[&_strong]:text-white"
         dangerouslySetInnerHTML={{ __html: content?.rawContent || "" }}
@@ -1062,6 +1063,12 @@ function CustomPersonalContractDocument({
           </strong>
         </p>
       </section>
+      {content?.legalRegulation ? (
+        <section
+          className="custom-contract-content mt-8 text-[14px] leading-9 tracking-[0.025em] text-black/62 dark:text-white/62 [&_strong]:text-[0.95rem] [&_strong]:font-semibold [&_strong]:text-[#111111] dark:[&_strong]:text-white"
+          dangerouslySetInnerHTML={{ __html: content.legalRegulation }}
+        />
+      ) : null}
       <section
         className="custom-contract-content mt-12 text-[14px] leading-9 tracking-[0.025em] text-black/62 dark:text-white/62 [&_strong]:text-[0.95rem] [&_strong]:font-semibold [&_strong]:text-[#111111] dark:[&_strong]:text-white"
         dangerouslySetInnerHTML={{ __html: content?.rawContent || "" }}

@@ -9,6 +9,7 @@ export type CustomPersonalContractFormValues = {
   title: string;
   subTitle: string;
   rawContent: string;
+  legalRegulation: string;
   personalInfo: CustomPersonalInfoPayload;
 };
 
@@ -28,6 +29,7 @@ const emptyValues = (): CustomPersonalContractFormValues => ({
   title: "",
   subTitle: "",
   rawContent: "",
+  legalRegulation: "",
   personalInfo: { ...EMPTY_PERSONAL_INFO },
 });
 
@@ -63,6 +65,7 @@ export const customPersonalContractVariant: ContractVariantDefinition<
       title: data.title ?? "",
       subTitle: data.subTitle ?? "",
       rawContent: data.rawContent ?? "",
+      legalRegulation: data.legalRegulation ?? "",
       personalInfo: getPersonalInfo(contract),
     };
   },
@@ -96,6 +99,7 @@ export const customPersonalContractVariant: ContractVariantDefinition<
       title: values.title.trim(),
       subTitle: values.subTitle.trim(),
       rawContent: values.rawContent.trim(),
+      legalRegulation: values.legalRegulation.trim() || null,
     }) satisfies Extract<
       CreateContractPayload,
       { contractType: "custom_personal" }
