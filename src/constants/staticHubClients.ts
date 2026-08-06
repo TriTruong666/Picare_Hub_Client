@@ -35,7 +35,7 @@ export const STATIC_HUB_CLIENTS: HubClient[] = [
     clientInternalUrl: PATHS.QR_PRODUCT_GENERATOR,
     clientExternalUrl: PATHS.QR_PRODUCT_GENERATOR,
     clientStatus: "active",
-    allowedRoles: ["admin", "business_development"],
+    allowedRoles: ["admin", "business_development", "marketing"],
     note: "Static hub client",
     createdAt: "",
     updatedAt: "",
