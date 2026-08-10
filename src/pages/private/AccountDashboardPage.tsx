@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAtom } from "jotai";
-import { FiEdit2, FiPlus, FiUserPlus } from "react-icons/fi";
+import { FiEdit2, FiPlus, FiSearch, FiUserPlus } from "react-icons/fi";
 import { PiExport } from "react-icons/pi";
 import { formatRelativeTime } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
@@ -13,7 +13,12 @@ import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { useUsers } from "@/hooks/data/useUserHooks";
 import { openModalAtom, openUpdateAccountModalAtom } from "@/stores/modalStore";
 import type { BasePaginatedResponse } from "@/types/ApiResponse";
-import type { User } from "@/types/User";
+import {
+  ROLE_LABELS,
+  USER_ROLE_OPTIONS,
+  type User,
+  type UserRole,
+} from "@/types/User";
 
 type SortType = "" | "by_date" | "by_status";
 
@@ -51,6 +56,8 @@ const columns = [
 export default function AccountDashboardPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<UserRole | "">("");
   const [sortType, setSortType] = useState<SortType>("");
 
   const {
@@ -59,7 +66,12 @@ export default function AccountDashboardPage() {
     isError,
     refetch,
     fullResponse,
-  } = useUsers(page, pageSize);
+  } = useUsers({
+    page,
+    limit: pageSize,
+    search: search.trim() || undefined,
+    role: roleFilter || undefined,
+  });
   const [, openModal] = useAtom(openModalAtom);
 
   const pagination = (fullResponse as BasePaginatedResponse<User[]>)
@@ -97,6 +109,34 @@ export default function AccountDashboardPage() {
             <FiUserPlus />
             Thêm tài khoản
           </button>
+        </div>
+      </div>
+
+      <div className="mt-4 mb-6 flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1">
+          <FiSearch className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-gray-400 dark:text-white/30" />
+          <input
+            id="account-search"
+            type="text"
+            placeholder="Tìm kiếm tài khoản theo tên, email, SĐT..."
+            value={search}
+            onChange={(event) => {
+              setPage(1);
+              setSearch(event.target.value);
+            }}
+            className="h-10 w-full rounded-lg border border-gray-300 bg-white pr-4 pl-9 text-[13px] text-gray-800 transition outline-none placeholder:text-gray-400 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+          />
+        </div>
+        <div className="w-full sm:w-56">
+          <GlassSelect
+            value={roleFilter}
+            onChange={(value) => {
+              setPage(1);
+              setRoleFilter(value as UserRole | "");
+            }}
+            placeholder="Tất cả vai trò"
+            options={USER_ROLE_OPTIONS}
+          />
         </div>
       </div>
 
@@ -140,22 +180,7 @@ function AccountTable({
   const [, openModal] = useAtom(openModalAtom);
   const [, openUpdateAccountModal] = useAtom(openUpdateAccountModalAtom);
 
-  const roleLabels: Record<User["role"], string> = {
-    admin: "Quản trị viên",
-    admin_brand: "Admin Brand",
-    ceo: "CEO",
-    supply_chain: "Supply Chain",
-    hr: "HR",
-    qc: "QC",
-    ecom: "Ecom",
-    warehouse: "Kho",
-    logistics: "Logistics",
-    sales: "Sales",
-    marketing: "Marketing",
-    business_development: "Business Development",
-    finance: "Finance",
-    demo: "Demo",
-  };
+  const roleLabels = ROLE_LABELS;
 
   const sortedUsers = useMemo(
     () => sortUsers(users, sortType),

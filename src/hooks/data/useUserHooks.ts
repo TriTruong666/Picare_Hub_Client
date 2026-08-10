@@ -2,7 +2,7 @@ import * as UserService from "@/apis/user.service";
 import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
 import { toast } from "@/hooks/useToast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { CreateUserPayload, UpdateUserPayload, User } from "@/types/User";
+import type { CreateUserPayload, UpdateUserPayload, User, UserRole } from "@/types/User";
 import { useFetch } from "../useQuery";
 
 export function useMe() {
@@ -10,11 +10,16 @@ export function useMe() {
 }
 
 /**
- * Hook lấy danh sách người dùng với phân trang
+ * Hook lấy danh sách người dùng với phân trang, tìm kiếm và vai trò
  */
-export function useUsers(page: number, limit: number) {
-  return useFetch<User[]>(["users", { page, limit }], () =>
-    UserService.getUser(page, limit),
+export function useUsers(params: {
+  page: number;
+  limit: number;
+  search?: string;
+  role?: UserRole;
+}) {
+  return useFetch<User[]>(["users", params], () =>
+    UserService.getUser(params),
   );
 }
 

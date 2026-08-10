@@ -18,15 +18,13 @@ export async function getMe(): Promise<BaseResponse<User>> {
 /**
  * Láy danh sách người dùng với phân trang
  */
-export async function getUser(
-  page: number,
-  limit: number,
-  search?: string,
-  role?: UserRole,
-): Promise<BasePaginatedResponse<User[]>> {
-  const res = await hubAxiosClient.get(
-    `/api/v1/users?page=${page}&limit=${limit}`,
-  );
+export async function getUser(params: {
+  page: number;
+  limit: number;
+  search?: string;
+  role?: UserRole;
+}): Promise<BasePaginatedResponse<User[]>> {
+  const res = await hubAxiosClient.get(`/api/v1/users`, { params });
   return res.data;
 }
 
