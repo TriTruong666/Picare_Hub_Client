@@ -86,7 +86,7 @@ const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
     address: "2/35 Chấn Hưng, Phường Tân Hòa, Thành Phố Hồ Chí Minh",
     phone: "0983139320",
     email: "cskh@trunghanh.com",
-    bankInfo: "204550429 Ngân hàng Á Châu  Chi Nhánh Bắc Hải TP HCM",
+    bankInfo: "204550429 Ngân hàng TMCP Á Châu (ACB)",
     mst: "0312717755",
     ownerName: "Bà Lê Thị Bích Hạnh",
     role: "Giám Đốc",
@@ -96,9 +96,9 @@ const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
     companyName: "CTY TNHH PICARE VIỆT NAM",
     address:
       "38/11 Nguyễn Giản Thanh, Phường Hòa Hưng, Thành phố Hồ Chí Minh, Việt Nam",
-    phone: "0918088123",
+    phone: "0949466499",
     email: "cskh@picare.vn",
-    bankInfo: "204550429 Ngân hàng Á Châu  Chi Nhánh Bắc Hải TP HCM",
+    bankInfo: "1355656 Ngân hàng TMCP Á Châu (ACB)",
     mst: "0315127257",
     ownerName: "Ông Nguyễn Thành Trung",
     role: "Giám Đốc",
@@ -152,7 +152,7 @@ function ContractPreviewQrModal({
         className="absolute inset-0"
       />
 
-      <div className="relative max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain w-full max-w-md border border-white/10 bg-[#050505] p-6 text-white shadow-[0_32px_80px_rgba(0,0,0,0.52)]">
+      <div className="relative max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain border border-white/10 bg-[#050505] p-6 text-white shadow-[0_32px_80px_rgba(0,0,0,0.52)]">
         <button
           type="button"
           onClick={onClose}

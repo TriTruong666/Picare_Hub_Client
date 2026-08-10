@@ -877,26 +877,13 @@ function CustomOrganizationContractDocument({
       transition={{ duration: 0.28 }}
       className="mx-auto w-full max-w-5xl pb-24"
     >
-      <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
-        <div>
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            {owner.companyName}
-          </p>
-          <p className="mt-3 text-[13px] text-black/35 dark:text-white/35">
-            Số:{" "}
-            <strong className="font-semibold text-black/72 dark:text-white/72">
-              {contract.contractNumber}
-            </strong>
-          </p>
-        </div>
-        <div className="text-left md:text-center">
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            Cộng hòa xã hội chủ nghĩa Việt Nam
-          </p>
-          <p className="mt-1 text-[13px] text-black/62 dark:text-white/62">
-            Độc lập - Tự do - Hạnh phúc
-          </p>
-        </div>
+      <header className="text-center">
+        <p className="text-[18px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+          Cộng hòa xã hội chủ nghĩa Việt Nam
+        </p>
+        <p className="mt-1 text-[14px] text-black/62 dark:text-white/62">
+          Độc lập - Tự do - Hạnh phúc
+        </p>
       </header>
       <section className="pt-14 text-center">
         <h1 className="mt-7 text-4xl font-medium tracking-[0.03em] text-[#111111] uppercase dark:text-white">
@@ -976,26 +963,13 @@ function CustomPersonalContractDocument({
       transition={{ duration: 0.28 }}
       className="mx-auto w-full max-w-5xl pb-24"
     >
-      <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
-        <div>
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            {owner.companyName}
-          </p>
-          <p className="mt-3 text-[13px] text-black/35 dark:text-white/35">
-            Số:{" "}
-            <strong className="font-semibold text-black/72 dark:text-white/72">
-              {contract.contractNumber}
-            </strong>
-          </p>
-        </div>
-        <div className="text-left md:text-center">
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            Cộng hòa xã hội chủ nghĩa Việt Nam
-          </p>
-          <p className="mt-1 text-[13px] text-black/62 dark:text-white/62">
-            Độc lập - Tự do - Hạnh phúc
-          </p>
-        </div>
+      <header className="text-center">
+        <p className="text-[18px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+          Cộng hòa xã hội chủ nghĩa Việt Nam
+        </p>
+        <p className="mt-1 text-[14px] text-black/62 dark:text-white/62">
+          Độc lập - Tự do - Hạnh phúc
+        </p>
       </header>
       <section className="pt-14 text-center">
         <h1 className="mt-7 text-4xl font-medium tracking-[0.03em] text-[#111111] uppercase dark:text-white">
@@ -1125,26 +1099,13 @@ function ContractDocument({
       transition={{ duration: 0.28 }}
       className="mx-auto w-full max-w-5xl pb-24"
     >
-      <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
-        <div>
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            {owner.companyName}
-          </p>
-          <p className="mt-3 text-[13px] text-black/35 dark:text-white/35">
-            Số:{" "}
-            <strong className="font-semibold text-black/72 dark:text-white/72">
-              {contractNumber}
-            </strong>
-          </p>
-        </div>
-        <div className="text-left md:text-center">
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            Cộng hòa xã hội chủ nghĩa Việt Nam
-          </p>
-          <p className="mt-1 text-[13px] text-black/62 dark:text-white/62">
-            Độc lập - Tự do - Hạnh phúc
-          </p>
-        </div>
+      <header className="text-center">
+        <p className="text-[18px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+          Cộng hòa xã hội chủ nghĩa Việt Nam
+        </p>
+        <p className="mt-1 text-[14px] text-black/62 dark:text-white/62">
+          Độc lập - Tự do - Hạnh phúc
+        </p>
       </header>
 
       <section className="pt-14 text-center">
@@ -1743,23 +1704,13 @@ function LivestreamResponsibilityCommitmentDocument({
       transition={{ duration: 0.28 }}
       className="mx-auto w-full max-w-5xl pb-24"
     >
-      <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
-        <div>
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            {owner.companyName}
-          </p>
-          <p className="mt-3 text-[13px] text-black/35 dark:text-white/35">
-            Số: {strong(contract.contractNumber || contract.contractId)}
-          </p>
-        </div>
-        <div className="text-left md:text-center">
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            Cộng hòa xã hội chủ nghĩa Việt Nam
-          </p>
-          <p className="mt-1 text-[13px] text-black/62 dark:text-white/62">
-            Độc lập – Tự do – Hạnh phúc
-          </p>
-        </div>
+      <header className="text-center">
+        <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+          Cộng hòa xã hội chủ nghĩa Việt Nam
+        </p>
+        <p className="mt-1 text-[13px] text-black/62 dark:text-white/62">
+          Độc lập – Tự do – Hạnh phúc
+        </p>
       </header>
 
       <section className="pt-14 text-center">
@@ -1930,26 +1881,13 @@ function LivestreamResponsibilityCommitmentAppendixDocument({
       transition={{ duration: 0.28 }}
       className="mx-auto w-full max-w-5xl pb-24"
     >
-      <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
-        <div>
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            {owner.companyName}
-          </p>
-          <p className="mt-3 text-[13px] text-black/35 dark:text-white/35">
-            Số:{" "}
-            <strong className="font-semibold text-black/72 dark:text-white/72">
-              {contract.contractNumber || contract.contractId}
-            </strong>
-          </p>
-        </div>
-        <div className="text-left md:text-center">
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            Cộng hòa xã hội chủ nghĩa Việt Nam
-          </p>
-          <p className="mt-1 text-[13px] text-black/62 dark:text-white/62">
-            Độc lập – Tự do – Hạnh phúc
-          </p>
-        </div>
+      <header className="text-center">
+        <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+          Cộng hòa xã hội chủ nghĩa Việt Nam
+        </p>
+        <p className="mt-1 text-[13px] text-black/62 dark:text-white/62">
+          Độc lập – Tự do – Hạnh phúc
+        </p>
       </header>
       <section className="pt-14 text-center">
         <p className="text-[13px] text-black/35 dark:text-white/35">
@@ -2054,26 +1992,13 @@ function AppendixContractDocument({
       transition={{ duration: 0.28 }}
       className="mx-auto w-full max-w-5xl pb-24"
     >
-      <header className="grid gap-8 border-b border-black/10 pb-10 md:grid-cols-[1fr_1.15fr] dark:border-white/10">
-        <div>
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            {owner.companyName}
-          </p>
-          <p className="mt-3 text-[13px] text-black/35 dark:text-white/35">
-            Số:{" "}
-            <strong className="font-semibold text-black/72 dark:text-white/72">
-              {contract.contractNumber || contract.contractId}
-            </strong>
-          </p>
-        </div>
-        <div className="text-left md:text-center">
-          <p className="text-[13px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
-            Cộng hòa xã hội chủ nghĩa Việt Nam
-          </p>
-          <p className="mt-1 text-[13px] text-black/62 dark:text-white/62">
-            Độc lập - Tự do - Hạnh phúc
-          </p>
-        </div>
+      <header className="text-center">
+        <p className="text-[18px] font-medium tracking-[0.08em] text-black/80 uppercase dark:text-white/80">
+          Cộng hòa xã hội chủ nghĩa Việt Nam
+        </p>
+        <p className="mt-1 text-[14px] text-black/62 dark:text-white/62">
+          Độc lập - Tự do - Hạnh phúc
+        </p>
       </header>
 
       <section className="pt-14 text-center">
