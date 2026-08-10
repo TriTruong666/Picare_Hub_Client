@@ -84,9 +84,9 @@ export default function CreateS3FolderModal({
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", duration: 0.3 }}
             onSubmit={handleSubmit}
-            className="dashboard-theme relative flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]"
+            className="dashboard-theme relative flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]"
           >
-            <div className="flex items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+            <div className="flex shrink-0 items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
               <div>
                 <h2 className="text-base font-semibold tracking-tight text-gray-900 dark:text-white">
                   Tạo thư mục lưu trữ
@@ -106,7 +106,7 @@ export default function CreateS3FolderModal({
               </button>
             </div>
 
-            <div className="space-y-5 p-6">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-5 p-6">
               <div className="rounded-xl border border-indigo-500/20 bg-indigo-50 p-4 dark:bg-indigo-500/10">
                 <div className="flex items-start gap-3">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm dark:bg-black/30 dark:text-indigo-300">
@@ -167,7 +167,7 @@ export default function CreateS3FolderModal({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+            <div className="flex shrink-0 items-center justify-end gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
               <button
                 type="button"
                 disabled={createFolderMutation.isPending}

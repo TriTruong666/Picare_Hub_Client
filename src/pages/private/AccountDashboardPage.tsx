@@ -149,6 +149,7 @@ function AccountTable({
     qc: "QC",
     ecom: "Ecom",
     warehouse: "Kho",
+    logistics: "Logistics",
     sales: "Sales",
     marketing: "Marketing",
     business_development: "Business Development",

@@ -112,9 +112,9 @@ export default function HandwrittenSignatureModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0, y: 10 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
-            className="dashboard-theme contract-surface relative flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl border"
+            className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border"
           >
-            <div className="flex items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] px-6 py-5">
+            <div className="flex shrink-0 items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] px-6 py-5">
               <div>
                 <h2 className="text-base font-semibold text-white">
                   Ký tay xác nhận
@@ -134,7 +134,7 @@ export default function HandwrittenSignatureModal({
               </button>
             </div>
 
-            <div className="grid gap-6 p-6 lg:grid-cols-[220px_1fr]">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain grid gap-6 p-6 lg:grid-cols-[220px_1fr]">
               <dl className="space-y-4 text-sm">
                 <div>
                   <dt className="text-[11px] font-medium text-white/35 uppercase">
@@ -191,7 +191,7 @@ export default function HandwrittenSignatureModal({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
+            <div className="flex shrink-0 justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
               <button
                 type="button"
                 disabled={isSubmitting}

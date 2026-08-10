@@ -26,6 +26,7 @@ const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
   { value: "qc", label: "QC" },
   { value: "ecom", label: "Ecom" },
   { value: "warehouse", label: "Warehouse" },
+  { value: "logistics", label: "Logistics" },
   { value: "sales", label: "Sales" },
   { value: "marketing", label: "Marketing" },
   { value: "business_development", label: "Business Development" },
@@ -94,8 +95,8 @@ export function UpdateAccountModal({ user }: { user: User }) {
   };
 
   return (
-    <div className="dashboard-theme flex w-[960px] max-w-full flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]">
-      <div className="flex items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+    <div className="dashboard-theme flex max-h-[calc(100dvh-2rem)] w-[960px] max-w-full flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]">
+      <div className="flex shrink-0 items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
             Chỉnh sửa tài khoản
@@ -115,7 +116,7 @@ export function UpdateAccountModal({ user }: { user: User }) {
         </button>
       </div>
 
-      <div className="max-h-[calc(100vh-160px)] overflow-y-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6">
         <div className="space-y-6">
           <div>
             <p className="mb-3 text-xs font-semibold tracking-wide text-gray-600 uppercase dark:text-gray-400">
@@ -169,7 +170,7 @@ export function UpdateAccountModal({ user }: { user: User }) {
         </div>
       </div>
 
-      <div className="flex justify-between gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+      <div className="flex shrink-0 justify-between gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
         <button
           type="button"
           onClick={closeModal}

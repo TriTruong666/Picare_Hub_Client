@@ -108,90 +108,90 @@ function EditS3FolderModalContent({
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", duration: 0.3 }}
         onSubmit={handleSubmit}
-        className="dashboard-theme relative flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]"
+        className="dashboard-theme relative flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]"
       >
-            <div className="flex items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+          <div>
+            <h2 className="text-base font-semibold tracking-tight text-gray-900 dark:text-white">
+              Chỉnh sửa thư mục lưu trữ
+            </h2>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Cập nhật tên và mô tả để thư mục dễ nhận diện hơn.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            disabled={updateFolderMutation.isPending}
+            onClick={handleClose}
+            className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+          >
+            <HiOutlineX className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-5 p-6">
+          <div className="rounded-xl border border-indigo-500/20 bg-indigo-50 p-4 dark:bg-indigo-500/10">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm dark:bg-black/30 dark:text-indigo-300">
+                <FiFolderPlus className="text-xl" />
+              </span>
               <div>
-                <h2 className="text-base font-semibold tracking-tight text-gray-900 dark:text-white">
-                  Chỉnh sửa thư mục lưu trữ
-                </h2>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Cập nhật tên và mô tả để thư mục dễ nhận diện hơn.
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Thư mục sẽ giữ nguyên toàn bộ dữ liệu hiện có.
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                  Thay đổi này chỉ cập nhật thông tin hiển thị của thư mục trong
+                  hệ thống lưu trữ.
                 </p>
               </div>
-
-              <button
-                type="button"
-                disabled={updateFolderMutation.isPending}
-                onClick={handleClose}
-                className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
-              >
-                <HiOutlineX className="h-5 w-5" />
-              </button>
             </div>
+          </div>
 
-            <div className="space-y-5 p-6">
-              <div className="rounded-xl border border-indigo-500/20 bg-indigo-50 p-4 dark:bg-indigo-500/10">
-                <div className="flex items-start gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm dark:bg-black/30 dark:text-indigo-300">
-                    <FiFolderPlus className="text-xl" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                      Thư mục sẽ giữ nguyên toàn bộ dữ liệu hiện có.
-                    </p>
-                    <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                      Thay đổi này chỉ cập nhật thông tin hiển thị của thư mục trong
-                      hệ thống lưu trữ.
-                    </p>
-                  </div>
-                </div>
-              </div>
+          <div>
+            <label
+              htmlFor="edit-s3-folder-name"
+              className="mb-1.5 block text-[11px] font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40"
+            >
+              Tên thư mục
+            </label>
+            <input
+              id="edit-s3-folder-name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              disabled={updateFolderMutation.isPending}
+              maxLength={80}
+              autoFocus
+              placeholder="Ví dụ: Hồ sơ khách hàng"
+              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-700 transition-all outline-none placeholder:text-gray-400 hover:border-gray-400 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/25 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+            />
+            {nameError ? (
+              <p className="mt-1.5 text-xs font-medium text-red-500 dark:text-red-400">
+                {nameError}
+              </p>
+            ) : null}
+          </div>
 
-              <div>
-                <label
-                  htmlFor="edit-s3-folder-name"
-                  className="mb-1.5 block text-[11px] font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40"
-                >
-                  Tên thư mục
-                </label>
-                <input
-                  id="edit-s3-folder-name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  disabled={updateFolderMutation.isPending}
-                  maxLength={80}
-                  autoFocus
-                  placeholder="Ví dụ: Hồ sơ khách hàng"
-                  className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-700 transition-all outline-none placeholder:text-gray-400 hover:border-gray-400 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/25 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
-                />
-                {nameError ? (
-                  <p className="mt-1.5 text-xs font-medium text-red-500 dark:text-red-400">
-                    {nameError}
-                  </p>
-                ) : null}
-              </div>
+          <div>
+            <label
+              htmlFor="edit-s3-folder-description"
+              className="mb-1.5 block text-[11px] font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40"
+            >
+              Mô tả
+            </label>
+            <textarea
+              id="edit-s3-folder-description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              disabled={updateFolderMutation.isPending}
+              rows={4}
+              placeholder="Mục đích sử dụng của thư mục"
+              className="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 transition-all outline-none placeholder:text-gray-400 hover:border-gray-400 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/25 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+            />
+          </div>
+        </div>
 
-              <div>
-                <label
-                  htmlFor="edit-s3-folder-description"
-                  className="mb-1.5 block text-[11px] font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40"
-                >
-                  Mô tả
-                </label>
-                <textarea
-                  id="edit-s3-folder-description"
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                  disabled={updateFolderMutation.isPending}
-                  rows={4}
-                  placeholder="Mục đích sử dụng của thư mục"
-                  className="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 transition-all outline-none placeholder:text-gray-400 hover:border-gray-400 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/25 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+        <div className="flex shrink-0 items-center justify-end gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
               <button
                 type="button"
                 disabled={updateFolderMutation.isPending}

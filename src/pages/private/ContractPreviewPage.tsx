@@ -649,9 +649,9 @@ function SendPartnerMailModal({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", duration: 0.3 }}
-            className="dashboard-theme contract-surface relative flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border backdrop-blur-xl"
+            className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border backdrop-blur-xl"
           >
-            <div className="flex items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] p-6">
+            <div className="flex shrink-0 items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] p-6">
               <div>
                 <h2 className="text-base font-semibold text-white">
                   Gửi mail {mailTypeLabel.toLowerCase()}
@@ -672,7 +672,7 @@ function SendPartnerMailModal({
               </button>
             </div>
 
-            <div className="max-h-[70vh] space-y-4 overflow-y-auto p-6">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-6">
               <label className="block">
                 <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
                   Email đối tác
@@ -730,7 +730,7 @@ function SendPartnerMailModal({
               </label>
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
+            <div className="flex shrink-0 justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
               <button
                 type="button"
                 disabled={isSending}

@@ -32,6 +32,7 @@ const ALL_ROLES: { value: HubClientRole; label: string }[] = [
   { value: "qc", label: "QC" },
   { value: "ecom", label: "Ecom" },
   { value: "warehouse", label: "Warehouse" },
+  { value: "logistics", label: "Logistics" },
   { value: "sales", label: "Sales" },
   { value: "marketing", label: "Marketing" },
   { value: "business_development", label: "Business Development" },

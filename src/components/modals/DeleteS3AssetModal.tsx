@@ -49,10 +49,10 @@ export default function DeleteS3AssetModal({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", duration: 0.3 }}
-            className="dashboard-theme relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]"
+            className="dashboard-theme relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+            <div className="flex shrink-0 items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
               <h2 className="text-base font-semibold text-gray-900 dark:text-white">
                 Xóa tệp tin
               </h2>
@@ -68,7 +68,7 @@ export default function DeleteS3AssetModal({
             </div>
 
             {/* Modal Body */}
-            <div className="flex gap-4 p-6">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain flex gap-4 p-6">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400">
                 <FiAlertTriangle size={24} />
               </div>
@@ -76,14 +76,14 @@ export default function DeleteS3AssetModal({
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
                   Bạn có chắc chắn muốn xóa tệp tin này?
                 </p>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 break-all">
+                <p className="mt-2 text-sm text-gray-550 dark:text-gray-400 break-all">
                   Tệp tin <span className="font-semibold text-gray-900 dark:text-white">{asset.originalName}</span> sẽ bị xóa vĩnh viễn và hành động này không thể hoàn tác.
                 </p>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="flex justify-end gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+            <div className="flex shrink-0 justify-end gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
               <button
                 type="button"
                 disabled={deleteMutation.isPending}

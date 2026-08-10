@@ -1811,9 +1811,9 @@ function LegalNameMismatchModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0, y: 10 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            className="dashboard-theme contract-surface relative w-full max-w-xl overflow-hidden rounded-2xl border"
+            className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border"
           >
-            <div className="border-b border-white/10 bg-amber-300/[0.06] px-6 py-5">
+            <div className="flex shrink-0 flex-col border-b border-white/10 bg-amber-300/[0.06] px-6 py-5">
               <p className="text-[11px] font-medium text-amber-200/75 uppercase">
                 Cảnh báo pháp lý
               </p>
@@ -1822,7 +1822,7 @@ function LegalNameMismatchModal({
               </h2>
             </div>
 
-            <div className="space-y-5 p-6">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-5 p-6">
               <p className="text-sm leading-6 text-white/62">
                 Việc tiếp tục ký khi thông tin định danh không khớp có thể làm
                 phát sinh rủi ro về thẩm quyền ký, giá trị chứng minh danh tính
@@ -1852,7 +1852,7 @@ function LegalNameMismatchModal({
               </p>
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
+            <div className="flex shrink-0 flex-wrap justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
               <button
                 type="button"
                 onClick={onReupload}
@@ -1908,9 +1908,9 @@ function ContractCompletionModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0, y: 14 }}
             transition={{ duration: 0.24, ease: "easeOut" }}
-            className="contract-surface relative w-full max-w-xl overflow-hidden rounded-2xl border bg-black"
+            className="contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border bg-black"
           >
-            <div className="flex flex-col items-center px-8 pt-8 text-center">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain flex flex-col items-center px-8 pt-8 text-center">
               <img
                 src={picareLogoDark}
                 alt="Picare"
@@ -1933,7 +1933,7 @@ function ContractCompletionModal({
               </p>
             </div>
 
-            <div className="mt-7 flex flex-wrap justify-center gap-3 border-t border-white/10 bg-white/[0.03] px-7 py-5">
+            <div className="flex shrink-0 flex-wrap justify-center gap-3 border-t border-white/10 bg-white/[0.03] px-7 py-5">
               <button
                 type="button"
                 onClick={onClose}

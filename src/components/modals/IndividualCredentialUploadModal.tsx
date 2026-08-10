@@ -221,9 +221,9 @@ export default function IndividualCredentialUploadModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 8 }}
             transition={{ type: "spring", duration: 0.3, bounce: 0.12 }}
-            className="dashboard-theme contract-surface relative flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl border"
+            className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border"
           >
-            <div className="flex items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] px-6 py-5">
+            <div className="flex shrink-0 items-start justify-between gap-5 border-b border-white/10 bg-white/[0.04] px-6 py-5">
               <div>
                 <h2 className="text-base font-semibold text-white">
                   Xác thực danh tính
@@ -242,7 +242,7 @@ export default function IndividualCredentialUploadModal({
               </button>
             </div>
 
-            <div className="grid gap-4 p-6 md:grid-cols-2">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain grid gap-4 p-6 md:grid-cols-2">
               <CredentialDropZone
                 label="Mặt trước CCCD"
                 description="Ảnh rõ số CCCD, họ tên và ngày sinh."
@@ -261,7 +261,7 @@ export default function IndividualCredentialUploadModal({
               />
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
+            <div className="flex shrink-0 justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
               <button
                 type="button"
                 disabled={isUploading}

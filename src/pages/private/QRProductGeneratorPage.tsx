@@ -297,7 +297,7 @@ function CreatedProductQRModal({
         className="absolute inset-0"
       />
 
-      <div className="relative w-full max-w-md border border-white/10 bg-[#050505] p-6 text-white shadow-[0_32px_80px_rgba(0,0,0,0.52)]">
+      <div className="relative max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain w-full max-w-md border border-white/10 bg-[#050505] p-6 text-white shadow-[0_32px_80px_rgba(0,0,0,0.52)]">
         <button
           type="button"
           onClick={onClose}
@@ -363,9 +363,9 @@ function DeleteProductQRModal({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", duration: 0.3 }}
-            className="dashboard-theme relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#050505] text-white shadow-2xl backdrop-blur-xl"
+            className="dashboard-theme relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#050505] text-white shadow-2xl backdrop-blur-xl"
           >
-            <div className="flex items-center justify-between border-b border-white/10 bg-white/5 p-6">
+            <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-white/5 p-6">
               <h2 className="text-base font-semibold text-white">
                 Xóa QR sản phẩm
               </h2>
@@ -380,7 +380,7 @@ function DeleteProductQRModal({
               </button>
             </div>
 
-            <div className="flex gap-4 p-6">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain flex gap-4 p-6">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-400">
                 <FiAlertTriangle size={24} />
               </div>
@@ -398,7 +398,7 @@ function DeleteProductQRModal({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-white/10 bg-white/5 p-6">
+            <div className="flex shrink-0 justify-end gap-3 border-t border-white/10 bg-white/5 p-6">
               <button
                 type="button"
                 disabled={isDeleting}

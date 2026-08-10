@@ -78,7 +78,7 @@ function ProductQrModal({
         className="absolute inset-0"
       />
 
-      <div className="relative w-full max-w-md border border-white/10 bg-[#050505] p-6 text-white shadow-[0_32px_80px_rgba(0,0,0,0.52)]">
+      <div className="relative max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain w-full max-w-md border border-white/10 bg-[#050505] p-6 text-white shadow-[0_32px_80px_rgba(0,0,0,0.52)]">
         <button
           type="button"
           onClick={onClose}

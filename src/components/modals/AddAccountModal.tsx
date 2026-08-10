@@ -91,6 +91,14 @@ const ROLE_OPTIONS: RoleOption[] = [
     icon: "WH",
   },
   {
+    value: "logistics",
+    label: "Logistics",
+    description: "Vận chuyển & giao nhận",
+    accentClass:
+      "from-teal-500/20 to-cyan-500/20 text-teal-700 dark:text-teal-300",
+    icon: "LG",
+  },
+  {
     value: "sales",
     label: "Sales",
     description: "Kinh doanh",
@@ -258,8 +266,8 @@ export function AddAccountModal() {
   };
 
   return (
-    <div className="dashboard-theme flex w-150 max-w-full flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]">
-      <div className="flex items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+    <div className="dashboard-theme flex max-h-[calc(100dvh-2rem)] w-150 max-w-full flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]">
+      <div className="flex shrink-0 items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
             Tạo tài khoản mới
@@ -281,7 +289,7 @@ export function AddAccountModal() {
         </button>
       </div>
 
-      <div className="p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6">
         {step === 1 ? (
           <RolePhase selected={role} onSelect={setRole} />
         ) : (
@@ -351,7 +359,7 @@ export function AddAccountModal() {
         )}
       </div>
 
-      <div className="flex justify-between gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
+      <div className="flex shrink-0 justify-between gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
         <div>
           {step === 2 ? (
             <button

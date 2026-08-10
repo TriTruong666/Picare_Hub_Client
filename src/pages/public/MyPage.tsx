@@ -1454,7 +1454,7 @@ export default function MyPage() {
               onClick={closeMemoryModal}
             />
 
-            <div className="relative z-10 w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(10,10,12,0.96),rgba(18,12,16,0.98))] shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
+            <div className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-3xl flex-col overflow-y-auto overscroll-contain rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(10,10,12,0.96),rgba(18,12,16,0.98))] shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
               <div className="grid gap-0 md:grid-cols-[minmax(16rem,22rem)_1fr]">
                 <div className="relative min-h-[22rem] bg-black/30">
                   {imageFailed ? (

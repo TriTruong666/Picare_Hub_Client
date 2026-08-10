@@ -159,7 +159,7 @@ function LocalSignAppGuideModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 12 }}
         transition={{ type: "spring", duration: 0.35 }}
-        className="dashboard-theme contract-surface relative flex max-h-[calc(100vh-2rem)] min-h-0 w-full max-w-3xl flex-col overflow-hidden rounded-2xl border"
+        className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] min-h-0 w-full max-w-3xl flex-col overflow-hidden rounded-2xl border"
       >
         <div className="flex shrink-0 items-start justify-between gap-5 border-b border-white/10 px-6 py-5 md:px-8 md:py-7">
           <div>
@@ -501,9 +501,9 @@ function TokenSelectionModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 12 }}
         transition={{ type: "spring", duration: 0.35 }}
-        className="dashboard-theme contract-surface relative flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border"
+        className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border"
       >
-        <div className="flex items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
+        <div className="flex shrink-0 items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
           <div>
             <h2 className="text-base font-semibold text-white">
               Chọn USB Token ký số
@@ -522,7 +522,7 @@ function TokenSelectionModal({
           </button>
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6">
           {tokens.length === 0 ? (
             <div className="py-10 text-center">
               <p className="text-sm font-medium text-white">
@@ -601,9 +601,9 @@ function CertificateSelectionModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 12 }}
         transition={{ type: "spring", duration: 0.35 }}
-        className="dashboard-theme contract-surface relative flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border"
+        className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border"
       >
-        <div className="flex items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
+        <div className="flex shrink-0 items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
           <div>
             <h2 className="text-base font-semibold text-white">
               Chọn chứng thư số
@@ -622,7 +622,7 @@ function CertificateSelectionModal({
           </button>
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6">
           {certificates.length === 0 ? (
             <div className="py-10 text-center">
               <p className="text-sm font-medium text-white">
@@ -719,9 +719,9 @@ function PinSigningModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 12 }}
         transition={{ type: "spring", duration: 0.35 }}
-        className="dashboard-theme contract-surface relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border"
+        className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border"
       >
-        <div className="flex items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
+        <div className="flex shrink-0 items-start justify-between gap-5 border-b border-white/10 px-6 py-5">
           <div>
             <h2 className="text-base font-semibold text-white">
               Nhập mã PIN USB Token
@@ -741,7 +741,7 @@ function PinSigningModal({
           </button>
         </div>
 
-        <div className="space-y-5 p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-5 p-6">
           <div className="border-l border-white/15 pl-4">
             <p className="text-sm font-semibold text-white">{token.label}</p>
             <p className="mt-1 text-xs leading-5 text-white/45">
@@ -764,7 +764,7 @@ function PinSigningModal({
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 border-t border-white/10 bg-white/4 p-6">
+        <div className="flex shrink-0 justify-end gap-3 border-t border-white/10 bg-white/4 p-6">
           <button
             type="button"
             disabled={isSigning}
@@ -1108,9 +1108,9 @@ function ContractSigningForm({
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: "spring", duration: 0.3 }}
           onSubmit={handleSubmit}
-          className="dashboard-theme contract-surface relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl border backdrop-blur-xl"
+          className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border backdrop-blur-xl"
         >
-          <div className="flex items-center justify-between border-white/10 bg-white/[0.04] p-6">
+          <div className="flex shrink-0 items-center justify-between border-white/10 bg-white/[0.04] p-6">
             <div>
               <h2 className="text-base font-semibold text-white">
                 Ký hợp đồng
@@ -1130,7 +1130,7 @@ function ContractSigningForm({
             </button>
           </div>
 
-          <div className="space-y-5 px-6 pb-4">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-5 px-6 pb-4">
             <div>
               <dl className="mt-4 divide-y divide-white/8 border-white/10">
                 <div className="grid grid-cols-[112px_1fr] gap-4 py-3">
@@ -1172,7 +1172,7 @@ function ContractSigningForm({
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
+          <div className="flex shrink-0 justify-end gap-3 border-t border-white/10 bg-white/[0.04] p-6">
             <button
               type="button"
               disabled={isSubmitting}

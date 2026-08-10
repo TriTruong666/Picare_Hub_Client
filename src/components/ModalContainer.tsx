@@ -15,7 +15,10 @@ export default function ModalContainer() {
       className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={closeModal}
     >
-      <div onClick={(event) => event.stopPropagation()}>
+      <div
+        onClick={(event) => event.stopPropagation()}
+        className="flex max-h-full max-w-full"
+      >
         {modal === "add_account" ? <AddAccountModal /> : null}
         {modal === "update_account" && selectedUser ? (
           <UpdateAccountModal key={selectedUser.userId} user={selectedUser} />
