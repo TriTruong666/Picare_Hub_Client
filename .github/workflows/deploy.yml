@@ -84,4 +84,4 @@ jobs:
             docker image prune -f
             
             # (Tùy chọn) Reload Nginx Gateway nếu cần cập nhật IP nội bộ
-            # docker exec nginx-gateway nginx -s reload
+            docker exec nginx-gateway nginx -s reload
