@@ -603,6 +603,12 @@ function CustomPersonalContractDocument({
           Số {strong(contract.contractNumber)}
         </p>
       </section>
+      {content?.legalRegulation ? (
+        <section
+          className="custom-contract-content mt-8 text-[14px] leading-9 tracking-[0.025em] text-white/62 [&_strong]:text-[0.95rem] [&_strong]:font-semibold [&_strong]:text-white"
+          dangerouslySetInnerHTML={{ __html: content.legalRegulation }}
+        />
+      ) : null}
       <PartySection title={`Bên A: ${owner.companyName}`} party={owner} />
       <section className="mt-10 text-[14px] leading-9 text-white/62">
         <h2 className="font-semibold text-white/86 uppercase">
@@ -631,12 +637,7 @@ function CustomPersonalContractDocument({
           · tại: {strong(personal?.citizenIdIssuedPlace)}
         </p>
       </section>
-      {content?.legalRegulation ? (
-        <section
-          className="custom-contract-content mt-8 text-[14px] leading-9 tracking-[0.025em] text-white/62 [&_strong]:text-[0.95rem] [&_strong]:font-semibold [&_strong]:text-white"
-          dangerouslySetInnerHTML={{ __html: content.legalRegulation }}
-        />
-      ) : null}
+
       <section
         className="custom-contract-content mt-12 text-[14px] leading-9 tracking-[0.025em] text-white/62 [&_strong]:text-[0.95rem] [&_strong]:font-semibold [&_strong]:text-white"
         dangerouslySetInnerHTML={{ __html: content?.rawContent || "" }}
