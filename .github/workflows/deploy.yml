@@ -78,7 +78,7 @@ jobs:
             docker compose -f docker-compose.prod.yml -p picare-hub-client pull
 
             # Chạy lại container
-            docker compose -f docker-compose.prod.yml -p picare-hub-client up -d --remove-orphans --force-recreate
+            docker compose -f docker-compose.prod.yml -p picare-hub-client up -d --force-recreate
 
             # Dọn dẹp image cũ
             docker image prune -f
