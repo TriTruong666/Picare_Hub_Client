@@ -2435,7 +2435,9 @@ function ContractPreviewPageShell({
         <EmploymentContractDocument
           contract={contract}
           ownerSignatureRef={ownerSignatureRef}
+          ownerSignatureRevealKey={ownerSignatureRevealKey}
           partnerSignatureRef={partnerSignatureRef}
+          partnerSignatureRevealKey={partnerSignatureRevealKey}
         />
       ) : (
         <ContractDocument

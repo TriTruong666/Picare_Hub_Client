@@ -1,4 +1,5 @@
 import Calendar from "@/components/custom_ui/Calendar";
+import GlassSelect from "@/components/custom_ui/Select";
 import type { EmploymentPersonalInfoPayload } from "@/types/Contract";
 import {
   FieldLabel,
@@ -31,36 +32,52 @@ const PERSONAL_FIELDS: PersonalField[] = [
     label: "Ngày sinh",
     placeholder: "Chọn ngày sinh",
     isDate: true,
+    optional: true,
   },
-  { key: "citizenId", label: "Số CCCD/CMTND", placeholder: "079095001234" },
+  {
+    key: "citizenId",
+    label: "Số CCCD/CMTND",
+    placeholder: "079095001234",
+    optional: true,
+  },
   {
     key: "citizenIdIssuedDate",
     label: "Ngày cấp CCCD",
     placeholder: "Chọn ngày cấp",
     isDate: true,
+    optional: true,
   },
   {
     key: "citizenIdIssuedPlace",
     label: "Nơi cấp CCCD",
     placeholder: "Cục Cảnh sát QLHC về TTXH",
+    optional: true,
   },
   {
     key: "permanentAddress",
     label: "Nơi thường trú theo CCCD",
     placeholder: "Nhập địa chỉ thường trú",
     multiline: true,
+    optional: true,
   },
   {
     key: "currentAddress",
     label: "Địa chỉ hiện đang sinh sống",
     placeholder: "Nhập địa chỉ hiện tại",
     multiline: true,
+    optional: true,
   },
-  { key: "taxCode", label: "Mã số thuế", placeholder: "0" },
+  {
+    key: "taxCode",
+    label: "Mã số thuế",
+    placeholder: "Để trống nếu chưa có",
+    optional: true,
+  },
   {
     key: "socialInsuranceNumber",
     label: "Mã số BHXH",
-    placeholder: "0",
+    placeholder: "Để trống nếu chưa có",
+    optional: true,
   },
   {
     key: "emergencyContact",
@@ -102,43 +119,41 @@ export function EmploymentContractFields({
         <SectionTitle>Thông tin hợp đồng lao động</SectionTitle>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <FieldLabel>Ngày lập hợp đồng</FieldLabel>
+            <FieldLabel>Ngày lập hợp đồng (không bắt buộc)</FieldLabel>
             <Calendar
               value={values.contractDate}
               onChange={(contractDate) => onChange({ ...values, contractDate })}
               placeholder="Chọn ngày lập hợp đồng"
-              allowClear={false}
+              allowClear
               compact
             />
           </div>
           <div>
-            <FieldLabel>Ngày bắt đầu làm việc</FieldLabel>
+            <FieldLabel>Ngày bắt đầu làm việc (không bắt buộc)</FieldLabel>
             <Calendar
               value={values.startDate}
               onChange={(startDate) => onChange({ ...values, startDate })}
               placeholder="Chọn ngày bắt đầu"
-              allowClear={false}
+              allowClear
               compact
             />
           </div>
           <div>
-            <FieldLabel>Thời hạn hợp đồng</FieldLabel>
+            <FieldLabel>Thời hạn hợp đồng (không bắt buộc)</FieldLabel>
             <TextInput
               id="employment-contract-term"
               value={values.contractTerm}
               onChange={(contractTerm) => onChange({ ...values, contractTerm })}
               placeholder="Không xác định thời hạn"
-              required
             />
           </div>
           <div className="md:col-span-2">
-            <FieldLabel>Địa điểm làm việc</FieldLabel>
+            <FieldLabel>Địa điểm làm việc (không bắt buộc)</FieldLabel>
             <TextareaInput
               id="employment-work-location"
               value={values.workLocation}
               onChange={(workLocation) => onChange({ ...values, workLocation })}
               placeholder="Nhập địa điểm làm việc"
-              required
             />
           </div>
         </div>
@@ -161,7 +176,7 @@ export function EmploymentContractFields({
                   value={values.personalInfo[field.key]}
                   onChange={(value) => updatePersonalInfo(field.key, value)}
                   placeholder={field.placeholder}
-                  allowClear={false}
+                  allowClear
                   compact
                 />
               ) : field.multiline ? (
@@ -185,39 +200,35 @@ export function EmploymentContractFields({
             </div>
           ))}
           <div>
-            <FieldLabel>Giới tính</FieldLabel>
-            <select
+            <FieldLabel>Giới tính (không bắt buộc)</FieldLabel>
+            <GlassSelect
               value={values.personalInfo.gender}
-              onChange={(event) =>
-                updatePersonalInfo("gender", event.target.value)
-              }
-              required
-              className="h-11 w-full rounded-lg border border-black/15 bg-white px-4 text-sm text-[#111111] transition-all outline-none hover:border-black/25 focus:border-black/35 dark:border-white/10 dark:bg-black dark:text-white dark:hover:border-white/20 dark:focus:border-white/30"
-            >
-              <option value="">Chọn giới tính</option>
-              <option value="Nam">Nam</option>
-              <option value="Nữ">Nữ</option>
-              <option value="Khác">Khác</option>
-            </select>
+              onChange={(value) => updatePersonalInfo("gender", value)}
+              placeholder="Chọn giới tính"
+              options={[
+                { label: "Không chọn", value: "" },
+                { label: "Nam", value: "Nam" },
+                { label: "Nữ", value: "Nữ" },
+                { label: "Khác", value: "Khác" },
+              ]}
+            />
           </div>
           <div>
-            <FieldLabel>Chức danh/vị trí công việc</FieldLabel>
+            <FieldLabel>Chức danh/vị trí công việc (không bắt buộc)</FieldLabel>
             <TextInput
               id="employment-position"
               value={values.personalInfo.position}
               onChange={(value) => updatePersonalInfo("position", value)}
               placeholder="Nhân viên kế toán"
-              required
             />
           </div>
           <div>
-            <FieldLabel>Phòng ban/Bộ phận</FieldLabel>
+            <FieldLabel>Phòng ban/Bộ phận (không bắt buộc)</FieldLabel>
             <TextInput
               id="employment-department"
               value={values.personalInfo.department}
               onChange={(value) => updatePersonalInfo("department", value)}
               placeholder="Kế toán - Tài chính"
-              required
             />
           </div>
         </div>
@@ -232,7 +243,7 @@ export function EmploymentContractFields({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {SALARY_FIELDS.map((field) => (
             <div key={field.key}>
-              <FieldLabel>{field.label} (đồng)</FieldLabel>
+              <FieldLabel>{field.label} (đồng, không bắt buộc)</FieldLabel>
               <TextInput
                 id={`employment-${field.key}`}
                 type="number"
@@ -241,12 +252,11 @@ export function EmploymentContractFields({
                   onChange({ ...values, [field.key]: value })
                 }
                 placeholder="0"
-                required
               />
             </div>
           ))}
           <div className="md:col-span-2">
-            <FieldLabel>Mức lương bằng chữ</FieldLabel>
+            <FieldLabel>Mức lương bằng chữ (không bắt buộc)</FieldLabel>
             <TextInput
               id="employment-salary-in-words"
               value={values.salaryInWords}
@@ -254,7 +264,6 @@ export function EmploymentContractFields({
                 onChange({ ...values, salaryInWords })
               }
               placeholder="Tám triệu đồng"
-              required
             />
           </div>
         </div>

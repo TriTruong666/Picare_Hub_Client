@@ -7,7 +7,9 @@ import type {
 import type { ContractVariantDefinition } from "../../types";
 
 export type EmploymentContractFormValues = {
-  personalInfo: EmploymentPersonalInfoPayload;
+  personalInfo: {
+    [Field in keyof EmploymentPersonalInfoPayload]: string;
+  };
   contractDate: string;
   contractTerm: string;
   startDate: string;
@@ -21,18 +23,18 @@ export type EmploymentContractFormValues = {
   totalSalary: string;
 };
 
-const EMPTY_PERSONAL_INFO: EmploymentPersonalInfoPayload = {
+const EMPTY_PERSONAL_INFO: EmploymentContractFormValues["personalInfo"] = {
   fullName: "",
   email: "",
   dateOfBirth: "",
   gender: "",
   citizenId: "",
   citizenIdIssuedDate: "",
-  citizenIdIssuedPlace: "Cục Cảnh sát QLHC về TTXH",
+  citizenIdIssuedPlace: "",
   permanentAddress: "",
   currentAddress: "",
-  taxCode: "0",
-  socialInsuranceNumber: "0",
+  taxCode: "",
+  socialInsuranceNumber: "",
   emergencyContact: "",
   position: "",
   department: "",
@@ -47,36 +49,36 @@ const MONEY_FIELDS = [
   "totalSalary",
 ] as const;
 
-function todayDateOnly() {
-  const date = new Date();
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
-}
-
 function emptyValues(): EmploymentContractFormValues {
   return {
     personalInfo: { ...EMPTY_PERSONAL_INFO },
-    contractDate: todayDateOnly(),
-    contractTerm: "Không xác định thời hạn",
+    contractDate: "",
+    contractTerm: "",
     startDate: "",
-    workLocation:
-      "38/11 Nguyễn Giản Thanh, Phường Hòa Hưng, Thành phố Hồ Chí Minh",
+    workLocation: "",
     baseSalary: "",
     salaryInWords: "",
-    mealAllowance: "0",
-    phoneUniformAllowance: "0",
-    performanceBonus: "0",
-    transportationAllowance: "0",
+    mealAllowance: "",
+    phoneUniformAllowance: "",
+    performanceBonus: "",
+    transportationAllowance: "",
     totalSalary: "",
   };
 }
 
-function normalizeDateOnly(value: string) {
-  return value.trim().split("T")[0];
+function normalizeDateOnly(value: string | null | undefined) {
+  return String(value || "")
+    .trim()
+    .split("T")[0];
 }
 
 function normalizeMoney(value: string) {
-  return Number(value.replace(/[.,\s]/g, ""));
+  const normalized = value.replace(/[.,\s]/g, "").trim();
+  return normalized ? Number(normalized) : null;
+}
+
+function nullableText(value: string) {
+  return value.trim() || null;
 }
 
 function getEmploymentData(contract: Contract) {
@@ -94,7 +96,7 @@ export const employmentContractVariant: ContractVariantDefinition<
   EmploymentContractFormValues
 > = {
   type: "employment_contract",
-  title: "Hợp đồng lao động PICARE",
+  title: "Hợp đồng lao động",
   description:
     "Mẫu hợp đồng lao động 9 trang, đã bao gồm phụ lục lương và phúc lợi đi liền hợp đồng.",
   createInitialValues: emptyValues,
@@ -105,62 +107,41 @@ export const employmentContractVariant: ContractVariantDefinition<
     if (!data) return emptyValues();
 
     return {
-      personalInfo: { ...EMPTY_PERSONAL_INFO, ...data.personalInfo },
+      personalInfo: Object.fromEntries(
+        Object.entries({ ...EMPTY_PERSONAL_INFO, ...data.personalInfo }).map(
+          ([key, value]) => [key, String(value ?? "")],
+        ),
+      ) as EmploymentContractFormValues["personalInfo"],
       contractDate: normalizeDateOnly(data.contractDate || ""),
-      contractTerm: data.contractTerm || "Không xác định thời hạn",
+      contractTerm: data.contractTerm || "",
       startDate: normalizeDateOnly(data.startDate || ""),
       workLocation: data.workLocation || "",
       baseSalary: String(data.baseSalary ?? ""),
       salaryInWords: data.salaryInWords || "",
-      mealAllowance: String(data.mealAllowance ?? "0"),
-      phoneUniformAllowance: String(data.phoneUniformAllowance ?? "0"),
-      performanceBonus: String(data.performanceBonus ?? "0"),
-      transportationAllowance: String(data.transportationAllowance ?? "0"),
+      mealAllowance: String(data.mealAllowance ?? ""),
+      phoneUniformAllowance: String(data.phoneUniformAllowance ?? ""),
+      performanceBonus: String(data.performanceBonus ?? ""),
+      transportationAllowance: String(data.transportationAllowance ?? ""),
       totalSalary: String(data.totalSalary ?? ""),
     };
   },
-  validate: (values, common) => {
-    if (common.ownerCompanyInfo.companyCode !== "PIC") {
-      return "Mẫu hợp đồng lao động này chỉ áp dụng cho công ty PICARE.";
-    }
-
+  validate: (values) => {
     const requiredPersonalFields: Array<keyof EmploymentPersonalInfoPayload> = [
       "fullName",
       "email",
-      "dateOfBirth",
-      "gender",
-      "citizenId",
-      "citizenIdIssuedDate",
-      "citizenIdIssuedPlace",
-      "permanentAddress",
-      "currentAddress",
-      "taxCode",
-      "socialInsuranceNumber",
-      "position",
-      "department",
     ];
     if (
       requiredPersonalFields.some(
         (field) => !String(values.personalInfo[field] || "").trim(),
       )
     ) {
-      return "Vui lòng nhập đầy đủ thông tin người lao động.";
-    }
-
-    if (
-      !values.contractDate ||
-      !values.contractTerm.trim() ||
-      !values.startDate ||
-      !values.workLocation.trim() ||
-      !values.salaryInWords.trim()
-    ) {
-      return "Vui lòng nhập đầy đủ thông tin hợp đồng và tiền lương.";
+      return "Vui lòng nhập họ tên và email nhận link ký của người lao động.";
     }
 
     if (
       MONEY_FIELDS.some((field) => {
         const amount = normalizeMoney(values[field]);
-        return !values[field].trim() || !Number.isFinite(amount) || amount < 0;
+        return amount !== null && (!Number.isFinite(amount) || amount < 0);
       })
     ) {
       return "Các khoản lương, phụ cấp và tổng thu nhập phải là số không âm.";
@@ -176,20 +157,21 @@ export const employmentContractVariant: ContractVariantDefinition<
         ...Object.fromEntries(
           Object.entries(values.personalInfo).map(([key, value]) => [
             key,
-            value.trim(),
+            key === "fullName" || key === "email"
+              ? value.trim()
+              : nullableText(value),
           ]),
         ),
-        dateOfBirth: normalizeDateOnly(values.personalInfo.dateOfBirth),
-        citizenIdIssuedDate: normalizeDateOnly(
-          values.personalInfo.citizenIdIssuedDate,
-        ),
+        dateOfBirth: normalizeDateOnly(values.personalInfo.dateOfBirth) || null,
+        citizenIdIssuedDate:
+          normalizeDateOnly(values.personalInfo.citizenIdIssuedDate) || null,
       } as EmploymentPersonalInfoPayload,
-      contractDate: normalizeDateOnly(values.contractDate),
-      contractTerm: values.contractTerm.trim(),
-      startDate: normalizeDateOnly(values.startDate),
-      workLocation: values.workLocation.trim(),
+      contractDate: normalizeDateOnly(values.contractDate) || null,
+      contractTerm: nullableText(values.contractTerm),
+      startDate: normalizeDateOnly(values.startDate) || null,
+      workLocation: nullableText(values.workLocation),
       baseSalary: normalizeMoney(values.baseSalary),
-      salaryInWords: values.salaryInWords.trim(),
+      salaryInWords: nullableText(values.salaryInWords),
       mealAllowance: normalizeMoney(values.mealAllowance),
       phoneUniformAllowance: normalizeMoney(values.phoneUniformAllowance),
       performanceBonus: normalizeMoney(values.performanceBonus),

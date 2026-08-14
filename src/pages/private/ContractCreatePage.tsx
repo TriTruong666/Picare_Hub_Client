@@ -292,11 +292,7 @@ export function ContractFormPage({
           ? initialCreateContractType
           : null,
     );
-  const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(() =>
-    initialCreateContractType === "employment_contract"
-      ? OWNER_TEMPLATES.findIndex((template) => template.companyCode === "PIC")
-      : 0,
-  );
+  const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(0);
   const [selectedPrincipleContractId, setSelectedPrincipleContractId] =
     useState("");
   const [partnerEntityType, setPartnerEntityType] =
@@ -574,10 +570,6 @@ export function ContractFormPage({
     }
 
     if (type === "employment_contract") {
-      const picareOwnerIndex = OWNER_TEMPLATES.findIndex(
-        (template) => template.companyCode === "PIC",
-      );
-      if (picareOwnerIndex >= 0) setSelectedOwnerIndex(picareOwnerIndex);
       setIsPartnerFormVisible(false);
       return;
     }

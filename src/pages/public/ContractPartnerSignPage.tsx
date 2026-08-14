@@ -2253,6 +2253,8 @@ function ContractPartnerSignPageShell({
         <EmploymentContractDocument
           contract={contract}
           partnerSignatureRef={partnerSignatureRef}
+          partnerSignatureRevealKey={partnerSignatureRevealKey}
+          appearance="public"
         />
       ) : (
         <ContractDocument
