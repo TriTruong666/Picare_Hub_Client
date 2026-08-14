@@ -999,6 +999,12 @@ function CustomPersonalContractDocument({
           </strong>
         </p>
         <p>
+          Email:{" "}
+          <strong className="font-semibold text-[#111111] dark:text-white">
+            {personal?.email || "..."}
+          </strong>
+        </p>
+        <p>
           Ngày sinh:{" "}
           <strong className="font-semibold text-[#111111] dark:text-white">
             {personal?.dateOfBirth ? formatDate(personal.dateOfBirth) : "..."}

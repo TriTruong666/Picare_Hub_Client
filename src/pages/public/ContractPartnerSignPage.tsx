@@ -609,6 +609,7 @@ function CustomPersonalContractDocument({
           Bên B: Cá nhân
         </h2>
         <p>Họ tên: {strong(personal?.fullName)}</p>
+        <p>Email: {strong(personal?.email)}</p>
         <p>
           Ngày sinh:{" "}
           {strong(

@@ -74,7 +74,11 @@ export const customPersonalContractVariant: ContractVariantDefinition<
     if (!values.rawContent.trim() || values.rawContent === "<p></p>") {
       return "Vui lòng nhập nội dung hợp đồng.";
     }
-    if (Object.values(values.personalInfo).some((value) => !value.trim())) {
+    if (
+      Object.values(values.personalInfo).some(
+        (value) => typeof value !== "string" || !value.trim(),
+      )
+    ) {
       return "Vui lòng nhập đầy đủ thông tin cá nhân.";
     }
 

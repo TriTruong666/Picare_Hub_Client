@@ -27,7 +27,7 @@ type UploadS3AssetsModalProps = {
   open: boolean;
   folderName: string;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
 };
 
 function fileToBase64(file: File) {
@@ -180,7 +180,7 @@ export default function UploadS3AssetsModal({
 
     if (uploadedAtLeastOne) {
       setHasUploaded(true);
-      onSuccess();
+      await onSuccess();
     }
   };
 

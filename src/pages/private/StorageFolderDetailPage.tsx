@@ -14,7 +14,6 @@ import {
   FiTrash2,
   FiUpload,
 } from "react-icons/fi";
-import { useQueryClient } from "@tanstack/react-query";
 import { Navigate, useParams } from "react-router-dom";
 
 import { formatFileSize, formatRelativeTime } from "@/common/format";
@@ -168,12 +167,10 @@ export default function StorageFolderDetailPage() {
     };
   }, [currentRows, cursor]);
 
-  const queryClient = useQueryClient();
-
-  const refreshAssetsAfterUpload = () => {
+  const refreshAssetsAfterUpload = async () => {
     setCursor(undefined);
-    queryClient.invalidateQueries({ queryKey: ["s3-assets"] });
-    queryClient.invalidateQueries({ queryKey: ["s3-folders"] });
+    setAllAssets([]);
+    await refetch();
   };
 
   const handleLoadMore = () => {

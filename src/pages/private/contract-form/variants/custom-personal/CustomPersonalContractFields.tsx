@@ -22,6 +22,11 @@ type PersonalField = {
 const PERSONAL_FIELDS: PersonalField[] = [
   { key: "fullName", label: "Họ và tên", placeholder: "Nguyễn Văn A" },
   {
+    key: "email",
+    label: "Email",
+    placeholder: "nguyenvana@example.com",
+  },
+  {
     key: "dateOfBirth",
     label: "Ngày sinh",
     placeholder: "Chọn ngày sinh",
@@ -163,6 +168,7 @@ export function CustomPersonalContractFields({
               ) : (
                 <TextInput
                   id={`custom-personal-${field.key}`}
+                  type={field.key === "email" ? "email" : "text"}
                   value={values.personalInfo[field.key]}
                   onChange={(value) => updatePersonalInfo(field.key, value)}
                   placeholder={field.placeholder}
