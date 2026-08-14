@@ -75,6 +75,11 @@ import { LivestreamResponsibilityCommitmentFields } from "./contract-form/varian
 import { livestreamResponsibilityCommitmentContractVariant } from "./contract-form/variants/livestream-responsibility-commitment/livestreamResponsibilityCommitmentContractVariant";
 import { LivestreamResponsibilityCommitmentAppendixFields } from "./contract-form/variants/livestream-responsibility-commitment-appendix/LivestreamResponsibilityCommitmentAppendixFields";
 import { livestreamResponsibilityCommitmentAppendixContractVariant } from "./contract-form/variants/livestream-responsibility-commitment-appendix/livestreamResponsibilityCommitmentAppendixContractVariant";
+import { EmploymentContractFields } from "./contract-form/variants/employment-contract/EmploymentContractFields";
+import {
+  employmentContractVariant,
+  type EmploymentContractFormValues,
+} from "./contract-form/variants/employment-contract/employmentContractVariant";
 import type { PartnerEntityType } from "./contract-form/types";
 
 type ContractFormMode = "create" | "edit";
@@ -287,7 +292,11 @@ export function ContractFormPage({
           ? initialCreateContractType
           : null,
     );
-  const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(0);
+  const [selectedOwnerIndex, setSelectedOwnerIndex] = useState(() =>
+    initialCreateContractType === "employment_contract"
+      ? OWNER_TEMPLATES.findIndex((template) => template.companyCode === "PIC")
+      : 0,
+  );
   const [selectedPrincipleContractId, setSelectedPrincipleContractId] =
     useState("");
   const [partnerEntityType, setPartnerEntityType] =
@@ -312,6 +321,10 @@ export function ContractFormPage({
   const [customPersonalValues, setCustomPersonalValues] =
     useState<CustomPersonalContractFormValues>(() =>
       customPersonalContractVariant.createInitialValues(),
+    );
+  const [employmentValues, setEmploymentValues] =
+    useState<EmploymentContractFormValues>(() =>
+      employmentContractVariant.createInitialValues(),
     );
   const [personalInfo, setPersonalInfo] =
     useState<LivestreamResponsibilityPersonalInfoPayload>(() =>
@@ -371,7 +384,8 @@ export function ContractFormPage({
     setSelectedOwnerIndex(ownerIndex >= 0 ? ownerIndex : 0);
     if (
       initialContract.contractType !== "livestream_responsibility_commitment" &&
-      initialContract.contractType !== "custom_personal"
+      initialContract.contractType !== "custom_personal" &&
+      initialContract.contractType !== "employment_contract"
     ) {
       if (initialContract.partnerCompanyInfo) {
         setPartnerCompanyInfo(initialContract.partnerCompanyInfo);
@@ -424,6 +438,11 @@ export function ContractFormPage({
       setCustomPersonalValues(
         customPersonalContractVariant.hydrate(initialContract),
       );
+      return;
+    }
+
+    if (initialContract.contractType === "employment_contract") {
+      setEmploymentValues(employmentContractVariant.hydrate(initialContract));
       return;
     }
 
@@ -550,6 +569,15 @@ export function ContractFormPage({
     }
 
     if (type === "custom_personal") {
+      setIsPartnerFormVisible(false);
+      return;
+    }
+
+    if (type === "employment_contract") {
+      const picareOwnerIndex = OWNER_TEMPLATES.findIndex(
+        (template) => template.companyCode === "PIC",
+      );
+      if (picareOwnerIndex >= 0) setSelectedOwnerIndex(picareOwnerIndex);
       setIsPartnerFormVisible(false);
       return;
     }
@@ -688,6 +716,15 @@ export function ContractFormPage({
       });
     }
 
+    if (selectedContractType === "employment_contract") {
+      return employmentContractVariant.validate(employmentValues, {
+        ownerCompanyInfo,
+        partnerCompanyInfo,
+        partnerEntityType,
+        contractDueDate: initialContract?.contractDueDate ?? null,
+      });
+    }
+
     if (
       selectedContractType === "livestream_responsibility_commitment_appendix"
     ) {
@@ -769,10 +806,15 @@ export function ContractFormPage({
                     customPersonalValues,
                     commonValues,
                   )
-                : CONTRACT_FORM_REGISTRY.principle.buildPayload(
-                    { paymentTermDays, creditLimit },
-                    commonValues,
-                  );
+                : selectedContractType === "employment_contract"
+                  ? CONTRACT_FORM_REGISTRY.employment_contract.buildPayload(
+                      employmentValues,
+                      commonValues,
+                    )
+                  : CONTRACT_FORM_REGISTRY.principle.buildPayload(
+                      { paymentTermDays, creditLimit },
+                      commonValues,
+                    );
 
     if (isEditMode && initialContract) {
       const response = await updateContractMutation.mutateAsync({
@@ -910,6 +952,7 @@ export function ContractFormPage({
             {selectedContractType === "principle" ||
             selectedContractType === "custom_organization" ||
             selectedContractType === "custom_personal" ||
+            selectedContractType === "employment_contract" ||
             selectedContractType === "livestream_responsibility_commitment" ||
             selectedContractType ===
               "livestream_responsibility_commitment_appendix" ? (
@@ -934,6 +977,13 @@ export function ContractFormPage({
                   <CustomPersonalContractFields
                     values={customPersonalValues}
                     onChange={setCustomPersonalValues}
+                  />
+                ) : null}
+
+                {selectedContractType === "employment_contract" ? (
+                  <EmploymentContractFields
+                    values={employmentValues}
+                    onChange={setEmploymentValues}
                   />
                 ) : null}
 

@@ -132,6 +132,58 @@ export type LivestreamResponsibilityCommitmentAppendixContractPayload = {
   personalInfo: LivestreamResponsibilityPersonalInfoPayload;
 };
 
+export type EmploymentPersonalInfoPayload = {
+  fullName: string;
+  email: string;
+  dateOfBirth: string;
+  gender: string;
+  citizenId: string;
+  citizenIdIssuedDate: string;
+  citizenIdIssuedPlace: string;
+  permanentAddress: string;
+  currentAddress: string;
+  taxCode: string;
+  socialInsuranceNumber: string;
+  emergencyContact: string;
+  position: string;
+  department: string;
+};
+
+export type EmploymentContractDataPayload = {
+  personalInfo: EmploymentPersonalInfoPayload;
+  contractDate: string;
+  contractTerm: string;
+  startDate: string;
+  workLocation: string;
+  baseSalary: number | string;
+  salaryInWords: string;
+  mealAllowance: number | string;
+  phoneUniformAllowance: number | string;
+  performanceBonus: number | string;
+  transportationAllowance: number | string;
+  totalSalary: number | string;
+  ownerCompanyInfo?: OwnerCompanyInfoPayload;
+  partnerCompanyInfo?: null;
+  details?: ContractDetail[];
+};
+
+export type EmploymentContractPayload = {
+  contractType: "employment_contract";
+  ownerCompanyInfo: OwnerCompanyInfoPayload;
+  personalInfo: EmploymentPersonalInfoPayload;
+  contractDate: string;
+  contractTerm: string;
+  startDate: string;
+  workLocation: string;
+  baseSalary: number | string;
+  salaryInWords: string;
+  mealAllowance: number | string;
+  phoneUniformAllowance: number | string;
+  performanceBonus: number | string;
+  transportationAllowance: number | string;
+  totalSalary: number | string;
+};
+
 export type LivestreamResponsibilityContractDataPayload = {
   details?: ContractDetail[];
   personalInfo: LivestreamResponsibilityPersonalInfoPayload;
@@ -149,7 +201,8 @@ export type UpdateContractPayload =
   | CustomPersonalContractPayload
   | AppendixContractPayload
   | LivestreamResponsibilityCommitmentContractPayload
-  | LivestreamResponsibilityCommitmentAppendixContractPayload;
+  | LivestreamResponsibilityCommitmentAppendixContractPayload
+  | EmploymentContractPayload;
 
 export type CreateContractPayload = UpdateContractPayload;
 
@@ -200,6 +253,7 @@ export type ContractType =
   | "custom_personal"
   | "livestream_responsibility_commitment"
   | "livestream_responsibility_commitment_appendix"
+  | "employment_contract"
   | "digital"
   | "default";
 
@@ -366,6 +420,7 @@ export type Contract = {
     | CustomPersonalContractDataPayload
     | AppendixContractDataPayload
     | LivestreamResponsibilityContractDataPayload
+    | EmploymentContractDataPayload
     | null;
   principleContractNumber?: string | null;
   principleContractSignedDate?: string | null;

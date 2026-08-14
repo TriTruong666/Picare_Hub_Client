@@ -5,6 +5,7 @@ import { customOrganizationContractVariant } from "./variants/custom-organizatio
 import { customPersonalContractVariant } from "./variants/custom-personal/customPersonalContractVariant";
 import { livestreamResponsibilityCommitmentContractVariant } from "./variants/livestream-responsibility-commitment/livestreamResponsibilityCommitmentContractVariant";
 import { livestreamResponsibilityCommitmentAppendixContractVariant } from "./variants/livestream-responsibility-commitment-appendix/livestreamResponsibilityCommitmentAppendixContractVariant";
+import { employmentContractVariant } from "./variants/employment-contract/employmentContractVariant";
 
 export const CONTRACT_FORM_REGISTRY = {
   principle: principleContractVariant,
@@ -16,6 +17,7 @@ export const CONTRACT_FORM_REGISTRY = {
     livestreamResponsibilityCommitmentAppendixContractVariant,
   custom_organization: customOrganizationContractVariant,
   custom_personal: customPersonalContractVariant,
+  employment_contract: employmentContractVariant,
 } as const;
 
 export type RegisteredContractType = keyof typeof CONTRACT_FORM_REGISTRY;

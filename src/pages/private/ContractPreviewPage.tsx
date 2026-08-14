@@ -12,6 +12,7 @@ import { HiOutlineX } from "react-icons/hi";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
+import { EmploymentContractDocument } from "@/components/contracts/EmploymentContractDocument";
 import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import ContractSigningModal from "@/components/modals/ContractSigningModal";
@@ -143,6 +144,8 @@ function getContractMailTypeLabel(contractType: Contract["contractType"]) {
       return "Phụ lục cam kết livestream";
     case "custom_personal":
       return "Thỏa thuận công việc";
+    case "employment_contract":
+      return "Hợp đồng lao động";
     case "service":
       return "Hợp đồng dịch vụ";
     case "principle":
@@ -160,6 +163,8 @@ function getContractMailActionLabel(contractType: Contract["contractType"]) {
       return "Xem bản cam kết";
     case "custom_personal":
       return "Xem thỏa thuận";
+    case "employment_contract":
+      return "Xem hợp đồng lao động";
     case "service":
       return "Xem hợp đồng dịch vụ";
     case "principle":
@@ -582,6 +587,13 @@ function createPartnerMailForm(contract: Contract): PartnerMailForm {
         `${owner.companyName} đã hoàn tất xử lý thỏa thuận công việc số ${contractReference}.`,
         "Vui lòng kiểm tra lại thông tin cá nhân và toàn bộ nội dung thỏa thuận trước khi xác nhận ký.",
         "Nếu cần điều chỉnh nội dung, vui lòng phản hồi trực tiếp email này để được hỗ trợ.",
+      ];
+      break;
+    case "employment_contract":
+      messageLines = [
+        `${owner.companyName} đã hoàn tất ký Hợp đồng lao động số ${contractReference}.`,
+        "Tài liệu gồm hợp đồng lao động và phụ lục tiền lương, phúc lợi đi liền trong cùng một file.",
+        "Vui lòng kiểm tra kỹ thông tin cá nhân, công việc, mức lương, các khoản phụ cấp và toàn bộ điều khoản trước khi ký xác nhận.",
       ];
       break;
     case "service":
@@ -2418,6 +2430,12 @@ function ContractPreviewPageShell({
           ownerSignatureRevealKey={ownerSignatureRevealKey}
           partnerSignatureRef={partnerSignatureRef}
           partnerSignatureRevealKey={partnerSignatureRevealKey}
+        />
+      ) : contract.contractType === "employment_contract" ? (
+        <EmploymentContractDocument
+          contract={contract}
+          ownerSignatureRef={ownerSignatureRef}
+          partnerSignatureRef={partnerSignatureRef}
         />
       ) : (
         <ContractDocument

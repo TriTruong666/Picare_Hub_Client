@@ -13,6 +13,7 @@ import type { PartnerSignType } from "@/components/modals/PartnerSignTypeModal";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
+import { EmploymentContractDocument } from "@/components/contracts/EmploymentContractDocument";
 import {
   useContractDetail,
   useDeleteCredential,
@@ -56,11 +57,12 @@ function getIndividualCredentialName(contract: Contract) {
   );
 }
 
-function isLivestreamContract(contract: Contract) {
+function isPersonalContract(contract: Contract) {
   return (
     contract.contractType === "livestream_responsibility_commitment" ||
     contract.contractType === "livestream_responsibility_commitment_appendix" ||
-    contract.contractType === "custom_personal"
+    contract.contractType === "custom_personal" ||
+    contract.contractType === "employment_contract"
   );
 }
 
@@ -1915,7 +1917,7 @@ function ContractActionDock({
   const [isOrganizationSigningOpen, setIsOrganizationSigningOpen] =
     useState(false);
   const canPartnerSign = contract.status === "owner_signed";
-  const isLivestream = isLivestreamContract(contract);
+  const isPersonal = isPersonalContract(contract);
   const credentialName = getIndividualCredentialName(contract);
   const personal =
     contract.personalInfo ??
@@ -1924,9 +1926,9 @@ function ContractActionDock({
       : null);
   const signatureSignerName =
     credentialName ||
-    (isLivestream
+    (isPersonal
       ? personal?.fullName
-      : contract.partnerCompanyInfo.ownerName) ||
+      : contract.partnerCompanyInfo?.ownerName) ||
     "";
 
   const cleanupOppositeCredential = async (
@@ -2012,7 +2014,7 @@ function ContractActionDock({
     setIsOrganizationSigningOpen(false);
     if (type === "individual") {
       if (contract.individualCredential) {
-        handleCredentialContinue(contract);
+        handleCredentialContinue();
         return;
       }
       setIsIndividualCredentialOpen(true);
@@ -2047,7 +2049,13 @@ function ContractActionDock({
           <DockButton
             label="Ký hợp đồng"
             icon={<FiPenTool className="text-emerald-400" />}
-            onClick={() => setIsSignTypeModalOpen(true)}
+            onClick={() => {
+              if (contract.contractType === "employment_contract") {
+                void handleSignTypeConfirm("individual");
+                return;
+              }
+              setIsSignTypeModalOpen(true);
+            }}
           />
         ) : null}
       </motion.div>
@@ -2081,9 +2089,9 @@ function ContractActionDock({
         isOpen={isNameMismatchOpen}
         credentialName={credentialName}
         contractName={
-          isLivestream
+          isPersonal
             ? personal?.fullName || ""
-            : contract.partnerCompanyInfo.ownerName
+            : contract.partnerCompanyInfo?.ownerName || ""
         }
         onClose={() => setIsNameMismatchOpen(false)}
         onContinue={openHandwrittenSignatureFlow}
@@ -2094,7 +2102,11 @@ function ContractActionDock({
         contractId={contract.contractId}
         partnerToken={partnerToken}
         signerName={signatureSignerName}
-        signerEmail={isLivestream ? "" : contract.partnerCompanyInfo.email}
+        signerEmail={
+          isPersonal
+            ? personal?.email || ""
+            : contract.partnerCompanyInfo?.email || ""
+        }
         isOpen={isHandwrittenSignatureOpen}
         onClose={() => setIsHandwrittenSignatureOpen(false)}
         onSigned={async () => {
@@ -2236,6 +2248,11 @@ function ContractPartnerSignPageShell({
           contract={contract}
           partnerSignatureRef={partnerSignatureRef}
           partnerSignatureRevealKey={partnerSignatureRevealKey}
+        />
+      ) : contract.contractType === "employment_contract" ? (
+        <EmploymentContractDocument
+          contract={contract}
+          partnerSignatureRef={partnerSignatureRef}
         />
       ) : (
         <ContractDocument

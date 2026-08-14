@@ -12,7 +12,8 @@ export type SupportedContractType =
   | "custom_organization"
   | "custom_personal"
   | "livestream_responsibility_commitment"
-  | "livestream_responsibility_commitment_appendix";
+  | "livestream_responsibility_commitment_appendix"
+  | "employment_contract";
 
 export type ContractFormCommonValues = {
   ownerCompanyInfo: OwnerCompanyInfoPayload;
