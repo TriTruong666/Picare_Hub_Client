@@ -80,6 +80,11 @@ import {
   employmentContractVariant,
   type EmploymentContractFormValues,
 } from "./contract-form/variants/employment-contract/employmentContractVariant";
+import { ProbationContractFields } from "./contract-form/variants/probation-contract/ProbationContractFields";
+import {
+  probationContractVariant,
+  type ProbationContractFormValues,
+} from "./contract-form/variants/probation-contract/probationContractVariant";
 import type { PartnerEntityType } from "./contract-form/types";
 
 type ContractFormMode = "create" | "edit";
@@ -322,6 +327,10 @@ export function ContractFormPage({
     useState<EmploymentContractFormValues>(() =>
       employmentContractVariant.createInitialValues(),
     );
+  const [probationValues, setProbationValues] =
+    useState<ProbationContractFormValues>(() =>
+      probationContractVariant.createInitialValues(),
+    );
   const [personalInfo, setPersonalInfo] =
     useState<LivestreamResponsibilityPersonalInfoPayload>(() =>
       livestreamResponsibilityCommitmentContractVariant.createInitialValues(),
@@ -381,7 +390,8 @@ export function ContractFormPage({
     if (
       initialContract.contractType !== "livestream_responsibility_commitment" &&
       initialContract.contractType !== "custom_personal" &&
-      initialContract.contractType !== "employment_contract"
+      initialContract.contractType !== "employment_contract" &&
+      initialContract.contractType !== "probation_contract"
     ) {
       if (initialContract.partnerCompanyInfo) {
         setPartnerCompanyInfo(initialContract.partnerCompanyInfo);
@@ -439,6 +449,11 @@ export function ContractFormPage({
 
     if (initialContract.contractType === "employment_contract") {
       setEmploymentValues(employmentContractVariant.hydrate(initialContract));
+      return;
+    }
+
+    if (initialContract.contractType === "probation_contract") {
+      setProbationValues(probationContractVariant.hydrate(initialContract));
       return;
     }
 
@@ -569,7 +584,7 @@ export function ContractFormPage({
       return;
     }
 
-    if (type === "employment_contract") {
+    if (type === "employment_contract" || type === "probation_contract") {
       setIsPartnerFormVisible(false);
       return;
     }
@@ -717,6 +732,15 @@ export function ContractFormPage({
       });
     }
 
+    if (selectedContractType === "probation_contract") {
+      return probationContractVariant.validate(probationValues, {
+        ownerCompanyInfo,
+        partnerCompanyInfo,
+        partnerEntityType,
+        contractDueDate: initialContract?.contractDueDate ?? null,
+      });
+    }
+
     if (
       selectedContractType === "livestream_responsibility_commitment_appendix"
     ) {
@@ -803,10 +827,15 @@ export function ContractFormPage({
                       employmentValues,
                       commonValues,
                     )
-                  : CONTRACT_FORM_REGISTRY.principle.buildPayload(
-                      { paymentTermDays, creditLimit },
-                      commonValues,
-                    );
+                  : selectedContractType === "probation_contract"
+                    ? CONTRACT_FORM_REGISTRY.probation_contract.buildPayload(
+                        probationValues,
+                        commonValues,
+                      )
+                    : CONTRACT_FORM_REGISTRY.principle.buildPayload(
+                        { paymentTermDays, creditLimit },
+                        commonValues,
+                      );
 
     if (isEditMode && initialContract) {
       const response = await updateContractMutation.mutateAsync({
@@ -945,6 +974,7 @@ export function ContractFormPage({
             selectedContractType === "custom_organization" ||
             selectedContractType === "custom_personal" ||
             selectedContractType === "employment_contract" ||
+            selectedContractType === "probation_contract" ||
             selectedContractType === "livestream_responsibility_commitment" ||
             selectedContractType ===
               "livestream_responsibility_commitment_appendix" ? (
@@ -976,6 +1006,13 @@ export function ContractFormPage({
                   <EmploymentContractFields
                     values={employmentValues}
                     onChange={setEmploymentValues}
+                  />
+                ) : null}
+
+                {selectedContractType === "probation_contract" ? (
+                  <ProbationContractFields
+                    values={probationValues}
+                    onChange={setProbationValues}
                   />
                 ) : null}
 

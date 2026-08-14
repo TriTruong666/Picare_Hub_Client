@@ -184,6 +184,31 @@ export type EmploymentContractPayload = {
   totalSalary: number | string | null;
 };
 
+export type ProbationContractDataPayload = {
+  personalInfo: EmploymentPersonalInfoPayload;
+  contractDate: string | null;
+  probationStartDate: string | null;
+  probationEndDate: string | null;
+  workLocation: string | null;
+  probationSalary: number | string | null;
+  performanceBonus: number | string | null;
+  ownerCompanyInfo?: OwnerCompanyInfoPayload;
+  partnerCompanyInfo?: null;
+  details?: ContractDetail[];
+};
+
+export type ProbationContractPayload = {
+  contractType: "probation_contract";
+  ownerCompanyInfo: OwnerCompanyInfoPayload;
+  personalInfo: EmploymentPersonalInfoPayload;
+  contractDate: string | null;
+  probationStartDate: string | null;
+  probationEndDate: string | null;
+  workLocation: string | null;
+  probationSalary: number | string | null;
+  performanceBonus: number | string | null;
+};
+
 export type LivestreamResponsibilityContractDataPayload = {
   details?: ContractDetail[];
   personalInfo: LivestreamResponsibilityPersonalInfoPayload;
@@ -202,7 +227,8 @@ export type UpdateContractPayload =
   | AppendixContractPayload
   | LivestreamResponsibilityCommitmentContractPayload
   | LivestreamResponsibilityCommitmentAppendixContractPayload
-  | EmploymentContractPayload;
+  | EmploymentContractPayload
+  | ProbationContractPayload;
 
 export type CreateContractPayload = UpdateContractPayload;
 
@@ -254,6 +280,7 @@ export type ContractType =
   | "livestream_responsibility_commitment"
   | "livestream_responsibility_commitment_appendix"
   | "employment_contract"
+  | "probation_contract"
   | "digital"
   | "default";
 
@@ -421,6 +448,7 @@ export type Contract = {
     | AppendixContractDataPayload
     | LivestreamResponsibilityContractDataPayload
     | EmploymentContractDataPayload
+    | ProbationContractDataPayload
     | null;
   principleContractNumber?: string | null;
   principleContractSignedDate?: string | null;

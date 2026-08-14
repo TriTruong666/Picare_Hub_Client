@@ -14,6 +14,7 @@ import type { PartnerSignType } from "@/components/modals/PartnerSignTypeModal";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { EmploymentContractDocument } from "@/components/contracts/EmploymentContractDocument";
+import { ProbationContractDocument } from "@/components/contracts/ProbationContractDocument";
 import {
   useContractDetail,
   useDeleteCredential,
@@ -62,7 +63,8 @@ function isPersonalContract(contract: Contract) {
     contract.contractType === "livestream_responsibility_commitment" ||
     contract.contractType === "livestream_responsibility_commitment_appendix" ||
     contract.contractType === "custom_personal" ||
-    contract.contractType === "employment_contract"
+    contract.contractType === "employment_contract" ||
+    contract.contractType === "probation_contract"
   );
 }
 
@@ -2050,7 +2052,10 @@ function ContractActionDock({
             label="Ký hợp đồng"
             icon={<FiPenTool className="text-emerald-400" />}
             onClick={() => {
-              if (contract.contractType === "employment_contract") {
+              if (
+                contract.contractType === "employment_contract" ||
+                contract.contractType === "probation_contract"
+              ) {
                 void handleSignTypeConfirm("individual");
                 return;
               }
@@ -2251,6 +2256,13 @@ function ContractPartnerSignPageShell({
         />
       ) : contract.contractType === "employment_contract" ? (
         <EmploymentContractDocument
+          contract={contract}
+          partnerSignatureRef={partnerSignatureRef}
+          partnerSignatureRevealKey={partnerSignatureRevealKey}
+          appearance="public"
+        />
+      ) : contract.contractType === "probation_contract" ? (
+        <ProbationContractDocument
           contract={contract}
           partnerSignatureRef={partnerSignatureRef}
           partnerSignatureRevealKey={partnerSignatureRevealKey}
