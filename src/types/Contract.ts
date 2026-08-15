@@ -184,6 +184,36 @@ export type EmploymentContractPayload = {
   totalSalary: number | string | null;
 };
 
+export type EmploymentContractAppendixDataPayload = {
+  parentContractId: string;
+  employmentContractNumber: string;
+  personalInfo: EmploymentPersonalInfoPayload;
+  contractDate: string | null;
+  baseSalary: number | string | null;
+  mealAllowance: number | string | null;
+  phoneUniformAllowance: number | string | null;
+  performanceBonus: number | string | null;
+  transportationAllowance: number | string | null;
+  totalSalary: number | string | null;
+  ownerCompanyInfo?: OwnerCompanyInfoPayload;
+  partnerCompanyInfo?: null;
+  details?: ContractDetail[];
+};
+
+export type EmploymentContractAppendixPayload = {
+  contractType: "employment_contract_appendix";
+  parentContractId: string;
+  ownerCompanyInfo: OwnerCompanyInfoPayload;
+  personalInfo: EmploymentPersonalInfoPayload;
+  contractDate: string | null;
+  baseSalary: number | string | null;
+  mealAllowance: number | string | null;
+  phoneUniformAllowance: number | string | null;
+  performanceBonus: number | string | null;
+  transportationAllowance: number | string | null;
+  totalSalary: number | string | null;
+};
+
 export type ProbationContractDataPayload = {
   personalInfo: EmploymentPersonalInfoPayload;
   contractDate: string | null;
@@ -228,6 +258,7 @@ export type UpdateContractPayload =
   | LivestreamResponsibilityCommitmentContractPayload
   | LivestreamResponsibilityCommitmentAppendixContractPayload
   | EmploymentContractPayload
+  | EmploymentContractAppendixPayload
   | ProbationContractPayload;
 
 export type CreateContractPayload = UpdateContractPayload;
@@ -280,6 +311,7 @@ export type ContractType =
   | "livestream_responsibility_commitment"
   | "livestream_responsibility_commitment_appendix"
   | "employment_contract"
+  | "employment_contract_appendix"
   | "probation_contract"
   | "digital"
   | "default";
@@ -448,6 +480,7 @@ export type Contract = {
     | AppendixContractDataPayload
     | LivestreamResponsibilityContractDataPayload
     | EmploymentContractDataPayload
+    | EmploymentContractAppendixDataPayload
     | ProbationContractDataPayload
     | null;
   principleContractNumber?: string | null;

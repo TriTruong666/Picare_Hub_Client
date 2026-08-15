@@ -14,6 +14,7 @@ export type SupportedContractType =
   | "livestream_responsibility_commitment"
   | "livestream_responsibility_commitment_appendix"
   | "employment_contract"
+  | "employment_contract_appendix"
   | "probation_contract";
 
 export type ContractFormCommonValues = {

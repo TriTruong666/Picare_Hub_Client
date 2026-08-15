@@ -13,6 +13,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { EmploymentContractDocument } from "@/components/contracts/EmploymentContractDocument";
+import { EmploymentContractAppendixDocument } from "@/components/contracts/EmploymentContractAppendixDocument";
 import { ProbationContractDocument } from "@/components/contracts/ProbationContractDocument";
 import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
@@ -147,6 +148,8 @@ function getContractMailTypeLabel(contractType: Contract["contractType"]) {
       return "Thỏa thuận công việc";
     case "employment_contract":
       return "Hợp đồng lao động";
+    case "employment_contract_appendix":
+      return "Phụ lục hợp đồng lao động";
     case "probation_contract":
       return "Hợp đồng thử việc";
     case "service":
@@ -168,6 +171,8 @@ function getContractMailActionLabel(contractType: Contract["contractType"]) {
       return "Xem thỏa thuận";
     case "employment_contract":
       return "Xem hợp đồng lao động";
+    case "employment_contract_appendix":
+      return "Xem phụ lục HĐLĐ";
     case "probation_contract":
       return "Xem hợp đồng thử việc";
     case "service":
@@ -599,6 +604,13 @@ function createPartnerMailForm(contract: Contract): PartnerMailForm {
         `${owner.companyName} đã hoàn tất ký Hợp đồng lao động số ${contractReference}.`,
         "Tài liệu gồm hợp đồng lao động và phụ lục tiền lương, phúc lợi đi liền trong cùng một file.",
         "Vui lòng kiểm tra kỹ thông tin cá nhân, công việc, mức lương, các khoản phụ cấp và toàn bộ điều khoản trước khi ký xác nhận.",
+      ];
+      break;
+    case "employment_contract_appendix":
+      messageLines = [
+        `${owner.companyName} đã hoàn tất ký Phụ lục hợp đồng lao động số ${contractReference}.`,
+        "Phụ lục là bản độc lập được sao chép từ HĐLĐ gốc và không làm thay đổi bản phụ lục đang gắn trong HĐLĐ.",
+        "Vui lòng kiểm tra kỹ thông tin cá nhân, tiền lương, chế độ và phúc lợi trước khi ký xác nhận.",
       ];
       break;
     case "probation_contract":
@@ -2445,6 +2457,14 @@ function ContractPreviewPageShell({
         />
       ) : contract.contractType === "employment_contract" ? (
         <EmploymentContractDocument
+          contract={contract}
+          ownerSignatureRef={ownerSignatureRef}
+          ownerSignatureRevealKey={ownerSignatureRevealKey}
+          partnerSignatureRef={partnerSignatureRef}
+          partnerSignatureRevealKey={partnerSignatureRevealKey}
+        />
+      ) : contract.contractType === "employment_contract_appendix" ? (
+        <EmploymentContractAppendixDocument
           contract={contract}
           ownerSignatureRef={ownerSignatureRef}
           ownerSignatureRevealKey={ownerSignatureRevealKey}

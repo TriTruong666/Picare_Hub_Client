@@ -14,6 +14,7 @@ import type { PartnerSignType } from "@/components/modals/PartnerSignTypeModal";
 import { Spinner } from "@/components/custom_ui/Spinner";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { EmploymentContractDocument } from "@/components/contracts/EmploymentContractDocument";
+import { EmploymentContractAppendixDocument } from "@/components/contracts/EmploymentContractAppendixDocument";
 import { ProbationContractDocument } from "@/components/contracts/ProbationContractDocument";
 import {
   useContractDetail,
@@ -64,6 +65,7 @@ function isPersonalContract(contract: Contract) {
     contract.contractType === "livestream_responsibility_commitment_appendix" ||
     contract.contractType === "custom_personal" ||
     contract.contractType === "employment_contract" ||
+    contract.contractType === "employment_contract_appendix" ||
     contract.contractType === "probation_contract"
   );
 }
@@ -2054,6 +2056,7 @@ function ContractActionDock({
             onClick={() => {
               if (
                 contract.contractType === "employment_contract" ||
+                contract.contractType === "employment_contract_appendix" ||
                 contract.contractType === "probation_contract"
               ) {
                 void handleSignTypeConfirm("individual");
@@ -2256,6 +2259,13 @@ function ContractPartnerSignPageShell({
         />
       ) : contract.contractType === "employment_contract" ? (
         <EmploymentContractDocument
+          contract={contract}
+          partnerSignatureRef={partnerSignatureRef}
+          partnerSignatureRevealKey={partnerSignatureRevealKey}
+          appearance="public"
+        />
+      ) : contract.contractType === "employment_contract_appendix" ? (
+        <EmploymentContractAppendixDocument
           contract={contract}
           partnerSignatureRef={partnerSignatureRef}
           partnerSignatureRevealKey={partnerSignatureRevealKey}

@@ -80,6 +80,12 @@ import {
   employmentContractVariant,
   type EmploymentContractFormValues,
 } from "./contract-form/variants/employment-contract/employmentContractVariant";
+import { EmploymentContractAppendixFields } from "./contract-form/variants/employment-contract-appendix/EmploymentContractAppendixFields";
+import {
+  createEmploymentAppendixValuesFromParent,
+  employmentContractAppendixVariant,
+  type EmploymentContractAppendixFormValues,
+} from "./contract-form/variants/employment-contract-appendix/employmentContractAppendixVariant";
 import { ProbationContractFields } from "./contract-form/variants/probation-contract/ProbationContractFields";
 import {
   probationContractVariant,
@@ -250,6 +256,15 @@ export function ContractFormPage({
   });
   const completedContracts = completedContractsData ?? [];
   const {
+    data: employmentContractsData,
+    isLoading: isLoadingEmploymentContracts,
+  } = useContractList({
+    page: 1,
+    limit: 100,
+    contractType: "employment_contract",
+  });
+  const employmentParentContracts = employmentContractsData ?? [];
+  const {
     data: unsignedLivestreamContractsData,
     isLoading: isLoadingUnsignedLivestreamContracts,
   } = useContractList({
@@ -327,6 +342,10 @@ export function ContractFormPage({
     useState<EmploymentContractFormValues>(() =>
       employmentContractVariant.createInitialValues(),
     );
+  const [employmentAppendixValues, setEmploymentAppendixValues] =
+    useState<EmploymentContractAppendixFormValues>(() =>
+      employmentContractAppendixVariant.createInitialValues(),
+    );
   const [probationValues, setProbationValues] =
     useState<ProbationContractFormValues>(() =>
       probationContractVariant.createInitialValues(),
@@ -391,6 +410,7 @@ export function ContractFormPage({
       initialContract.contractType !== "livestream_responsibility_commitment" &&
       initialContract.contractType !== "custom_personal" &&
       initialContract.contractType !== "employment_contract" &&
+      initialContract.contractType !== "employment_contract_appendix" &&
       initialContract.contractType !== "probation_contract"
     ) {
       if (initialContract.partnerCompanyInfo) {
@@ -449,6 +469,13 @@ export function ContractFormPage({
 
     if (initialContract.contractType === "employment_contract") {
       setEmploymentValues(employmentContractVariant.hydrate(initialContract));
+      return;
+    }
+
+    if (initialContract.contractType === "employment_contract_appendix") {
+      setEmploymentAppendixValues(
+        employmentContractAppendixVariant.hydrate(initialContract),
+      );
       return;
     }
 
@@ -584,7 +611,11 @@ export function ContractFormPage({
       return;
     }
 
-    if (type === "employment_contract" || type === "probation_contract") {
+    if (
+      type === "employment_contract" ||
+      type === "employment_contract_appendix" ||
+      type === "probation_contract"
+    ) {
       setIsPartnerFormVisible(false);
       return;
     }
@@ -621,6 +652,24 @@ export function ContractFormPage({
         : null);
     if (parentPersonalInfo) setPersonalInfo(parentPersonalInfo);
     setParentLivestreamOwner(parent?.ownerCompanyInfo ?? null);
+  };
+
+  const handleParentEmploymentContractSelect = (contractId: string) => {
+    const parent = employmentParentContracts.find(
+      (contract) => contract.contractId === contractId,
+    );
+    if (!parent) {
+      setEmploymentAppendixValues(
+        employmentContractAppendixVariant.createInitialValues(),
+      );
+      return;
+    }
+
+    setEmploymentAppendixValues(
+      createEmploymentAppendixValuesFromParent(parent),
+    );
+    const ownerTemplateIndex = findOwnerTemplateIndex(parent);
+    if (ownerTemplateIndex >= 0) setSelectedOwnerIndex(ownerTemplateIndex);
   };
 
   const handlePrincipleContractSelect = (contractId: string) => {
@@ -732,6 +781,18 @@ export function ContractFormPage({
       });
     }
 
+    if (selectedContractType === "employment_contract_appendix") {
+      return employmentContractAppendixVariant.validate(
+        employmentAppendixValues,
+        {
+          ownerCompanyInfo,
+          partnerCompanyInfo,
+          partnerEntityType,
+          contractDueDate: initialContract?.contractDueDate ?? null,
+        },
+      );
+    }
+
     if (selectedContractType === "probation_contract") {
       return probationContractVariant.validate(probationValues, {
         ownerCompanyInfo,
@@ -827,15 +888,20 @@ export function ContractFormPage({
                       employmentValues,
                       commonValues,
                     )
-                  : selectedContractType === "probation_contract"
-                    ? CONTRACT_FORM_REGISTRY.probation_contract.buildPayload(
-                        probationValues,
+                  : selectedContractType === "employment_contract_appendix"
+                    ? CONTRACT_FORM_REGISTRY.employment_contract_appendix.buildPayload(
+                        employmentAppendixValues,
                         commonValues,
                       )
-                    : CONTRACT_FORM_REGISTRY.principle.buildPayload(
-                        { paymentTermDays, creditLimit },
-                        commonValues,
-                      );
+                    : selectedContractType === "probation_contract"
+                      ? CONTRACT_FORM_REGISTRY.probation_contract.buildPayload(
+                          probationValues,
+                          commonValues,
+                        )
+                      : CONTRACT_FORM_REGISTRY.principle.buildPayload(
+                          { paymentTermDays, creditLimit },
+                          commonValues,
+                        );
 
     if (isEditMode && initialContract) {
       const response = await updateContractMutation.mutateAsync({
@@ -974,6 +1040,7 @@ export function ContractFormPage({
             selectedContractType === "custom_organization" ||
             selectedContractType === "custom_personal" ||
             selectedContractType === "employment_contract" ||
+            selectedContractType === "employment_contract_appendix" ||
             selectedContractType === "probation_contract" ||
             selectedContractType === "livestream_responsibility_commitment" ||
             selectedContractType ===
@@ -1009,6 +1076,16 @@ export function ContractFormPage({
                   />
                 ) : null}
 
+                {selectedContractType === "employment_contract_appendix" ? (
+                  <EmploymentContractAppendixFields
+                    values={employmentAppendixValues}
+                    contracts={employmentParentContracts}
+                    isLoading={isLoadingEmploymentContracts}
+                    onParentChange={handleParentEmploymentContractSelect}
+                    onChange={setEmploymentAppendixValues}
+                  />
+                ) : null}
+
                 {selectedContractType === "probation_contract" ? (
                   <ProbationContractFields
                     values={probationValues}
@@ -1027,7 +1104,8 @@ export function ContractFormPage({
                 ) : null}
 
                 {selectedContractType !==
-                "livestream_responsibility_commitment_appendix" ? (
+                  "livestream_responsibility_commitment_appendix" &&
+                selectedContractType !== "employment_contract_appendix" ? (
                   <section className="border-b border-black/10 py-6 dark:border-white/10">
                     <div className="mb-4 flex items-end justify-between gap-4">
                       <SectionTitle>Công ty chủ sở hữu</SectionTitle>
