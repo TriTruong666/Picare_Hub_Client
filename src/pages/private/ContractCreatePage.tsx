@@ -98,7 +98,7 @@ type ContractFormMode = "create" | "edit";
 const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
   {
     companyCode: "TH",
-    companyName: "CTY TNHH DƯỢC PHẨM TRUNG HẠNH",
+    companyName: "CÔNG TY TNHH DƯỢC PHẨM TRUNG HẠNH",
     address: "2/35 Chấn Hưng, Phường Tân Hòa, Thành Phố Hồ Chí Minh",
     phone: "0983139320",
     email: "cskh@trunghanh.com",
@@ -109,7 +109,7 @@ const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
   },
   {
     companyCode: "PIC",
-    companyName: "CTY TNHH PICARE VIỆT NAM",
+    companyName: "CÔNG TY TNHH PICARE VIỆT NAM",
     address:
       "38/11 Nguyễn Giản Thanh, Phường Hòa Hưng, Thành phố Hồ Chí Minh, Việt Nam",
     phone: "0949466499",
