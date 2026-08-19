@@ -112,9 +112,9 @@ const OWNER_TEMPLATES: OwnerCompanyInfoPayload[] = [
     companyName: "CÔNG TY TNHH PICARE VIỆT NAM",
     address:
       "38/11 Nguyễn Giản Thanh, Phường Hòa Hưng, Thành phố Hồ Chí Minh, Việt Nam",
-    phone: "0949466499",
-    email: "cskh@picare.vn",
-    bankInfo: "1355656 Ngân hàng TMCP Á Châu (ACB)",
+    phone: "0918088123",
+    email: "hoadon@picare.vn",
+    bankInfo: "5065686 Ngân hàng TMCP Á Châu (ACB) - CTY TNHH PICARE VIET NAM",
     mst: "0315127257",
     ownerName: "Ông Nguyễn Thành Trung",
     role: "Giám Đốc",
