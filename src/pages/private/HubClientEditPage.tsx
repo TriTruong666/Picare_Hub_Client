@@ -21,13 +21,10 @@ import {
   useHubClientDetail,
   useUpdateHubClient,
 } from "@/hooks/data/useHubClientHooks";
-import { useUploadS3Asset } from "@/hooks/data/useS3Hooks";
 import type { HubClientRole, HubClientStatus } from "@/types/HubClient";
 import { USER_ROLE_OPTIONS } from "@/types/User";
 
 import { toast } from "@/hooks/useToast";
-
-const HUB_CLIENT_IMAGE_FOLDER = "public";
 
 /* const ALL_ROLES: { value: HubClientRole; label: string }[] = [
   { value: "admin", label: "Admin" },
@@ -48,25 +45,6 @@ const STATUS_OPTIONS: { value: HubClientStatus; label: string }[] = [
   { value: "active", label: "Hoạt động" },
   { value: "inactive", label: "Tạm dừng" },
 ];
-
-function fileToBase64(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-        return;
-      }
-
-      reject(new Error("Không thể đọc file ảnh"));
-    };
-
-    reader.onerror = () =>
-      reject(reader.error ?? new Error("Đọc file thất bại"));
-    reader.readAsDataURL(file);
-  });
-}
 
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
@@ -300,7 +278,6 @@ export default function HubClientEditPage() {
 
   const updateMutation = useUpdateHubClient();
   const deleteMutation = useDeleteHubClient();
-  const uploadMutation = useUploadS3Asset({ showSuccessToast: false });
 
   const logoObjectUrlRef = useRef<string | null>(null);
   const mockupObjectUrlRef = useRef<string | null>(null);
@@ -400,56 +377,22 @@ export default function HubClientEditPage() {
     );
   };
 
-  const uploadImageIfNeeded = async (
-    file: File | null,
-    fallbackUrl: string,
-    description: string,
-  ) => {
-    if (!file || !clientId) return fallbackUrl;
-
-    const base64File = await fileToBase64(file);
-    const response = await uploadMutation.mutateAsync({
-      file: base64File,
-      folder: HUB_CLIENT_IMAGE_FOLDER,
-      clientId,
-      description,
-      visibility: "public",
-    });
-
-    if (!response.success || !response.data?.url) {
-      throw new Error(response.message ?? "Upload ảnh thất bại");
-    }
-
-    return response.data.url;
-  };
-
   const handleSave = async () => {
-    if (!clientId || updateMutation.isPending || uploadMutation.isPending)
-      return;
+    if (!clientId || updateMutation.isPending) return;
 
     try {
-      const uploadedLogoUrl = await uploadImageIfNeeded(
-        logoFile,
-        clientLogoImage,
-        `Hub client logo - ${clientId}`,
-      );
-
-      const uploadedMockupUrl = await uploadImageIfNeeded(
-        mockupFile,
-        clientMockupImage,
-        `Hub client mockup - ${clientId}`,
-      );
-
       const response = await updateMutation.mutateAsync({
         id: clientId,
         data: {
           clientId,
           clientName,
           clientDescription,
-          clientInternalUrl,
+          clientInternalUrl: clientInternalUrl.trim() || null,
           clientExternalUrl,
-          clientLogoImage: uploadedLogoUrl,
-          clientMockupImage: uploadedMockupUrl,
+          clientLogoImage: logoUrlInput.trim() || null,
+          clientMockupImage: mockupUrlInput.trim() || null,
+          logoFile: logoFile || null,
+          mockupFile: mockupFile || null,
           clientStatus,
           allowedRoles,
           note,
@@ -496,7 +439,7 @@ export default function HubClientEditPage() {
     );
   }
 
-  const isSaving = updateMutation.isPending || uploadMutation.isPending;
+  const isSaving = updateMutation.isPending;
   const isDeleting = deleteMutation.isPending;
 
   return (

@@ -145,6 +145,7 @@ export default function UploadS3AssetsModal({
     if (!folderName || uploadableFiles.length === 0 || isUploading) return;
 
     let uploadedAtLeastOne = false;
+    let hasError = false;
 
     for (const item of uploadableFiles) {
       updateFileStatus(item.id, "uploading");
@@ -159,6 +160,7 @@ export default function UploadS3AssetsModal({
         });
 
         if (!response.success) {
+          hasError = true;
           updateFileStatus(
             item.id,
             "error",
@@ -170,6 +172,7 @@ export default function UploadS3AssetsModal({
         uploadedAtLeastOne = true;
         updateFileStatus(item.id, "success", "Đã tải lên");
       } catch (error) {
+        hasError = true;
         updateFileStatus(
           item.id,
           "error",
@@ -181,6 +184,12 @@ export default function UploadS3AssetsModal({
     if (uploadedAtLeastOne) {
       setHasUploaded(true);
       await onSuccess();
+
+      if (!hasError) {
+        setTimeout(() => {
+          handleClose();
+        }, 500);
+      }
     }
   };
 

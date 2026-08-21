@@ -21,11 +21,13 @@ export type HubClientRole = UserRole;
 
 export type CreateHubClientInput = {
   clientName: string;
-  clientDescription: string;
-  clientInternalUrl: string | null;
+  clientDescription?: string;
+  clientInternalUrl?: string | null;
   clientExternalUrl: string;
-  clientLogoImage: string;
-  clientMockupImage: string;
+  clientLogoImage?: string | null;
+  clientMockupImage?: string | null;
+  logoFile?: File | null;
+  mockupFile?: File | null;
   clientStatus: HubClientStatus;
   allowedRoles: HubClientRole[];
   note?: string;
@@ -35,11 +37,14 @@ export type UpdateHubClientInput = {
   clientId: string;
   clientName?: string;
   clientDescription?: string;
-  clientInternalUrl?: string;
+  clientInternalUrl?: string | null;
   clientExternalUrl?: string;
-  clientLogoImage?: string;
-  clientMockupImage?: string;
+  clientLogoImage?: string | null;
+  clientMockupImage?: string | null;
+  logoFile?: File | null;
+  mockupFile?: File | null;
   clientStatus?: HubClientStatus;
   allowedRoles?: HubClientRole[];
   note?: string;
 };
+

@@ -10,11 +10,13 @@ import {
   FiImage,
   FiList,
   FiPlayCircle,
+  FiRefreshCw,
   FiSearch,
   FiTrash2,
   FiUpload,
 } from "react-icons/fi";
 import { Navigate, useParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { formatFileSize, formatRelativeTime } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
@@ -79,6 +81,7 @@ function getAssetMimeInfo(mimeType: string) {
 
 export default function StorageFolderDetailPage() {
   const { folderId } = useParams<{ folderId: string }>();
+  const queryClient = useQueryClient();
 
   const [viewMode, setViewMode] = useState<StorageViewMode>("grid");
   const [assetType, setAssetType] = useState<string>("");
@@ -127,50 +130,47 @@ export default function StorageFolderDetailPage() {
   const hasMore = pagination?.hasNext ?? false;
 
   useEffect(() => {
-    let canceled = false;
-
-    queueMicrotask(() => {
-      if (canceled) return;
-      setAllAssets([]);
-      setCursor(undefined);
-    });
-
-    return () => {
-      canceled = true;
-    };
+    setCursor(undefined);
   }, [folder?.name, folderId, assetType, search]);
 
   useEffect(() => {
-    let canceled = false;
+    if (!cursor) {
+      setAllAssets(currentRows);
+      return;
+    }
 
-    queueMicrotask(() => {
-      if (canceled) return;
+    if (currentRows.length === 0) return;
 
-      if (!cursor) {
-        setAllAssets(currentRows);
-        return;
-      }
-
-      if (currentRows.length === 0) return;
-
-      setAllAssets((prev) => {
-        const existingIds = new Set(prev.map((asset) => asset.assetId));
-        const newUniqueAssets = currentRows.filter(
-          (asset) => !existingIds.has(asset.assetId),
-        );
-        return [...prev, ...newUniqueAssets];
-      });
+    setAllAssets((prev) => {
+      const existingIds = new Set(prev.map((asset) => asset.assetId));
+      const newUniqueAssets = currentRows.filter(
+        (asset) => !existingIds.has(asset.assetId),
+      );
+      return [...prev, ...newUniqueAssets];
     });
-
-    return () => {
-      canceled = true;
-    };
   }, [currentRows, cursor]);
+
+  const displayAssets = useMemo(() => {
+    if (!cursor) return currentRows;
+    return allAssets;
+  }, [cursor, currentRows, allAssets]);
+
+  const handleRefresh = async () => {
+    setCursor(undefined);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["s3-assets"] }),
+      queryClient.invalidateQueries({ queryKey: ["s3-folders"] }),
+      refetch(),
+    ]);
+  };
 
   const refreshAssetsAfterUpload = async () => {
     setCursor(undefined);
-    setAllAssets([]);
-    await refetch();
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["s3-assets"] }),
+      queryClient.invalidateQueries({ queryKey: ["s3-folders"] }),
+      refetch(),
+    ]);
   };
 
   const handleLoadMore = () => {
@@ -271,6 +271,22 @@ export default function StorageFolderDetailPage() {
 
           <button
             type="button"
+            onClick={handleRefresh}
+            disabled={isFetchingAssets}
+            className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-semibold text-gray-700 shadow-sm transition-all hover:border-gray-400 hover:bg-gray-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+            title="Làm mới danh sách"
+          >
+            <FiRefreshCw
+              className={clsx(
+                "text-sm transition-transform",
+                isFetchingAssets && "animate-spin text-indigo-500",
+              )}
+            />
+            <span>Làm mới</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setIsUploadModalOpen(true)}
             className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-[13px] font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.03] hover:bg-indigo-500 active:scale-95 dark:bg-indigo-500 dark:shadow-indigo-500/10 dark:hover:bg-indigo-400"
           >
@@ -310,7 +326,7 @@ export default function StorageFolderDetailPage() {
 
       {viewMode === "table" ? (
         <StorageTable
-          assets={allAssets}
+          assets={displayAssets}
           isLoading={isLoadingAssets}
           isFetching={isFetchingAssets}
           isError={isError}
@@ -321,7 +337,7 @@ export default function StorageFolderDetailPage() {
           onUpload={() => setIsUploadModalOpen(true)}
           pagination={
             <CursorLoadMoreControl
-              assetCount={allAssets.length}
+              assetCount={displayAssets.length}
               hasMore={hasMore}
               isFetching={isFetchingAssets}
               onLoadMore={handleLoadMore}
@@ -330,7 +346,7 @@ export default function StorageFolderDetailPage() {
         />
       ) : (
         <StorageGridSection
-          assets={allAssets}
+          assets={displayAssets}
           hasMore={hasMore}
           isLoading={isLoadingAssets}
           isFetching={isFetchingAssets}
@@ -393,7 +409,7 @@ function StorageGridSection({
   onDownload: (asset: S3Asset) => void;
   onUpload: () => void;
 }) {
-  if (isLoading && assets.length === 0) {
+  if ((isLoading || isFetching) && assets.length === 0) {
     return <StorageGridSkeleton />;
   }
 

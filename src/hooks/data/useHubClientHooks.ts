@@ -88,7 +88,7 @@ export function useSuspenseCheckAccessHubClient(id: string) {
 export function useCreateHubClient() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateHubClientInput) =>
+    mutationFn: (data: CreateHubClientInput | FormData) =>
       HubClientService.createHubClient(data),
     onSuccess: (data) => {
       if (data.success) {
@@ -111,8 +111,13 @@ export function useCreateHubClient() {
 export function useUpdateHubClient() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateHubClientInput }) =>
-      HubClientService.updateHubClient(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateHubClientInput | FormData;
+    }) => HubClientService.updateHubClient(id, data),
     onSuccess: (data, variables) => {
       if (data.success) {
         toast.success("Thành công", "Đã cập nhật Hub Client");
