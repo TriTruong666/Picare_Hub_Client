@@ -28,6 +28,17 @@
   --font-ephesis: "Ephesis", cursive;
   --font-lora: "Lora", serif;
 
+  /* Fancy & Luxury Vietnamese Fonts */
+  --font-cormorant: "Cormorant Garamond", serif;
+  --font-playfair: "Playfair Display", serif;
+  --font-charm: "Charm", cursive;
+
+  /* Calm, Zen & Modern Vietnamese Fonts */
+  --font-be-vietnam: "Be Vietnam Pro", sans-serif;
+  --font-plus-jakarta: "Plus Jakarta Sans", sans-serif;
+  --font-quicksand: "Quicksand", sans-serif;
+  --font-spectral: "Spectral", serif;
+
   --radius-default: 0.5rem;
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
