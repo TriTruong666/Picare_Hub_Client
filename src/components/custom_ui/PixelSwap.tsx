@@ -316,11 +316,18 @@ function PixelSwap({
         const settings = configRef.current;
         const { grid: frozenGrid, to } = transition;
 
+        let finished = false;
         const finish = () => {
-            stopAnimations();
+            if (finished) return;
+            finished = true;
             setShownActive(to);
             setTransition(null);
             settings.onComplete?.(to);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    stopAnimations();
+                });
+            });
         };
 
         const source = layerRefs.current[to ? 1 : 0];
@@ -348,7 +355,7 @@ function PixelSwap({
             // Clone the rendered layer instead of re-rendering the content through
             // React once per pixel: same visual result, a fraction of the cost.
             const content = document.createElement('div');
-            content.className = 'absolute';
+            content.className = 'absolute will-change-transform [transform:translateZ(0)]';
             content.style.left = `${-pixel.left}px`;
             content.style.top = `${-pixel.top}px`;
             content.style.width = `${frozenGrid.width}px`;
@@ -378,7 +385,16 @@ function PixelSwap({
             );
         });
 
-        timerRef.current = window.setTimeout(finish, total);
+        // Đồng bộ chính xác theo Web Animations API Promise của trình duyệt
+        const animPromises = animationsRef.current.map(a => a.finished);
+        if (animPromises.length && typeof Promise.allSettled === 'function') {
+            Promise.allSettled(animPromises).then(() => {
+                requestAnimationFrame(finish);
+            });
+        }
+
+        // Timer dự phòng an toàn (fallback)
+        timerRef.current = window.setTimeout(finish, total + 80);
         return stopAnimations;
     }, [stopAnimations, transition]);
 
@@ -456,7 +472,7 @@ function PixelSwap({
                             ref={element => {
                                 pixelRefs.current[index] = element;
                             }}
-                            className="absolute overflow-hidden opacity-0 [contain:paint]"
+                            className="absolute overflow-hidden opacity-0 [contain:paint] will-change-[transform,opacity] [transform:translateZ(0)]"
                             style={{
                                 left: pixel.left,
                                 top: pixel.top,
