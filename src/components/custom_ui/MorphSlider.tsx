@@ -21,7 +21,8 @@ export interface MorphSliderProps {
     aberration?: number;
     drift?: number;
     autoplay?: boolean;
-    autoplayDelay?: number;
+    autoplayDelay?: number | ((index: number) => number);
+    firstAutoplayDelay?: number;
     loop?: boolean;
     radius?: number;
     overlayColor?: string;
@@ -401,6 +402,10 @@ class MorphEngine {
 
     private wrap(i: number): number {
         const n = this.items.length;
+        if (this.current >= 1 && n > 1) {
+            const count = n - 1;
+            return 1 + (((i - 1) % count + count) % count);
+        }
         return ((i % n) + n) % n;
     }
 
@@ -556,6 +561,7 @@ export default function MorphSlider({
     drift = 0.4,
     autoplay = false,
     autoplayDelay = 4,
+    firstAutoplayDelay,
     loop = true,
     radius = 16,
     overlayColor = '#000000',
@@ -585,12 +591,10 @@ export default function MorphSlider({
 
     useEffect(() => {
         if (!containerRef.current) return undefined;
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
         const engine = new MorphEngine(containerRef.current, {
             items,
             startIndex,
-            reducedMotion,
+            reducedMotion: false,
             dprCap: 2,
             getOptions: () => optsRef.current,
             onIndexChange: setIndex
@@ -608,11 +612,31 @@ export default function MorphSlider({
     const handleNext = useCallback(() => engineRef.current?.next(), []);
     const handlePrev = useCallback(() => engineRef.current?.prev(), []);
 
+    const timerRef = useRef<number>(0);
     useEffect(() => {
-        if (!autoplay || hovering) return undefined;
-        const id = window.setTimeout(() => engineRef.current?.next(), Math.max(autoplayDelay, 1) * 1000);
-        return () => window.clearTimeout(id);
-    }, [autoplay, autoplayDelay, hovering, index]);
+        if (!autoplay) {
+            if (timerRef.current) {
+                window.clearTimeout(timerRef.current);
+                timerRef.current = 0;
+            }
+            return undefined;
+        }
+        const calcDelay = (index === 0 && firstAutoplayDelay !== undefined)
+            ? firstAutoplayDelay
+            : (typeof autoplayDelay === 'function' ? autoplayDelay(index) : autoplayDelay);
+
+        const delayMs = Math.max((calcDelay || 4) * 1000, 10);
+        timerRef.current = window.setTimeout(() => {
+            timerRef.current = 0;
+            engineRef.current?.next();
+        }, delayMs);
+        return () => {
+            if (timerRef.current) {
+                window.clearTimeout(timerRef.current);
+                timerRef.current = 0;
+            }
+        };
+    }, [autoplay, autoplayDelay, firstAutoplayDelay, index]);
 
     useEffect(() => {
         const el = containerRef.current;

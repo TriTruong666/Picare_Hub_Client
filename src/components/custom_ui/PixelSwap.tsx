@@ -331,7 +331,7 @@ function PixelSwap({
         };
 
         const source = layerRefs.current[to ? 1 : 0];
-        if (!source || !frozenGrid.pixels.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (!source || !frozenGrid.pixels.length) {
             finish();
             return;
         }

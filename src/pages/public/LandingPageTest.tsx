@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import PixelSwap from "@/components/custom_ui/PixelSwap";
 import MoltenMetal from "@/components/custom_ui/MoltenMetal";
 import MorphSlider from "@/components/custom_ui/MorphSlider";
 
+// Mảng items gộp hình màu đen thuần ở Slide 0 và 3 hình thực tế (One, Two, Three)
 const items = [
   {
     image:
@@ -30,6 +32,9 @@ export default function LandingPageTest() {
   const [isSwapActive, setIsSwapActive] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
 
+  // Quản lý hiển thị mờ dần cho chữ "Chờ mình một chút nhé."
+  const [isTextVisible, setIsTextVisible] = useState(true);
+
   // Khóa cuộn trang ở content 1 và mở cuộn khi chuyển cảnh xong
   useEffect(() => {
     if (!isUnlocked) {
@@ -46,14 +51,25 @@ export default function LandingPageTest() {
     };
   }, [isUnlocked]);
 
+  // Căn thời gian hiển thị chữ trên nền đen:
+  // - Hiển thị 1.2s -> mờ dần trong 1.0s (khi 2.2s mờ xong hoàn toàn) -> đúng 2.5s Autoplay của MorphSlider tự Morph sang Hình 1
+  useEffect(() => {
+    if (!isUnlocked) return;
+
+    const fadeTimer = setTimeout(() => {
+      setIsTextVisible(false);
+    }, 1200);
+
+    return () => clearTimeout(fadeTimer);
+  }, [isUnlocked]);
+
   // Content 1: Fullscreen với MoltenMetal WebGL làm background màu sáng và chữ ở giữa
   const firstContent = (
     <div className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden select-none cursor-pointer">
       {/* Background WebGL Shader giữ nguyên 100% độ sáng trong khi chạy pixel và mờ dần êm dịu 1.5s sau khi hoàn tất */}
       <div
-        className={`absolute inset-0 z-0 transition-opacity duration-[1500ms] ease-in-out ${
-          isUnlocked ? "opacity-0 pointer-events-none" : "opacity-100"
-        }`}
+        className={`absolute inset-0 z-0 transition-opacity duration-[1500ms] ease-in-out ${isUnlocked ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
       >
         <MoltenMetal
           color1="#FFFFFF"
@@ -89,10 +105,10 @@ export default function LandingPageTest() {
     </div>
   );
 
-  // Content 2: Full-width MorphSlider nền đen không nút bấm với chữ Picare xin chào ở giữa
+  // Content 2: Bật Autoplay cho MorphSlider (cho phép vừa autoplay vừa dùng tay vuốt), gộp slide đen làm Slide 0
   const secondContent = (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center bg-black text-white font-quicksand text-center overflow-hidden">
-      {/* MorphSlider Full-Width Background */}
+      {/* MorphSlider Full-Width Background chứa cả Slide đen + 3 Hình thực tế, autoplay 3.5s */}
       <div className="absolute inset-0 z-0 w-full h-full">
         <MorphSlider
           items={items}
@@ -100,12 +116,13 @@ export default function LandingPageTest() {
           intensity={0.55}
           aberration={0.35}
           drift={0.4}
-          autoplay={false}
+          autoplay={isUnlocked}
+          firstAutoplayDelay={2.5}
+          autoplayDelay={5}
           overlayColor="#05060a"
-          duration={1.1}
+          duration={2.2}
           ease="power2.inOut"
           scale={2.4}
-          autoplayDelay={4}
           loop
           radius={0}
           showCaptions={false}
@@ -114,15 +131,23 @@ export default function LandingPageTest() {
         />
       </div>
 
-      {/* Tiêu đề Picare xin chào ở chính giữa - Đồng bộ 100% font size với Content 1 */}
-      <div className="relative z-10 text-center pointer-events-none px-6">
-        <h1 className="font-plus-jakarta text-4xl font-light text-white drop-shadow-md">
-          <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 via-green-400 via-blue-500 to-purple-500">
-            Picare
-          </span>{" "}
-          xin chào
-        </h1>
-      </div>
+      {/* Chữ "Chờ mình một chút nhé." hiển thị 2.2s -> mờ dần 1.0s bằng Framer Motion trước khi Autoplay Morph sang Hình 1 */}
+      <AnimatePresence>
+        {isTextVisible && (
+          <motion.div
+            key="waiting-text"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.0, ease: "easeInOut" }}
+            className="absolute inset-0 z-10 flex items-center justify-center px-6 pointer-events-none"
+          >
+            <h1 className="font-plus-jakarta text-3xl font-light text-white drop-shadow-md">
+              Chờ mình một chút nhé.
+            </h1>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 
