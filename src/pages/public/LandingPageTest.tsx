@@ -49,8 +49,12 @@ export default function LandingPageTest() {
   // Content 1: Fullscreen với MoltenMetal WebGL làm background màu sáng và chữ ở giữa
   const firstContent = (
     <div className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden select-none cursor-pointer">
-      {/* Background WebGL Shader */}
-      <div className="absolute inset-0 z-0">
+      {/* Background WebGL Shader giữ nguyên 100% độ sáng trong khi chạy pixel và mờ dần êm dịu 1.5s sau khi hoàn tất */}
+      <div
+        className={`absolute inset-0 z-0 transition-opacity duration-[1500ms] ease-in-out ${
+          isUnlocked ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
         <MoltenMetal
           color1="#FFFFFF"
           color2="#F1F5F9"
@@ -69,7 +73,7 @@ export default function LandingPageTest() {
           grainIntensity={0.05}
           mouseInteraction={false}
           mouseStrength={0}
-          opacity={isSwapActive ? 0 : 1}
+          opacity={1}
         />
       </div>
 
