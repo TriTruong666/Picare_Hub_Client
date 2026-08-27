@@ -481,6 +481,7 @@ function PixelSwap({
                                 borderRadius: `${clamp(pixelRadius, 0, 50)}%`
                             }}
                         />
+
                     ))}
                 </div>
             )}

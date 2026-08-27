@@ -1,6 +1,30 @@
 import { useState, useEffect } from "react";
 import PixelSwap from "@/components/custom_ui/PixelSwap";
 import MoltenMetal from "@/components/custom_ui/MoltenMetal";
+import MorphSlider from "@/components/custom_ui/MorphSlider";
+
+const items = [
+  {
+    image:
+      'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"><rect width="1600" height="1000" fill="%23000000"/></svg>',
+    caption: "Start",
+  },
+  {
+    image:
+      "https://images.unsplash.com/photo-1782977389500-dd7adad33ebe?q=80&w=1600&auto=format&fit=crop",
+    caption: "One",
+  },
+  {
+    image:
+      "https://images.unsplash.com/photo-1781499455083-6ccc3beb20cd?q=80&w=1600&auto=format&fit=crop",
+    caption: "Two",
+  },
+  {
+    image:
+      "https://images.unsplash.com/photo-1776394254711-4a0d7345269a?q=80&w=1600&auto=format&fit=crop",
+    caption: "Three",
+  },
+];
 
 export default function LandingPageTest() {
   const [isSwapActive, setIsSwapActive] = useState(false);
@@ -45,7 +69,7 @@ export default function LandingPageTest() {
           grainIntensity={0.05}
           mouseInteraction={false}
           mouseStrength={0}
-          opacity={1}
+          opacity={isSwapActive ? 0 : 1}
         />
       </div>
 
@@ -61,16 +85,39 @@ export default function LandingPageTest() {
     </div>
   );
 
-  // Content 2: Đưa vào giữa, nền đen (bg-black), font quicksand
+  // Content 2: Full-width MorphSlider nền đen không nút bấm với chữ Picare xin chào ở giữa
   const secondContent = (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-black text-white font-quicksand text-center p-6">
-      <div className="max-w-xl space-y-4">
-        <span className="text-3xl md:text-5xl font-bold tracking-tight text-white">
-          You found me
-        </span>
-        <p className="text-gray-400 text-base md:text-lg font-medium leading-relaxed">
-          Trang đã chuyển sang màu đen. Bây giờ bạn có thể bắt đầu cuộn trang tự do.
-        </p>
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center bg-black text-white font-quicksand text-center overflow-hidden">
+      {/* MorphSlider Full-Width Background */}
+      <div className="absolute inset-0 z-0 w-full h-full">
+        <MorphSlider
+          items={items}
+          transition="melt"
+          intensity={0.55}
+          aberration={0.35}
+          drift={0.4}
+          autoplay={false}
+          overlayColor="#05060a"
+          duration={1.1}
+          ease="power2.inOut"
+          scale={2.4}
+          autoplayDelay={4}
+          loop
+          radius={0}
+          showCaptions={false}
+          showControls={false}
+          showIndicators={false}
+        />
+      </div>
+
+      {/* Tiêu đề Picare xin chào ở chính giữa - Đồng bộ 100% font size với Content 1 */}
+      <div className="relative z-10 text-center pointer-events-none px-6">
+        <h1 className="font-plus-jakarta text-4xl font-light text-white drop-shadow-md">
+          <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 via-green-400 via-blue-500 to-purple-500">
+            Picare
+          </span>{" "}
+          xin chào
+        </h1>
       </div>
     </div>
   );
@@ -79,7 +126,11 @@ export default function LandingPageTest() {
     <div className="min-h-screen w-full bg-black">
       <PixelSwap
         active={isSwapActive}
-        onActiveChange={(nextActive) => setIsSwapActive(nextActive)}
+        onActiveChange={(nextActive) => {
+          if (nextActive) {
+            setIsSwapActive(true);
+          }
+        }}
         onComplete={(nextActive) => {
           if (nextActive) {
             setIsUnlocked(true);
@@ -87,8 +138,8 @@ export default function LandingPageTest() {
         }}
         trigger="click"
         style={{ height: "100vh", aspectRatio: "unset" }}
-        className="w-full h-screen"
-        pixelSize={64}
+        className={`w-full h-screen ${isSwapActive && !isUnlocked ? "pointer-events-none" : ""}`}
+        pixelSize={110}
         gap={0}
         pixelRadius={0}
         pixelSpin={0}
