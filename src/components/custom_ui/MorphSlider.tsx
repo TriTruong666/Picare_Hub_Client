@@ -734,8 +734,8 @@ export default function MorphSlider({
                                 key={i}
                                 aria-hidden={i === index ? undefined : true}
                                 className={`morph-slider-caption-text pointer-events-none inline-block rounded-[10px] bg-[rgba(10,10,12,0.42)] px-[14px] py-[8px] text-[15px] font-semibold tracking-[0.01em] text-white backdrop-blur-[8px] [grid-area:1/1] [justify-self:start] [transition:opacity_var(--ms-swap)_cubic-bezier(0.16,1,0.3,1),transform_var(--ms-swap)_cubic-bezier(0.16,1,0.3,1),filter_var(--ms-swap)_cubic-bezier(0.16,1,0.3,1)] ${i === index
-                                        ? 'opacity-100 [transform:translateY(0)] [filter:blur(0)]'
-                                        : 'opacity-0 [transform:translateY(12px)] [filter:blur(6px)]'
+                                    ? 'opacity-100 [transform:translateY(0)] [filter:blur(0)]'
+                                    : 'opacity-0 [transform:translateY(12px)] [filter:blur(6px)]'
                                     }`}
                             >
                                 {item.caption}

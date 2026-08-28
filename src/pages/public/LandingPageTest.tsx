@@ -3,6 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import PixelSwap from "@/components/custom_ui/PixelSwap";
 import MoltenMetal from "@/components/custom_ui/MoltenMetal";
 import MorphSlider from "@/components/custom_ui/MorphSlider";
+import omsLandingImg from "@/assets/images/oms_landing.png";
+import wmsLandingImg from "@/assets/images/wms_landing.png";
+import sfaLandingImg from "@/assets/images/sfa_landing.png";
+import catalogueLandingImg from "@/assets/images/catalogue_landing.png"
 
 // Mảng items gộp hình màu đen thuần ở Slide 0 và 3 hình thực tế (One, Two, Three)
 const items = [
@@ -12,19 +16,20 @@ const items = [
     caption: "Start",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1782977389500-dd7adad33ebe?q=80&w=1600&auto=format&fit=crop",
-    caption: "One",
+    image: omsLandingImg,
+    caption: "Picare OMS",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1781499455083-6ccc3beb20cd?q=80&w=1600&auto=format&fit=crop",
-    caption: "Two",
+    image: wmsLandingImg,
+    caption: "Picare WMS",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1776394254711-4a0d7345269a?q=80&w=1600&auto=format&fit=crop",
-    caption: "Three",
+    image: sfaLandingImg,
+    caption: "Saleforce",
+  },
+  {
+    image: catalogueLandingImg,
+    caption: "Picare Catalougues",
   },
 ];
 
@@ -34,6 +39,8 @@ export default function LandingPageTest() {
 
   // Quản lý hiển thị mờ dần cho chữ "Chờ mình một chút nhé."
   const [isTextVisible, setIsTextVisible] = useState(true);
+  // Quản lý hiển thị Hero Section (chỉ xuất hiện sau khi MorphSlider animate xong hình thứ 2)
+  const [isHeroVisible, setIsHeroVisible] = useState(false);
 
   // Khóa cuộn trang ở content 1 và mở cuộn khi chuyển cảnh xong
   useEffect(() => {
@@ -51,8 +58,10 @@ export default function LandingPageTest() {
     };
   }, [isUnlocked]);
 
-  // Căn thời gian hiển thị chữ trên nền đen:
-  // - Hiển thị 1.2s -> mờ dần trong 1.0s (khi 2.2s mờ xong hoàn toàn) -> đúng 2.5s Autoplay của MorphSlider tự Morph sang Hình 1
+  // Căn thời gian hiển thị:
+  // 1. Chữ "Chờ mình một chút nhé..." mờ dần sau 1.2s
+  // 2. MorphSlider bắt đầu morph ở 2.5s (duration 2.5s) -> 5.0s hình 2 animate hoàn tất
+  // 3. Đúng 5.0s kích hoạt Hero Section xuất hiện lần lượt (Hero Title -> Subtitle -> 2 Nút)
   useEffect(() => {
     if (!isUnlocked) return;
 
@@ -60,7 +69,14 @@ export default function LandingPageTest() {
       setIsTextVisible(false);
     }, 1200);
 
-    return () => clearTimeout(fadeTimer);
+    const heroTimer = setTimeout(() => {
+      setIsHeroVisible(true);
+    }, 4300);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(heroTimer);
+    };
   }, [isUnlocked]);
 
   // Content 1: Fullscreen với MoltenMetal WebGL làm background màu sáng và chữ ở giữa
@@ -118,9 +134,9 @@ export default function LandingPageTest() {
           drift={0.4}
           autoplay={isUnlocked}
           firstAutoplayDelay={2.5}
-          autoplayDelay={5}
+          autoplayDelay={10}
           overlayColor="#05060a"
-          duration={2.2}
+          duration={2.5}
           ease="power2.inOut"
           scale={2.4}
           loop
@@ -142,9 +158,74 @@ export default function LandingPageTest() {
             transition={{ duration: 1.0, ease: "easeInOut" }}
             className="absolute inset-0 z-10 flex items-center justify-center px-6 pointer-events-none"
           >
-            <h1 className="font-plus-jakarta text-3xl font-light text-white drop-shadow-md">
-              Chờ mình một chút nhé.
+            <h1 className="font-plus-jakarta text-2xl font-light text-white drop-shadow-md">
+              Chờ mình một chút nhé...
             </h1>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Hero Section Layout đè lên MorphSlider: Chỉ xuất hiện sau khi hình thứ 2 animate xong và xuất hiện so le theo thứ tự: Hero Title -> Subtitle -> 2 Nút */}
+      <AnimatePresence>
+        {isHeroVisible && (
+          <motion.div
+            key="hero-section"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0 z-10 w-full h-full flex items-center pointer-events-none"
+          >
+            <div className="w-full max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-12 text-left">
+              <div className="max-w-lg flex flex-col items-start gap-3 sm:gap-4">
+                {/* 1. Hero Title xuất hiện trước tiên (delay 0.1s) */}
+                <motion.h1
+                  initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.85, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                  className="font-plus-jakarta text-2xl sm:text-3xl lg:text-[34px] xl:text-[38px] font-medium text-zinc-950 tracking-tight leading-[1.2]"
+                >
+                  Bạn đang bán hàng thủ công?
+                  <br />
+                  Đừng lo vì đã có{" "}
+                  <span className="font-semibold font-plus-jakarta text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 via-green-400 via-blue-500 to-purple-500">
+                    Picare Hub
+                  </span>
+                </motion.h1>
+
+                {/* 2. Subtitle xuất hiện tiếp theo (delay 0.4s) */}
+                <motion.p
+                  initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="font-plus-jakarta text-xs sm:text-[13px] font-normal text-zinc-600 leading-relaxed max-w-md"
+                >
+                  Nếu doanh nghiệp đang gặp vấn đề với quy trình vận hành thủ công Kinh doanh, E-Commercial, Kho bãi và Logictics. Picare Hub sẽ cung cấp cho bạn các modules mà bạn có thể giải quyết chúng mà không cần phải cài đặt toàn bộ cả một kiến trúc phần mềm khổng lồ.
+                </motion.p>
+
+                {/* 3. Hai nút bấm xuất hiện sau cùng (delay 0.7s) */}
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex flex-wrap items-center gap-2.5 pt-1 pointer-events-auto"
+                >
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white font-normal text-xs sm:text-[13px] transition-all duration-200 shadow-sm hover:shadow active:scale-[0.98] cursor-pointer"
+                  >
+                    Bắt đầu ngay
+                  </button>
+
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-lg bg-white/70 hover:bg-white text-zinc-800 border border-zinc-200/90 font-normal text-xs sm:text-[13px] backdrop-blur-md transition-all duration-200 shadow-sm hover:shadow active:scale-[0.98] cursor-pointer"
+                  >
+                    Tìm hiểu giải pháp
+                  </button>
+                </motion.div>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
