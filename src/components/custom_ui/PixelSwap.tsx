@@ -1,4 +1,4 @@
-import { type CSSProperties, type KeyboardEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, type KeyboardEvent, type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 export type PixelSwapPattern =
     | 'random'
@@ -56,8 +56,7 @@ interface Transition {
     to: boolean;
     grid: Grid;
 }
-// Every pixel is a window onto its own copy of the incoming content, so the
-// grid stays bounded no matter how small the requested pixel size is.
+// Keep the SVG mask bounded on very large screens.
 const MAX_PIXELS = 220;
 const KEYFRAME_STEPS = 14;
 
@@ -119,9 +118,8 @@ const makeEasing = (value: string): ((progress: number) => number) => {
     };
 };
 
-// Pixels grow slightly past their own box so gaps and rounded corners close
-// completely by the end. Overlap is invisible because every pixel shows the
-// same content locked to the same origin.
+// Mask rectangles grow slightly past their own box so gaps and rounded corners
+// close completely by the end.
 const coverScale = (size: number, gap: number, radius: number): number => {
     const p = clamp(radius, 0, 50) / 100;
     const corner = Math.SQRT1_2 / (Math.SQRT2 * (0.5 - p) + p);
@@ -181,8 +179,9 @@ const buildGrid = ({
     return { pixels, size, gap, width, height };
 };
 
-// One shared pair of keyframe lists for the whole grid: the window transform
-// and its exact inverse, so revealed content never drifts or scales.
+// One shared keyframe list drives the lightweight SVG mask rectangles. The
+// incoming DOM layer itself never moves, so fixed and backdrop-filter content
+// remains pixel-perfect throughout the transition.
 const buildKeyframes = ({
     ease,
     startScale,
@@ -196,8 +195,7 @@ const buildKeyframes = ({
     spin: number;
     fade: boolean;
 }) => {
-    const window: Keyframe[] = [];
-    const content: Keyframe[] = [];
+    const keyframes: Keyframe[] = [];
 
     for (let step = 0; step <= KEYFRAME_STEPS; step += 1) {
         const progress = step / KEYFRAME_STEPS;
@@ -205,18 +203,14 @@ const buildKeyframes = ({
         const scale = startScale + (endScale - startScale) * eased;
         const angle = spin * (1 - eased);
 
-        window.push({
+        keyframes.push({
             offset: progress,
             opacity: fade ? Math.min(1, eased * 1.6) : 1,
             transform: `rotate(${angle}deg) scale(${scale})`
         });
-        content.push({
-            offset: progress,
-            transform: `scale(${1 / scale}) rotate(${-angle}deg)`
-        });
     }
 
-    return { window, content };
+    return keyframes;
 };
 
 function PixelSwap({
@@ -247,9 +241,10 @@ function PixelSwap({
     const [transition, setTransition] = useState<Transition | null>(null);
     const [box, setBox] = useState({ width: 0, height: 0 });
 
+    const clipPathId = `pixel-swap-${useId().replace(/:/g, '')}`;
     const containerRef = useRef<HTMLDivElement | null>(null);
     const layerRefs = useRef<(HTMLDivElement | null)[]>([]);
-    const pixelRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const pixelRefs = useRef<(SVGRectElement | null)[]>([]);
     const animationsRef = useRef<Animation[]>([]);
     const timerRef = useRef(0);
 
@@ -274,8 +269,11 @@ function PixelSwap({
     const config = { duration, pixelDuration, pixelSpin, pixelScale, pixelRadius, fade, easing, onComplete };
     const configRef = useRef(config);
     const gridRef = useRef(grid);
-    configRef.current = config;
-    gridRef.current = grid;
+
+    useEffect(() => {
+        configRef.current = config;
+        gridRef.current = grid;
+    });
 
     useEffect(() => {
         const container = containerRef.current;
@@ -299,7 +297,6 @@ function PixelSwap({
     const stopAnimations = useCallback(() => {
         animationsRef.current.forEach(animation => animation.cancel());
         animationsRef.current = [];
-        pixelRefs.current.forEach(pixel => pixel?.replaceChildren());
         if (timerRef.current) window.clearTimeout(timerRef.current);
         timerRef.current = 0;
     }, []);
@@ -320,18 +317,19 @@ function PixelSwap({
         const finish = () => {
             if (finished) return;
             finished = true;
+
+            if (timerRef.current) {
+                window.clearTimeout(timerRef.current);
+                timerRef.current = 0;
+            }
+
             setShownActive(to);
             setTransition(null);
             settings.onComplete?.(to);
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    stopAnimations();
-                });
-            });
         };
 
-        const source = layerRefs.current[to ? 1 : 0];
-        if (!source || !frozenGrid.pixels.length) {
+        const incomingLayer = layerRefs.current[to ? 1 : 0];
+        if (!incomingLayer || !frozenGrid.pixels.length) {
             finish();
             return;
         }
@@ -348,30 +346,12 @@ function PixelSwap({
             fade: settings.fade
         });
 
+        animationsRef.current.forEach(animation => animation.cancel());
+        animationsRef.current = [];
+
         frozenGrid.pixels.forEach((pixel, index) => {
             const pixelElement = pixelRefs.current[index];
             if (!pixelElement) return;
-
-            // Clone the rendered layer instead of re-rendering the content through
-            // React once per pixel: same visual result, a fraction of the cost.
-            const content = document.createElement('div');
-            content.className = 'absolute will-change-transform [transform:translateZ(0)]';
-            content.style.left = `${-pixel.left}px`;
-            content.style.top = `${-pixel.top}px`;
-            content.style.width = `${frozenGrid.width}px`;
-            content.style.height = `${frozenGrid.height}px`;
-            // Counter-transform about the pixel's centre, not the content's, so the
-            // two transforms cancel to an exact identity at every frame.
-            const originX = pixel.left + frozenGrid.size / 2;
-            const originY = pixel.top + frozenGrid.size / 2;
-            content.style.transformOrigin = `${originX}px ${originY}px`;
-
-            const clone = source.cloneNode(true) as HTMLElement;
-            clone.classList.remove('invisible');
-            clone.dataset.visible = 'true';
-            clone.removeAttribute('aria-hidden');
-            content.appendChild(clone);
-            pixelElement.replaceChildren(content);
 
             const timing: KeyframeAnimationOptions = {
                 duration: pixelMs,
@@ -379,23 +359,26 @@ function PixelSwap({
                 easing: 'linear',
                 fill: 'both'
             };
-            animationsRef.current.push(
-                pixelElement.animate(keyframes.window, timing),
-                content.animate(keyframes.content, timing)
-            );
+            animationsRef.current.push(pixelElement.animate(keyframes, timing));
         });
 
         // Đồng bộ chính xác theo Web Animations API Promise của trình duyệt
         const animPromises = animationsRef.current.map(a => a.finished);
         if (animPromises.length && typeof Promise.allSettled === 'function') {
             Promise.allSettled(animPromises).then(() => {
-                requestAnimationFrame(finish);
+                finish();
             });
         }
 
-        // Timer dự phòng an toàn (fallback)
-        timerRef.current = window.setTimeout(finish, total + 80);
-        return stopAnimations;
+        // Fallback only; normal completion follows the browser's animation promises.
+        timerRef.current = window.setTimeout(finish, total + 34);
+        return () => {
+            if (timerRef.current) {
+                window.clearTimeout(timerRef.current);
+                timerRef.current = 0;
+            }
+            stopAnimations();
+        };
     }, [stopAnimations, transition]);
 
     const requestActive = useCallback(
@@ -436,15 +419,24 @@ function PixelSwap({
 
     const renderLayer = (content: ReactNode, index: number) => {
         const isShown = index === (shownActive ? 1 : 0);
+        const isIncoming = Boolean(transition) && index === incomingIndex;
+        const isVisible = isShown || isIncoming;
         return (
             <div
                 key={index}
                 ref={element => {
                     layerRefs.current[index] = element;
                 }}
-                className="absolute inset-0 h-full w-full data-[visible=false]:invisible"
-                data-visible={isShown && !(transition && index === incomingIndex)}
-                style={{ zIndex: isShown ? 2 : 1 }}
+                className="absolute inset-0 h-full w-full"
+                data-visible={isVisible}
+                style={{
+                    zIndex: isIncoming ? 2 : isShown ? 1 : 0,
+                    visibility: isVisible ? 'visible' : 'hidden',
+                    clipPath: isIncoming ? `url(#${clipPathId})` : undefined,
+                    WebkitClipPath: isIncoming ? `url(#${clipPathId})` : undefined,
+                    pointerEvents: isIncoming ? 'none' : undefined,
+                    willChange: isIncoming ? 'clip-path' : undefined
+                }}
                 aria-hidden={!isShown}
             >
                 {content}
@@ -461,30 +453,44 @@ function PixelSwap({
             data-transitioning={!!transition}
             {...interactionProps}
         >
+            {transition && (
+                <svg className="pointer-events-none absolute h-0 w-0 overflow-hidden" aria-hidden="true">
+                    <defs>
+                        <clipPath id={clipPathId} clipPathUnits="userSpaceOnUse">
+                            {transition.grid.pixels.map((pixel, index) => {
+                                const radius = (transition.grid.size * clamp(pixelRadius, 0, 50)) / 100;
+                                const initialScale =
+                                    clamp(pixelScale, 0.05, 1) *
+                                    coverScale(transition.grid.size, transition.grid.gap, pixelRadius);
+
+                                return (
+                                    <rect
+                                        key={pixel.id}
+                                        ref={element => {
+                                            pixelRefs.current[index] = element;
+                                        }}
+                                        x={pixel.left}
+                                        y={pixel.top}
+                                        width={transition.grid.size}
+                                        height={transition.grid.size}
+                                        rx={radius}
+                                        ry={radius}
+                                        style={{
+                                            opacity: fade ? 0 : 1,
+                                            transform: `scale(${initialScale})`,
+                                            transformBox: 'fill-box',
+                                            transformOrigin: 'center'
+                                        }}
+                                    />
+                                );
+                            })}
+                        </clipPath>
+                    </defs>
+                </svg>
+            )}
+
             {renderLayer(firstContent, 0)}
             {renderLayer(secondContent, 1)}
-
-            {transition && (
-                <div className="pointer-events-none absolute inset-0 z-[3]" aria-hidden="true">
-                    {transition.grid.pixels.map((pixel, index) => (
-                        <div
-                            key={pixel.id}
-                            ref={element => {
-                                pixelRefs.current[index] = element;
-                            }}
-                            className="absolute overflow-hidden opacity-0 [contain:paint] will-change-[transform,opacity] [transform:translateZ(0)]"
-                            style={{
-                                left: pixel.left,
-                                top: pixel.top,
-                                width: transition.grid.size,
-                                height: transition.grid.size,
-                                borderRadius: `${clamp(pixelRadius, 0, 50)}%`
-                            }}
-                        />
-
-                    ))}
-                </div>
-            )}
         </div>
     );
 }

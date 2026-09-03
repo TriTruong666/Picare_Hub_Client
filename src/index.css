@@ -38,6 +38,7 @@
   --font-plus-jakarta: "Plus Jakarta Sans", sans-serif;
   --font-quicksand: "Quicksand", sans-serif;
   --font-spectral: "Spectral", serif;
+  --font-newsreader: "Newsreader", serif;
 
   --radius-default: 0.5rem;
   --radius-xl: 1rem;
@@ -447,4 +448,16 @@ body.dark {
 .dark .contract-dock-button:hover {
   background: rgba(255, 255, 255, 0.95);
   color: #111111;
+}
+
+/* Ember night / Nokoribi Gradient Pattern (Hardware-accelerated native CSS) */
+.gradient-nokoribi {
+  position: relative;
+  overflow: hidden;
+  background-color: #140D12;
+  background-image:
+    radial-gradient(90% 70% at 12% 8%, rgba(255,255,255,0.22), rgba(255,255,255,0) 60%),
+    linear-gradient(135deg, #140D12 12.5%, #1E1115 16.1%, #371C1B 19.6%, #5E2A22 23.2%, #8A3A28 26.8%, #B6482C 30.4%, #D7532E 33.9%, #E4572E 37.5%, #E1552E 41.1%, #DB4E2F 44.6%, #D2462F 48.2%, #C93C2F 51.8%, #C0322E 55.4%, #B92B2E 58.9%, #B7282E 62.5%, #BB3130 66.1%, #C44536 69.6%, #D15D3E 73.2%, #DD7648 76.8%, #E98C50 80.4%, #F19C57 83.9%, #F4A259 87.5%);
+  background-repeat: no-repeat;
+  background-size: cover;
 }
