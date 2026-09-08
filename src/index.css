@@ -53,7 +53,50 @@
   font-style: normal;
 }
 
+/* Custom Animated Underline Expanding Width Left-to-Right (Thin White Line) */
+@keyframes expandUnderline {
+  0% {
+    width: 0%;
+    opacity: 0.3;
+  }
+  100% {
+    width: 100%;
+    opacity: 1;
+  }
+}
+
+.nav-link-underline {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.nav-link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 1px;
+  background-color: #ffffff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
+}
+
+.nav-link-underline:hover::after {
+  width: 100%;
+  animation: expandUnderline 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.nav-link-underline.active::after {
+  width: 100%;
+  opacity: 1;
+}
+
 @layer components {
+
   .input-primary {
     @apply rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 pr-4 text-sm text-gray-200 placeholder-gray-500 backdrop-blur-md outline-none hover:bg-white/10 focus:border-white/20 focus:bg-white/10 focus:ring-1 focus:ring-white/10 focus:outline-none disabled:bg-white/10 disabled:text-gray-400 disabled:placeholder-gray-400 disabled:cursor-not-allowed;
 

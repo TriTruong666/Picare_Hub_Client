@@ -65,7 +65,8 @@
     "remark-gfm": "^4.0.1",
     "socket.io-client": "^4.8.3",
     "tailwindcss": "^4.1.18",
-    "three": "^0.182.0"
+    "three": "^0.182.0",
+    "vgpu": "^0.4.0"
   },
   "devDependencies": {
     "@base-ui/react": "^1.5.0",
