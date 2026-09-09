@@ -19,6 +19,7 @@
   --color-card-dark: #16111d;
 
 
+  --font-haffer: "Haffer", system-ui, -apple-system, sans-serif;
   --font-bricolage: "Bricolage Grotesque", sans-serif;
   --font-inter: "Inter Tight", sans-serif;
   --font-over: "OverusedGrotesk", system-ui, sans-serif;
@@ -51,6 +52,79 @@
   src: url('./assets/fonts/OverusedGrotesk-VF.woff2') format('woff2-variations');
   font-weight: 100 900; 
   font-style: normal;
+}
+
+@font-face {
+  font-family: 'Haffer';
+  src: url('./assets/fonts/haffer-font-family/HafferCollectionVF-TRIAL.ttf') format('truetype-variations'),
+       url('./assets/fonts/haffer-font-family/Haffer-TRIAL-Regular.otf') format('opentype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Haffer';
+  src: url('./assets/fonts/haffer-font-family/Haffer-TRIAL-RegularItalic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Haffer';
+  src: url('./assets/fonts/haffer-font-family/Haffer-TRIAL-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Haffer';
+  src: url('./assets/fonts/haffer-font-family/Haffer-TRIAL-LightItalic.otf') format('opentype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Haffer';
+  src: url('./assets/fonts/haffer-font-family/Haffer-TRIAL-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Haffer';
+  src: url('./assets/fonts/haffer-font-family/Haffer-TRIAL-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Haffer';
+  src: url('./assets/fonts/haffer-font-family/Haffer-TRIAL-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Haffer';
+  src: url('./assets/fonts/haffer-font-family/Haffer-TRIAL-BoldItalic.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Haffer';
+  src: url('./assets/fonts/haffer-font-family/Haffer-TRIAL-Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 /* Custom Animated Underline Expanding Width Left-to-Right (Thin White Line) */
