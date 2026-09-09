@@ -10,6 +10,7 @@ export const PATHS = {
   LOGIN: "/login", // Trang chon client hub
   LOGIN_CLIENT: "/login/client", // Form dang nhap cho client cu the
   LOGIN_HUB: "/login/hub", // Trang dang nhap Hub chung (centered)
+  CLIENT_OMS: "/client/oms", // Dummy OMS Page test transition
   CONTRACT_CREATE: "/contracts/create",
   CONTRACT_DETAIL: "/dashboard/contracts/:contractId",
   CONTRACT_EDIT: "/contracts/:contractId/edit",

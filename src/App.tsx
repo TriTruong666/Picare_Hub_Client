@@ -7,6 +7,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import { ToastContainer } from "./components/ToastContainer";
 import ModalContainer from "./components/ModalContainer";
 import { DevtoolsGuard } from "./components/guards/DevtoolsGuard";
+import { CurveTransitionProvider } from "@/components/custom_ui/CurvePageTransition";
 
 export default function App() {
   return (
@@ -14,9 +15,11 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <DevtoolsGuard />
-          <AppRouter />
-          <ModalContainer />
-          <ToastContainer />
+          <CurveTransitionProvider>
+            <AppRouter />
+            <ModalContainer />
+            <ToastContainer />
+          </CurveTransitionProvider>
         </BrowserRouter>
       </AuthProvider>
     </QueryProvider>

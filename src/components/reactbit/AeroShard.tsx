@@ -57,6 +57,7 @@ export interface AeroShardsProps {
   accentColor?: string;
   placement?: Placement;
   flow?: keyof typeof FLOWS;
+  drain?: number;
   rippleIntensity?: number;
   holdToGather?: boolean;
   material?: Material;
@@ -92,6 +93,7 @@ interface AeroSettings {
   accent: Color;
   composition: number;
   flow: number;
+  drain: number;
   rippleIntensity: number;
   holdToGather: boolean;
   effect: number;
@@ -636,6 +638,17 @@ fn vs_main(
     + cos(path.phase * 31.4159265359 + seedLane * 8.0) * 0.06 * view.shape.z;
   var renderPosition = path.position + vec3f(planarNormal * laneWidth, depthLane);
 
+  let drain = view.transport.z;
+  var streamVisibility = 1.0;
+  if (drain > 0.0001) {
+    // Luồng trôi đi chậm rãi, êm ái dọc theo quỹ đạo
+    renderPosition += direction * (drain * 0.95 * (1.0 + seedLane * 0.3));
+    let drainThreshold = seedPhase * 0.72;
+    let drainFactor = 1.0 - smoothstep(drainThreshold, drainThreshold + 0.45, drain);
+    let masterFade = 1.0 - smoothstep(0.9, 1.0, drain);
+    streamVisibility = clamp(drainFactor * masterFade, 0.0, 1.0);
+  }
+
   if (view.formation.y + view.formation.z > 0.00001) {
     let center = vec2f((view.composition.x - view.composition.y) * aspect * 0.56, 0.0);
     var formedPosition = renderPosition * view.formation.x;
@@ -732,7 +745,7 @@ fn vs_main(
   let bankedFacing = facing * rollCos - side * rollSin;
   let depthScale = mix(0.56, 1.58, clamp(renderPosition.z * 0.62 + 0.5, 0.0, 1.0));
   let scaleShape = 0.46 + seedScale * 0.58 + pow(seedScale, 12.0) * 1.55;
-  let size = view.viewport.y * scaleShape * depthScale * (1.0 - view.gather.z * 0.3);
+  let size = view.viewport.y * scaleShape * depthScale * (1.0 - view.gather.z * 0.3) * streamVisibility;
   let width = size * 0.72;
   let lengthScale = size * 1.26 * view.effects.z;
   let world = renderPosition
@@ -813,7 +826,7 @@ fn vs_main(
     let exposure = fog * view.material.z * view.effects.w;
     mapped = aces(color * exposure);
     mappedCrease = aces(creaseColor * exposure);
-    shardAlpha = mix(0.58, 0.97, depthFog);
+    shardAlpha = mix(0.58, 0.97, depthFog) * streamVisibility;
     // Open path endpoints can cross the viewport while morphing. Taper only that moving seam.
     let seam = smoothstep(0.0, 0.035, path.phase) * (1.0 - smoothstep(0.965, 1.0, path.phase));
     shardAlpha *= mix(1.0, seam, view.transport.y * view.formation.x * (1.0 - view.gather.z));
@@ -1357,6 +1370,7 @@ export default function AeroShards({
   accentColor = '#A855F7',
   placement = 'full',
   flow = 'stream',
+  drain = 0,
   material = 'pearl',
   detail = 'balanced',
   effect = 'none',
@@ -1409,6 +1423,7 @@ export default function AeroShards({
   const effectDetail = resolvedEffect === EFFECTS.none ? 1 : 0.4;
   const effectSize = resolvedEffect === EFFECTS.none ? 1 : 1.75;
   const resolvedScale = clamp(scale, 0.5, 2.5);
+  const resolvedDrain = clamp(drain, 0, 1);
   const resolvedBackground = parseColor(backgroundColor, '#120F17');
   const resolvedShardColor = parseColor(shardColor, '#896ABD');
   const resolvedAccentColor = parseColor(accentColor, '#A855F7');
@@ -1441,6 +1456,7 @@ export default function AeroShards({
     accent: resolvedAccentColor,
     composition: PLACEMENTS[placement] ?? PLACEMENTS.full,
     flow: FLOWS[flow] ?? FLOWS.stream,
+    drain: resolvedDrain,
     material: MATERIALS[material] ?? MATERIALS.pearl,
     effect: resolvedEffect,
     detailCount: resolvedDetail.count * resolvedDensity * effectDetail,
@@ -1475,6 +1491,7 @@ export default function AeroShards({
       accentColor,
       placement,
       flow,
+      resolvedDrain,
       material,
       detail,
       effect,
@@ -1501,6 +1518,10 @@ export default function AeroShards({
       paused
     ].join('|')
   };
+
+  useEffect(() => {
+    wakeRef.current();
+  }, [drain]);
   const settingsSignature = settingsRef.current.signature;
   onErrorRef.current = onError;
 
@@ -1906,7 +1927,7 @@ export default function AeroShards({
             shape: [settings.spread, settings.depth, settings.turbulence, pointerShiftY],
             effects: [settings.spin, settings.edgeSoftness, settings.stretch, settings.exposure],
             composition: layoutWeights,
-            transport: [travelPhase, Math.min(1, (1 - Math.max(...layoutWeights)) * 12), 0, 0],
+            transport: [travelPhase + settings.drain * 0.35, Math.min(1, (1 - Math.max(...layoutWeights)) * 12), settings.drain, 0],
             formation: formation.weights,
             gather: [pointerWorldX, pointerWorldY, holdRef.current.amount, holdRef.current.phase],
             pointer: [

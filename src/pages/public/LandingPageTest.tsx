@@ -1,29 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { createPortal } from "react-dom";
+import Lenis from "lenis";
 import {
-  FiChevronDown,
-  FiArrowRight,
-  FiLayout,
-  FiGrid,
-  FiSettings,
-  FiLogOut,
-  FiUser,
-} from "react-icons/fi";
-import PixelSwap from "@/components/custom_ui/PixelSwap";
-import MoltenMetal from "@/components/custom_ui/MoltenMetal";
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+  type Variants,
+} from "framer-motion";
+import { FiArrowRight } from "react-icons/fi";
+import CurvePageTransition, { useCurveTransition } from "@/components/custom_ui/CurvePageTransition";
 import AeroShards from "@/components/reactbit/AeroShard";
 import LoginHubFormSection from "@/components/custom_ui/LoginHubFormSection";
-import { useHubClients } from "@/hooks/data/useHubClientHooks";
-import { useAuth } from "@/hooks/useAuth";
-import { useLogout } from "@/hooks/data/useAuthHooks";
-import { canAccessDashboard } from "@/config/dashboardAccess";
-import { ROLE_LABELS } from "@/types/User";
-import { STATIC_HUB_CLIENTS } from "@/constants/staticHubClients";
-import type { HubClient } from "@/types/HubClient";
+import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
 import { PATHS } from "@/config/paths";
-import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
 import picareHubLogo from "@/assets/images/logo.png";
+import saleforceIntroImg from "@/assets/images/saleforce_intro.png";
 import gsap from "gsap";
 
 interface GsapCtaButtonProps {
@@ -32,7 +24,11 @@ interface GsapCtaButtonProps {
   delay?: number;
 }
 
-function GsapCtaButton({ onClick, label = "Trải nghiệm ngay", delay = 0.85 }: GsapCtaButtonProps) {
+function GsapCtaButton({
+  onClick,
+  label = "Trải nghiệm ngay",
+  delay = 0.85,
+}: GsapCtaButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const glowRef = useRef<HTMLSpanElement>(null);
   const arrowRef = useRef<SVGSVGElement>(null);
@@ -54,7 +50,7 @@ function GsapCtaButton({ onClick, label = "Trải nghiệm ngay", delay = 0.85 }
           duration: 0.85,
           delay,
           ease: "power3.out",
-        }
+        },
       );
 
       // 2. Ambient subtle pulsing glow with GSAP
@@ -129,7 +125,7 @@ function GsapCtaButton({ onClick, label = "Trải nghiệm ngay", delay = 0.85 }
         ref={buttonRef}
         type="button"
         onClick={onClick}
-        className="group relative inline-flex h-12 cursor-pointer items-center gap-2.5 overflow-hidden rounded-full bg-white px-6 font-haffer text-[13px] font-semibold tracking-normal text-[#120F17] shadow-[0_4px_24px_rgba(248,109,43,0.25)] transition-shadow hover:shadow-[0_8px_32px_rgba(255,163,54,0.45)] active:scale-[0.98]"
+        className="group font-haffer relative inline-flex h-12 cursor-pointer items-center gap-2.5 overflow-hidden rounded-full bg-white px-6 text-[13px] font-semibold tracking-normal text-[#120F17] shadow-[0_4px_24px_rgba(248,109,43,0.25)] transition-shadow hover:shadow-[0_8px_32px_rgba(255,163,54,0.45)] active:scale-[0.98]"
         style={{ transformStyle: "preserve-3d" }}
       >
         {/* Shimmer light pass */}
@@ -161,21 +157,470 @@ function GsapCtaButton({ onClick, label = "Trải nghiệm ngay", delay = 0.85 }
   );
 }
 
+interface ProductShowcaseItem {
+  id: string;
+  name: string;
+  category: string;
+  desc: string;
+  image: string;
+}
+
+const PRODUCT_SHOWCASE_LIST: ProductShowcaseItem[] = [
+  // Trang 1: Picare OMS, Picare WMS, Picare Saleforce (theo yêu cầu)
+  {
+    id: "picare-oms",
+    name: "Picare OMS",
+    category: "Order Management System",
+    desc: "Nền tảng xử lý và phân phối đơn hàng đa kênh tập trung",
+    image: saleforceIntroImg,
+  },
+  {
+    id: "picare-wms",
+    name: "Picare WMS",
+    category: "Warehouse Management System",
+    desc: "Quản trị kho hàng thông minh, tối ưu sơ đồ và luồng xuất nhập",
+    image: saleforceIntroImg,
+  },
+  {
+    id: "picare-saleforce",
+    name: "Picare Saleforce",
+    category: "Sales Field Automation",
+    desc: "Tự động hóa lực lượng bán hàng, quản trị tuyến và phễu chuyển đổi",
+    image: saleforceIntroImg,
+  },
+  // Trang 2: Các phân hệ bổ trợ trong hệ sinh thái Picare
+  {
+    id: "picare-crm",
+    name: "Picare CRM",
+    category: "Customer Relationship Management",
+    desc: "Quản trị mối quan hệ khách hàng và dịch vụ hậu mãi đa kênh",
+    image: saleforceIntroImg,
+  },
+  {
+    id: "picare-scm",
+    name: "Picare SCM",
+    category: "Supply Chain Management",
+    desc: "Điều phối chuỗi cung ứng, theo dõi nhà cung cấp và tối ưu tồn kho",
+    image: saleforceIntroImg,
+  },
+  {
+    id: "picare-ai",
+    name: "Picare AI Automation",
+    category: "Intelligent Workflows",
+    desc: "Trợ lý ảo thông minh và bộ máy tự động hóa tác vụ vận hành",
+    image: saleforceIntroImg,
+  },
+];
+
+const showcaseContainerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.16,
+      delayChildren: 0.06,
+    },
+  },
+};
+
+const showcaseItemVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 48,
+    filter: "blur(10px)",
+    scale: 0.96,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    scale: 1,
+    transition: {
+      duration: 0.85,
+      ease: [0.16, 1, 0.3, 1] as const,
+    },
+  },
+};
+
+function HorizontalProductShowcase({
+  products,
+  isVisible = false,
+}: {
+  products: ProductShowcaseItem[];
+  isVisible?: boolean;
+}) {
+  const { navigateWithTransition } = useCurveTransition();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  // Giới hạn kéo ngang (drag limit tính theo pixel)
+  const [dragLimit, setDragLimit] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleItemClick = (item: ProductShowcaseItem) => {
+    if (isDragging) return;
+    navigateWithTransition(PATHS.CLIENT_OMS, {
+      text: item.name,
+      subtext: item.category,
+    });
+  };
+
+  // Custom Cursor chuyển động mượt mà với Framer Motion spring physics
+  const mouseX = useMotionValue(-200);
+  const mouseY = useMotionValue(-200);
+  const springConfig = { damping: 28, stiffness: 420, mass: 0.35 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+
+  // Tính toán khoảng cách tối đa có thể kéo dựa trên chiều rộng thực tế của slider track
+  useEffect(() => {
+    const calculateBounds = () => {
+      if (containerRef.current && trackRef.current) {
+        const containerW = containerRef.current.offsetWidth;
+        const trackW = trackRef.current.scrollWidth;
+        setDragLimit(Math.min(0, containerW - trackW));
+      }
+    };
+
+    calculateBounds();
+    window.addEventListener("resize", calculateBounds);
+    return () => window.removeEventListener("resize", calculateBounds);
+  }, [products]);
+
+  // Cập nhật vị trí con trỏ chuột theo viewport (clientX, clientY)
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    mouseX.set(e.clientX);
+    mouseY.set(e.clientY);
+  };
+
+  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    mouseX.set(e.clientX);
+    mouseY.set(e.clientY);
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setIsDragging(false);
+  };
+
+  // Custom Animated Cursor được render qua Portal ra document.body
+  // Đảm bảo không bao giờ bị cắt bởi overflow-hidden hay bị đè bởi z-index của Section 1
+  const customCursorPortal =
+    typeof document !== "undefined"
+      ? createPortal(
+          <motion.div
+            className="pointer-events-none fixed top-0 left-0 z-[999999] flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg backdrop-blur-md"
+            style={{
+              x: smoothX,
+              y: smoothY,
+            }}
+            initial={false}
+            animate={{
+              width: isHovered ? 48 : 6,
+              height: isHovered ? 48 : 6,
+              scale: isHovered ? (isDragging ? 0.88 : 1) : 0.4,
+              opacity: isHovered ? 1 : 0,
+              borderColor: isDragging
+                ? "#FFA336"
+                : isHovered
+                  ? "rgba(255, 255, 255, 0.32)"
+                  : "transparent",
+              backgroundColor: isHovered
+                ? isDragging
+                  ? "rgba(18, 15, 23, 0.95)"
+                  : "rgba(18, 15, 23, 0.85)"
+                : "rgba(255, 255, 255, 0.9)",
+              boxShadow: isDragging
+                ? "0 0 24px rgba(248, 109, 43, 0.5), 0 8px 24px rgba(0, 0, 0, 0.6)"
+                : isHovered
+                  ? "0 8px 24px rgba(0, 0, 0, 0.5)"
+                  : "none",
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 420,
+              damping: 28,
+              mass: 0.35,
+            }}
+          >
+            <motion.span
+              animate={{
+                opacity: isHovered ? 1 : 0,
+                scale: isHovered ? 1 : 0.5,
+              }}
+              transition={{
+                duration: 0.18,
+                delay: isHovered ? 0.05 : 0,
+              }}
+              className="font-haffer text-[11px] font-normal tracking-normal whitespace-nowrap text-white select-none"
+            >
+              Kéo
+            </motion.span>
+          </motion.div>,
+          document.body,
+        )
+      : null;
+
+  return (
+    <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`relative h-screen w-full overflow-hidden bg-transparent select-none ${
+        isHovered ? "cursor-none" : ""
+      }`}
+    >
+      {customCursorPortal}
+
+      {/* Slider Track hỗ trợ Drag mượt mà với momentum và elastic bounce (Grid 2 items) */}
+      <motion.div
+        ref={trackRef}
+        drag="x"
+        dragConstraints={{ left: dragLimit, right: 0 }}
+        dragElastic={0.12}
+        dragTransition={{
+          power: 0.16,
+          timeConstant: 220,
+          modifyTarget: (target) => {
+            const cardWidth = containerRef.current
+              ? containerRef.current.offsetWidth *
+                (window.innerWidth >= 640 ? 0.5 : 0.88)
+              : window.innerWidth * 0.5;
+            // Snap về biên card gần nhất: khi kéo mạnh sẽ hãm lực và "khựng" dính chắc vị trí thẻ
+            const snapped = Math.round(target / cardWidth) * cardWidth;
+            return Math.max(dragLimit, Math.min(0, snapped));
+          },
+          bounceStiffness: 300,
+          bounceDamping: 32,
+        }}
+        variants={showcaseContainerVariants}
+        initial="hidden"
+        animate={isVisible ? "visible" : "hidden"}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={() => setTimeout(() => setIsDragging(false), 80)}
+        className="flex h-full w-max flex-nowrap items-stretch will-change-transform"
+      >
+        {products.map((item: ProductShowcaseItem) => (
+          <motion.div
+            key={item.id}
+            variants={showcaseItemVariants}
+            onClick={() => handleItemClick(item)}
+            className="group relative flex h-full w-[88vw] min-w-[88vw] shrink-0 cursor-pointer flex-col justify-end overflow-hidden border-r border-white/[0.08] bg-transparent sm:w-[50vw] sm:max-w-[50vw] sm:min-w-[50vw] lg:w-[50vw] lg:max-w-[50vw] lg:min-w-[50vw]"
+          >
+            {/* Full-width/screen item image layout */}
+            <div className="absolute inset-0 h-full w-full overflow-hidden">
+              <img
+                src={item.image}
+                alt={item.name}
+                draggable={false}
+                className="pointer-events-none h-full w-full object-contain object-center transition-transform duration-700 ease-out select-none group-hover:scale-105"
+              />
+              {/* Seamless plum gradient overlay for crystal clear typography legibility */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#120F17]/90 via-[#120F17]/30 to-transparent" />
+              <div className="pointer-events-none absolute inset-0 bg-[#120F17]/15 transition-opacity duration-500 group-hover:opacity-5" />
+            </div>
+
+            {/* Bottom-left overlay: Project Name and Category Info */}
+            <div className="relative z-10 flex w-full items-end justify-between p-8 sm:p-10 lg:p-12 pointer-events-none">
+              <div className="flex max-w-[calc(100%-4rem)] flex-col text-left pointer-events-auto">
+                <h3 className="font-haffer text-2xl font-medium tracking-tight text-white transition-colors group-hover:text-[#FFA336] sm:text-3xl lg:text-[36px]">
+                  {item.name}
+                </h3>
+                {item.desc && (
+                  <p className="font-haffer mt-2 line-clamp-2 max-w-xl text-xs font-light text-zinc-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] sm:text-sm">
+                    {item.desc}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleItemClick(item);
+                }}
+                className="pointer-events-auto flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white shadow-lg backdrop-blur-md transition-all duration-300 group-hover:border-[#FFA336] group-hover:bg-[#FFA336] group-hover:text-black active:scale-95"
+                aria-label={`Khám phá ${item.name}`}
+              >
+                <FiArrowRight size={18} />
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
 export default function LandingPageTest() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const initialIsLogin = window.location.pathname === PATHS.LOGIN_HUB;
 
-  // Quản lý trạng thái swap:
-  // isSwapActive: false (Intro "Picare xin chào"), true (Trang cho khách)
-  const [isSwapActive, setIsSwapActive] = useState(initialIsLogin);
-  const [isSwapDone, setIsSwapDone] = useState(initialIsLogin);
-
-  // Chỉ hiển thị Navbar và Hero Typography sau khi PixelSwap hoàn tất
-  const [isHeroReady, setIsHeroReady] = useState(initialIsLogin);
+  // Quản lý trạng thái Intro "Picare Client" ban đầu (chỉ thấy đúng 1 lần khi vào web)
+  const [isIntro, setIsIntro] = useState(() => {
+    if (initialIsLogin) return false;
+    try {
+      const hasSeen = sessionStorage.getItem("picare_landing_intro_seen");
+      return !hasSeen;
+    } catch {
+      return true;
+    }
+  });
+  const [isIntroExiting, setIsIntroExiting] = useState(false);
+  const introOverlayRef = useRef<HTMLDivElement>(null);
+  const introPathRef = useRef<SVGPathElement>(null);
+  const introTextRef = useRef<HTMLDivElement>(null);
 
   // Quản lý chuyển cảnh sang Form đăng nhập (giữ nguyên AeroShards, chỉ đổi placement="right")
   const [isLoginView, setIsLoginView] = useState(initialIsLogin);
+
+  // Scroll container refs & Lenis smooth scroll instance
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollContentRef = useRef<HTMLDivElement>(null);
+  const [streamDrain, setStreamDrain] = useState(0);
+  const streamDrainRef = useRef({ value: 0 });
+  const [areProductsVisible, setAreProductsVisible] = useState(false);
+  const hasRevealedRef = useRef(false);
+
+  // Tích hợp Lenis Scroll dạng Stick/Snap giữa Section 1 và Section 2:
+  // - Khi cuộn qua một mức độ chiều cao (ngưỡng 18% vh) thì tự động dính/hút chặt tới Section tiếp theo
+  // - Khi tới Section Grid (Section 2), luồng AeroShards MỚI BẮT ĐẦU animation biến mất (drain 0.0 -> 1.0)
+  // - Animation biến mất diễn ra chậm rãi, mượt mà (2.2s) để lộ hoàn toàn nền #120F17 sạch sẽ
+  // - Khi cuộn ngược về Section 1 (Hero), luồng AeroShards xuất hiện trở lại (drain 1.0 -> 0.0)
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    const content = scrollContentRef.current;
+    if (!container || !content) return;
+
+    const lenis = new Lenis({
+      wrapper: container,
+      content: content,
+      duration: 1.0,
+      smoothWheel: true,
+      autoRaf: true,
+    });
+
+    let isSnapping = false;
+    let targetSection = 0; // 0 = Section 1 (Hero), 1 = Section 2 (Grid)
+    let isDrained = false; // Trạng thái đã kích hoạt animation biến mất của flow aero
+    let cooldownTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const snapTo = (sectionIndex: number, duration = 0.95) => {
+      const vh = window.innerHeight || 800;
+      const targetY = sectionIndex === 0 ? 0 : vh;
+      targetSection = sectionIndex;
+      isSnapping = true;
+
+      lenis.scrollTo(targetY, {
+        duration,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        onComplete: () => {
+          if (cooldownTimer) clearTimeout(cooldownTimer);
+          cooldownTimer = setTimeout(() => {
+            isSnapping = false;
+          }, 150);
+        },
+      });
+    };
+
+    // Lắng nghe scroll:
+    // 1. Khi tới Section Grid (Section 2) -> MỚI BẮT ĐẦU animation biến mất của flow aero
+    // 2. Tự động stick dính vào Section kế tiếp khi vượt qua ngưỡng chiều cao
+    const handleLenisScroll = (e: { scroll: number }) => {
+      const scrollY = e.scroll;
+      const vh = window.innerHeight || 800;
+
+      // Khi chạm tới Section Grid (>= 75% vh) -> MỚI BẮT ĐẦU animation biến mất của flow aero
+      if (scrollY >= vh * 0.75 && !isDrained) {
+        isDrained = true;
+        gsap.to(streamDrainRef.current, {
+          value: 1.0,
+          duration: 2.0, // Chậm rãi, thư thái theo đúng yêu cầu
+          ease: "power2.out",
+          overwrite: "auto",
+          onUpdate: () => {
+            setStreamDrain(streamDrainRef.current.value);
+          },
+          onComplete: () => {
+            // Khi animation aero đã chảy đi xong -> MỚI BẮT ĐẦU THẤY TỪNG ITEM (fade transition theo thứ tự)
+            hasRevealedRef.current = true;
+            setAreProductsVisible(true);
+          },
+        });
+      } else if (scrollY < vh * 0.35 && isDrained) {
+        // Khi cuộn ngược về Section 1 -> Animation xuất hiện lại của flow aero
+        isDrained = false;
+        gsap.to(streamDrainRef.current, {
+          value: 0.0,
+          duration: 1.4,
+          ease: "power2.out",
+          overwrite: "auto",
+          onUpdate: () => {
+            setStreamDrain(streamDrainRef.current.value);
+          },
+        });
+      }
+
+      // Stick snap theo độ cao: nếu người dùng kéo/cuộn vượt quá ngưỡng chiều cao (18% vh)
+      if (!isSnapping) {
+        if (targetSection === 0 && scrollY > vh * 0.18) {
+          snapTo(1);
+        } else if (targetSection === 1 && scrollY < vh * 0.82) {
+          snapTo(0);
+        }
+      }
+    };
+
+    // Bắt sự kiện wheel để stick/snap dính ngay lập tức khi lăn chuột
+    const handleWheel = (e: WheelEvent) => {
+      if (isSnapping) return;
+      const vh = window.innerHeight || 800;
+      const currentScroll = lenis.scroll;
+
+      if (e.deltaY > 10 && currentScroll < vh * 0.4) {
+        snapTo(1);
+      } else if (e.deltaY < -10 && currentScroll > vh * 0.6) {
+        snapTo(0);
+      }
+    };
+
+    // Tự động snap nếu người dùng kéo/cuộn thả dở dang (trackpad hoặc touch)
+    let endTimer: ReturnType<typeof setTimeout> | null = null;
+    const handleScrollEnd = () => {
+      if (endTimer) clearTimeout(endTimer);
+      endTimer = setTimeout(() => {
+        if (isSnapping) return;
+        const vh = window.innerHeight || 800;
+        const currentScroll = lenis.scroll;
+        if (targetSection === 0) {
+          if (currentScroll >= vh * 0.18) {
+            snapTo(1);
+          } else if (currentScroll > 10) {
+            snapTo(0);
+          }
+        } else if (targetSection === 1) {
+          if (currentScroll <= vh * 0.82) {
+            snapTo(0);
+          } else if (currentScroll < vh - 10) {
+            snapTo(1);
+          }
+        }
+      }, 120);
+    };
+
+    lenis.on("scroll", handleLenisScroll);
+    container.addEventListener("wheel", handleWheel, { passive: true });
+    container.addEventListener("scroll", handleScrollEnd, { passive: true });
+
+    return () => {
+      if (cooldownTimer) clearTimeout(cooldownTimer);
+      if (endTimer) clearTimeout(endTimer);
+      container.removeEventListener("wheel", handleWheel);
+      container.removeEventListener("scroll", handleScrollEnd);
+      lenis.destroy();
+    };
+  }, [isLoginView, isIntro]);
 
   // Lắng nghe sự kiện browser Back/Forward (popstate) để đồng bộ URL
   useEffect(() => {
@@ -202,103 +647,92 @@ export default function LandingPageTest() {
     window.history.pushState({}, "", PATHS.TEST);
   };
 
-  // Mega-menu "Sản phẩm" state & data
-  const [isProductMenuOpen, setIsProductMenuOpen] = useState(false);
-  const [currentMenuPage, setCurrentMenuPage] = useState(0);
-  const menuContainerRef = useRef<HTMLDivElement>(null);
-
-  // User Profile & Menu state
-  const { isAuthenticated, user } = useAuth();
-  const { mutate: logout } = useLogout();
-  const canUseDashboard = canAccessDashboard(user?.role);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const userMenuContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (
-        menuContainerRef.current &&
-        !menuContainerRef.current.contains(target)
-      ) {
-        setIsProductMenuOpen(false);
-      }
-      if (
-        userMenuContainerRef.current &&
-        !userMenuContainerRef.current.contains(target)
-      ) {
-        setIsUserMenuOpen(false);
-      }
-    };
-    if (isProductMenuOpen || isUserMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+  // Kích hoạt hiệu ứng Curve Swipe thoát màn hình để vào thẳng Landing Page
+  const handleStartTransition = () => {
+    if (isIntroExiting) return;
+    setIsIntroExiting(true);
+    try {
+      sessionStorage.setItem("picare_landing_intro_seen", "true");
+    } catch {
+      // ignore
     }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isProductMenuOpen, isUserMenuOpen]);
 
-  const { data: hubClients, isLoading: isClientsLoading } = useHubClients({
-    limit: 100,
-    status: "active",
-  });
+    const path = introPathRef.current;
+    const textEl = introTextRef.current;
+    const overlay = introOverlayRef.current;
+    if (!path) {
+      setIsIntro(false);
+      return;
+    }
 
-  const seenClientIds = new Set<string>();
-  const mergedClients = [...(hubClients || []), ...STATIC_HUB_CLIENTS].filter(
-    (client) => {
-      if (seenClientIds.has(client.clientId)) {
-        return false;
-      }
-      seenClientIds.add(client.clientId);
-      return true;
-    },
-  );
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setIsIntro(false);
+        if (overlay) overlay.style.display = "none";
+      },
+    });
 
-  const totalMenuPages = Math.max(1, Math.ceil(mergedClients.length / 3));
-  const normalizedMenuPage = currentMenuPage % totalMenuPages;
-  const displayedMenuItems = mergedClients.slice(
-    normalizedMenuPage * 3,
-    normalizedMenuPage * 3 + 3,
-  );
+    // 1. Chữ "Picare Client" mờ dần và bay nhẹ lên trên
+    if (textEl) {
+      tl.to(textEl, {
+        opacity: 0,
+        y: -18,
+        filter: "blur(4px)",
+        duration: 0.38,
+        ease: "power2.in",
+      });
+    }
 
-  const handleNextMenuPage = () => {
-    setCurrentMenuPage((prev) => (prev + 1) % totalMenuPages);
+    // 2. Đường cong đen co giãn kéo cong lên trên thoát đi (Curve swipe out) để lộ Landing page
+    tl.to(
+      path,
+      {
+        attr: { d: "M 0 0 Q 50 0 100 0 L 100 0 Q 50 -25 0 0 Z" },
+        duration: 0.80,
+        ease: "power2.in",
+      },
+      "-=0.1",
+    ).to(path, {
+      attr: { d: "M 0 0 Q 50 0 100 0 L 100 0 Q 50 0 0 0 Z" },
+      duration: 0.48,
+      ease: "power2.out",
+    });
   };
 
-  // 1. Content Intro: Fullscreen với MoltenMetal WebGL + "Picare xin chào"
+  // 1. Content Intro: Y chang giao diện page transition (Nền đen, chữ Picare Client ở giữa)
   const introContent = (
-    <div className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden select-none cursor-pointer">
-      <div className="absolute inset-0 z-0">
-        <MoltenMetal
-          color1="#FFFFFF"
-          color2="#F1F5F9"
-          color3="#E2E8F0"
-          speed={0.35}
-          scale={4}
-          detail={3}
-          glow={1.6}
-          coreSize={0.1}
-          swirl={1}
-          fold={-0.2}
-          blackPoint={0.05}
-          brightness={1.3}
-          colorMode="molten"
-          grain
-          grainIntensity={0.05}
-          mouseInteraction={false}
-          mouseStrength={0}
-          opacity={1}
+    <div
+      ref={introOverlayRef}
+      onClick={handleStartTransition}
+      className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center overflow-hidden select-none"
+    >
+      {/* SVG Canvas che phủ toàn màn hình màu đen với đường cong co giãn */}
+      <svg
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+      >
+        <path
+          ref={introPathRef}
+          fill="#000000"
+          d="M 0 0 Q 50 0 100 0 L 100 100 Q 50 100 0 100 Z"
         />
-      </div>
+      </svg>
 
-      <div className="relative z-10 text-center pointer-events-none px-6 flex flex-col items-center gap-3 font-haffer">
-        <h1 className="text-4xl sm:text-4xl font-light text-white drop-shadow-md">
-          <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 via-green-400 via-blue-500 to-purple-500">
-            Picare
-          </span>{" "}
-          xin chào
-        </h1>
-        <p className="text-xs sm:text-[12px] text-zinc-400/90 font-light tracking-wide animate-pulse">
+      {/* Trung tâm: Text Picare Client thanh lịch y chang như page transition */}
+      <div
+        ref={introTextRef}
+        className="pointer-events-none relative z-10 flex flex-col items-center justify-center px-4 text-center"
+      >
+        <div className="flex items-center gap-2.5">
+          <h1 className="font-haffer text-3xl font-light tracking-[-0.04em] text-white sm:text-4xl">
+            <span className="font-light italic">Picare</span>{" "}
+            <span className="font-normal text-white/90">
+              Client<span className="text-[#FFA336]">.</span>
+            </span>
+          </h1>
+        </div>
+        <p className="font-haffer mt-2.5 animate-pulse text-[12px] font-light text-zinc-500">
           Bấm vào màn hình để tiếp tục
         </p>
       </div>
@@ -307,15 +741,19 @@ export default function LandingPageTest() {
 
   // 2. Content Dành cho Khách: Chứa trực tiếp AeroShards WebGPU để PixelSwap đồng bộ hoàn hảo
   const guestContent = (
-    <div className="relative min-h-screen w-full flex flex-col bg-[#120F17] text-white overflow-x-hidden select-none font-haffer">
-      {/* Background WebGPU AeroShards nằm TRỰC TIẾP tại đây để PixelSwap đồng bộ hoàn hảo */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-auto">
+    <div
+      ref={scrollContainerRef}
+      className="font-haffer relative flex h-screen w-full flex-col overflow-x-hidden overflow-y-auto bg-[#120F17] text-white select-none"
+    >
+      {/* Background WebGPU AeroShards CỐ ĐỊNH XUYÊN SUỐT TẤT CẢ SECTION VÀ LOGIN VIEW */}
+      <div className="pointer-events-auto fixed inset-0 z-0 overflow-hidden">
         <AeroShards
           backgroundColor="#120F17"
           shardColor="#F86D2B"
           accentColor="#FFA336"
-          placement={isLoginView ? "right" : "full"}
+          placement="full"
           flow="stream"
+          drain={streamDrain}
           material="satin"
           detail="balanced"
           effect="none"
@@ -344,331 +782,26 @@ export default function LandingPageTest() {
       </div>
 
       {/* Foreground Content: Chuyển đổi giữa Hero khách và Login Form */}
-      <div className="relative z-10 min-h-screen w-full">
+      <div ref={scrollContentRef} className="relative z-10 min-h-screen w-full">
         <AnimatePresence mode="wait">
           {!isLoginView ? (
-            isHeroReady && (
-              <motion.div
-                key="guest-hero"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, x: -40, filter: "blur(6px)" }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="relative min-h-screen w-full flex flex-col"
-              >
-                {/* 1. Navbar không bg: các phần tử nổi trực tiếp trên nền để xem UI */}
-                <motion.header
-                  initial={{ opacity: 0, y: -22, filter: "blur(6px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  transition={{ duration: 0.75, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute inset-x-3 top-3 z-40 sm:inset-x-6 sm:top-4.5"
-                >
-            <div
-              ref={menuContainerRef}
-              className="relative flex h-15 w-full items-center justify-between px-6 sm:h-16 sm:px-8 lg:px-10"
+            <motion.div
+              key="guest-hero"
+              initial={{ opacity: 0, x: 0 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -70, filter: "blur(4px)" }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              className="relative flex min-h-screen w-full flex-col"
             >
-              <a href="#" aria-label="Picare Client" className="flex items-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                <img
-                  src={logoPicareNewBlack}
-                  alt="Picare Client"
-                  className="h-10 w-auto object-contain mix-blend-screen sm:h-14 -my-4 sm:-my-6"
-                />
-              </a>
+              {/* 1. Navbar không bg: Reusable PublicLandingNavbar */}
+              <PublicLandingNavbar onOpenLogin={handleOpenLogin} />
 
-              {/* Navigation Items: No background + Left-to-right smooth width expanding underline animation */}
-              <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 font-haffer text-[13px] font-normal tracking-normal lg:flex">
-                {/* 1. Sản phẩm (Active & Dropdown trigger) */}
-                <button
-                  type="button"
-                  onClick={() => setIsProductMenuOpen((prev) => !prev)}
-                  className={`nav-link-underline group relative flex cursor-pointer items-center gap-1.5 py-1.5 px-0.5 font-normal transition-colors duration-200 ${
-                    isProductMenuOpen ? "active text-white" : "text-white/75 hover:text-white"
-                  }`}
-                >
-                  <span>Sản phẩm</span>
-                  <FiChevronDown
-                    size={14}
-                    className={`transition-transform duration-300 ease-out ${
-                      isProductMenuOpen
-                        ? "rotate-180 text-white"
-                        : "text-white/50 group-hover:text-white group-hover:translate-y-0.5"
-                    }`}
-                  />
-                </button>
-
-                {/* 2. Doanh nghiệp */}
-                <a
-                  href="#enterprise"
-                  className="nav-link-underline group cursor-pointer py-1.5 px-0.5 font-normal text-white/75 transition-colors duration-200 hover:text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]"
-                >
-                  <span>Picare Vietnam</span>
-                </a>
-
-                {/* 3. Giải pháp */}
-                <a
-                  href="#solutions"
-                  className="nav-link-underline group cursor-pointer py-1.5 px-0.5 font-normal text-white/75 transition-colors duration-200 hover:text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]"
-                >
-                  <span>Liên hệ</span>
-                </a>
-
-                {/* 4. Tài nguyên */}
-                <a
-                  href="#resources"
-                  className="nav-link-underline group cursor-pointer py-1.5 px-0.5 font-normal text-white/75 transition-colors duration-200 hover:text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]"
-                >
-                  <span>Catalogues</span>
-                </a>
-              </nav>
-
-              {/* Right: Actions */}
-              <div className="flex items-center gap-2 font-haffer sm:gap-4">
-                {isAuthenticated ? (
-                  <div className="relative" ref={userMenuContainerRef}>
-                    {/* User profile capsule card */}
-                    <button
-                      type="button"
-                      onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                      className="group flex cursor-pointer items-center gap-2.5 rounded-full border border-white/12 bg-white/[0.06] p-1.5 pr-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all duration-200 hover:border-white/20 hover:bg-white/[0.12] active:scale-[0.98]"
-                    >
-                      {/* Avatar with accent gradient */}
-                      <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#F86D2B] to-[#FFA336] text-xs font-semibold text-black shadow-[0_2px_8px_rgba(248,109,43,0.4)]">
-                        {user?.name ? user.name.trim()[0].toUpperCase() : "U"}
-                        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-black" />
-                      </div>
-
-                      {/* Name & Role */}
-                      <div className="hidden flex-col text-left leading-tight min-[460px]:flex">
-                        <span className="max-w-[120px] truncate text-[12.5px] font-medium text-white transition-colors group-hover:text-[#FFA336]">
-                          {user?.name || "Tài khoản"}
-                        </span>
-                        <span className="text-[10px] font-light text-zinc-400">
-                          {user?.role ? ROLE_LABELS[user.role] || user.role : "Thành viên"}
-                        </span>
-                      </div>
-
-                      {/* Dropdown Chevron */}
-                      <FiChevronDown
-                        size={14}
-                        className={`text-white/50 transition-transform duration-300 ${
-                          isUserMenuOpen ? "rotate-180 text-white" : "group-hover:text-white"
-                        }`}
-                      />
-                    </button>
-
-                    {/* Custom User Menu Dropdown */}
-                    <AnimatePresence>
-                      {isUserMenuOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10, scale: 0.96 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                          className="absolute right-0 top-full mt-3 w-72 overflow-hidden rounded-2xl border border-[#303030] bg-[#000000]/95 p-2.5 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.95),0_0_30px_-15px_rgba(248,109,43,0.2)] backdrop-blur-2xl"
-                        >
-                          {/* Top ambient glow line */}
-                          <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-[#F86D2B]/50 to-transparent" />
-
-                          {/* Profile Header */}
-                          <div className="mb-1.5 flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.04] p-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#F86D2B] to-[#FFA336] text-sm font-bold text-black shadow-md">
-                              {user?.name ? user.name.trim()[0].toUpperCase() : "U"}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-[13.5px] font-medium text-white">
-                                {user?.name || "Tài khoản"}
-                              </p>
-                              <p className="truncate text-[11px] font-light text-zinc-400">
-                                {user?.email}
-                              </p>
-                              <div className="mt-1 inline-flex items-center rounded-full bg-white/[0.08] px-2 py-0.5 text-[10px] font-medium text-[#FFA336]">
-                                {user?.role ? ROLE_LABELS[user.role] || user.role : "Thành viên"}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Menu Items */}
-                          <div className="space-y-0.5 font-haffer text-[13px]">
-                            {canUseDashboard && (
-                              <Link
-                                to={PATHS.DASHBOARD.ROOT}
-                                onClick={() => setIsUserMenuOpen(false)}
-                                className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white"
-                              >
-                                <FiLayout size={15} className="text-zinc-500 transition-colors group-hover:text-[#FFA336]" />
-                                <span>Bảng điều khiển Hub</span>
-                              </Link>
-                            )}
-
-                            <Link
-                              to="/login/client"
-                              onClick={() => setIsUserMenuOpen(false)}
-                              className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white"
-                            >
-                              <FiGrid size={15} className="text-zinc-500 transition-colors group-hover:text-[#FFA336]" />
-                              <span>Không gian làm việc</span>
-                            </Link>
-
-                            <Link
-                              to={PATHS.DASHBOARD.SETTINGS.ROOT}
-                              onClick={() => setIsUserMenuOpen(false)}
-                              className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white"
-                            >
-                              <FiSettings size={15} className="text-zinc-500 transition-colors group-hover:text-[#FFA336]" />
-                              <span>Cài đặt hệ thống</span>
-                            </Link>
-                          </div>
-
-                          {/* Divider */}
-                          <div className="my-1.5 h-px bg-white/10" />
-
-                          {/* Logout Button */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIsUserMenuOpen(false);
-                              logout();
-                            }}
-                            className="group flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
-                          >
-                            <FiLogOut size={15} className="transition-transform group-hover:-translate-x-0.5" />
-                            <span>Đăng xuất</span>
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleOpenLogin}
-                      className="nav-link-underline group hidden cursor-pointer py-1.5 px-0.5 text-[13px] font-normal tracking-normal text-white/75 transition-colors hover:text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] min-[410px]:inline-flex"
-                    >
-                      <span>Đăng nhập</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-white px-4 text-[13px] font-normal tracking-normal text-[#120F17] shadow-[0_4px_20px_rgba(0,0,0,0.3)] transition-all hover:bg-white/92 hover:shadow-[0_4px_24px_rgba(255,255,255,0.25)]"
-                    >
-                      <span>Bắt đầu</span>
-                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                        <path d="M3 8H13M9 4L13 8L9 12" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </button>
-                  </>
-                )}
-              </div>
-
-              {/* Upgraded Dropdown Mega-Menu: Copied and synchronized with new UI & dark palette */}
-              <AnimatePresence mode="wait">
-                {isProductMenuOpen && (
-                  <motion.div
-                    key="system-mega-menu"
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={{
-                      hidden: { opacity: 0, y: 14, scale: 0.96 },
-                      visible: {
-                        opacity: 1,
-                        y: 0,
-                        scale: 1,
-                        transition: {
-                          duration: 0.35,
-                          ease: [0.16, 1, 0.3, 1],
-                          staggerChildren: 0.08,
-                        },
-                      },
-                      exit: {
-                        opacity: 0,
-                        y: 10,
-                        scale: 0.97,
-                        transition: { duration: 0.2, ease: "easeOut" },
-                      },
-                    }}
-                    className="absolute top-full left-1/2 mt-4 w-[min(1160px,calc(100vw-2.5rem))] -translate-x-1/2 overflow-hidden rounded-2xl border border-[#303030] bg-[#000000]/92 p-5.5 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.92),0_0_40px_-20px_rgba(248,109,43,0.25)] backdrop-blur-2xl sm:p-6"
-                  >
-                    {/* Subtle top ambient line */}
-                    <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[#F86D2B]/50 to-transparent" />
-
-                    <div className="flex flex-col gap-5">
-                     
-
-                      {/* Cards Grid */}
-                      <motion.div
-                        key={currentMenuPage}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        variants={{
-                          hidden: { opacity: 0 },
-                          visible: {
-                            opacity: 1,
-                            transition: {
-                              staggerChildren: 0.1,
-                              delayChildren: 0.04,
-                            },
-                          },
-                          exit: {
-                            opacity: 0,
-                            transition: { duration: 0.15 },
-                          },
-                        }}
-                        className="grid grid-cols-1 gap-4 md:grid-cols-3"
-                      >
-                        {isClientsLoading
-                          ? Array.from({ length: 3 }).map((_, i) => (
-                              <ProductMenuSkeleton key={i} />
-                            ))
-                          : displayedMenuItems.map((item) => (
-                              <ProductMenuCard key={item.clientId} item={item} />
-                            ))}
-                      </motion.div>
-
-                      {/* Bottom Pagination & Navigation */}
-                      <div className="flex items-center justify-between border-t border-white/[0.06] pt-3 px-1">
-                        <div className="flex items-center gap-1.5">
-                          {Array.from({ length: totalMenuPages }).map((_, i) => (
-                            <button
-                              key={i}
-                              type="button"
-                              onClick={() => setCurrentMenuPage(i)}
-                              aria-label={`Trang ${i + 1}`}
-                              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                                normalizedMenuPage === i
-                                  ? "w-8 bg-gradient-to-r from-[#F86D2B] to-[#FFA336] shadow-[0_0_10px_rgba(248,109,43,0.5)]"
-                                  : "w-2 bg-[#424242] hover:bg-zinc-500"
-                              }`}
-                            />
-                          ))}
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <span className="text-[11px] font-medium text-zinc-500">
-                            {normalizedMenuPage + 1} / {totalMenuPages}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={handleNextMenuPage}
-                            className="group flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[#424242] bg-[#212121]/90 text-zinc-300 transition-all hover:border-[#F86D2B]/50 hover:bg-[#303030] hover:text-white active:scale-95"
-                            aria-label="Tiếp theo"
-                          >
-                            <FiChevronDown className="-rotate-90 transition-transform group-hover:translate-x-0.5" size={17} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </motion.header>
-
-          {/* Main Hero Content: cascade animate tuần tự từng phần tử */}
-          <main className="relative z-20 mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 pt-32 pb-16 text-center sm:pt-40 sm:pb-20">
-            {/* 2. Flat editorial kicker */}
-            {/* <motion.div
+              {/* 1. SECTION 1: HERO */}
+              <section className="relative flex h-screen min-h-screen w-full flex-col justify-between overflow-hidden bg-transparent">
+                {/* Main Hero Content: cascade animate tuần tự từng phần tử */}
+                <main className="relative z-20 mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 pt-32 pb-16 text-center sm:pt-40 sm:pb-20">
+                  {/* 2. Flat editorial kicker */}
+                  {/* <motion.div
               initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 0.65, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
@@ -681,32 +814,50 @@ export default function LandingPageTest() {
               <span aria-hidden="true" className="h-px w-6 bg-white/35 sm:w-9" />
             </motion.div> */}
 
-            {/* 3. Main Headline: Picare Client {logo picare hub} Nền tảng ERP */}
-            <motion.h1
-              initial={{ opacity: 0, y: 24, scale: 0.96, filter: "blur(6px)" }}
-              animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-              transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="font-haffer flex flex-wrap items-center justify-center gap-x-5 gap-y-2.5 sm:gap-x-5 text-[clamp(2.8rem,7.2vw,5rem)] leading-[1.08] font-light tracking-[-0.05em] text-white text-center drop-shadow-[0_2px_16px_rgba(0,0,0,0.5)]"
-            >
-              <span className="inline-flex items-center">
-                <span className="italic font-light text-white">Picare</span>
-                <span className="ml-2.5 sm:ml-3 font-normal text-white">Client</span>
-              </span>
-              <img
-                src={picareHubLogo}
-                alt="Picare Hub"
-                className="inline-block h-10 w-10 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-18 lg:w-18 object-contain drop-shadow-[0_4px_28px_rgba(248,109,43,0.5)] select-none pointer-events-none"
-              />
-              <span className="inline-flex items-center">
-                <span className="font-light text-white">Nền tảng</span>
-                <span className="ml-2.5 sm:ml-3 font-normal text-white">
-                  ERP<span className="text-[#f7a276]">.</span>
-                </span>
-              </span>
-            </motion.h1>
+                  {/* 3. Main Headline: Picare Client {logo picare hub} Nền tảng ERP */}
+                  <motion.h1
+                    initial={{
+                      opacity: 0,
+                      y: 24,
+                      scale: 0.96,
+                      filter: "blur(6px)",
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      filter: "blur(0px)",
+                    }}
+                    transition={{
+                      duration: 0.8,
+                      delay: 0.6,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    className="font-haffer flex flex-wrap items-center justify-center gap-x-5 gap-y-2.5 text-center text-[clamp(2.8rem,7.2vw,5rem)] leading-[1.08] font-light tracking-[-0.05em] text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.5)] sm:gap-x-5"
+                  >
+                    <span className="inline-flex items-center">
+                      <span className="font-light text-white italic">
+                        Picare
+                      </span>
+                      <span className="ml-2.5 font-normal text-white sm:ml-3">
+                        Client
+                      </span>
+                    </span>
+                    <img
+                      src={picareHubLogo}
+                      alt="Picare Hub"
+                      className="pointer-events-none inline-block h-10 w-10 object-contain drop-shadow-[0_4px_28px_rgba(248,109,43,0.5)] select-none sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-18 lg:w-18"
+                    />
+                    <span className="inline-flex items-center">
+                      <span className="font-light text-white">Nền tảng</span>
+                      <span className="ml-2.5 font-normal text-white sm:ml-3">
+                        ERP<span className="text-[#f7a276]">.</span>
+                      </span>
+                    </span>
+                  </motion.h1>
 
-            {/* Cũ: Main Headline Picare Client. */}
-            {/* <motion.h1
+                  {/* Cũ: Main Headline Picare Client. */}
+                  {/* <motion.h1
               initial={{ opacity: 0, y: 24, scale: 0.96, filter: "blur(6px)" }}
               animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
               transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -718,23 +869,34 @@ export default function LandingPageTest() {
               </span>
             </motion.h1> */}
 
-            {/* 4. Subtitle */}
-            <motion.p
-              initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ duration: 0.75, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="mx-auto mt-7 max-w-[48rem] font-haffer text-base sm:text-[19px] md:text-[20px] leading-[1.65]  text-white text-center px-4 drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]"
-            >
-              Chúng tôi xây dựng một mô hình tập trung các phần mềm bán hàng, quản lý, AI Automation tạo nên hệ sinh thái cho toàn bộ doanh nghiệp
-            </motion.p>
+                  {/* 4. Subtitle */}
+                  <motion.p
+                    initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    transition={{
+                      duration: 0.75,
+                      delay: 0.7,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    className="font-haffer mx-auto mt-7 max-w-[48rem] px-4 text-center text-base leading-[1.65] text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)] sm:text-[18px] md:text-[19px]"
+                  >
+                    Chúng tôi xây dựng một mô hình tập trung các phần mềm bán
+                    hàng, quản lý, AI Automation tạo nên hệ sinh thái cho toàn
+                    bộ doanh nghiệp. Phân hệ có thể được tách rời để sử dụng
+                    hoặc kết hợp với nhau tuỳ nhu cầu của từng doanh nghiệp.
+                  </motion.p>
 
-            {/* 5. GSAP Animated Primary CTA Button */}
-            <div className="mt-9 sm:mt-10 flex justify-center">
-              <GsapCtaButton onClick={handleOpenLogin} label="Trải nghiệm ngay" delay={0.85} />
-            </div>
+                  {/* 5. GSAP Animated Primary CTA Button */}
+                  <div className="mt-9 flex justify-center sm:mt-10">
+                    <GsapCtaButton
+                      onClick={handleOpenLogin}
+                      label="Trải nghiệm ngay"
+                      delay={0.85}
+                    />
+                  </div>
 
-            {/* Cũ: Subtitle 2 dòng & Button tĩnh (Lưu lại để tham khảo khi cần) */}
-            {/* <motion.div
+                  {/* Cũ: Subtitle 2 dòng & Button tĩnh (Lưu lại để tham khảo khi cần) */}
+                  {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.85, ease: [0.16, 1, 0.3, 1] }}
@@ -747,15 +909,34 @@ export default function LandingPageTest() {
                 Đồng bộ toàn diện Kinh doanh, E-Commerce, Kho bãi và Chuỗi cung ứng trong một hệ thống duy nhất.
               </p>
             </motion.div> */}
+                </main>
+              </section>
 
-            </main>
-              </motion.div>
-            )
+              {/* 2. SECTION 2: PRODUCTS SHOWCASE */}
+              <section
+                id="products-section"
+                className="relative z-20 h-screen min-h-screen w-full overflow-hidden bg-transparent text-white"
+              >
+                <HorizontalProductShowcase
+                  products={PRODUCT_SHOWCASE_LIST}
+                  isVisible={areProductsVisible}
+                />
+              </section>
+            </motion.div>
           ) : (
-            <LoginHubFormSection
-              key="login-form"
-              onBack={handleBackToLanding}
-            />
+            <motion.div
+              key="login-form-wrapper"
+              initial={{ opacity: 0, x: 60 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 60 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              className="relative min-h-screen w-full"
+            >
+              <LoginHubFormSection
+                key="login-form"
+                onBack={handleBackToLanding}
+              />
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
@@ -763,104 +944,9 @@ export default function LandingPageTest() {
   );
 
   return (
-    <div className="min-h-screen w-full bg-black select-none font-haffer">
-      <PixelSwap
-        active={isSwapActive}
-        onActiveChange={(nextActive) => {
-          setIsSwapActive(nextActive);
-        }}
-        onComplete={(nextActive) => {
-          if (nextActive) {
-            setIsSwapDone(true);
-            setIsHeroReady(true);
-          }
-        }}
-        trigger={isSwapDone ? "manual" : "click"}
-        style={{ height: "100vh", aspectRatio: "unset" }}
-        className="w-full h-screen"
-        pixelSize={120}
-        gap={0}
-        pixelRadius={0}
-        pixelSpin={0}
-        pixelScale={0.35}
-        duration={1450}
-        pixelDuration={480}
-        pattern="random"
-        randomness={0}
-        fade
-        firstContent={introContent}
-        secondContent={guestContent}
-      />
-    </div>
-  );
-}
-
-function ProductMenuCard({ item }: { item: HubClient }) {
-  return (
-    <motion.a
-      href={item.clientInternalUrl}
-      variants={{
-        hidden: { opacity: 0, y: 16, scale: 0.96 },
-        visible: {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          transition: {
-            duration: 0.45,
-            ease: [0.16, 1, 0.3, 1],
-          },
-        },
-      }}
-      whileHover={{
-        y: -4,
-        transition: { duration: 0.25 },
-      }}
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border border-[#303030] bg-[#161616]/90 p-3.5 transition-all duration-300 hover:border-[#F86D2B]/50 hover:bg-[#212121] hover:shadow-[0_12px_32px_-8px_rgba(248,109,43,0.22)]"
-    >
-      {/* Thumbnail Banner */}
-      <div className="relative h-40 w-full overflow-hidden rounded-lg bg-black/60 outline outline-1 outline-white/5 transition-all group-hover:outline-[#F86D2B]/30">
-        <img
-          src={
-            item.clientLogoImage?.trim() ||
-            item.clientMockupImage?.trim() ||
-            "https://framerusercontent.com/images/gTH5qA521PTXYmAuTkvadn5fso.png?width=1292&height=450"
-          }
-          alt={item.clientName}
-          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-106"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent transition-opacity duration-300 group-hover:opacity-90" />
-      </div>
-
-      {/* Content */}
-      <div className="mt-3 flex flex-1 flex-col justify-between space-y-2">
-        <div>
-          <h4 className="text-[14.5px] font-medium tracking-tight text-zinc-100 transition-colors group-hover:text-white">
-            {item.clientName}
-          </h4>
-          <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-zinc-400/90 transition-colors group-hover:text-zinc-300">
-            {item.clientDescription || "Hệ sinh thái phân hệ tối ưu hóa quy trình vận hành toàn diện."}
-          </p>
-        </div>
-
-        {/* Action Link */}
-        <div className="flex items-center gap-1.5 pt-2 text-[11.5px] font-medium tracking-wide text-zinc-400 transition-colors group-hover:text-[#FFA336]">
-          <span>Khám phá ngay</span>
-          <FiArrowRight size={13} className="transition-transform duration-300 group-hover:translate-x-1" />
-        </div>
-      </div>
-    </motion.a>
-  );
-}
-
-function ProductMenuSkeleton() {
-  return (
-    <div className="flex flex-col space-y-3 rounded-xl border border-[#303030] bg-[#161616]/90 p-3.5">
-      <div className="h-40 w-full animate-pulse rounded-lg bg-[#262626]" />
-      <div className="space-y-2 pt-1">
-        <div className="h-4 w-3/5 animate-pulse rounded bg-[#262626]" />
-        <div className="h-3 w-full animate-pulse rounded bg-[#212121]" />
-        <div className="h-3 w-4/5 animate-pulse rounded bg-[#212121]" />
-      </div>
+    <div className="font-haffer relative min-h-screen w-full overflow-hidden bg-[#120F17] select-none">
+      {isIntro && introContent}
+      {guestContent}
     </div>
   );
 }
