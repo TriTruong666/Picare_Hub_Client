@@ -312,11 +312,11 @@ export function PublicLandingNavbar({
           <div className="font-haffer flex items-center gap-2 sm:gap-4">
             {isAuthenticated ? (
               <div className="relative" ref={userMenuContainerRef}>
-                {/* User menu trigger: Name only with hover underline */}
+                {/* User menu trigger: Name only with hover underline, size matching items */}
                 <button
                   type="button"
                   onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                  className="group relative flex cursor-pointer items-center gap-1.5 px-0.5 py-1.5 font-normal text-white/75 transition-colors duration-200 hover:text-white"
+                  className="group relative flex cursor-pointer items-center gap-1.5 px-0.5 py-1.5 text-[13px] font-normal tracking-normal text-white/75 transition-colors duration-200 hover:text-white"
                 >
                   <span
                     className={`nav-link-underline ${
@@ -326,7 +326,7 @@ export function PublicLandingNavbar({
                     {user?.name || "Tài khoản"}
                   </span>
                   <FiChevronDown
-                    size={14}
+                    size={13}
                     className={`transition-transform duration-300 ease-out ${
                       isUserMenuOpen
                         ? "rotate-180 text-white"
@@ -353,7 +353,7 @@ export function PublicLandingNavbar({
 
                       {/* Compact User Header */}
                       <div className="border-b border-white/[0.07] px-3 py-2">
-                        <p className="truncate text-[12.5px] font-medium text-white">
+                        <p className="truncate text-[12px] font-normal text-white">
                           {user?.name || "Tài khoản"}
                         </p>
                         <p className="truncate text-[10.5px] font-light text-zinc-400">
@@ -365,7 +365,7 @@ export function PublicLandingNavbar({
                       </div>
 
                       {/* Menu Items */}
-                      <div className="font-haffer pt-1 space-y-0.5 text-[12.5px]">
+                      <div className="font-haffer pt-1 space-y-0.5 text-[12px]">
                         {canUseDashboard && (
                           <Link
                             to={PATHS.DASHBOARD.ROOT}

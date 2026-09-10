@@ -392,81 +392,19 @@ export default function LoginHubFormSection({
     }
     prevIsClientRef.current = isClientSelectRoute;
 
-    // Chuyển cảnh từ /login sang /login/client: Mở rộng 50% -> 100% kèm animation biến mất tinh tế cho Form
+    // Chuyển cảnh từ /login sang /login/client: Mở rộng 50% -> 100% kèm animation trượt từ trái sang phải
     if (isClientSelectRoute) {
       const tl = gsap.timeline();
 
-      // 1. Animation biến mất thanh lịch, cascade mượt mà cho các phần tử của Form đăng nhập
+      // 1. Form đăng nhập trượt nhẹ sang trái và mờ dần nhanh gọn, không chèn ép layout
       if (formWrapperRef.current) {
-        // Từng phần tử trượt nhẹ, mờ dần và tan biến có chiều sâu
-        tl.to(
-          formWrapperRef.current.querySelectorAll(".form-anim-header"),
-          {
-            opacity: 0,
-            y: -24,
-            filter: "blur(6px)",
-            duration: 0.42,
-            ease: "power2.inOut",
-          },
-          0,
-        );
-
-        tl.to(
-          formWrapperRef.current.querySelectorAll(".form-anim-title"),
-          {
-            opacity: 0,
-            y: -28,
-            filter: "blur(8px)",
-            duration: 0.46,
-            ease: "power2.inOut",
-          },
-          0.04,
-        );
-
-        tl.to(
-          formWrapperRef.current.querySelectorAll(".form-anim-field"),
-          {
-            opacity: 0,
-            y: -18,
-            scale: 0.97,
-            filter: "blur(5px)",
-            duration: 0.44,
-            stagger: 0.06,
-            ease: "power2.inOut",
-          },
-          0.08,
-        );
-
-        tl.to(
-          formWrapperRef.current.querySelectorAll(".form-anim-btn"),
-          {
-            opacity: 0,
-            y: -14,
-            scale: 0.96,
-            duration: 0.4,
-            ease: "power2.inOut",
-          },
-          0.14,
-        );
-
-        tl.to(
-          formWrapperRef.current.querySelectorAll(".form-anim-footer"),
-          {
-            opacity: 0,
-            duration: 0.32,
-            ease: "power2.inOut",
-          },
-          0.06,
-        );
-
-        // Form wrapper container trượt sang trái và mờ dần
         tl.to(
           formWrapperRef.current,
           {
-            x: -60,
+            x: -35,
             opacity: 0,
-            duration: 0.4,
-            ease: "power2.inOut",
+            duration: 0.28,
+            ease: "power2.in",
             onComplete: () => {
               if (formWrapperRef.current) {
                 formWrapperRef.current.style.display = "none";
@@ -478,45 +416,51 @@ export default function LoginHubFormSection({
         );
       }
 
-      // 2. Chuyển Panel sang 100% nền tối ngay lập tức để Grid trượt vào
-      if (panelRef.current) {
-        panelRef.current.style.width = "100%";
-        panelRef.current.style.backgroundColor = "#050505";
-        panelRef.current.style.borderColor = "transparent";
-      }
+      // 2. Mở rộng Panel từ 50% sang 100% mượt mà bằng GSAP (không nhảy giật)
+      tl.to(
+        panelRef.current,
+        {
+          width: "100%",
+          backgroundColor: "#050505",
+          borderColor: "transparent",
+          duration: 0.65,
+          ease: "power3.inOut",
+        },
+        0,
+      );
 
-      // 3. Hiện Navbar phía trên
-      if (navbarWrapperRef.current) {
-        navbarWrapperRef.current.style.display = "block";
-        tl.fromTo(
-          navbarWrapperRef.current,
-          { opacity: 0, y: -20 },
-          { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
-          "-=0.2",
-        );
-      }
-
-      // 4. Di chuyển Grid từ trái sang phải (Slide in from Left to Right)
+      // 3. Grid chọn Client (absolute layer) trượt êm ái từ trái sang phải
       if (gridWrapperRef.current) {
         gridWrapperRef.current.style.display = "block";
         tl.fromTo(
           gridWrapperRef.current,
           { xPercent: -100, opacity: 0 },
-          { xPercent: 0, opacity: 1, duration: 0.75, ease: "power3.out" },
-          "-=0.25",
+          { xPercent: 0, opacity: 1, duration: 0.7, ease: "power3.out" },
+          0.08,
         );
 
         tl.fromTo(
           ".client-card-item",
-          { opacity: 0, x: -35 },
+          { opacity: 0, x: -30 },
           {
             opacity: 1,
             x: 0,
             duration: 0.5,
-            stagger: 0.06,
+            stagger: 0.05,
             ease: "power2.out",
           },
-          "-=0.45",
+          0.25,
+        );
+      }
+
+      // 4. Hiện Navbar phía trên
+      if (navbarWrapperRef.current) {
+        navbarWrapperRef.current.style.display = "block";
+        tl.fromTo(
+          navbarWrapperRef.current,
+          { opacity: 0, y: -16 },
+          { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
+          0.2,
         );
       }
     } else {
@@ -530,7 +474,7 @@ export default function LoginHubFormSection({
           {
             opacity: 0,
             y: -16,
-            duration: 0.3,
+            duration: 0.25,
             ease: "power2.inOut",
             onComplete: () => {
               if (navbarWrapperRef.current)
@@ -560,7 +504,7 @@ export default function LoginHubFormSection({
         );
       }
 
-      // 2. Thu gọn Panel từ 100% về 50% (bắt đầu gối đầu khi grid đang mờ đi)
+      // 2. Thu gọn Panel từ 100% về 50%
       const isDesktop = window.innerWidth >= 768;
       const targetWidth = isDesktop ? "50%" : "100%";
       tl.to(
@@ -569,20 +513,20 @@ export default function LoginHubFormSection({
           width: targetWidth,
           backgroundColor: "rgba(0, 0, 0, 0.95)",
           borderColor: "rgba(255, 255, 255, 0.08)",
-          duration: 0.75,
+          duration: 0.65,
           ease: "power3.inOut",
         },
-        "-=0.18",
+        0.1,
       );
 
-      // 3. Hiển thị form đăng nhập và các trường trượt nhẹ vào vị trí với cascade
+      // 3. Hiển thị form đăng nhập và các trường trượt nhẹ vào vị trí
       if (formWrapperRef.current) {
         formWrapperRef.current.style.display = "flex";
         tl.fromTo(
           formWrapperRef.current,
-          { opacity: 0 },
-          { opacity: 1, duration: 0.38, ease: "power2.out" },
-          "-=0.35",
+          { opacity: 0, x: -30 },
+          { opacity: 1, x: 0, duration: 0.45, ease: "power2.out" },
+          0.25,
         );
 
         const subElements = formWrapperRef.current.querySelectorAll(
@@ -1055,7 +999,7 @@ export default function LoginHubFormSection({
         {/* ─── GIAO DIỆN 2: CHỌN CLIENT (Full screen full height 6 items edge-to-edge tại /login/client) ─── */}
         <div
           ref={gridWrapperRef}
-          className="relative min-h-screen w-full bg-[#050505] overflow-x-hidden overflow-y-auto lg:h-screen lg:overflow-hidden"
+          className="absolute inset-0 z-20 min-h-screen w-full bg-[#050505] overflow-x-hidden overflow-y-auto lg:h-screen lg:overflow-hidden"
           style={{
             display: initialIsClientRef.current ? "block" : "none",
             opacity: initialIsClientRef.current ? 1 : 0,
