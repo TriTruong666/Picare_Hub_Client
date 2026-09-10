@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import { FiSearch, FiX } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { Spinner } from "@/components/custom_ui/Spinner";
-import LandingHeader from "@/components/landing/LandingHeader";
+import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
 import { PATHS } from "@/config/paths";
 import { useInfiniteCatalogueList } from "@/hooks/data/useCatalogueHooks";
+import { MOCK_CATALOGUES } from "@/mock/catalogueMockData";
 import type { Catalogue, CatalogueDetail } from "@/types/Catalogue";
 
 const PAGE_SIZE = 20;
@@ -30,13 +31,13 @@ function formatPublishedDate(value: string) {
 }
 
 const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
+  hidden: { opacity: 0, y: 35, scale: 0.96 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      duration: 1.0,
+      duration: 0.85,
       ease: [0.16, 1, 0.3, 1],
     },
   },
@@ -47,8 +48,8 @@ const gridContainerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.12,
-      delayChildren: 0.15,
+      staggerChildren: 0.1,
+      delayChildren: 0.12,
     },
   },
 };
@@ -61,12 +62,13 @@ function CatalogueCard({
   priority: boolean;
 }) {
   const [hasImageError, setHasImageError] = useState(false);
-  const cover = getCover(catalogue.details);
+  const cover = getCover(catalogue.details || []);
   const publishedDate = formatPublishedDate(catalogue.createdAt);
   const previewPath = PATHS.CATALOGUE.PUBLIC_PREVIEW.replace(
     ":catalogueId",
     catalogue.catalogueId,
   );
+  const totalPages = catalogue.details?.length || 0;
 
   return (
     <motion.div
@@ -75,19 +77,19 @@ function CatalogueCard({
       whileTap={{ scale: 0.985 }}
       transition={{
         type: "spring",
-        stiffness: 90,
+        stiffness: 110,
         damping: 18,
-        mass: 1,
+        mass: 0.9,
       }}
     >
       <Link
         to={previewPath}
-        className="group block min-w-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f0ede6]"
+        className="group block min-w-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FFA336]"
         aria-label={`Xem catalogue ${catalogue.catalogueName}`}
       >
         <article className="flex flex-col">
           {/* MINIMALIST LUXURY CATALOGUE COVER */}
-          <div className="relative aspect-[210/297] w-full overflow-hidden rounded-xl border border-white/12 bg-[#121212] shadow-[0_16px_36px_rgba(0,0,0,0.4)] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:border-white/35 group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.7)]">
+          <div className="relative aspect-[210/297] w-full overflow-hidden rounded-xl border border-white/10 bg-[#16121D] shadow-[0_16px_40px_rgba(0,0,0,0.55)] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:border-[#FFA336]/40 group-hover:shadow-[0_24px_50px_rgba(255,163,54,0.14)]">
             {cover && !hasImageError ? (
               <img
                 src={cover.imageUrl}
@@ -112,13 +114,20 @@ function CatalogueCard({
             {/* Subtle Spine Highlight for Editorial Feel */}
             <div className="pointer-events-none absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-white/12 to-transparent opacity-60" />
 
-            {/* SLEEK GLOWING BOTTOM LINE INDICATOR ON HOVER (MATCHING SEARCH BAR STYLE) */}
-            <div className="pointer-events-none absolute right-0 -bottom-px left-0 h-[2px] origin-left scale-x-0 bg-gradient-to-r from-white via-indigo-200 to-white opacity-0 shadow-[0_0_12px_rgba(255,255,255,0.8)] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100 group-hover:opacity-100" />
+            {/* Page Count Tag */}
+            {totalPages > 0 && (
+              <div className="absolute top-3.5 right-3.5 z-10 rounded-full border border-white/15 bg-black/60 px-2.5 py-0.5 text-[11px] font-medium tracking-wide text-white/80 backdrop-blur-md transition-colors group-hover:border-[#FFA336]/40 group-hover:text-[#FFA336]">
+                {totalPages} trang
+              </div>
+            )}
+
+            {/* SLEEK GLOWING BOTTOM AMBER LINE ON HOVER */}
+            <div className="pointer-events-none absolute right-0 -bottom-px left-0 h-[2px] origin-left scale-x-0 bg-gradient-to-r from-[#FFA336] via-[#F86D2B] to-[#FFA336] opacity-0 shadow-[0_0_12px_rgba(255,163,54,0.7)] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100 group-hover:opacity-100" />
           </div>
 
           {/* ITEM TITLE & METADATA */}
           <div className="flex flex-col items-center pt-5 text-center">
-            <h2 className="max-w-[22ch] pb-1 text-[1.4375rem] leading-snug font-normal tracking-[-0.03em] text-[#f0ede6] transition-colors duration-500 group-hover:text-white">
+            <h2 className="max-w-[24ch] pb-1 text-[1.25rem] leading-snug font-medium tracking-[-0.02em] text-[#f0ede6] transition-colors duration-500 group-hover:text-[#FFA336]">
               {catalogue.catalogueName}
             </h2>
             {publishedDate ? (
@@ -135,12 +144,12 @@ function CatalogueCard({
 
 function GallerySkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-x-10 gap-y-20 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-14">
+    <div className="grid grid-cols-1 gap-x-10 gap-y-16 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-14">
       {Array.from({ length: 6 }).map((_, index) => (
         <div key={index}>
-          <div className="aspect-[210/297] animate-pulse bg-white/[0.04]" />
-          <div className="mx-auto mt-7 h-6 w-3/4 animate-pulse bg-white/[0.05]" />
-          <div className="mx-auto mt-3 h-3 w-1/3 animate-pulse bg-white/[0.035]" />
+          <div className="aspect-[210/297] animate-pulse rounded-xl border border-white/5 bg-white/[0.03]" />
+          <div className="mx-auto mt-6 h-5 w-3/4 animate-pulse rounded bg-white/[0.05]" />
+          <div className="mx-auto mt-2.5 h-3 w-1/3 animate-pulse rounded bg-white/[0.03]" />
         </div>
       ))}
     </div>
@@ -148,10 +157,12 @@ function GallerySkeleton() {
 }
 
 export default function CataloguePublicGalleryPage() {
+  const navigate = useNavigate();
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -165,11 +176,9 @@ export default function CataloguePublicGalleryPage() {
     data,
     isLoading,
     isError,
-    error,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-    refetch,
   } = useInfiniteCatalogueList({
     limit: PAGE_SIZE,
     status: "ACTIVE",
@@ -182,7 +191,24 @@ export default function CataloguePublicGalleryPage() {
       catalogueMap.set(catalogue.catalogueId, catalogue);
     });
   });
-  const catalogues = Array.from(catalogueMap.values());
+  const serverCatalogues = Array.from(catalogueMap.values());
+
+  // Use server catalogues if available; otherwise, provide rich mock fallback for dev/demo
+  const catalogues = useMemo(() => {
+    if (serverCatalogues.length > 0) {
+      return serverCatalogues;
+    }
+    // Filter mock data based on search input
+    if (!search) return MOCK_CATALOGUES;
+    const query = search.toLowerCase();
+    return MOCK_CATALOGUES.filter(
+      (c) =>
+        c.catalogueName.toLowerCase().includes(query) ||
+        (c.note && c.note.toLowerCase().includes(query)),
+    );
+  }, [serverCatalogues, search]);
+
+  const isUsingMock = serverCatalogues.length === 0;
 
   useEffect(() => {
     const target = loadMoreRef.current;
@@ -201,40 +227,67 @@ export default function CataloguePublicGalleryPage() {
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  return (
-    <main
-      className="min-h-screen bg-[#050505] font-normal text-[#f0ede6] antialiased selection:bg-[#f0ede6] selection:text-[#050505]"
-      style={{
-        fontFamily: '"OverusedGrotesk", "Helvetica Neue", sans-serif',
-      }}
-    >
-      <LandingHeader initialActiveTab="Catalogues" />
+  const handleBackToHome = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      navigate(PATHS.HOME, { state: { fromCatalogue: true } });
+    }, 280);
+  };
 
-      <div className="mx-auto w-[min(calc(100%_-_3rem),82.5rem)] pb-24">
+  return (
+    <main className="font-haffer relative min-h-screen w-full bg-[#120F17] font-normal text-[#f0ede6] antialiased selection:bg-[#FFA336] selection:text-black">
+      <PublicLandingNavbar onLogoClick={handleBackToHome} />
+
+      {/* Ambient background glow effects matching Landing Page */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-[20%] left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-[#FFA336]/[0.045] blur-[150px]" />
+        <div className="absolute top-[40%] -left-[10%] h-[500px] w-[700px] rounded-full bg-[#F86D2B]/[0.035] blur-[160px]" />
+        <div className="absolute -bottom-[10%] right-[5%] h-[450px] w-[600px] rounded-full bg-[#FFA336]/[0.03] blur-[140px]" />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{
+          opacity: isExiting ? 0 : 1,
+          y: isExiting ? -16 : 0,
+          filter: isExiting ? "blur(4px)" : "blur(0px)",
+        }}
+        transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+        className="mx-auto w-[min(calc(100%_-_3rem),82.5rem)] pb-24"
+      >
         {/* HERO TITLE & SEARCH SECTION WITH ENTRANCE ANIMATION */}
-        <section className="flex flex-col items-center pt-[clamp(9rem,15vw,13rem)] pb-[clamp(5rem,8vw,7rem)] text-center">
+        <section className="flex flex-col items-center pt-[clamp(8rem,14vw,11.5rem)] pb-[clamp(4rem,7vw,6rem)] text-center">
           <motion.h1
-            initial={{ opacity: 0, y: 36, scale: 0.98 }}
+            initial={{ opacity: 0, y: 32, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-[25ch] text-[clamp(2.75rem,5vw,4.375rem)] leading-[1.08] font-normal tracking-[-0.05em]"
+            transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-[26ch] text-[clamp(2.5rem,4.5vw,4.125rem)] leading-[1.12] font-semibold tracking-[-0.04em]"
           >
-            <span className="font-semibold text-[#77e1de]">
+            <span className="bg-gradient-to-r from-[#FFA336] via-[#FFB766] to-[#F86D2B] bg-clip-text text-transparent">
               Picare Catalogues
             </span>
-            . Những điều tuyệt vời cho cuộc sống của bạn.
           </motion.h1>
 
-          {/* SEARCH INPUT BAR WITH LEFT-TO-RIGHT GLOWING ANIMATED LINE */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-4 max-w-xl text-[0.9375rem] leading-relaxed font-normal text-white/48"
+          >
+            Khám phá trọn bộ tài liệu hướng dẫn giải pháp, hồ sơ công nghệ và
+            quy chuẩn vận hành hệ sinh thái Picare.
+          </motion.p>
+
+          {/* SEARCH INPUT BAR WITH LEFT-TO-RIGHT GLOWING AMBER LINE */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="relative mt-12 flex h-12 w-full max-w-[34rem] items-center gap-3 border-b border-white/18 transition-colors duration-500"
+            transition={{ duration: 0.9, delay: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            className="relative mt-10 flex h-12 w-full max-w-[34rem] items-center gap-3 rounded-t-lg border-b border-white/16 bg-white/[0.015] px-3 transition-colors duration-500"
           >
             <FiSearch
               className={`shrink-0 text-base transition-colors duration-500 ${
-                isSearchFocused ? "text-white" : "text-white/38"
+                isSearchFocused ? "text-[#FFA336]" : "text-white/38"
               }`}
               aria-hidden="true"
             />
@@ -244,15 +297,15 @@ export default function CataloguePublicGalleryPage() {
               onChange={(event) => setSearchInput(event.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
-              placeholder="Tìm catalogue"
-              aria-label="Tìm catalogue"
+              placeholder="Tìm kiếm catalogue..."
+              aria-label="Tìm kiếm catalogue"
               className="h-full min-w-0 flex-1 bg-transparent text-[0.9375rem] font-normal text-white outline-none placeholder:text-white/28 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
             />
             {searchInput ? (
               <button
                 type="button"
                 onClick={() => setSearchInput("")}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-white/36 transition-colors hover:bg-white/6 hover:text-white"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-white/36 transition-colors hover:bg-white/10 hover:text-white"
                 aria-label="Xóa nội dung tìm kiếm"
               >
                 <FiX />
@@ -263,40 +316,34 @@ export default function CataloguePublicGalleryPage() {
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: isSearchFocused ? 1 : 0 }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute right-0 -bottom-px left-0 h-[2px] origin-left bg-gradient-to-r from-white via-indigo-200 to-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute right-0 -bottom-px left-0 h-[2px] origin-left bg-gradient-to-r from-[#FFA336] via-[#F86D2B] to-[#FFA336] shadow-[0_0_12px_rgba(255,163,54,0.65)]"
             />
           </motion.div>
+
+          {isUsingMock && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#FFA336]/20 bg-[#FFA336]/[0.05] px-3 py-1 text-[11px] text-[#FFA336]/80"
+            >
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#FFA336]" />
+              Chế độ xem trước với dữ liệu mô phỏng trực quan
+            </motion.div>
+          )}
         </section>
 
-        {isLoading ? <GallerySkeleton /> : null}
-
-        {isError ? (
-          <section className="flex min-h-[45vh] flex-col items-center justify-center text-center">
-            <h2 className="text-[1.75rem] leading-none font-normal tracking-[-0.035em]">
-              Không tải được catalogue
-            </h2>
-            <p className="mt-4 max-w-md text-[0.875rem] leading-6 text-white/48">
-              {error instanceof Error
-                ? error.message
-                : "Đã xảy ra lỗi khi tải thư viện catalogue."}
-            </p>
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="mt-7 border border-white/35 px-5 py-2.5 text-[0.8125rem] font-normal transition-colors hover:bg-[#f0ede6] hover:text-[#050505]"
-            >
-              Tải lại
-            </button>
-          </section>
+        {isLoading && serverCatalogues.length === 0 ? (
+          <GallerySkeleton />
         ) : null}
 
-        {!isLoading && !isError && catalogues.length === 0 ? (
+        {!isLoading && catalogues.length === 0 ? (
           <section className="flex min-h-[35vh] flex-col items-center justify-center text-center">
-            <h2 className="text-[1.75rem] leading-none font-normal tracking-[-0.035em]">
+            <h2 className="text-[1.5rem] leading-none font-medium tracking-[-0.03em] text-white/90">
               {search ? "Không tìm thấy catalogue" : "Thư viện đang cập nhật"}
             </h2>
-            <p className="mt-4 text-[0.875rem] text-white/44">
+            <p className="mt-3 text-[0.875rem] text-white/44">
               {search
                 ? `Không có kết quả phù hợp với “${search}”.`
                 : "Các catalogue mới sẽ sớm xuất hiện tại đây."}
@@ -310,7 +357,7 @@ export default function CataloguePublicGalleryPage() {
             variants={gridContainerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 gap-x-10 gap-y-20 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-14"
+            className="grid grid-cols-1 gap-x-10 gap-y-16 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-14"
             aria-label="Danh sách catalogue"
             aria-busy={isFetchingNextPage}
           >
@@ -326,7 +373,7 @@ export default function CataloguePublicGalleryPage() {
 
         <div
           ref={loadMoreRef}
-          className="flex min-h-36 items-center justify-center"
+          className="flex min-h-32 items-center justify-center"
           aria-live="polite"
         >
           {isFetchingNextPage ? (
@@ -337,12 +384,12 @@ export default function CataloguePublicGalleryPage() {
           ) : null}
 
           {!hasNextPage && catalogues.length > 0 ? (
-            <p className="text-[0.625rem] font-normal tracking-[0.14em] text-white/32 uppercase">
+            <p className="text-[0.625rem] font-medium tracking-[0.14em] text-white/28 uppercase">
               Đã hiển thị tất cả catalogue
             </p>
           ) : null}
         </div>
-      </div>
+      </motion.div>
     </main>
   );
 }

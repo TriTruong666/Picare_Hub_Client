@@ -558,9 +558,14 @@ export default function LandingPageTest() {
   const isLoginPage = location.pathname.startsWith(PATHS.LOGIN);
   const isClientSelectPage = location.pathname.startsWith(PATHS.LOGIN_CLIENT);
 
+  const isFromCatalogue = Boolean(
+    (location.state as { fromCatalogue?: boolean })?.fromCatalogue ||
+    new URLSearchParams(location.search).get("from") === "catalogue",
+  );
+
   // Quản lý trạng thái Intro "Picare Client" ban đầu (chỉ thấy đúng 1 lần khi vào web và chỉ khi ở trang chủ)
   const [isIntro, setIsIntro] = useState(() => {
-    if (isLoginPage) return false;
+    if (isLoginPage || isFromCatalogue) return false;
     try {
       const hasSeen = sessionStorage.getItem("picare_landing_intro_seen");
       return !hasSeen;
@@ -576,12 +581,32 @@ export default function LandingPageTest() {
   // Scroll container refs & Lenis smooth scroll instance
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
-  const [streamDrain, setStreamDrain] = useState(0);
-  const streamDrainRef = useRef({ value: 0 });
+  const [streamDrain, setStreamDrain] = useState(() =>
+    isFromCatalogue ? 1 : 0,
+  );
+  const streamDrainRef = useRef({ value: isFromCatalogue ? 1 : 0 });
+  const [isNavigatingToCatalogue, setIsNavigatingToCatalogue] = useState(false);
   const [areProductsVisible, setAreProductsVisible] = useState(false);
   const hasRevealedRef = useRef(false);
   const [isGridSection, setIsGridSection] = useState(false);
   const isGridSectionRef = useRef(false);
+
+  // Hiệu ứng chảy ngược (reverse flow): Khi quay lại từ catalogue, luồng AeroShard từ drain 1.0 chảy ngược lại 0.0
+  useEffect(() => {
+    if (isFromCatalogue) {
+      window.history.replaceState({}, document.title, location.pathname);
+      streamDrainRef.current.value = 1.0;
+      setStreamDrain(1.0);
+      gsap.to(streamDrainRef.current, {
+        value: 0.0,
+        duration: 1.35,
+        ease: "power2.out",
+        onUpdate: () => {
+          setStreamDrain(streamDrainRef.current.value);
+        },
+      });
+    }
+  }, [isFromCatalogue]);
 
   // Tích hợp Lenis Scroll dạng Stick/Snap giữa Section 1 và Section 2:
   // - Khi cuộn qua một mức độ chiều cao (ngưỡng 18% vh) thì tự động dính/hút chặt tới Section tiếp theo
@@ -745,6 +770,22 @@ export default function LandingPageTest() {
     navigate(PATHS.LOGIN_CLIENT);
   };
 
+  // Chuyển sang thư viện catalogue với hiệu ứng AeroShard chảy đi mất
+  const handleNavigateToCatalogue = () => {
+    setIsNavigatingToCatalogue(true);
+    gsap.to(streamDrainRef.current, {
+      value: 1.0,
+      duration: 0.8,
+      ease: "power2.inOut",
+      onUpdate: () => {
+        setStreamDrain(streamDrainRef.current.value);
+      },
+      onComplete: () => {
+        navigate("/catalogue/public/gallery");
+      },
+    });
+  };
+
   // Quay lại giao diện khách
   const handleBackToLanding = () => {
     navigate(PATHS.HOME);
@@ -891,15 +932,21 @@ export default function LandingPageTest() {
             <motion.div
               key="guest-hero"
               initial={{ opacity: 0, x: 0 }}
-              animate={{ opacity: 1, x: 0 }}
+              animate={{
+                opacity: isNavigatingToCatalogue ? 0 : 1,
+                y: isNavigatingToCatalogue ? -20 : 0,
+                filter: isNavigatingToCatalogue ? "blur(6px)" : "blur(0px)",
+                x: 0,
+              }}
               exit={{ opacity: 0, x: -70, filter: "blur(4px)" }}
-              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
               className="relative flex min-h-screen w-full flex-col"
             >
               {/* 1. Navbar: Reusable PublicLandingNavbar with GSAP-powered dark bg in grid section */}
               <PublicLandingNavbar
                 onOpenLogin={handleOpenLogin}
                 onOpenClientSelect={handleOpenClientSelect}
+                onCatalogueClick={handleNavigateToCatalogue}
                 isDarkBg={isGridSection}
               />
 
@@ -977,7 +1024,7 @@ export default function LandingPageTest() {
             </motion.h1> */}
 
                   {/* 4. Subtitle */}
-                  <motion.p
+                  {/* <motion.p
                     initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
                     animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                     transition={{
@@ -991,7 +1038,7 @@ export default function LandingPageTest() {
                     hàng, quản lý, AI Automation tạo nên hệ sinh thái cho toàn
                     bộ doanh nghiệp. Phân hệ có thể được tách rời để sử dụng
                     hoặc kết hợp với nhau tuỳ nhu cầu của từng doanh nghiệp.
-                  </motion.p>
+                  </motion.p> */}
 
                   {/* 5. GSAP Animated Primary CTA Button */}
                   <div className="mt-9 flex justify-center sm:mt-10">

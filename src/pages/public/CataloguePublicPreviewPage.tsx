@@ -35,6 +35,7 @@ import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
 import { useCatalogueDetail } from "@/hooks/data/useCatalogueHooks";
+import { getMockCatalogueDetail } from "@/mock/catalogueMockData";
 import { toast } from "@/hooks/useToast";
 import type { CatalogueDetail } from "@/types/Catalogue";
 
@@ -191,8 +192,8 @@ function IconButton({
         transition={{ type: "spring", stiffness: 350, damping: 20 }}
         className={`inline-flex size-10 shrink-0 items-center justify-center border-b text-[15px] transition-[color,background-color,border-color,opacity] duration-300 disabled:pointer-events-none disabled:opacity-20 ${
           active
-            ? "border-black text-black dark:border-[#f0ede6] dark:text-[#f0ede6]"
-            : "border-transparent text-black/50 hover:border-black/20 hover:text-black dark:text-white/42 dark:hover:border-white/18 dark:hover:text-[#f0ede6]"
+            ? "border-[#FFA336] text-[#FFA336]"
+            : "border-transparent text-white/45 hover:border-white/20 hover:text-white"
         }`}
       >
         {children}
@@ -478,14 +479,20 @@ function ThumbnailItem({
           loading="lazy"
           decoding="async"
           onLoad={() => setIsLoaded(true)}
-          className={`h-20 w-auto border bg-white object-contain transition-opacity duration-300 sm:h-24 ${
+          className={`h-20 w-auto rounded border bg-[#111] object-contain transition-all duration-300 sm:h-24 ${
             isLoaded ? "opacity-100" : "opacity-0"
           } ${
-            active ? "border-white/80 ring-1 ring-white/55" : "border-white/10"
+            active
+              ? "border-[#FFA336] ring-2 ring-[#FFA336]/60 shadow-[0_0_12px_rgba(255,163,54,0.4)]"
+              : "border-white/10 hover:border-white/30"
           }`}
         />
       </div>
-      <span className="mt-1.5 block text-center text-[9px] font-normal text-white/38 tabular-nums">
+      <span
+        className={`mt-1.5 block text-center text-[10px] font-medium tabular-nums transition-colors ${
+          active ? "text-[#FFA336]" : "text-white/38"
+        }`}
+      >
         {index + 1}
       </span>
     </motion.button>
@@ -495,13 +502,21 @@ function ThumbnailItem({
 export default function CataloguePublicPreviewPage() {
   const { catalogueId = "" } = useParams<{ catalogueId: string }>();
   const {
-    data: catalogue,
+    data: catalogueData,
     isLoading,
     isError,
     refetch,
   } = useCatalogueDetail(catalogueId);
   const containerRef = useRef<HTMLDivElement>(null);
   const thumbnailScrollRef = useRef<HTMLDivElement>(null);
+
+  // Fallback to mock data if API is loading fails or returns no details (e.g. offline dev mode)
+  const catalogue = useMemo(() => {
+    if (catalogueData && catalogueData.details && catalogueData.details.length > 0) {
+      return catalogueData;
+    }
+    return getMockCatalogueDetail(catalogueId);
+  }, [catalogueData, catalogueId]);
 
   const pages = useMemo(() => {
     if (!catalogue?.details) return [];
@@ -534,11 +549,19 @@ export default function CataloguePublicPreviewPage() {
     setFlip(null);
   }, []);
 
+  // Trigger logic làm mới ảnh lúc vừa vào trang theo yêu cầu
+  useEffect(() => {
+    resetTurnInteraction();
+    clearCataloguePageImageCache();
+  }, [catalogueId, resetTurnInteraction]);
+
   // Image fidelity is more important than conserving memory in this reader:
   // warm every catalogue image after data arrives so the WebGL leaf never has
   // to expose a placeholder while it is being held or turned.
   useEffect(() => {
-    preloadCataloguePageImages(pages.map((page) => page.imageUrl));
+    if (pages.length > 0) {
+      preloadCataloguePageImages(pages.map((page) => page.imageUrl));
+    }
   }, [pages]);
 
   useEffect(() => {
@@ -802,9 +825,9 @@ export default function CataloguePublicPreviewPage() {
     window.setTimeout(() => setCopied(false), 1800);
   };
 
-  if (isLoading) {
+  if (isLoading && !catalogue) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#050505] px-6 text-[#f0ede6]">
+      <main className="flex min-h-screen items-center justify-center bg-[#120F17] font-haffer px-6 text-[#f0ede6]">
         <div className="flex flex-col items-center gap-4 text-center">
           <Spinner size="lg" color="primary" />
           <p className="text-sm font-normal text-white/48">
@@ -815,26 +838,34 @@ export default function CataloguePublicPreviewPage() {
     );
   }
 
-  if (isError || !catalogue || totalPages === 0) {
+  if (!catalogue || totalPages === 0) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#050505] px-6 text-[#f0ede6]">
+      <main className="flex min-h-screen items-center justify-center bg-[#120F17] font-haffer px-6 text-[#f0ede6]">
         <div className="max-w-md text-center">
-          <p className="text-[0.625rem] font-normal tracking-[0.14em] text-white/32 uppercase">
+          <p className="text-[0.625rem] font-medium tracking-[0.14em] text-[#FFA336] uppercase">
             Catalogue Preview
           </p>
-          <h1 className="mt-4 text-[2rem] leading-none font-normal tracking-[-0.04em]">
+          <h1 className="mt-4 text-[2rem] leading-none font-medium tracking-[-0.04em] text-white">
             Không tìm thấy catalogue
           </h1>
           <p className="mt-4 text-sm leading-7 font-normal text-white/48">
             Liên kết có thể đã hết hiệu lực hoặc catalogue không còn tồn tại.
           </p>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="mt-7 inline-flex h-11 items-center justify-center border-b border-white/28 px-2 text-sm font-normal text-white/68 transition-colors hover:border-white hover:text-white"
-          >
-            Tải lại
-          </button>
+          <div className="mt-7 flex items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="inline-flex h-10 items-center justify-center rounded-lg border border-white/20 px-4 text-xs font-medium text-white/80 transition-colors hover:border-white hover:text-white"
+            >
+              Tải lại
+            </button>
+            <Link
+              to={PATHS.CATALOGUE.PUBLIC_GALLERY}
+              className="inline-flex h-10 items-center justify-center rounded-lg bg-[#FFA336] px-4 text-xs font-medium text-black transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Về thư viện
+            </Link>
+          </div>
         </div>
       </main>
     );
@@ -863,11 +894,14 @@ export default function CataloguePublicPreviewPage() {
   return (
     <div
       ref={containerRef}
-      className="relative flex h-[100dvh] min-h-[520px] w-full flex-col overflow-hidden bg-[#f5f4f0] font-normal text-[#111111] antialiased transition-colors duration-500 selection:bg-[#111111] selection:text-[#f5f4f0] dark:bg-[#050505] dark:text-[#f0ede6] dark:selection:bg-[#f0ede6] dark:selection:text-[#050505]"
-      style={{
-        fontFamily: '"OverusedGrotesk", "Helvetica Neue", sans-serif',
-      }}
+      className="relative flex h-[100dvh] min-h-[520px] w-full flex-col overflow-hidden bg-[#120F17] font-haffer font-normal text-[#f0ede6] antialiased transition-colors duration-500 selection:bg-[#FFA336] selection:text-black"
     >
+      {/* Ambient background glow for reader */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[900px] rounded-full bg-[#FFA336]/[0.03] blur-[150px]" />
+        <div className="absolute top-[30%] -left-[10%] h-[400px] w-[600px] rounded-full bg-[#F86D2B]/[0.025] blur-[160px]" />
+      </div>
+
       {/* READER HEADER */}
       <motion.header
         initial={{ opacity: 0, y: -24 }}
@@ -879,7 +913,7 @@ export default function CataloguePublicPreviewPage() {
           mass: 0.9,
           delay: 0.1,
         }}
-        className="relative z-40 mx-auto flex h-16 w-[min(calc(100%_-_2rem),87.5rem)] shrink-0 items-center justify-between border-b border-black/8 transition-colors duration-500 dark:border-white/8"
+        className="relative z-40 mx-auto flex h-16 w-[min(calc(100%_-_2rem),87.5rem)] shrink-0 items-center justify-between border-b border-white/8 bg-[#120F17]/85 backdrop-blur-md transition-colors duration-500"
       >
         <motion.div
           initial={{ opacity: 0, x: -12 }}
@@ -893,10 +927,10 @@ export default function CataloguePublicPreviewPage() {
         >
           <Link
             to={PATHS.CATALOGUE.PUBLIC_GALLERY}
-            className="group flex min-w-0 items-center gap-1.5 text-[0.6875rem] font-normal tracking-[0.08em] text-black/50 uppercase transition-colors hover:text-black dark:text-white/42 dark:hover:text-white"
+            className="group flex min-w-0 items-center gap-1.5 text-[0.6875rem] font-medium tracking-[0.08em] text-white/50 uppercase transition-colors hover:text-[#FFA336]"
             aria-label="Về thư viện catalogue"
           >
-            <FiChevronLeft className="transition-transform duration-300 group-hover:-translate-x-1" />
+            <FiChevronLeft className="text-base transition-transform duration-300 group-hover:-translate-x-1" />
             <span className="hidden sm:inline">Thư viện</span>
           </Link>
         </motion.div>
@@ -912,10 +946,10 @@ export default function CataloguePublicPreviewPage() {
           }}
           className="pointer-events-none absolute inset-x-28 top-1/2 hidden -translate-y-1/2 text-center sm:block"
         >
-          <p className="truncate text-[0.8125rem] font-normal tracking-[-0.01em] text-black/80 dark:text-white/78">
+          <p className="truncate text-[0.875rem] font-medium tracking-[-0.01em] text-white/90">
             {catalogue.catalogueName}
           </p>
-          <p className="mt-0.5 hidden text-[0.5625rem] font-normal tracking-[0.1em] text-black/40 uppercase tabular-nums sm:block dark:text-white/30">
+          <p className="mt-0.5 hidden text-[0.625rem] font-medium tracking-[0.1em] text-[#FFA336]/80 uppercase tabular-nums sm:block">
             {totalPages} trang
           </p>
         </motion.div>
@@ -1149,7 +1183,7 @@ export default function CataloguePublicPreviewPage() {
           mass: 0.9,
           delay: 0.38,
         }}
-        className="relative z-40 mx-auto hidden h-14 w-[min(calc(100%_-_2rem),87.5rem)] shrink-0 items-center justify-between border-t border-black/8 transition-colors duration-500 md:flex dark:border-white/8"
+        className="relative z-40 mx-auto hidden h-14 w-[min(calc(100%_-_2rem),87.5rem)] shrink-0 items-center justify-between border-t border-white/8 bg-[#120F17]/85 backdrop-blur-md transition-colors duration-500 md:flex"
       >
         <motion.div
           initial={{ opacity: 0, x: -12 }}
@@ -1180,7 +1214,7 @@ export default function CataloguePublicPreviewPage() {
             <FiChevronRight />
           </IconButton>
 
-          <div className="mx-1 hidden h-4 w-px bg-black/10 sm:block dark:bg-white/10" />
+          <div className="mx-1 hidden h-4 w-px bg-white/10 sm:block" />
 
           <IconButton
             label={isPlaying ? "Dừng tự động lật" : "Tự động lật"}
@@ -1203,12 +1237,12 @@ export default function CataloguePublicPreviewPage() {
           }}
           className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3"
         >
-          <span className="text-[0.625rem] font-normal tracking-[0.08em] text-black/40 tabular-nums dark:text-white/32">
-            <strong className="font-normal text-black/80 dark:text-white/78">
+          <span className="text-[0.6875rem] font-medium tracking-[0.08em] text-white/40 tabular-nums">
+            <strong className="font-semibold text-[#FFA336]">
               {currentPage + 1}
             </strong>
-            <span className="px-1.5">/</span>
-            {totalPages}
+            <span className="px-1.5 text-white/20">/</span>
+            <span className="text-white/60">{totalPages}</span>
           </span>
         </motion.div>
 
@@ -1252,7 +1286,7 @@ export default function CataloguePublicPreviewPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 12 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute inset-x-0 bottom-0 z-[70] border-y border-white/10 bg-[#080808]/97 px-3 py-5 shadow-[0_-28px_70px_rgba(0,0,0,0.48)] backdrop-blur-xl sm:px-8 md:bottom-14"
+              className="absolute inset-x-0 bottom-0 z-[70] border-y border-white/10 bg-[#120F17]/97 px-3 py-5 shadow-[0_-28px_70px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:px-8 md:bottom-14"
             >
               <div className="relative mx-auto flex max-w-[1300px] items-center">
                 {/* Scroll Left Button */}
@@ -1313,7 +1347,7 @@ export default function CataloguePublicPreviewPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[#050505]/96 p-4 backdrop-blur-2xl select-none sm:p-8"
+            className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[#120F17]/96 p-4 backdrop-blur-2xl select-none sm:p-8"
             role="dialog"
             aria-modal="true"
             aria-label="Xem cuốn sách phóng to toàn màn hình"
