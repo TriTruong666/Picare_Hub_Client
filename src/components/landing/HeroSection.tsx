@@ -74,7 +74,7 @@ export default function HeroSection() {
 
           {!isAuthenticated && (
             <Link
-              to={PATHS.LOGIN_HUB}
+              to={PATHS.LOGIN}
               className="font-inter cursor-pointer rounded-full border border-white/20 bg-white/5 px-6 py-2 text-[13px] font-bold text-white backdrop-blur-sm transition-all hover:bg-white/10 active:scale-95"
             >
               Đăng nhập Hub

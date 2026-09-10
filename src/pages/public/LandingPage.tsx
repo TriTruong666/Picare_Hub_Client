@@ -37,7 +37,7 @@ export default function LandingPage() {
               </>
             ) : (
               <Link
-                to={PATHS.LOGIN_HUB}
+                to={PATHS.LOGIN}
                 className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-95"
               >
                 Đăng nhập vào HUB

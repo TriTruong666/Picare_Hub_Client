@@ -26,7 +26,7 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
     const redirect = `${location.pathname}${location.search}${location.hash}`;
     return (
       <Navigate
-        to={`${PATHS.LOGIN_HUB}?redirect=${encodeURIComponent(redirect)}`}
+        to={`${PATHS.LOGIN}?redirect=${encodeURIComponent(redirect)}`}
         replace
       />
     );

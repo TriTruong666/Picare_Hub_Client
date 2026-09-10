@@ -20,20 +20,34 @@ function getSafeRedirectPath(value: string | null) {
 export default function LoginHubPage() {
   const { isAuthenticated, user } = useAuth();
   const [searchParams] = useSearchParams();
-  const redirectPath = getSafeRedirectPath(searchParams.get("redirect"));
+  const redirectParam = searchParams.get("redirect");
+  const redirectPath = getSafeRedirectPath(redirectParam);
   const isDashboardRedirect = redirectPath.startsWith(PATHS.DASHBOARD.ROOT);
 
+  // If authenticated and redirected to dashboard without permissions:
   if (
     isAuthenticated &&
+    redirectParam &&
     isDashboardRedirect &&
     !canAccessDashboard(user?.role)
   ) {
     return <Navigate to={PATHS.HOME} replace />;
   }
 
-  if (isAuthenticated) {
+  // If authenticated and an explicit deep link was requested (e.g. from AuthGuard):
+  if (
+    isAuthenticated &&
+    redirectParam &&
+    redirectParam !== PATHS.HOME &&
+    redirectParam !== PATHS.LOGIN &&
+    redirectParam !== PATHS.LOGIN_HUB
+  ) {
     return <Navigate to={redirectPath} replace />;
   }
+
+  // Safe back navigation: If from /test, back to /test. Default back to / (PATHS.HOME)
+  const fromParam = searchParams.get("from");
+  const backTo = fromParam === "test" ? PATHS.TEST : PATHS.HOME;
 
   return (
     <div className="font-haffer relative min-h-screen w-full overflow-hidden bg-[#120F17] select-none">
@@ -74,7 +88,7 @@ export default function LoginHubPage() {
 
       {/* Foreground Form */}
       <div className="relative z-10 min-h-screen w-full">
-        <LoginHubFormSection backTo="/test" />
+        <LoginHubFormSection backTo={backTo} />
       </div>
     </div>
   );

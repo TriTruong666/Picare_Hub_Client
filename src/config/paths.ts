@@ -7,9 +7,9 @@ export const PATHS = {
   HOME: "/",
   TEST: "/test",
   MY_PAGE: "/quynhnhu",
-  LOGIN: "/login", // Trang chon client hub
+  LOGIN: "/login", // Trang dang nhap Hub chung / chon client
   LOGIN_CLIENT: "/login/client", // Form dang nhap cho client cu the
-  LOGIN_HUB: "/login/hub", // Trang dang nhap Hub chung (centered)
+  LOGIN_HUB: "/login", // Da gop vao /login
   CLIENT_OMS: "/client/oms", // Dummy OMS Page test transition
   CONTRACT_CREATE: "/contracts/create",
   CONTRACT_DETAIL: "/dashboard/contracts/:contractId",

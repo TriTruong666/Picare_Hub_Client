@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
 import {
   FiArchive,
   FiLayout,
@@ -68,15 +69,15 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
   },
   {
     path: PATHS.LOGIN,
-    element: <LoginClientPage />,
+    element: <LoginHubPage />,
   },
   {
     path: PATHS.LOGIN_CLIENT,
     element: <LoginPage />,
   },
   {
-    path: PATHS.LOGIN_HUB,
-    element: <LoginHubPage />,
+    path: "/login/hub",
+    element: <Navigate to={PATHS.LOGIN} replace />,
   },
   {
     path: PATHS.PARTNER_SIGN,
