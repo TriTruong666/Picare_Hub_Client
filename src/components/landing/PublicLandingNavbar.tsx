@@ -312,42 +312,30 @@ export function PublicLandingNavbar({
           <div className="font-haffer flex items-center gap-2 sm:gap-4">
             {isAuthenticated ? (
               <div className="relative" ref={userMenuContainerRef}>
-                {/* User profile capsule card */}
+                {/* User menu trigger: Name only with hover underline */}
                 <button
                   type="button"
                   onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                  className="group flex cursor-pointer items-center gap-2.5 rounded-full border border-white/12 bg-white/[0.06] p-1.5 pr-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all duration-200 hover:border-white/20 hover:bg-white/[0.12] active:scale-[0.98]"
+                  className="group relative flex cursor-pointer items-center gap-1.5 px-0.5 py-1.5 font-normal text-white/75 transition-colors duration-200 hover:text-white"
                 >
-                  {/* Avatar with accent gradient */}
-                  <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#F86D2B] to-[#FFA336] text-xs font-semibold text-black shadow-[0_2px_8px_rgba(248,109,43,0.4)]">
-                    {user?.name ? user.name.trim()[0].toUpperCase() : "U"}
-                    <span className="absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-black" />
-                  </div>
-
-                  {/* Name & Role */}
-                  <div className="hidden flex-col text-left leading-tight min-[460px]:flex">
-                    <span className="max-w-[120px] truncate text-[12.5px] font-medium text-white transition-colors group-hover:text-[#FFA336]">
-                      {user?.name || "Tài khoản"}
-                    </span>
-                    <span className="text-[10px] font-light text-zinc-400">
-                      {user?.role
-                        ? ROLE_LABELS[user.role] || user.role
-                        : "Thành viên"}
-                    </span>
-                  </div>
-
-                  {/* Dropdown Chevron */}
+                  <span
+                    className={`nav-link-underline ${
+                      isUserMenuOpen ? "active text-white" : ""
+                    }`}
+                  >
+                    {user?.name || "Tài khoản"}
+                  </span>
                   <FiChevronDown
                     size={14}
-                    className={`text-white/50 transition-transform duration-300 ${
+                    className={`transition-transform duration-300 ease-out ${
                       isUserMenuOpen
                         ? "rotate-180 text-white"
-                        : "group-hover:text-white"
+                        : "text-white/50 group-hover:translate-y-0.5 group-hover:text-white"
                     }`}
                   />
                 </button>
 
-                {/* Custom User Menu Dropdown */}
+                {/* Minimalist User Menu Dropdown (Đồng bộ style với menu sản phẩm) */}
                 <AnimatePresence>
                   {isUserMenuOpen && (
                     <motion.div
@@ -355,44 +343,37 @@ export function PublicLandingNavbar({
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.96 }}
                       transition={{
-                        duration: 0.22,
+                        duration: 0.2,
                         ease: [0.16, 1, 0.3, 1],
                       }}
-                      className="absolute top-full right-0 mt-3 w-72 overflow-hidden rounded-2xl border border-[#303030] bg-[#000000]/95 p-2.5 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.95),0_0_30px_-15px_rgba(248,109,43,0.2)] backdrop-blur-2xl"
+                      className="absolute top-full right-0 mt-3 w-56 overflow-hidden rounded-xl border border-[#303030] bg-[#000000]/95 p-1.5 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.95),0_0_30px_-15px_rgba(248,109,43,0.2)] backdrop-blur-2xl"
                     >
-                      {/* Top ambient glow line */}
-                      <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-[#F86D2B]/50 to-transparent" />
+                      {/* Top ambient glow line đồng bộ menu sản phẩm */}
+                      <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-[#F86D2B]/50 to-transparent" />
 
-                      {/* Profile Header */}
-                      <div className="mb-1.5 flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.04] p-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#F86D2B] to-[#FFA336] text-sm font-bold text-black shadow-md">
-                          {user?.name ? user.name.trim()[0].toUpperCase() : "U"}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[13.5px] font-medium text-white">
-                            {user?.name || "Tài khoản"}
-                          </p>
-                          <p className="truncate text-[11px] font-light text-zinc-400">
-                            {user?.email}
-                          </p>
-                          <div className="mt-1 inline-flex items-center rounded-full bg-white/[0.08] px-2 py-0.5 text-[10px] font-medium text-[#FFA336]">
-                            {user?.role
+                      {/* Compact User Header */}
+                      <div className="border-b border-white/[0.07] px-3 py-2">
+                        <p className="truncate text-[12.5px] font-medium text-white">
+                          {user?.name || "Tài khoản"}
+                        </p>
+                        <p className="truncate text-[10.5px] font-light text-zinc-400">
+                          {user?.email ||
+                            (user?.role
                               ? ROLE_LABELS[user.role] || user.role
-                              : "Thành viên"}
-                          </div>
-                        </div>
+                              : "")}
+                        </p>
                       </div>
 
                       {/* Menu Items */}
-                      <div className="font-haffer space-y-0.5 text-[13px]">
+                      <div className="font-haffer pt-1 space-y-0.5 text-[12.5px]">
                         {canUseDashboard && (
                           <Link
                             to={PATHS.DASHBOARD.ROOT}
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white"
+                            className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-[#FFA336]"
                           >
                             <FiLayout
-                              size={15}
+                              size={14}
                               className="text-zinc-500 transition-colors group-hover:text-[#FFA336]"
                             />
                             <span>Bảng điều khiển Hub</span>
@@ -402,10 +383,10 @@ export function PublicLandingNavbar({
                         <Link
                           to="/login/client"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white"
+                          className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-[#FFA336]"
                         >
                           <FiGrid
-                            size={15}
+                            size={14}
                             className="text-zinc-500 transition-colors group-hover:text-[#FFA336]"
                           />
                           <span>Không gian làm việc</span>
@@ -414,10 +395,10 @@ export function PublicLandingNavbar({
                         <Link
                           to={PATHS.DASHBOARD.SETTINGS.ROOT}
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white"
+                          className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-[#FFA336]"
                         >
                           <FiSettings
-                            size={15}
+                            size={14}
                             className="text-zinc-500 transition-colors group-hover:text-[#FFA336]"
                           />
                           <span>Cài đặt hệ thống</span>
@@ -425,7 +406,7 @@ export function PublicLandingNavbar({
                       </div>
 
                       {/* Divider */}
-                      <div className="my-1.5 h-px bg-white/10" />
+                      <div className="my-1 h-px bg-white/[0.07]" />
 
                       {/* Logout Button */}
                       <button
@@ -434,10 +415,10 @@ export function PublicLandingNavbar({
                           setIsUserMenuOpen(false);
                           logout();
                         }}
-                        className="group flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                        className="group flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[12.5px] text-zinc-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
                       >
                         <FiLogOut
-                          size={15}
+                          size={14}
                           className="transition-transform group-hover:-translate-x-0.5"
                         />
                         <span>Đăng xuất</span>
