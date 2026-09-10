@@ -9,7 +9,9 @@ import {
   type Variants,
 } from "framer-motion";
 import { FiArrowRight } from "react-icons/fi";
-import CurvePageTransition, { useCurveTransition } from "@/components/custom_ui/CurvePageTransition";
+import CurvePageTransition, {
+  useCurveTransition,
+} from "@/components/custom_ui/CurvePageTransition";
 import AeroShards from "@/components/reactbit/AeroShard";
 import LoginHubFormSection from "@/components/custom_ui/LoginHubFormSection";
 import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
@@ -242,6 +244,140 @@ const showcaseItemVariants: Variants = {
   },
 };
 
+function ShowcaseProductCard({
+  item,
+  onItemClick,
+}: {
+  item: ProductShowcaseItem;
+  onItemClick: (item: ProductShowcaseItem) => void;
+}) {
+  const bgRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const handleMouseEnter = () => {
+    if (bgRef.current) {
+      gsap.to(bgRef.current, {
+        opacity: 1,
+        duration: 0.8,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (imgRef.current) {
+      gsap.to(imgRef.current, {
+        scale: 1.05,
+        duration: 0.8,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (btnRef.current) {
+      gsap.to(btnRef.current, {
+        backgroundColor: "#FFA336",
+        borderColor: "#FFA336",
+        color: "#000000",
+        duration: 0.35,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (bgRef.current) {
+      gsap.to(bgRef.current, {
+        opacity: 0,
+        duration: 0.65,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (imgRef.current) {
+      gsap.to(imgRef.current, {
+        scale: 1,
+        duration: 0.65,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (btnRef.current) {
+      gsap.to(btnRef.current, {
+        backgroundColor: "rgba(0, 0, 0, 0.4)",
+        borderColor: "rgba(255, 255, 255, 0.2)",
+        color: "#ffffff",
+        duration: 0.35,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+  };
+
+  return (
+    <motion.div
+      variants={showcaseItemVariants}
+      onClick={() => onItemClick(item)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="group relative flex h-full w-[88vw] min-w-[88vw] shrink-0 cursor-pointer flex-col justify-end overflow-hidden border-r border-white/[0.08] bg-transparent sm:w-[50vw] sm:max-w-[50vw] sm:min-w-[50vw] lg:w-[50vw] lg:max-w-[50vw] lg:min-w-[50vw]"
+    >
+      {/* Shared Warm Light Apricot & Coral Bright Background Layer animated with GSAP */}
+      <div
+        ref={bgRef}
+        className="pointer-events-none absolute inset-0 z-0 bg-[#fff9f5]"
+        style={{ opacity: 0 }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at 20% 80%, rgba(255, 220, 190, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255, 245, 238, 0.35) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, rgba(255, 210, 180, 0.15) 0%, transparent 50%)`,
+          }}
+        />
+      </div>
+
+      {/* Full-width/screen transparent item image layout */}
+      <div className="absolute inset-0 z-[1] h-full w-full overflow-hidden">
+        <img
+          ref={imgRef}
+          src={item.image}
+          alt={item.name}
+          draggable={false}
+          className="pointer-events-none h-full w-full object-contain object-center select-none"
+        />
+      </div>
+
+      {/* Bottom-left overlay: Project Name and Category Info */}
+      <div className="pointer-events-none relative z-10 flex w-full items-end justify-between p-8 sm:p-10 lg:p-12">
+        <div className="pointer-events-auto flex max-w-[calc(100%-4rem)] flex-col text-left">
+          <h3 className="font-haffer text-2xl font-medium tracking-tight text-[#120F17] sm:text-3xl lg:text-[36px]">
+            {item.name}
+          </h3>
+          {item.desc && (
+            <p className="font-haffer mt-2 line-clamp-2 max-w-xl text-xs font-light text-[#120F17] sm:text-sm">
+              {item.desc}
+            </p>
+          )}
+        </div>
+        <button
+          ref={btnRef}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onItemClick(item);
+          }}
+          className="pointer-events-auto flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white shadow-lg backdrop-blur-md active:scale-95"
+          aria-label={`Khám phá ${item.name}`}
+        >
+          <FiArrowRight size={18} />
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
 function HorizontalProductShowcase({
   products,
   isVisible = false,
@@ -404,50 +540,11 @@ function HorizontalProductShowcase({
         className="flex h-full w-max flex-nowrap items-stretch will-change-transform"
       >
         {products.map((item: ProductShowcaseItem) => (
-          <motion.div
+          <ShowcaseProductCard
             key={item.id}
-            variants={showcaseItemVariants}
-            onClick={() => handleItemClick(item)}
-            className="group relative flex h-full w-[88vw] min-w-[88vw] shrink-0 cursor-pointer flex-col justify-end overflow-hidden border-r border-white/[0.08] bg-transparent sm:w-[50vw] sm:max-w-[50vw] sm:min-w-[50vw] lg:w-[50vw] lg:max-w-[50vw] lg:min-w-[50vw]"
-          >
-            {/* Full-width/screen item image layout */}
-            <div className="absolute inset-0 h-full w-full overflow-hidden">
-              <img
-                src={item.image}
-                alt={item.name}
-                draggable={false}
-                className="pointer-events-none h-full w-full object-contain object-center transition-transform duration-700 ease-out select-none group-hover:scale-105"
-              />
-              {/* Seamless plum gradient overlay for crystal clear typography legibility */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#120F17]/90 via-[#120F17]/30 to-transparent" />
-              <div className="pointer-events-none absolute inset-0 bg-[#120F17]/15 transition-opacity duration-500 group-hover:opacity-5" />
-            </div>
-
-            {/* Bottom-left overlay: Project Name and Category Info */}
-            <div className="relative z-10 flex w-full items-end justify-between p-8 sm:p-10 lg:p-12 pointer-events-none">
-              <div className="flex max-w-[calc(100%-4rem)] flex-col text-left pointer-events-auto">
-                <h3 className="font-haffer text-2xl font-medium tracking-tight text-white transition-colors group-hover:text-[#FFA336] sm:text-3xl lg:text-[36px]">
-                  {item.name}
-                </h3>
-                {item.desc && (
-                  <p className="font-haffer mt-2 line-clamp-2 max-w-xl text-xs font-light text-zinc-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] sm:text-sm">
-                    {item.desc}
-                  </p>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleItemClick(item);
-                }}
-                className="pointer-events-auto flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white shadow-lg backdrop-blur-md transition-all duration-300 group-hover:border-[#FFA336] group-hover:bg-[#FFA336] group-hover:text-black active:scale-95"
-                aria-label={`Khám phá ${item.name}`}
-              >
-                <FiArrowRight size={18} />
-              </button>
-            </div>
-          </motion.div>
+            item={item}
+            onItemClick={handleItemClick}
+          />
         ))}
       </motion.div>
     </div>
@@ -482,6 +579,8 @@ export default function LandingPageTest() {
   const streamDrainRef = useRef({ value: 0 });
   const [areProductsVisible, setAreProductsVisible] = useState(false);
   const hasRevealedRef = useRef(false);
+  const [isGridSection, setIsGridSection] = useState(false);
+  const isGridSectionRef = useRef(false);
 
   // Tích hợp Lenis Scroll dạng Stick/Snap giữa Section 1 và Section 2:
   // - Khi cuộn qua một mức độ chiều cao (ngưỡng 18% vh) thì tự động dính/hút chặt tới Section tiếp theo
@@ -512,6 +611,12 @@ export default function LandingPageTest() {
       targetSection = sectionIndex;
       isSnapping = true;
 
+      const inGrid = sectionIndex === 1;
+      if (inGrid !== isGridSectionRef.current) {
+        isGridSectionRef.current = inGrid;
+        setIsGridSection(inGrid);
+      }
+
       lenis.scrollTo(targetY, {
         duration,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -531,12 +636,19 @@ export default function LandingPageTest() {
       const scrollY = e.scroll;
       const vh = window.innerHeight || 800;
 
+      // Cập nhật trạng thái navbar dark bg khi lướt xuống section grid
+      const inGrid = scrollY >= vh * 0.35;
+      if (inGrid !== isGridSectionRef.current) {
+        isGridSectionRef.current = inGrid;
+        setIsGridSection(inGrid);
+      }
+
       // Khi chạm tới Section Grid (>= 75% vh) -> MỚI BẮT ĐẦU animation biến mất của flow aero
       if (scrollY >= vh * 0.75 && !isDrained) {
         isDrained = true;
         gsap.to(streamDrainRef.current, {
           value: 1.0,
-          duration: 2.0, // Chậm rãi, thư thái theo đúng yêu cầu
+          duration: 1.5, // Chậm rãi, thư thái theo đúng yêu cầu
           ease: "power2.out",
           overwrite: "auto",
           onUpdate: () => {
@@ -688,7 +800,7 @@ export default function LandingPageTest() {
       path,
       {
         attr: { d: "M 0 0 Q 50 0 100 0 L 100 0 Q 50 -25 0 0 Z" },
-        duration: 0.80,
+        duration: 0.8,
         ease: "power2.in",
       },
       "-=0.1",
@@ -793,8 +905,11 @@ export default function LandingPageTest() {
               transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
               className="relative flex min-h-screen w-full flex-col"
             >
-              {/* 1. Navbar không bg: Reusable PublicLandingNavbar */}
-              <PublicLandingNavbar onOpenLogin={handleOpenLogin} />
+              {/* 1. Navbar: Reusable PublicLandingNavbar with GSAP-powered dark bg in grid section */}
+              <PublicLandingNavbar
+                onOpenLogin={handleOpenLogin}
+                isDarkBg={isGridSection}
+              />
 
               {/* 1. SECTION 1: HERO */}
               <section className="relative flex h-screen min-h-screen w-full flex-col justify-between overflow-hidden bg-transparent">

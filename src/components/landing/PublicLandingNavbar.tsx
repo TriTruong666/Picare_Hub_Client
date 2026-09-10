@@ -17,21 +17,45 @@ import { useHubClients } from "@/hooks/data/useHubClientHooks";
 import { STATIC_HUB_CLIENTS } from "@/constants/staticHubClients";
 import { ROLE_LABELS } from "@/types/User";
 import { PATHS } from "@/config/paths";
-import type { HubClient } from "@/types/HubClient";
 import { useCurveTransition } from "@/components/custom_ui/CurvePageTransition";
+import gsap from "gsap";
 
 export interface PublicLandingNavbarProps {
   onOpenLogin?: () => void;
   className?: string;
+  isDarkBg?: boolean;
 }
 
 export function PublicLandingNavbar({
   onOpenLogin,
   className = "",
+  isDarkBg = false,
 }: PublicLandingNavbarProps) {
   const [isProductMenuOpen, setIsProductMenuOpen] = useState(false);
   const [currentMenuPage, setCurrentMenuPage] = useState(0);
   const menuContainerRef = useRef<HTMLDivElement>(null);
+  const navbarBgRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!navbarBgRef.current) return;
+    if (isDarkBg) {
+      gsap.to(navbarBgRef.current, {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    } else {
+      gsap.to(navbarBgRef.current, {
+        opacity: 0,
+        y: -4,
+        duration: 0.5,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+  }, [isDarkBg]);
 
   const { isAuthenticated, user } = useAuth();
   const { mutate: logout } = useLogout();
@@ -120,6 +144,12 @@ export function PublicLandingNavbar({
         ref={menuContainerRef}
         className="pointer-events-auto relative flex h-15 w-full items-center justify-between px-6 sm:h-16 sm:px-8 lg:px-10"
       >
+        {/* Animated Dark Background for Grid section and contrast protection */}
+        <div
+          ref={navbarBgRef}
+          className="pointer-events-none absolute inset-0 -z-10 rounded-2xl border border-white/[0.12] bg-[#0E0B14]/92 shadow-[0_8px_32px_rgba(0,0,0,0.65)] backdrop-blur-md"
+          style={{ opacity: 0 }}
+        />
         {/* Logo */}
         <a
           href={PATHS.TEST}
