@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { createPortal } from "react-dom";
 import Lenis from "lenis";
 import {
@@ -552,11 +553,14 @@ function HorizontalProductShowcase({
 }
 
 export default function LandingPageTest() {
-  const initialIsLogin = window.location.pathname === PATHS.LOGIN_HUB;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isLoginPage = location.pathname.startsWith(PATHS.LOGIN);
+  const isClientSelectPage = location.pathname.startsWith(PATHS.LOGIN_CLIENT);
 
-  // Quản lý trạng thái Intro "Picare Client" ban đầu (chỉ thấy đúng 1 lần khi vào web)
+  // Quản lý trạng thái Intro "Picare Client" ban đầu (chỉ thấy đúng 1 lần khi vào web và chỉ khi ở trang chủ)
   const [isIntro, setIsIntro] = useState(() => {
-    if (initialIsLogin) return false;
+    if (isLoginPage) return false;
     try {
       const hasSeen = sessionStorage.getItem("picare_landing_intro_seen");
       return !hasSeen;
@@ -568,9 +572,6 @@ export default function LandingPageTest() {
   const introOverlayRef = useRef<HTMLDivElement>(null);
   const introPathRef = useRef<SVGPathElement>(null);
   const introTextRef = useRef<HTMLDivElement>(null);
-
-  // Quản lý chuyển cảnh sang Form đăng nhập (giữ nguyên AeroShards, chỉ đổi placement="right")
-  const [isLoginView, setIsLoginView] = useState(initialIsLogin);
 
   // Scroll container refs & Lenis smooth scroll instance
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -732,31 +733,21 @@ export default function LandingPageTest() {
       container.removeEventListener("scroll", handleScrollEnd);
       lenis.destroy();
     };
-  }, [isLoginView, isIntro]);
+  }, [isLoginPage, isIntro]);
 
-  // Lắng nghe sự kiện browser Back/Forward (popstate) để đồng bộ URL
-  useEffect(() => {
-    const handlePopState = () => {
-      if (window.location.pathname === PATHS.LOGIN_HUB) {
-        setIsLoginView(true);
-      } else {
-        setIsLoginView(false);
-      }
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
-
-  // Chuyển sang giao diện đăng nhập: đổi URL thành /login/hub và trượt form vào
+  // Chuyển sang giao diện đăng nhập /login
   const handleOpenLogin = () => {
-    setIsLoginView(true);
-    window.history.pushState({ page: "login" }, "", PATHS.LOGIN_HUB);
+    navigate(PATHS.LOGIN);
   };
 
-  // Quay lại giao diện khách: đổi URL thành /test và trượt form ra
+  // Chuyển sang giao diện chọn client /login/client
+  const handleOpenClientSelect = () => {
+    navigate(PATHS.LOGIN_CLIENT);
+  };
+
+  // Quay lại giao diện khách
   const handleBackToLanding = () => {
-    setIsLoginView(false);
-    window.history.pushState({}, "", PATHS.TEST);
+    navigate(PATHS.HOME);
   };
 
   // Kích hoạt hiệu ứng Curve Swipe thoát màn hình để vào thẳng Landing Page
@@ -863,9 +854,9 @@ export default function LandingPageTest() {
           backgroundColor="#120F17"
           shardColor="#F86D2B"
           accentColor="#FFA336"
-          placement="full"
+          placement={isLoginPage && !isClientSelectPage ? "right" : "full"}
           flow="stream"
-          drain={streamDrain}
+          drain={isLoginPage ? 0 : streamDrain}
           material="satin"
           detail="balanced"
           effect="none"
@@ -896,7 +887,7 @@ export default function LandingPageTest() {
       {/* Foreground Content: Chuyển đổi giữa Hero khách và Login Form */}
       <div ref={scrollContentRef} className="relative z-10 min-h-screen w-full">
         <AnimatePresence mode="wait">
-          {!isLoginView ? (
+          {!isLoginPage ? (
             <motion.div
               key="guest-hero"
               initial={{ opacity: 0, x: 0 }}
@@ -908,6 +899,7 @@ export default function LandingPageTest() {
               {/* 1. Navbar: Reusable PublicLandingNavbar with GSAP-powered dark bg in grid section */}
               <PublicLandingNavbar
                 onOpenLogin={handleOpenLogin}
+                onOpenClientSelect={handleOpenClientSelect}
                 isDarkBg={isGridSection}
               />
 
@@ -1041,10 +1033,10 @@ export default function LandingPageTest() {
           ) : (
             <motion.div
               key="login-form-wrapper"
-              initial={{ opacity: 0, x: 60 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 60 }}
-              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               className="relative min-h-screen w-full"
             >
               <LoginHubFormSection
@@ -1060,8 +1052,9 @@ export default function LandingPageTest() {
 
   return (
     <div className="font-haffer relative min-h-screen w-full overflow-hidden bg-[#120F17] select-none">
-      {isIntro && introContent}
+      {isIntro && !isLoginPage && introContent}
       {guestContent}
+      <Outlet />
     </div>
   );
 }

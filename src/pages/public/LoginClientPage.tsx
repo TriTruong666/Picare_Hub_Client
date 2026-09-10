@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, type Variants } from "framer-motion";
-import { FiArrowUpRight } from "react-icons/fi";
+import { FiArrowRight, FiArrowUpRight } from "react-icons/fi";
 import type { HubClient } from "@/types/HubClient";
 import loginMockup from "@/assets/images/login_mockup.jpeg";
 import { useHubClients } from "@/hooks/data/useHubClientHooks";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import { PATHS } from "@/config/paths";
 import {
   DIGITAL_CATALOGUE_CLIENT_ID,
@@ -12,6 +12,9 @@ import {
   QR_CODE_GENERATOR_CLIENT_ID,
   STATIC_HUB_CLIENTS,
 } from "@/constants/staticHubClients";
+import { useAuth } from "@/hooks/useAuth";
+import { useCurveTransition } from "@/components/custom_ui/CurvePageTransition";
+import { PublicLandingNavbar } from "@/components/landing/PublicLandingNavbar";
 
 const cardVariants: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -20,35 +23,110 @@ const cardVariants: Variants = {
     y: 0,
     transition: {
       duration: 0.55,
-      delay: i * 0.12,
+      delay: i * 0.08,
       ease: [0.25, 1, 0.5, 1],
     },
   }),
 };
 
-// ─── Card ─────────────────────────────────────────────────────────────────────
+// ─── Card (Font Haffer, Animation và Style gần giống LandingPageTest) ─────────
 function ClientCard({ client, index }: { client: HubClient; index: number }) {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { navigateWithTransition } = useCurveTransition();
   const preferredMockup = client.clientMockupImage?.trim() || loginMockup;
   const [mockupSrc, setMockupSrc] = useState(preferredMockup);
   const [imageLoaded, setImageLoaded] = useState(false);
   const isActive = client.clientStatus === "active";
+
+  const bgRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const isStatic =
+    client.clientId === DIGITAL_CONTRACT_CLIENT_ID ||
+    client.clientId === QR_CODE_GENERATOR_CLIENT_ID ||
+    client.clientId === DIGITAL_CATALOGUE_CLIENT_ID;
 
   const handleAccess = () => {
     if (!isActive) {
       return;
     }
 
-    if (
-      client.clientId === DIGITAL_CONTRACT_CLIENT_ID ||
-      client.clientId === QR_CODE_GENERATOR_CLIENT_ID ||
-      client.clientId === DIGITAL_CATALOGUE_CLIENT_ID
-    ) {
-      navigate(client.clientInternalUrl || PATHS.CONTRACT_CREATE);
+    // 1. Static Client: Dùng CurvePageTransition để tự chuyển trang nếu đã đăng nhập; nếu chưa đăng nhập -> về /login?redirect=...
+    if (isStatic) {
+      const internalUrl = client.clientInternalUrl || PATHS.CONTRACT_CREATE;
+      if (!isAuthenticated) {
+        navigate(`${PATHS.LOGIN}?redirect=${encodeURIComponent(internalUrl)}`);
+        return;
+      }
+      navigateWithTransition(internalUrl, {
+        text: client.clientName,
+      });
       return;
     }
 
-    navigate(`${PATHS.LOGIN_CLIENT}?clientId=${client.clientId}`);
+    // 2. API Client (Server): /login/client KHÔNG tự redirect tới trang ngoài
+    // Luôn redirect về /login?clientId=... để trang /login tự kiểm tra quyền và điều hướng
+    navigate(`${PATHS.LOGIN}?clientId=${client.clientId}`);
+  };
+
+  const handleMouseEnter = () => {
+    if (bgRef.current) {
+      gsap.to(bgRef.current, {
+        opacity: 1,
+        duration: 0.7,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (imgRef.current) {
+      gsap.to(imgRef.current, {
+        scale: 1.05,
+        duration: 0.7,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (btnRef.current) {
+      gsap.to(btnRef.current, {
+        backgroundColor: "#FFA336",
+        borderColor: "#FFA336",
+        color: "#000000",
+        duration: 0.3,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (bgRef.current) {
+      gsap.to(bgRef.current, {
+        opacity: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (imgRef.current) {
+      gsap.to(imgRef.current, {
+        scale: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (btnRef.current) {
+      gsap.to(btnRef.current, {
+        backgroundColor: "rgba(0, 0, 0, 0.45)",
+        borderColor: "rgba(255, 255, 255, 0.2)",
+        color: "#ffffff",
+        duration: 0.3,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
   };
 
   return (
@@ -57,69 +135,66 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       initial="hidden"
       animate="visible"
       variants={cardVariants}
-      className="group relative flex flex-col border-r border-b border-white/[0.07] bg-[#050505]"
+      onClick={handleAccess}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="client-card-item group relative flex h-full min-h-[44vh] w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none lg:min-h-0"
     >
-      <div className="flex flex-1 flex-col p-0">
-        {/* Mockup Image Header */}
-        <div className="relative aspect-video w-full overflow-hidden border-b border-white/[0.07] bg-[#0a0a0c]">
-          <img
-            src={mockupSrc}
-            alt={client.clientName}
-            onLoad={() => setImageLoaded(true)}
-            className={`h-full w-full object-cover grayscale transition-[filter,transform,opacity] duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.03] group-hover:opacity-100 group-hover:grayscale-0 ${
-              imageLoaded ? "opacity-60" : "opacity-0"
-            }`}
-            onError={() => {
-              setMockupSrc(loginMockup);
-              setImageLoaded(true);
-            }}
-          />
-        </div>
+      {/* Subtle Warm Apricot/Amber Glow Layer giống LandingPageTest */}
+      <div
+        ref={bgRef}
+        className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-t from-[#FFA336]/12 via-[#F86D2B]/5 to-transparent transition-opacity"
+        style={{ opacity: 0 }}
+      />
 
-        <div className="flex flex-1 flex-col px-6 py-6">
-          {/* Title */}
-          <h2 className="font-bricolage mb-2.5 text-[15px] font-semibold tracking-tight text-white/80">
+      {/* Mockup Image Area */}
+      <div className="relative w-full flex-1 overflow-hidden bg-[#0a0a0e]">
+        <img
+          ref={imgRef}
+          src={mockupSrc}
+          alt={client.clientName}
+          onLoad={() => setImageLoaded(true)}
+          className={`h-full w-full object-cover object-center grayscale transition-[filter,transform,opacity] duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:opacity-90 group-hover:grayscale-0 ${
+            imageLoaded ? "opacity-60" : "opacity-0"
+          }`}
+          onError={() => {
+            setMockupSrc(loginMockup);
+            setImageLoaded(true);
+          }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#070709] via-transparent to-black/20" />
+      </div>
+
+      {/* Bottom Content Area: Title, Description & Circular CTA (Bỏ role, phẳng hoàn toàn) */}
+      <div className="pointer-events-none relative z-10 flex w-full items-end justify-between border-t border-white/[0.06] bg-[#070709] p-5 sm:p-6 lg:p-7">
+        <div className="pointer-events-auto flex max-w-[calc(100%-3.5rem)] flex-col text-left">
+          <h3 className="font-haffer text-lg font-medium tracking-tight text-white transition-colors group-hover:text-white sm:text-xl lg:text-[22px]">
             {client.clientName}
-          </h2>
-
-          {/* Description */}
-          <p className="font-inter flex-1 text-[13px] leading-relaxed text-white/30">
-            {client.clientDescription}
-          </p>
-
-          {/* Bottom */}
-          <div className="mt-6 flex items-center justify-between">
-            {/* Roles */}
-            <div className="flex flex-wrap gap-1.5">
-              {client.allowedRoles.slice(0, 2).map((role) => (
-                <span
-                  key={role}
-                  className="font-inter border border-white/6 px-2 py-0.5 text-[10px] tracking-wider text-white/20 uppercase"
-                >
-                  {role.replace("_", " ")}
-                </span>
-              ))}
-              {client.allowedRoles.length > 2 && (
-                <span className="font-inter border border-white/6 px-2 py-0.5 text-[10px] text-white/15">
-                  +{client.allowedRoles.length - 2}
-                </span>
-              )}
-            </div>
-
-            {/* CTA */}
-            <button
-              onClick={handleAccess}
-              disabled={!isActive}
-              className="group/btn font-inter flex cursor-pointer items-center gap-1.5 border border-white/10 px-3.5 py-1.5 text-[12px] text-white/35 transition-all duration-200 hover:border-[#a78bfa]/40 hover:text-[#a78bfa] disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:border-white/10 disabled:hover:text-white/35"
-            >
-              Truy cập
-              <FiArrowUpRight
-                size={13}
-                className="transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5"
-              />
-            </button>
-          </div>
+          </h3>
+          {client.clientDescription && (
+            <p className="font-haffer mt-1 line-clamp-2 text-xs leading-relaxed font-light text-white/60 transition-colors group-hover:text-white/80 sm:text-[13px]">
+              {client.clientDescription}
+            </p>
+          )}
         </div>
+
+        {/* Circular Action Button y chang LandingPageTest */}
+        <button
+          ref={btnRef}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleAccess();
+          }}
+          disabled={!isActive}
+          className="pointer-events-auto flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/45 text-white shadow-lg backdrop-blur-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+          aria-label={`Truy cập ${client.clientName}`}
+        >
+          <FiArrowRight
+            size={17}
+            className="transition-transform duration-200 group-hover:translate-x-0.5"
+          />
+        </button>
       </div>
     </motion.div>
   );
@@ -128,21 +203,11 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 function ClientSkeleton() {
   return (
-    <div className="relative flex flex-col border-r border-b border-white/[0.07] bg-[#050505]">
-      <div className="aspect-video w-full animate-pulse border-b border-white/[0.07] bg-white/3" />
-      <div className="flex flex-1 flex-col space-y-4 px-6 py-6">
-        <div className="h-5 w-32 animate-pulse rounded-full bg-white/5" />
-        <div className="space-y-2">
-          <div className="h-3 w-full animate-pulse rounded-full bg-white/3" />
-          <div className="h-3 w-2/3 animate-pulse rounded-full bg-white/3" />
-        </div>
-        <div className="mt-auto flex items-center justify-between pt-6">
-          <div className="flex gap-2">
-            <div className="h-5 w-14 animate-pulse border border-white/5 bg-white/1" />
-            <div className="h-5 w-14 animate-pulse border border-white/5 bg-white/1" />
-          </div>
-          <div className="h-8 w-24 animate-pulse border border-white/5 bg-white/1" />
-        </div>
+    <div className="relative flex h-full min-h-[44vh] flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709] lg:min-h-0">
+      <div className="w-full flex-1 animate-pulse bg-white/3" />
+      <div className="flex flex-col space-y-2 border-t border-white/[0.06] p-5 sm:p-6 lg:p-7">
+        <div className="h-6 w-36 animate-pulse rounded-full bg-white/5" />
+        <div className="h-3.5 w-2/3 animate-pulse rounded-full bg-white/3" />
       </div>
     </div>
   );
@@ -151,41 +216,60 @@ function ClientSkeleton() {
 // ─── Empty Placeholder ────────────────────────────────────────────────────────
 function EmptyCard() {
   return (
-    <div className="relative min-h-100 border-r border-b border-white/[0.07] bg-transparent" />
+    <div className="relative flex h-full min-h-[44vh] border-r border-b border-white/[0.08] bg-transparent lg:min-h-0" />
   );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function LoginClientPage() {
+  const [searchParams] = useSearchParams();
+  const clientId = searchParams.get("clientId");
+
+  // Nếu có clientId trong URL -> chuyển sang /login để thực hiện xác thực và kiểm tra quyền
+  if (clientId) {
+    return <Navigate to={`${PATHS.LOGIN}?clientId=${clientId}`} replace />;
+  }
+
   const { data: clients, isLoading } = useHubClients({
     limit: 100,
     status: "active",
   });
 
   const clientList = [...(clients || []), ...STATIC_HUB_CLIENTS];
-  const minSlots = 6;
-  const placeholders = Math.max(0, minSlots - clientList.length);
 
   return (
-    <main className="font-inter relative min-h-screen w-full bg-[#050505]">
-      {/* Outer border frame */}
-      <div className="pointer-events-none absolute inset-0 border border-white/[0.07]" />
-
-      {/* Grid */}
-      <div className="grid w-full grid-cols-1 border-t border-l border-white/[0.07] md:grid-cols-2 lg:grid-cols-3">
-        {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <ClientSkeleton key={i} />)
-        ) : (
-          <>
-            {clientList.map((client, i) => (
-              <ClientCard key={client.clientId} client={client} index={i} />
-            ))}
-            {Array.from({ length: placeholders }).map((_, i) => (
-              <EmptyCard key={`empty-${i}`} />
-            ))}
-          </>
-        )}
+    <div className="relative h-screen w-full overflow-x-hidden overflow-y-auto bg-[#050505] select-none lg:overflow-hidden">
+      {/* Navbar: cố định ở trên cùng đè lên, không có background */}
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-50">
+        <PublicLandingNavbar
+          isDarkBg={false}
+          className="z-50"
+        />
       </div>
-    </main>
+
+      {/* Main Grid: Full Screen, Full Height 100vh Edge-to-Edge */}
+      <main className="relative h-full min-h-screen w-full bg-[#050505] lg:h-screen">
+        {/* Outer border frame */}
+        <div className="pointer-events-none absolute inset-0 border border-white/[0.08]" />
+
+        {/* Grid 6 items: Exactly 3 cols x 2 rows = full screen 100vh trên desktop */}
+        <div className="grid h-full min-h-screen w-full grid-cols-1 border-t border-l border-white/[0.08] md:grid-cols-2 md:grid-rows-3 lg:h-screen lg:grid-cols-3 lg:grid-rows-2">
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, i) => <ClientSkeleton key={i} />)
+          ) : (
+            <>
+              {clientList.slice(0, 6).map((client, i) => (
+                <ClientCard key={client.clientId} client={client} index={i} />
+              ))}
+              {Array.from({
+                length: Math.max(0, 6 - Math.min(6, clientList.length)),
+              }).map((_, i) => (
+                <EmptyCard key={`empty-${i}`} />
+              ))}
+            </>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }

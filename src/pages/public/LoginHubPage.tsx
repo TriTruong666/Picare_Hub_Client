@@ -1,16 +1,17 @@
-import { Navigate, useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams, useLocation } from "react-router-dom";
 import AeroShards from "@/components/reactbit/AeroShard";
 import LoginHubFormSection from "@/components/custom_ui/LoginHubFormSection";
 import { useAuth } from "@/hooks/useAuth";
 import { PATHS } from "@/config/paths";
 import { canAccessDashboard } from "@/config/dashboardAccess";
+import LoginPage from "@/pages/public/LoginPage";
 
 function getSafeRedirectPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
     return PATHS.HOME;
   }
 
-  if (value.startsWith(PATHS.LOGIN_HUB)) {
+  if (value.startsWith(PATHS.LOGIN)) {
     return PATHS.HOME;
   }
 
@@ -20,16 +21,20 @@ function getSafeRedirectPath(value: string | null) {
 export default function LoginHubPage() {
   const { isAuthenticated, user } = useAuth();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const redirectParam = searchParams.get("redirect");
   const redirectPath = getSafeRedirectPath(redirectParam);
   const isDashboardRedirect = redirectPath.startsWith(PATHS.DASHBOARD.ROOT);
+
+  const clientId = searchParams.get("clientId");
 
   // If authenticated and redirected to dashboard without permissions:
   if (
     isAuthenticated &&
     redirectParam &&
     isDashboardRedirect &&
-    !canAccessDashboard(user?.role)
+    !canAccessDashboard(user?.role) &&
+    !clientId
   ) {
     return <Navigate to={PATHS.HOME} replace />;
   }
@@ -40,14 +45,14 @@ export default function LoginHubPage() {
     redirectParam &&
     redirectParam !== PATHS.HOME &&
     redirectParam !== PATHS.LOGIN &&
-    redirectParam !== PATHS.LOGIN_HUB
+    redirectParam !== PATHS.LOGIN_CLIENT &&
+    !clientId
   ) {
     return <Navigate to={redirectPath} replace />;
   }
 
-  // Safe back navigation: If from /test, back to /test. Default back to / (PATHS.HOME)
-  const fromParam = searchParams.get("from");
-  const backTo = fromParam === "test" ? PATHS.TEST : PATHS.HOME;
+  // Safe back navigation: Default back to / (PATHS.HOME)
+  const backTo = PATHS.HOME;
 
   return (
     <div className="font-haffer relative min-h-screen w-full overflow-hidden bg-[#120F17] select-none">

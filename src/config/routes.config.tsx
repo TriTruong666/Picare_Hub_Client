@@ -61,23 +61,19 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
   },
   {
     path: PATHS.TEST,
-    element: <LandingPageTest />,
+    element: <Navigate to={PATHS.HOME} replace />,
   },
   {
     path: PATHS.CLIENT_OMS,
     element: <ClientOmsPage />,
   },
   {
-    path: PATHS.LOGIN,
-    element: <LoginHubPage />,
-  },
-  {
-    path: PATHS.LOGIN_CLIENT,
-    element: <LoginPage />,
-  },
-  {
     path: "/login/hub",
     element: <Navigate to={PATHS.LOGIN} replace />,
+  },
+  {
+    path: "/login/*",
+    element: <LoginHubPage />,
   },
   {
     path: PATHS.PARTNER_SIGN,

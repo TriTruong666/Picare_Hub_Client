@@ -155,16 +155,16 @@ export default function CurvePageTransition({
       },
     });
 
-    // GIAI ĐOẠN 1: Curve vuốt từ dưới lên trên màn hình (Elastic curve swipe in) - tốc độ cân bằng mượt mà
+    // GIAI ĐOẠN 1: Curve vuốt từ dưới lên trên màn hình (Elastic curve swipe in) - tốc độ nhanh, gọn
     tl.to(path, {
       attr: { d: PATH_CURVE_ENTER },
-      duration: 0.82,
+      duration: 0.52,
       ease: "power2.in",
     })
       // Đạt trạng thái phẳng bao phủ 100% màn hình màu đen
       .to(path, {
         attr: { d: PATH_COVERED },
-        duration: 0.48,
+        duration: 0.28,
         ease: "power1.out",
         onComplete: () => {
           // Điểm giữa: Toàn màn hình đã phủ đen -> chuyển content/route bên dưới
@@ -172,7 +172,7 @@ export default function CurvePageTransition({
         },
       });
 
-    // HIỂN THỊ CHỮ: Text xuất hiện ở giữa màn hình đen
+    // HIỂN THỊ CHỮ: Text xuất hiện sớm ngay khi curve đang quét lên
     if (textEl) {
       tl.to(
         textEl,
@@ -180,19 +180,19 @@ export default function CurvePageTransition({
           opacity: 1,
           y: 0,
           filter: "blur(0px)",
-          duration: 0.55,
+          duration: 0.32,
           ease: "power2.out",
         },
-        "-=0.2",
+        "-=0.42",
       )
-        // Giữ chữ vừa vặn, không quá chậm cũng không biến mất quá nhanh
+        // Giữ chữ vừa vặn, biến mất dứt khoát
         .to(textEl, {
           opacity: 0,
-          y: -16,
+          y: -14,
           filter: "blur(4px)",
-          duration: 0.38,
+          duration: 0.24,
           ease: "power2.in",
-          delay: 0.55,
+          delay: 0.3,
         });
     }
 
@@ -201,13 +201,13 @@ export default function CurvePageTransition({
       path,
       {
         attr: { d: PATH_CURVE_EXIT },
-        duration: 0.80,
+        duration: 0.5,
         ease: "power2.in",
       },
-      textEl ? "-=0.1" : "+=0.15",
+      textEl ? "-=0.08" : "+=0.1",
     ).to(path, {
       attr: { d: PATH_EXITED },
-      duration: 0.48,
+      duration: 0.3,
       ease: "power2.out",
     });
 
@@ -231,7 +231,7 @@ export default function CurvePageTransition({
         <path ref={pathRef} fill={color} d={PATH_INITIAL} />
       </svg>
 
-      {/* Trung tâm: Text Picare Client */}
+      {/* Trung tâm: Text Picare Client hoặc tên Client */}
       <div
         ref={textRef}
         className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-4 text-center"
@@ -239,14 +239,23 @@ export default function CurvePageTransition({
       >
         <div className="flex items-center gap-2.5">
           <h1 className="font-haffer text-3xl font-light tracking-[-0.04em] text-white sm:text-4xl">
-            <span className="font-light italic">Picare</span>{" "}
-            <span className="font-normal text-white/90">
-              Client<span className="text-[#FFA336]">.</span>
-            </span>
+            {text === "Picare Client" ? (
+              <>
+                <span className="font-light italic">Picare</span>{" "}
+                <span className="font-normal text-white/90">
+                  Client<span className="text-[#FFA336]">.</span>
+                </span>
+              </>
+            ) : (
+              <span className="font-normal text-white/90">
+                {text}
+                <span className="text-[#FFA336]">.</span>
+              </span>
+            )}
           </h1>
         </div>
-        <p className="font-haffer mt-2.5 animate-pulse text-[12px] font-light text-zinc-500">
-          Do more for better life
+        <p className="font-haffer mt-2 text-[12px] font-light text-zinc-400">
+          {subtext || "Do more for better life"}
         </p>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiChevronDown,
@@ -25,6 +25,8 @@ import type { HubClient } from "@/types/HubClient";
 
 export interface PublicLandingNavbarProps {
   onOpenLogin?: () => void;
+  onOpenClientSelect?: () => void;
+  onLogoClick?: () => void;
   className?: string;
   isDarkBg?: boolean;
   isAuthenticated?: boolean;
@@ -33,6 +35,8 @@ export interface PublicLandingNavbarProps {
 
 export function PublicLandingNavbar({
   onOpenLogin,
+  onOpenClientSelect,
+  onLogoClick,
   className = "",
   isDarkBg = false,
   isAuthenticated: propIsAuth,
@@ -73,6 +77,7 @@ export function PublicLandingNavbar({
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuContainerRef = useRef<HTMLDivElement>(null);
 
+  const navigate = useNavigate();
   const { navigateWithTransition } = useCurveTransition();
 
   useEffect(() => {
@@ -128,14 +133,30 @@ export function PublicLandingNavbar({
 
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    navigateWithTransition(PATHS.TEST, { text: "Picare Client" });
+    if (onLogoClick) {
+      onLogoClick();
+    } else {
+      navigate(PATHS.HOME);
+    }
   };
 
-  const handleDefaultLoginClick = () => {
+  const handleDefaultLoginClick = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     if (onOpenLogin) {
       onOpenLogin();
     } else {
-      navigateWithTransition(PATHS.LOGIN_HUB, { text: "Picare Client" });
+      navigate(PATHS.LOGIN);
+    }
+  };
+
+  const handleStartClick = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (onOpenClientSelect) {
+      onOpenClientSelect();
+    } else {
+      navigate(PATHS.LOGIN_CLIENT);
     }
   };
 
@@ -162,7 +183,7 @@ export function PublicLandingNavbar({
         />
         {/* Logo */}
         <a
-          href={PATHS.TEST}
+          href={PATHS.HOME}
           onClick={handleLogoClick}
           aria-label="Picare Client"
           className="flex cursor-pointer items-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
@@ -180,13 +201,15 @@ export function PublicLandingNavbar({
           <button
             type="button"
             onClick={() => setIsProductMenuOpen((prev) => !prev)}
-            className={`nav-link-underline group relative flex cursor-pointer items-center gap-1.5 px-0.5 py-1.5 font-normal transition-colors duration-200 ${
-              isProductMenuOpen
-                ? "active text-white"
-                : "text-white/75 hover:text-white"
-            }`}
+            className="group relative flex cursor-pointer items-center gap-1.5 px-0.5 py-1.5 font-normal text-white/75 transition-colors duration-200 hover:text-white"
           >
-            <span>Sản phẩm</span>
+            <span
+              className={`nav-link-underline ${
+                isProductMenuOpen ? "active text-white" : ""
+              }`}
+            >
+              Sản phẩm
+            </span>
             <FiChevronDown
               size={14}
               className={`transition-transform duration-300 ease-out ${
@@ -365,14 +388,14 @@ export function PublicLandingNavbar({
               <button
                 type="button"
                 onClick={handleDefaultLoginClick}
-                className="nav-link-underline group hidden cursor-pointer px-0.5 py-1.5 text-[13px] font-normal tracking-normal text-white/75 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] transition-colors hover:text-white min-[410px]:inline-flex"
+                className="nav-link-underline group pointer-events-auto hidden cursor-pointer px-0.5 py-1.5 text-[13px] font-normal tracking-normal text-white/75 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] transition-colors hover:text-white min-[410px]:inline-flex"
               >
                 <span>Đăng nhập</span>
               </button>
               <button
                 type="button"
-                onClick={handleDefaultLoginClick}
-                className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-white px-4 text-[13px] font-normal tracking-normal text-[#120F17] shadow-[0_4px_20px_rgba(0,0,0,0.3)] transition-all hover:bg-white/92 hover:shadow-[0_4px_24px_rgba(255,255,255,0.25)]"
+                onClick={handleStartClick}
+                className="pointer-events-auto inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-white px-4 text-[13px] font-normal tracking-normal text-[#120F17] shadow-[0_4px_20px_rgba(0,0,0,0.3)] transition-all hover:bg-white/92 hover:shadow-[0_4px_24px_rgba(255,255,255,0.25)]"
               >
                 <span>Bắt đầu</span>
                 <svg
@@ -395,7 +418,7 @@ export function PublicLandingNavbar({
           )}
         </div>
 
-        {/* Upgraded Dropdown Mega-Menu: Copied and synchronized with new UI & dark palette */}
+        {/* Dropdown Menu: Floating Mega Menu */}
         <AnimatePresence mode="wait">
           {isProductMenuOpen && (
             <motion.div
