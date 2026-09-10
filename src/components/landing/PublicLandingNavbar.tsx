@@ -20,16 +20,23 @@ import { PATHS } from "@/config/paths";
 import { useCurveTransition } from "@/components/custom_ui/CurvePageTransition";
 import gsap from "gsap";
 
+import type { User } from "@/types/User";
+import type { HubClient } from "@/types/HubClient";
+
 export interface PublicLandingNavbarProps {
   onOpenLogin?: () => void;
   className?: string;
   isDarkBg?: boolean;
+  isAuthenticated?: boolean;
+  user?: User | null;
 }
 
 export function PublicLandingNavbar({
   onOpenLogin,
   className = "",
   isDarkBg = false,
+  isAuthenticated: propIsAuth,
+  user: propUser,
 }: PublicLandingNavbarProps) {
   const [isProductMenuOpen, setIsProductMenuOpen] = useState(false);
   const [currentMenuPage, setCurrentMenuPage] = useState(0);
@@ -57,7 +64,10 @@ export function PublicLandingNavbar({
     }
   }, [isDarkBg]);
 
-  const { isAuthenticated, user } = useAuth();
+  const auth = useAuth();
+  const isAuthenticated =
+    propIsAuth !== undefined ? propIsAuth : auth.isAuthenticated;
+  const user = propUser !== undefined ? propUser : auth.user;
   const { mutate: logout } = useLogout();
   const canUseDashboard = canAccessDashboard(user?.role);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -244,7 +254,9 @@ export function PublicLandingNavbar({
                 <FiChevronDown
                   size={14}
                   className={`text-white/50 transition-transform duration-300 ${
-                    isUserMenuOpen ? "rotate-180 text-white" : "group-hover:text-white"
+                    isUserMenuOpen
+                      ? "rotate-180 text-white"
+                      : "group-hover:text-white"
                   }`}
                 />
               </button>

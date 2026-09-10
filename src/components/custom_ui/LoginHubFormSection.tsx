@@ -196,18 +196,29 @@ export default function LoginHubFormSection({
   onBack,
   backTo = PATHS.HOME,
 }: LoginHubFormSectionProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [searchParams] = useSearchParams();
 
   // Test switch: Cho phép kiểm tra chuyển cảnh tức thì khi không bật backend auth server
   const [testLoggedIn, setTestLoggedIn] = useState(false);
   const isEffectiveLoggedIn = isAuthenticated || testLoggedIn;
+  const activeUser: User | null =
+    user ||
+    (testLoggedIn
+      ? {
+          userId: "test-admin-id",
+          name: "Picare Admin",
+          role: "admin",
+          email: "admin@picare.vn",
+          isOnline: true,
+          createdAt: new Date().toISOString(),
+        }
+      : null);
 
   // Refs điều khiển Animation GSAP
   const panelRef = useRef<HTMLDivElement>(null);
   const formWrapperRef = useRef<HTMLDivElement>(null);
   const gridWrapperRef = useRef<HTMLDivElement>(null);
-  const navbarWrapperRef = useRef<HTMLDivElement>(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -249,70 +260,56 @@ export default function LoginHubFormSection({
     if (isFirstRender.current) {
       isFirstRender.current = false;
       if (isEffectiveLoggedIn) {
-        // Đã đăng nhập từ trước: Hiển thị ngay 100% full screen full width
         gsap.set(panelRef.current, { width: "100%" });
-        if (formWrapperRef.current) gsap.set(formWrapperRef.current, { display: "none", opacity: 0 });
-        if (gridWrapperRef.current) gsap.set(gridWrapperRef.current, { display: "block", opacity: 1 });
-        if (navbarWrapperRef.current) gsap.set(navbarWrapperRef.current, { display: "block", opacity: 1 });
+        if (formWrapperRef.current)
+          gsap.set(formWrapperRef.current, { display: "none", opacity: 0 });
+        if (gridWrapperRef.current)
+          gsap.set(gridWrapperRef.current, { display: "block", opacity: 1 });
       } else {
-        // Chưa đăng nhập: Form 50% (trên desktop)
         const isDesktop = window.innerWidth >= 768;
         gsap.set(panelRef.current, { width: isDesktop ? "50%" : "100%" });
-        if (formWrapperRef.current) gsap.set(formWrapperRef.current, { display: "flex", opacity: 1 });
-        if (gridWrapperRef.current) gsap.set(gridWrapperRef.current, { display: "none", opacity: 0 });
-        if (navbarWrapperRef.current) gsap.set(navbarWrapperRef.current, { display: "none", opacity: 0 });
+        if (formWrapperRef.current)
+          gsap.set(formWrapperRef.current, { display: "flex", opacity: 1 });
+        if (gridWrapperRef.current)
+          gsap.set(gridWrapperRef.current, { display: "none", opacity: 0 });
       }
       return;
     }
 
-    // Dynamic transition
     if (isEffectiveLoggedIn) {
-      // 1. Mở rộng từ 50% -> 100%
+      // 50% -> 100%
       const tl = gsap.timeline();
 
-      // Ẩn form
       if (formWrapperRef.current) {
         tl.to(formWrapperRef.current, {
           opacity: 0,
           y: -15,
-          duration: 0.3,
+          duration: 0.25,
           ease: "power2.in",
           onComplete: () => {
-            if (formWrapperRef.current) formWrapperRef.current.style.display = "none";
+            if (formWrapperRef.current)
+              formWrapperRef.current.style.display = "none";
           },
         });
       }
 
-      // Mở rộng width panel sang 100%
       tl.to(
         panelRef.current,
         {
           width: "100%",
-          duration: 0.85,
+          duration: 0.75,
           ease: "power3.inOut",
         },
-        "-=0.15"
+        "-=0.1",
       );
 
-      // Hiển thị Navbar chính từ component PublicLandingNavbar
-      if (navbarWrapperRef.current) {
-        navbarWrapperRef.current.style.display = "block";
-        tl.fromTo(
-          navbarWrapperRef.current,
-          { opacity: 0, y: -20 },
-          { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
-          "-=0.4"
-        );
-      }
-
-      // Hiển thị Grid chọn client full width
       if (gridWrapperRef.current) {
         gridWrapperRef.current.style.display = "block";
         tl.fromTo(
           gridWrapperRef.current,
           { opacity: 0 },
-          { opacity: 1, duration: 0.4 },
-          "-=0.3"
+          { opacity: 1, duration: 0.35 },
+          "-=0.25",
         );
 
         tl.fromTo(
@@ -321,45 +318,32 @@ export default function LoginHubFormSection({
           {
             opacity: 1,
             y: 0,
-            duration: 0.55,
+            duration: 0.5,
             stagger: 0.08,
             ease: "power2.out",
           },
-          "-=0.2"
+          "-=0.2",
         );
       }
     } else {
-      // 2. Thu gọn từ 100% -> 50%
+      // 100% -> 50%
       const tl = gsap.timeline();
 
-      if (navbarWrapperRef.current) {
-        tl.to(navbarWrapperRef.current, {
+      if (gridWrapperRef.current) {
+        tl.to(gridWrapperRef.current, {
           opacity: 0,
-          duration: 0.25,
+          duration: 0.2,
           onComplete: () => {
-            if (navbarWrapperRef.current) navbarWrapperRef.current.style.display = "none";
+            if (gridWrapperRef.current)
+              gridWrapperRef.current.style.display = "none";
           },
         });
-      }
-
-      if (gridWrapperRef.current) {
-        tl.to(
-          gridWrapperRef.current,
-          {
-            opacity: 0,
-            duration: 0.25,
-            onComplete: () => {
-              if (gridWrapperRef.current) gridWrapperRef.current.style.display = "none";
-            },
-          },
-          "-=0.15"
-        );
       }
 
       const isDesktop = window.innerWidth >= 768;
       tl.to(panelRef.current, {
         width: isDesktop ? "50%" : "100%",
-        duration: 0.75,
+        duration: 0.65,
         ease: "power3.inOut",
       });
 
@@ -368,8 +352,8 @@ export default function LoginHubFormSection({
         tl.fromTo(
           formWrapperRef.current,
           { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
-          "-=0.3"
+          { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+          "-=0.2",
         );
       }
     }
@@ -386,7 +370,7 @@ export default function LoginHubFormSection({
           if (res.success) {
             toast.success(
               "Đăng nhập thành công",
-              "Chào mừng quay trở lại Picare Client!"
+              "Chào mừng quay trở lại Picare Client!",
             );
             await queryClient.refetchQueries({ queryKey: ["auth", "me"] });
             const currentUser = queryClient.getQueryData<User>(["auth", "me"]);
@@ -397,7 +381,7 @@ export default function LoginHubFormSection({
             ) {
               toast.error(
                 "Truy cập bị từ chối",
-                "Tài khoản không có quyền truy cập dashboard."
+                "Tài khoản không có quyền truy cập dashboard.",
               );
               window.location.href = PATHS.HOME;
               return;
@@ -418,14 +402,14 @@ export default function LoginHubFormSection({
           setIsSubmitting(false);
         },
         onError: () => setIsSubmitting(false),
-      }
+      },
     );
   };
 
   return (
     <div className="font-haffer relative min-h-screen w-full overflow-hidden bg-transparent select-none">
       {/* ─── Dev Mode Test Switch ─── */}
-      <div className="fixed bottom-6 left-6 z-[9999]">
+      <div className="fixed bottom-6 left-6 z-9999">
         <button
           type="button"
           onClick={() => setTestLoggedIn((prev) => !prev)}
@@ -451,19 +435,34 @@ export default function LoginHubFormSection({
         </button>
       </div>
 
-      {/* ─── Navbar: Lấy trực tiếp từ component PublicLandingNavbar ─── */}
-      <div ref={navbarWrapperRef} style={{ display: "none", opacity: 0 }}>
-        <PublicLandingNavbar isDarkBg={true} />
-      </div>
+      {/* ─── Navbar: Fixed ở trên cùng, hiện khi đã đăng nhập ─── */}
+      {isEffectiveLoggedIn && (
+        <div className="pointer-events-auto fixed inset-x-0 top-0 z-50">
+          <PublicLandingNavbar
+            isDarkBg={true}
+            isAuthenticated={true}
+            user={activeUser}
+            className="z-50!"
+          />
+        </div>
+      )}
 
-      {/* ─── Panel Container: 50% khi chưa đăng nhập, 100% khi đã đăng nhập ─── */}
+      {/* ─── Panel Container: 50% khi chưa đăng nhập, 100% fullwidth khi đã đăng nhập ─── */}
       <div
         ref={panelRef}
-        className="relative z-10 flex min-h-screen w-full flex-col border-r border-white/[0.08] bg-black/95 shadow-2xl backdrop-blur-md will-change-[width] md:w-1/2 md:bg-black"
+        className={`relative z-10 flex min-h-screen w-full flex-col will-change-[width] ${
+          isEffectiveLoggedIn
+            ? "w-full bg-[#050505]"
+            : "border-r border-white/8 bg-black/95 shadow-2xl backdrop-blur-md md:w-1/2 md:bg-black"
+        }`}
       >
         {/* ─── GIAO DIỆN 1: FORM ĐĂNG NHẬP 50% UI GỐC ĐẦY ĐỦ ─── */}
         <div
           ref={formWrapperRef}
+          style={{
+            display: isEffectiveLoggedIn ? "none" : "flex",
+            opacity: isEffectiveLoggedIn ? 0 : 1,
+          }}
           className="flex min-h-screen w-full flex-1 flex-col justify-between px-8 py-8 md:px-14 lg:px-20"
         >
           {/* Header Bar: Logo & Back Link */}
@@ -472,7 +471,7 @@ export default function LoginHubFormSection({
               <img
                 src={logoPicareNewBlack}
                 alt="Picare Client"
-                className="h-7 sm:h-9 md:h-10 w-auto object-contain mix-blend-screen transition-opacity hover:opacity-85 -my-2"
+                className="-my-2 h-7 w-auto object-contain mix-blend-screen transition-opacity hover:opacity-85 sm:h-9 md:h-10"
               />
             </Link>
 
@@ -480,7 +479,7 @@ export default function LoginHubFormSection({
               <button
                 type="button"
                 onClick={onBack}
-                className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-200 transition-colors cursor-pointer"
+                className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-zinc-500 transition-colors hover:text-zinc-200"
               >
                 <FiArrowLeft className="text-xs" />
                 <span>Quay lại</span>
@@ -488,7 +487,7 @@ export default function LoginHubFormSection({
             ) : (
               <Link
                 to={backTo}
-                className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-200 transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs text-zinc-500 transition-colors hover:text-zinc-200"
               >
                 <FiArrowLeft className="text-xs" />
                 <span>Quay lại</span>
@@ -498,7 +497,7 @@ export default function LoginHubFormSection({
 
           {/* Form Content */}
           <div className="flex flex-1 flex-col justify-center py-10">
-            <div className="mx-auto w-full max-w-[520px]">
+            <div className="mx-auto w-full max-w-130">
               {/* Title & Auth Status - Picare Client. */}
               <div className="mb-10">
                 <h1 className="font-haffer text-3xl font-light tracking-[-0.04em] text-white sm:text-4xl">
@@ -507,8 +506,9 @@ export default function LoginHubFormSection({
                     Client<span className="text-[#FFA336]">.</span>
                   </span>
                 </h1>
-                <p className="font-haffer mt-2.5 text-[13px] font-light text-zinc-400 leading-relaxed">
-                  Đăng nhập không gian làm việc và hệ thống quản trị nội bộ tập trung
+                <p className="font-haffer mt-2.5 text-[13px] font-light leading-relaxed text-zinc-400">
+                  Đăng nhập không gian làm việc và hệ thống quản trị nội bộ tập
+                  trung
                 </p>
               </div>
 
@@ -516,7 +516,7 @@ export default function LoginHubFormSection({
               <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Email Field */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-400 tracking-wide">
+                  <label className="text-xs font-medium tracking-wide text-zinc-400">
                     Email
                   </label>
                   <div className="group relative">
@@ -532,7 +532,7 @@ export default function LoginHubFormSection({
                     />
                     <div className="absolute bottom-0 h-px w-full bg-white/10" />
                     <motion.div
-                      className="absolute bottom-0 h-px w-full origin-left bg-gradient-to-r from-[#F86D2B] to-[#FFA336]"
+                      className="absolute bottom-0 h-px w-full origin-left bg-linear-to-r from-[#F86D2B] to-[#FFA336]"
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: isEmailFocused ? 1 : 0 }}
                       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
@@ -543,12 +543,12 @@ export default function LoginHubFormSection({
                 {/* Password Field */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-zinc-400 tracking-wide">
+                    <label className="text-xs font-medium tracking-wide text-zinc-400">
                       Mật khẩu
                     </label>
                     <Link
                       to="#"
-                      className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                      className="text-xs text-zinc-400 transition-colors hover:text-zinc-200"
                     >
                       Quên mật khẩu?
                     </Link>
@@ -568,15 +568,21 @@ export default function LoginHubFormSection({
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-0 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
-                        aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                        className="absolute right-0 cursor-pointer text-zinc-500 transition-colors hover:text-zinc-300"
+                        aria-label={
+                          showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                        }
                       >
-                        {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                        {showPassword ? (
+                          <FiEyeOff size={16} />
+                        ) : (
+                          <FiEye size={16} />
+                        )}
                       </button>
                     </div>
                     <div className="absolute bottom-0 h-px w-full bg-white/10" />
                     <motion.div
-                      className="absolute bottom-0 h-px w-full origin-left bg-gradient-to-r from-[#F86D2B] to-[#FFA336]"
+                      className="absolute bottom-0 h-px w-full origin-left bg-linear-to-r from-[#F86D2B] to-[#FFA336]"
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: isPasswordFocused ? 1 : 0 }}
                       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
@@ -611,29 +617,39 @@ export default function LoginHubFormSection({
 
           {/* Footer */}
           <div className="py-4">
-            <p className="text-center text-[11px] text-zinc-600 font-light">
-              Copyright © {new Date().getFullYear()} Picare Client. All rights reserved.
+            <p className="text-center font-light text-[11px] text-zinc-600">
+              Copyright © {new Date().getFullYear()} Picare Client. All rights
+              reserved.
             </p>
           </div>
         </div>
 
-        {/* ─── GIAO DIỆN 2: CHỌN CLIENT (Y chang UI cũ của LoginClientPage fullwidth full screen) ─── */}
+        {/* ─── GIAO DIỆN 2: CHỌN CLIENT (Full screen full width edge-to-edge) ─── */}
         <div
           ref={gridWrapperRef}
           className="relative min-h-screen w-full bg-[#050505] pt-24 pb-12"
-          style={{ display: "none", opacity: 0 }}
+          style={{
+            display: isEffectiveLoggedIn ? "block" : "none",
+            opacity: isEffectiveLoggedIn ? 1 : 0,
+          }}
         >
           {/* Outer border frame y chang cũ */}
           <div className="pointer-events-none absolute inset-0 border border-white/[0.07]" />
 
-          {/* Grid y chang cũ fullwidth */}
+          {/* Grid y chang cũ fullwidth edge-to-edge */}
           <div className="grid w-full grid-cols-1 border-t border-l border-white/[0.07] md:grid-cols-2 lg:grid-cols-3">
             {isClientsLoading ? (
-              Array.from({ length: 6 }).map((_, i) => <ClientSkeleton key={i} />)
+              Array.from({ length: 6 }).map((_, i) => (
+                <ClientSkeleton key={i} />
+              ))
             ) : (
               <>
                 {clientList.map((client, i) => (
-                  <ClientCard key={client.clientId} client={client} index={i} />
+                  <ClientCard
+                    key={client.clientId}
+                    client={client}
+                    index={i}
+                  />
                 ))}
                 {Array.from({ length: placeholders }).map((_, i) => (
                   <EmptyCard key={`empty-${i}`} />
@@ -674,7 +690,7 @@ export default function LoginHubFormSection({
                     <span className="text-xs font-medium text-white">
                       {project.name}
                     </span>
-                    <span className="text-[10px] font-light text-zinc-400">
+                    <span className="font-light text-[10px] text-zinc-400">
                       {project.desc}
                     </span>
                   </motion.button>
