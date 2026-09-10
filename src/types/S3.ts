@@ -1,5 +1,5 @@
 export type UploadS3Request = {
-  file: string;
+  file: File | string;
   folder: string;
   clientId?: string | null;
   description?: string | null;
@@ -10,6 +10,8 @@ export type UploadS3Response = {
   key: string;
   url: string;
   etag: string;
+  recordId?: string | null;
+  reused?: boolean;
 };
 
 export type GetPresignedURLRequest = {

@@ -23,7 +23,7 @@ const BENEFITS_LIST = [
   {
     id: "03",
     number: "03",
-    title: "Tập trung là chìa khoá",
+    title: "Tốc độ và bảo mật",
     desc: "Nền tảng sẽ tiết kiệm thời gian nếu quản lý nhiều cửa hàng trên cùng một giao diện mà không cần phải chuyển hàng chục cửa sổ trên website sàn. Chỉ với một nút bấm, toàn bộ đơn hàng sẽ được đồng bộ về với hệ thống",
   },
   {

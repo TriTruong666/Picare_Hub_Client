@@ -11,11 +11,92 @@ import type {
 } from "@/types/S3";
 import { hubAxiosClient } from "./client";
 
+type QueuedS3Upload = {
+  jobId: string;
+  key: string;
+  status: string;
+};
+
+type S3UploadJobStatus = {
+  jobId: string;
+  status: string;
+  shouldPoll: boolean;
+  result: UploadS3Response | null;
+  failedReason: string | null;
+};
+
+const UPLOAD_JOB_POLL_INTERVAL_MS = 750;
+const UPLOAD_JOB_TIMEOUT_MS = 30 * 60 * 1000;
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForUploadJob(
+  jobId: string,
+): Promise<BaseResponse<UploadS3Response>> {
+  const deadline = Date.now() + UPLOAD_JOB_TIMEOUT_MS;
+
+  while (Date.now() < deadline) {
+    const response = await hubAxiosClient.get<BaseResponse<S3UploadJobStatus>>(
+      `/api/v1/s3/upload/jobs/${encodeURIComponent(jobId)}`,
+    );
+    const job = response.data.data;
+
+    if (job?.status === "completed" && job.result) {
+      return {
+        success: true,
+        message: response.data.message,
+        data: job.result,
+      };
+    }
+
+    if (job?.status === "failed") {
+      throw new Error(job.failedReason || "Tải tệp lên S3 thất bại");
+    }
+
+    await wait(UPLOAD_JOB_POLL_INTERVAL_MS);
+  }
+
+  throw new Error("Quá thời gian chờ xử lý tệp trên S3");
+}
+
 export async function uploadS3Asset(
   request: UploadS3Request,
 ): Promise<BaseResponse<UploadS3Response>> {
-  const res = await hubAxiosClient.post("/api/v1/s3/upload", request);
-  return res.data;
+  let queuedResponse: BaseResponse<QueuedS3Upload>;
+
+  if (typeof request.file !== "string") {
+    const formData = new FormData();
+    formData.append("file", request.file, request.file.name);
+    formData.append("folder", request.folder);
+    formData.append("visibility", request.visibility);
+
+    if (request.clientId) {
+      formData.append("clientId", request.clientId);
+    }
+    if (request.description) {
+      formData.append("description", request.description);
+    }
+
+    const response = await hubAxiosClient.post<BaseResponse<QueuedS3Upload>>(
+      "/api/v1/s3/upload",
+      formData,
+    );
+    queuedResponse = response.data;
+  } else {
+    const response = await hubAxiosClient.post<BaseResponse<QueuedS3Upload>>(
+      "/api/v1/s3/upload",
+      request,
+    );
+    queuedResponse = response.data;
+  }
+
+  if (!queuedResponse.success || !queuedResponse.data?.jobId) {
+    throw new Error(queuedResponse.message || "Không thể tạo job tải tệp");
+  }
+
+  return waitForUploadJob(queuedResponse.data.jobId);
 }
 // Deploy bi loi
 export async function getPresignedURL(

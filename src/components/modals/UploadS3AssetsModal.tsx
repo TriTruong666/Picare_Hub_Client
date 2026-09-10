@@ -30,25 +30,6 @@ type UploadS3AssetsModalProps = {
   onSuccess: () => void | Promise<void>;
 };
 
-function fileToBase64(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-        return;
-      }
-
-      reject(new Error("Không thể đọc tệp tin"));
-    };
-
-    reader.onerror = () =>
-      reject(reader.error ?? new Error("Đọc tệp tin thất bại"));
-    reader.readAsDataURL(file);
-  });
-}
-
 export default function UploadS3AssetsModal({
   open,
   folderName,
@@ -151,9 +132,8 @@ export default function UploadS3AssetsModal({
       updateFileStatus(item.id, "uploading");
 
       try {
-        const base64File = await fileToBase64(item.file);
         const response = await uploadMutation.mutateAsync({
-          file: base64File,
+          file: item.file,
           folder: folderName,
           description: description.trim() || item.file.name,
           visibility,
