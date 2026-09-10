@@ -925,6 +925,29 @@ export default function LandingPageTest() {
         />
       </div>
 
+      {/* Fixed Navbar: Cố định 100% trên viewport khi scroll trang */}
+      <AnimatePresence>
+        {!isLoginPage && (
+          <motion.div
+            key="fixed-landing-navbar"
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: isNavigatingToCatalogue ? 0 : 1,
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="pointer-events-none fixed inset-x-0 top-0 z-40"
+          >
+            <PublicLandingNavbar
+              onOpenLogin={handleOpenLogin}
+              onOpenClientSelect={handleOpenClientSelect}
+              onCatalogueClick={handleNavigateToCatalogue}
+              isDarkBg={isGridSection}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Foreground Content: Chuyển đổi giữa Hero khách và Login Form */}
       <div ref={scrollContentRef} className="relative z-10 min-h-screen w-full">
         <AnimatePresence mode="wait">
@@ -935,21 +958,13 @@ export default function LandingPageTest() {
               animate={{
                 opacity: isNavigatingToCatalogue ? 0 : 1,
                 y: isNavigatingToCatalogue ? -20 : 0,
-                filter: isNavigatingToCatalogue ? "blur(6px)" : "blur(0px)",
+                filter: isNavigatingToCatalogue ? "blur(6px)" : "none",
                 x: 0,
               }}
               exit={{ opacity: 0, x: -70, filter: "blur(4px)" }}
               transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
               className="relative flex min-h-screen w-full flex-col"
             >
-              {/* 1. Navbar: Reusable PublicLandingNavbar with GSAP-powered dark bg in grid section */}
-              <PublicLandingNavbar
-                onOpenLogin={handleOpenLogin}
-                onOpenClientSelect={handleOpenClientSelect}
-                onCatalogueClick={handleNavigateToCatalogue}
-                isDarkBg={isGridSection}
-              />
-
               {/* 1. SECTION 1: HERO */}
               <section className="relative flex h-screen min-h-screen w-full flex-col justify-between overflow-hidden bg-transparent">
                 {/* Main Hero Content: cascade animate tuần tự từng phần tử */}

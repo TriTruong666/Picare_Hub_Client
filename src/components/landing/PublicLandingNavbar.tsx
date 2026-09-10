@@ -183,38 +183,42 @@ export function PublicLandingNavbar({
   }, [showNoticeBanner]);
 
   return (
-    <>
+    <div
+      className={`pointer-events-none fixed inset-x-0 top-0 z-50 flex flex-col items-center ${className}`}
+    >
       {/* 0. Top Upgrade Notice Banner (Màu cam) */}
       <AnimatePresence>
         {isBannerVisible && (
           <motion.aside
-            initial={{ opacity: 0, y: -40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -40 }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             aria-label="Thông báo nâng cấp giao diện Picare Hub"
-            className="pointer-events-auto fixed inset-x-0 top-0 z-50 flex min-h-[36px] items-center justify-between border-b border-orange-400/30 bg-gradient-to-r from-[#F86D2B] via-[#FFA336] to-[#F86D2B] px-3.5 py-1.5 shadow-[0_4px_20px_rgba(248,109,43,0.35)] backdrop-blur-md sm:px-6"
+            className="pointer-events-auto w-full overflow-hidden border-b border-orange-400/30 bg-gradient-to-r from-[#F86D2B] via-[#FFA336] to-[#F86D2B] shadow-[0_4px_20px_rgba(248,109,43,0.35)] backdrop-blur-md"
           >
-            <div className="mx-auto flex flex-1 items-center justify-center gap-2 text-center">
-              <span className="relative flex h-2 w-2 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
-              </span>
-              <p className="font-haffer text-[11px] font-medium tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
-                Picare Hub đang trong quá trình nâng cấp giao diện, các hệ thống
-                khác sẽ không bị ảnh hưởng
-              </p>
-            </div>
+            <div className="flex min-h-[36px] items-center justify-between px-3.5 py-1.5 sm:px-6">
+              <div className="mx-auto flex flex-1 items-center justify-center gap-2 text-center">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+                </span>
+                <p className="font-haffer text-[11px] font-medium tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
+                  Picare Hub đang trong quá trình nâng cấp giao diện, các hệ thống
+                  khác sẽ không bị ảnh hưởng
+                </p>
+              </div>
 
-            <button
-              type="button"
-              onClick={() => setIsBannerVisible(false)}
-              title="Đóng thông báo"
-              aria-label="Đóng thông báo"
-              className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-white/80 transition-all hover:bg-black/15 hover:text-white"
-            >
-              <FiX size={15} />
-            </button>
+              <button
+                type="button"
+                onClick={() => setIsBannerVisible(false)}
+                title="Đóng thông báo"
+                aria-label="Đóng thông báo"
+                className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-white/80 transition-all hover:bg-black/15 hover:text-white"
+              >
+                <FiX size={15} />
+              </button>
+            </div>
           </motion.aside>
         )}
       </AnimatePresence>
@@ -227,9 +231,7 @@ export function PublicLandingNavbar({
           delay: 0.1,
           ease: [0.16, 1, 0.3, 1],
         }}
-        className={`pointer-events-none fixed inset-x-3 z-40 transition-all duration-300 sm:inset-x-6 ${
-          isBannerVisible ? "top-12 sm:top-13.5" : "top-3 sm:top-4.5"
-        } ${className}`}
+        className="pointer-events-none w-full px-3 pt-2.5 sm:px-6 sm:pt-3.5"
       >
         <div
           ref={menuContainerRef}
@@ -587,7 +589,7 @@ export function PublicLandingNavbar({
           </AnimatePresence>
         </div>
       </motion.header>
-    </>
+    </div>
   );
 }
 

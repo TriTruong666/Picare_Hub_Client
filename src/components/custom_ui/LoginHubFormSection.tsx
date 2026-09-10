@@ -171,7 +171,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       onClick={handleAccess}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="client-card-item group relative flex h-full min-h-[44vh] lg:min-h-0 w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none"
+      className="client-card-item group relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-0 lg:h-full w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none"
     >
       {/* Subtle Warm Apricot/Amber Glow Layer giống LandingPageTest */}
       <div
@@ -236,7 +236,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
 // ─── Subcomponent: Skeleton Loading Card ──────────────────────────────────────
 function ClientSkeleton() {
   return (
-    <div className="relative flex h-full min-h-[44vh] lg:min-h-0 flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709]">
+    <div className="relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-0 lg:h-full flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709]">
       <div className="flex-1 w-full animate-pulse bg-white/3" />
       <div className="flex flex-col space-y-2 p-5 sm:p-6 lg:p-7 border-t border-white/[0.06]">
         <div className="h-6 w-36 animate-pulse rounded-full bg-white/5" />
@@ -249,7 +249,7 @@ function ClientSkeleton() {
 // ─── Subcomponent: Empty Placeholder ──────────────────────────────────────────
 function EmptyCard() {
   return (
-    <div className="relative flex h-full min-h-[44vh] lg:min-h-0 border-r border-b border-white/[0.08] bg-transparent" />
+    <div className="relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-0 lg:h-full border-r border-b border-white/[0.08] bg-transparent" />
   );
 }
 
@@ -356,14 +356,18 @@ export default function LoginHubFormSection({
       isFirstRender.current = false;
       const isDesktop = window.innerWidth >= 768;
       if (isClientSelectRoute) {
-        // Cho /login/client: Mở rộng từ 0% sang 100%
+        // Cho /login/client: Di chuyển từ trong trái sang phải (xPercent: -100 -> 0)
+        panelRef.current.style.width = "100%";
+        panelRef.current.style.backgroundColor = "#050505";
+        panelRef.current.style.borderColor = "transparent";
         gsap.fromTo(
           panelRef.current,
-          { width: "0%", xPercent: 0 },
+          { xPercent: -100, opacity: 0 },
           {
-            width: "100%",
-            duration: 1.25,
-            ease: "power3.inOut",
+            xPercent: 0,
+            opacity: 1,
+            duration: 0.85,
+            ease: "power3.out",
           },
         );
       } else {
@@ -455,34 +459,31 @@ export default function LoginHubFormSection({
           0.06,
         );
 
-        // Form wrapper container mờ dần và ẩn sau khi animation kết thúc
+        // Form wrapper container trượt sang trái và mờ dần
         tl.to(
           formWrapperRef.current,
           {
+            x: -60,
             opacity: 0,
-            duration: 0.52,
+            duration: 0.4,
             ease: "power2.inOut",
             onComplete: () => {
-              if (formWrapperRef.current)
+              if (formWrapperRef.current) {
                 formWrapperRef.current.style.display = "none";
+                gsap.set(formWrapperRef.current, { x: 0 });
+              }
             },
           },
           0,
         );
       }
 
-      // 2. Mở rộng Panel từ 50% sang 100% toàn màn hình (gối đầu mượt mà khi form đang tan biến)
-      tl.to(
-        panelRef.current,
-        {
-          width: "100%",
-          backgroundColor: "#050505",
-          borderColor: "transparent",
-          duration: 0.85,
-          ease: "power3.inOut",
-        },
-        "-=0.35",
-      );
+      // 2. Chuyển Panel sang 100% nền tối ngay lập tức để Grid trượt vào
+      if (panelRef.current) {
+        panelRef.current.style.width = "100%";
+        panelRef.current.style.backgroundColor = "#050505";
+        panelRef.current.style.borderColor = "transparent";
+      }
 
       // 3. Hiện Navbar phía trên
       if (navbarWrapperRef.current) {
@@ -491,31 +492,31 @@ export default function LoginHubFormSection({
           navbarWrapperRef.current,
           { opacity: 0, y: -20 },
           { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
-          "-=0.45",
+          "-=0.2",
         );
       }
 
-      // 4. Hiện Grid chọn Client Full Width với GSAP Stagger
+      // 4. Di chuyển Grid từ trái sang phải (Slide in from Left to Right)
       if (gridWrapperRef.current) {
         gridWrapperRef.current.style.display = "block";
         tl.fromTo(
           gridWrapperRef.current,
-          { opacity: 0 },
-          { opacity: 1, duration: 0.35 },
-          "-=0.35",
+          { xPercent: -100, opacity: 0 },
+          { xPercent: 0, opacity: 1, duration: 0.75, ease: "power3.out" },
+          "-=0.25",
         );
 
         tl.fromTo(
           ".client-card-item",
-          { opacity: 0, y: 28 },
+          { opacity: 0, x: -35 },
           {
             opacity: 1,
-            y: 0,
-            duration: 0.55,
-            stagger: 0.08,
+            x: 0,
+            duration: 0.5,
+            stagger: 0.06,
             ease: "power2.out",
           },
-          "-=0.25",
+          "-=0.45",
         );
       }
     } else {
@@ -544,13 +545,15 @@ export default function LoginHubFormSection({
         tl.to(
           gridWrapperRef.current,
           {
+            xPercent: -100,
             opacity: 0,
-            y: -12,
-            duration: 0.32,
-            ease: "power2.inOut",
+            duration: 0.45,
+            ease: "power3.in",
             onComplete: () => {
-              if (gridWrapperRef.current)
+              if (gridWrapperRef.current) {
                 gridWrapperRef.current.style.display = "none";
+                gsap.set(gridWrapperRef.current, { xPercent: 0 });
+              }
             },
           },
           0,
@@ -762,7 +765,7 @@ export default function LoginHubFormSection({
   };
 
   return (
-    <div className="font-haffer relative min-h-screen w-full overflow-hidden bg-transparent select-none">
+    <div className="font-haffer relative min-h-screen min-h-dvh w-full overflow-x-hidden overflow-y-auto lg:overflow-hidden bg-transparent">
       {/* ─── Navbar: Fixed ở trên cùng khi ở /login/client đè lên không có bg ─── */}
       <div
         ref={navbarWrapperRef}
@@ -784,7 +787,7 @@ export default function LoginHubFormSection({
       {/* ─── Panel Container: 50% khi ở /login, GSAP mở rộng 100% sang /login/client ─── */}
       <div
         ref={panelRef}
-        className="relative z-10 flex min-h-screen flex-col overflow-hidden will-change-[width,transform,background-color] border-r shadow-2xl backdrop-blur-md"
+        className="relative z-10 flex min-h-screen flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden will-change-[width,transform,background-color] border-r shadow-2xl backdrop-blur-md"
         style={{
           width: initialIsClientRef.current
             ? "100%"
@@ -837,16 +840,6 @@ export default function LoginHubFormSection({
             <div className="mx-auto w-full max-w-130">
               {/* Title & Auth Status - Picare Client. hoặc Tên Client */}
               <div className="form-anim-title mb-10 will-change-[transform,opacity,filter]">
-                {clientId && clientDetail?.clientLogoImage && (
-                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] p-2 backdrop-blur-md">
-                    <img
-                      src={clientDetail.clientLogoImage}
-                      alt={clientDetail.clientName}
-                      className="h-full w-full object-contain"
-                    />
-                  </div>
-                )}
-
                 <h1 className="font-haffer text-3xl font-light tracking-[-0.04em] text-white sm:text-4xl">
                   {clientId && clientDetail?.clientName ? (
                     <span className="font-normal text-white/90">
@@ -1062,7 +1055,7 @@ export default function LoginHubFormSection({
         {/* ─── GIAO DIỆN 2: CHỌN CLIENT (Full screen full height 6 items edge-to-edge tại /login/client) ─── */}
         <div
           ref={gridWrapperRef}
-          className="relative h-screen w-full bg-[#050505] overflow-x-hidden overflow-y-auto lg:overflow-hidden select-none"
+          className="relative min-h-screen w-full bg-[#050505] overflow-x-hidden overflow-y-auto lg:h-screen lg:overflow-hidden"
           style={{
             display: initialIsClientRef.current ? "block" : "none",
             opacity: initialIsClientRef.current ? 1 : 0,
@@ -1071,8 +1064,8 @@ export default function LoginHubFormSection({
           {/* Outer border frame */}
           <div className="pointer-events-none absolute inset-0 border border-white/[0.08]" />
 
-          {/* Grid 6 items: 3 cột x 2 hàng = full height screen 100vh trên desktop */}
-          <div className="grid h-full min-h-screen lg:h-screen w-full grid-cols-1 border-t border-l border-white/[0.08] md:grid-cols-2 md:grid-rows-3 lg:grid-cols-3 lg:grid-rows-2">
+          {/* Grid 6 items: 3 cột x 2 hàng = full height screen 100vh trên desktop, scroll được trên mobile */}
+          <div className="grid h-auto min-h-full w-full grid-cols-1 border-t border-l border-white/[0.08] pt-24 pb-14 sm:pt-28 md:grid-cols-2 lg:h-full lg:p-0 lg:grid-cols-3 lg:grid-rows-2">
             {isClientsLoading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <ClientSkeleton key={i} />
