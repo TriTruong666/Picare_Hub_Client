@@ -1,10 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import gsap from "gsap";
 import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
-import mockupImg from "@/assets/images/saleforce_intro.png";
+import CinematicVideoModal from "@/components/custom_ui/CinematicVideoModal";
 import picareHubLogo from "@/assets/images/logo.png";
+import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
 
-// Hệ số zoom hình mockup (bù khoảng trống lề của ảnh xoá nền để bạn dễ canh chỉnh)
+// Video demo OMS
+const VIDEO_URL =
+  "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040815604_17f37e20-4e17-4d6f-b077-80c2110842f7_test.mp4";
+
+// Hệ số phóng lớn khung video theo độ rộng tiêu đề
 const MOCKUP_ZOOM = 1.25;
 
 const BENEFITS_LIST = [
@@ -38,6 +44,14 @@ export default function ClientOmsPage() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [titleWidth, setTitleWidth] = useState<number | null>(null);
 
+  // Card Refs
+  const cardOverlayRef = useRef<HTMLDivElement>(null);
+  const cardLogoRef = useRef<HTMLDivElement>(null);
+  const cardHelperRef = useRef<HTMLParagraphElement>(null);
+
+  // Cinematic Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   useEffect(() => {
     const updateSize = () => {
       if (titleRef.current) {
@@ -64,6 +78,112 @@ export default function ClientOmsPage() {
       window.removeEventListener("resize", updateSize);
     };
   }, []);
+
+  // Card Hover GSAP Animation: Bình thường ẩn, chỉ khi hover mới hiện lớp đen mờ + logo + text helper
+  const handleCardMouseEnter = () => {
+    if (!cardOverlayRef.current) return;
+    gsap.killTweensOf([
+      cardOverlayRef.current,
+      cardLogoRef.current,
+      cardHelperRef.current,
+    ]);
+
+    const tl = gsap.timeline();
+
+    tl.to(
+      cardOverlayRef.current,
+      {
+        opacity: 1,
+        duration: 0.4,
+        ease: "power2.out",
+      },
+      0,
+    );
+
+    if (cardLogoRef.current) {
+      tl.fromTo(
+        cardLogoRef.current,
+        {
+          scale: 0.9,
+          y: 8,
+          opacity: 0,
+        },
+        {
+          scale: 1,
+          y: 0,
+          opacity: 1,
+          duration: 0.45,
+          ease: "power2.out",
+        },
+        0.05,
+      );
+    }
+
+    if (cardHelperRef.current) {
+      tl.fromTo(
+        cardHelperRef.current,
+        {
+          y: 6,
+          opacity: 0,
+        },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.35,
+          ease: "power2.out",
+        },
+        0.1,
+      );
+    }
+  };
+
+  const handleCardMouseLeave = () => {
+    if (!cardOverlayRef.current) return;
+    gsap.killTweensOf([
+      cardOverlayRef.current,
+      cardLogoRef.current,
+      cardHelperRef.current,
+    ]);
+
+    const tl = gsap.timeline();
+
+    if (cardHelperRef.current) {
+      tl.to(
+        cardHelperRef.current,
+        {
+          y: 4,
+          opacity: 0,
+          duration: 0.2,
+          ease: "power2.in",
+        },
+        0,
+      );
+    }
+
+    if (cardLogoRef.current) {
+      tl.to(
+        cardLogoRef.current,
+        {
+          scale: 0.92,
+          y: 6,
+          opacity: 0,
+          duration: 0.25,
+          ease: "power2.in",
+        },
+        0,
+      );
+    }
+
+    tl.to(
+      cardOverlayRef.current,
+      {
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+      },
+      0.05,
+    );
+  };
 
   return (
     <div className="font-haffer relative min-h-screen w-full overflow-x-hidden bg-[#120F17] text-white select-none">
@@ -131,23 +251,74 @@ export default function ClientOmsPage() {
           </p>
         </motion.div>
 
-        {/* Mockup được zoom lên theo hệ số MOCKUP_ZOOM để bù lề trong suốt */}
+        {/* Video Card ngoài trang: Bình thường thấy video, HOVER vào mới hiện lớp đen mờ + Logo Picare Client + Text helper 'Nhấn để chơi video' */}
+        {/* LƯU Ý: HOVER KHÔNG ZOOM VIDEO LÊN */}
         <motion.div
           initial={{ opacity: 0, y: 32, filter: "blur(6px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ duration: 0.85, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            width: titleWidth ? `${titleWidth * MOCKUP_ZOOM}px` : "100%",
+            width: titleWidth
+              ? `${Math.min(titleWidth * MOCKUP_ZOOM, 1100)}px`
+              : "100%",
             maxWidth: "100vw",
           }}
-          className="mt-16 flex items-center justify-center sm:mt-20 md:mt-24"
+          className="mt-16 flex w-full max-w-5xl items-center justify-center sm:mt-20 md:mt-24"
         >
-          <img
-            src={mockupImg}
-            alt="Picare OMS Mockup"
-            className="h-auto w-full object-contain drop-shadow-[0_24px_60px_rgba(0,0,0,0.85)] select-none"
-          />
+          <div
+            onClick={() => setIsModalOpen(true)}
+            onMouseEnter={handleCardMouseEnter}
+            onMouseLeave={handleCardMouseLeave}
+            className="group relative w-full cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-[#0e0b13] shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_50px_rgba(248,109,43,0.12)] transition-all duration-500 hover:border-white/25 hover:shadow-[0_28px_90px_rgba(0,0,0,0.95),0_0_70px_rgba(248,109,43,0.28)] sm:rounded-3xl"
+          >
+            {/* Top ambient highlight line */}
+            <div className="pointer-events-none absolute inset-x-12 top-0 z-30 h-px bg-gradient-to-r from-transparent via-[#F86D2B]/60 to-transparent" />
+
+            {/* Video preview tự nhiên ban đầu - HOVER KHÔNG ZOOM VIDEO LÊN */}
+            <div className="relative aspect-video w-full overflow-hidden bg-black/50">
+              <video
+                src={VIDEO_URL}
+                playsInline
+                muted
+                preload="metadata"
+                className="h-full w-full object-cover select-none"
+              />
+            </div>
+
+            {/* Lớp layout đen mờ: BAN ĐẦU ẨN (opacity: 0), CHỈ HOVER MỚI THẤY và click mới vào video */}
+            <div
+              ref={cardOverlayRef}
+              className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 px-6 opacity-0 backdrop-blur-[3px]"
+            >
+              {/* Logo Picare Client */}
+              <div
+                ref={cardLogoRef}
+                className="flex flex-col items-center justify-center opacity-0"
+              >
+                <img
+                  src={logoPicareNewBlack}
+                  alt="Picare Client"
+                  className="h-12 w-auto object-contain mix-blend-screen drop-shadow-[0_8px_32px_rgba(248,109,43,0.45)] sm:h-16 md:h-20"
+                />
+              </div>
+
+              {/* Text helper */}
+              <p
+                ref={cardHelperRef}
+                className="font-haffer mt-1 text-[11px] font-normal text-zinc-300 opacity-0 sm:text-[12px]"
+              >
+                Nhấn để chơi video
+              </p>
+            </div>
+          </div>
         </motion.div>
+
+        {/* Component Transition Video Cinematic đè lên HẾT TẤT CẢ */}
+        <CinematicVideoModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          videoSrc={VIDEO_URL}
+        />
 
         {/* Text giải pháp bài toán vận hành dưới mockup */}
         <motion.div
@@ -201,3 +372,4 @@ export default function ClientOmsPage() {
     </div>
   );
 }
+
