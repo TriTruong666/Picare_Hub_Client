@@ -64,11 +64,19 @@ export default function AppRouter() {
       />
       <Route
         path={PATHS.CATALOGUE.PUBLIC_GALLERY}
-        element={<CataloguePublicGalleryPage />}
+        element={
+          <AuthGuard requireDashboardAccess={false}>
+            <CataloguePublicGalleryPage />
+          </AuthGuard>
+        }
       />
       <Route
         path={PATHS.CATALOGUE.PUBLIC_PREVIEW}
-        element={<CataloguePublicPreviewPage />}
+        element={
+          <AuthGuard requireDashboardAccess={false}>
+            <CataloguePublicPreviewPage />
+          </AuthGuard>
+        }
       />
 
       {/* Public Routes (Landing, Login, etc.) */}

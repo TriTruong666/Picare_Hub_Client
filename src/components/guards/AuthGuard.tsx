@@ -8,13 +8,18 @@ import { FullScreenSpinner } from "../custom_ui/Spinner";
 interface AuthGuardProps {
   children: React.ReactNode;
   allowedRoles?: Role[];
+  requireDashboardAccess?: boolean;
 }
 
 /**
  * Bảo vệ các private routes.
  * Nếu chưa đăng nhập, chuyển về LoginHubPage kèm redirect về link đang mở.
  */
-export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
+export function AuthGuard({
+  children,
+  allowedRoles,
+  requireDashboardAccess = true,
+}: AuthGuardProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
@@ -36,7 +41,7 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
     if (!user?.role || !allowedRoles.includes(user.role)) {
       return <Navigate to={PATHS.HOME} replace />;
     }
-  } else {
+  } else if (requireDashboardAccess) {
     if (!canAccessDashboard(user?.role)) {
       return <Navigate to={PATHS.HOME} replace />;
     }

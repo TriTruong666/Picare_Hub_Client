@@ -20,7 +20,7 @@ import {
   FiZoomIn,
   FiZoomOut,
 } from "react-icons/fi";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation, Navigate } from "react-router-dom";
 
 import { CataloguePageTurnCanvas } from "@/components/custom_ui/CataloguePageTurnCanvas";
 import {
@@ -30,10 +30,11 @@ import {
   isCataloguePageImageDecoded,
   preloadCataloguePageImages,
 } from "../../utils/CataloguePageImageCache";
-import { Spinner } from "@/components/custom_ui/Spinner";
+import { Spinner, FullScreenSpinner } from "@/components/custom_ui/Spinner";
 import { ThemeToggle } from "@/components/custom_ui/ThemeToggle";
 import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
+import { useAuth } from "@/hooks/useAuth";
 import { useCatalogueDetail } from "@/hooks/data/useCatalogueHooks";
 import { getMockCatalogueDetail } from "@/mock/catalogueMockData";
 import { toast } from "@/hooks/useToast";
@@ -500,6 +501,8 @@ function ThumbnailItem({
 }
 
 export default function CataloguePublicPreviewPage() {
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const location = useLocation();
   const { catalogueId = "" } = useParams<{ catalogueId: string }>();
   const {
     data: catalogueData,
@@ -509,6 +512,20 @@ export default function CataloguePublicPreviewPage() {
   } = useCatalogueDetail(catalogueId);
   const containerRef = useRef<HTMLDivElement>(null);
   const thumbnailScrollRef = useRef<HTMLDivElement>(null);
+
+  if (isAuthLoading) {
+    return <FullScreenSpinner />;
+  }
+
+  if (!isAuthenticated) {
+    const redirect = `${location.pathname}${location.search}${location.hash}`;
+    return (
+      <Navigate
+        to={`${PATHS.LOGIN}?redirect=${encodeURIComponent(redirect)}`}
+        replace
+      />
+    );
+  }
 
   // Fallback to mock data if API is loading fails or returns no details (e.g. offline dev mode)
   const catalogue = useMemo(() => {

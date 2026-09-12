@@ -4,7 +4,6 @@ import LoginHubFormSection from "@/components/custom_ui/LoginHubFormSection";
 import { useAuth } from "@/hooks/useAuth";
 import { PATHS } from "@/config/paths";
 import { canAccessDashboard } from "@/config/dashboardAccess";
-import LoginPage from "@/pages/public/LoginPage";
 
 function getSafeRedirectPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
@@ -36,7 +35,7 @@ export default function LoginHubPage() {
     !canAccessDashboard(user?.role) &&
     !clientId
   ) {
-    return <Navigate to={PATHS.HOME} replace />;
+    return <Navigate to={PATHS.LOGIN_CLIENT} replace />;
   }
 
   // If authenticated and an explicit deep link was requested (e.g. from AuthGuard):
@@ -49,6 +48,15 @@ export default function LoginHubPage() {
     !clientId
   ) {
     return <Navigate to={redirectPath} replace />;
+  }
+
+  // If authenticated and accessing /login directly from any route (not /login/client, no SSO clientId):
+  if (
+    isAuthenticated &&
+    !location.pathname.startsWith(PATHS.LOGIN_CLIENT) &&
+    !clientId
+  ) {
+    return <Navigate to={PATHS.LOGIN_CLIENT} replace />;
   }
 
   // Safe back navigation: Default back to / (PATHS.HOME)

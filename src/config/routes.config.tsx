@@ -19,8 +19,6 @@ import LoginPage from "@/pages/public/LoginPage";
 import LoginClientPage from "@/pages/public/LoginClientPage";
 import LoginHubPage from "@/pages/public/LoginHubPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
-import CataloguePublicPreviewPage from "@/pages/public/CataloguePublicPreviewPage";
-import CataloguePublicGalleryPage from "@/pages/public/CataloguePublicGalleryPage";
 import ContractCreatePage from "@/pages/private/ContractCreatePage";
 import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
 import ContractEditPage from "@/pages/private/ContractEditPage";
@@ -82,14 +80,6 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
   {
     path: PATHS.QR_PRODUCT_PREVIEW,
     element: <QRProductPreviewPage />,
-  },
-  {
-    path: PATHS.CATALOGUE.PUBLIC_GALLERY,
-    element: <CataloguePublicGalleryPage />,
-  },
-  {
-    path: PATHS.CATALOGUE.PUBLIC_PREVIEW,
-    element: <CataloguePublicPreviewPage />,
   },
 ];
 

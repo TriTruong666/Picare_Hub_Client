@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import { FiSearch, FiX } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation, Navigate } from "react-router-dom";
 
-import { Spinner } from "@/components/custom_ui/Spinner";
+import { Spinner, FullScreenSpinner } from "@/components/custom_ui/Spinner";
 import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
 import { PATHS } from "@/config/paths";
+import { useAuth } from "@/hooks/useAuth";
 import { useInfiniteCatalogueList } from "@/hooks/data/useCatalogueHooks";
 import { MOCK_CATALOGUES } from "@/mock/catalogueMockData";
 import type { Catalogue, CatalogueDetail } from "@/types/Catalogue";
@@ -157,6 +158,8 @@ function GallerySkeleton() {
 }
 
 export default function CataloguePublicGalleryPage() {
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
@@ -171,6 +174,20 @@ export default function CataloguePublicGalleryPage() {
 
     return () => window.clearTimeout(timer);
   }, [searchInput]);
+
+  if (isAuthLoading) {
+    return <FullScreenSpinner />;
+  }
+
+  if (!isAuthenticated) {
+    const redirect = `${location.pathname}${location.search}${location.hash}`;
+    return (
+      <Navigate
+        to={`${PATHS.LOGIN}?redirect=${encodeURIComponent(redirect)}`}
+        replace
+      />
+    );
+  }
 
   const {
     data,

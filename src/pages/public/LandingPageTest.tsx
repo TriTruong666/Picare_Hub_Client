@@ -643,6 +643,14 @@ export default function LandingPageTest() {
         setIsGridSection(inGrid);
       }
 
+      // Chỉ kích hoạt xuất hiện khi cuộn xuống Section 2 (Grid)
+      if (inGrid) {
+        hasRevealedRef.current = true;
+        setAreProductsVisible(true);
+      } else {
+        setAreProductsVisible(false);
+      }
+
       lenis.scrollTo(targetY, {
         duration,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -656,7 +664,7 @@ export default function LandingPageTest() {
     };
 
     // Lắng nghe scroll:
-    // 1. Khi tới Section Grid (Section 2) -> MỚI BẮT ĐẦU animation biến mất của flow aero
+    // 1. Khi cuộn xuống tới Section 2 -> Hiển thị ngay section grid mà không phải đợi hết animation flow aero
     // 2. Tự động stick dính vào Section kế tiếp khi vượt qua ngưỡng chiều cao
     const handleLenisScroll = (e: { scroll: number }) => {
       const scrollY = e.scroll;
@@ -669,9 +677,19 @@ export default function LandingPageTest() {
         setIsGridSection(inGrid);
       }
 
-      // Khi chạm tới Section Grid (>= 75% vh) -> MỚI BẮT ĐẦU animation biến mất của flow aero
+      // Khi cuộn xuống qua ngưỡng 50% vh -> Hiển thị grid
+      if (scrollY >= vh * 0.5) {
+        hasRevealedRef.current = true;
+        setAreProductsVisible(true);
+      } else if (scrollY < vh * 0.3) {
+        // Khi ở lại Section 1 (Hero) -> Ẩn grid
+        setAreProductsVisible(false);
+      }
+
+      // Khi chạm tới Section Grid (>= 75% vh) -> Kích hoạt animation biến mất của flow aero (không đợi xong mới hiện grid)
       if (scrollY >= vh * 0.75 && !isDrained) {
         isDrained = true;
+        setAreProductsVisible(true);
         gsap.to(streamDrainRef.current, {
           value: 1.0,
           duration: 1.5, // Chậm rãi, thư thái theo đúng yêu cầu
@@ -680,15 +698,11 @@ export default function LandingPageTest() {
           onUpdate: () => {
             setStreamDrain(streamDrainRef.current.value);
           },
-          onComplete: () => {
-            // Khi animation aero đã chảy đi xong -> MỚI BẮT ĐẦU THẤY TỪNG ITEM (fade transition theo thứ tự)
-            hasRevealedRef.current = true;
-            setAreProductsVisible(true);
-          },
         });
-      } else if (scrollY < vh * 0.35 && isDrained) {
-        // Khi cuộn ngược về Section 1 -> Animation xuất hiện lại của flow aero
+      } else if (scrollY < vh * 0.25 && isDrained) {
+        // Khi cuộn ngược về Section 1 -> Animation xuất hiện lại của flow aero và ẩn grid
         isDrained = false;
+        setAreProductsVisible(false);
         gsap.to(streamDrainRef.current, {
           value: 0.0,
           duration: 1.4,
