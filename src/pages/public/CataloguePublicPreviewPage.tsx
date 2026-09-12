@@ -20,7 +20,7 @@ import {
   FiZoomIn,
   FiZoomOut,
 } from "react-icons/fi";
-import { Link, useParams, useLocation, Navigate } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 
 import { CataloguePageTurnCanvas } from "@/components/custom_ui/CataloguePageTurnCanvas";
 import {
@@ -36,7 +36,6 @@ import { Tooltip } from "@/components/custom_ui/Tooltip";
 import { PATHS } from "@/config/paths";
 import { useAuth } from "@/hooks/useAuth";
 import { useCatalogueDetail } from "@/hooks/data/useCatalogueHooks";
-import { getMockCatalogueDetail } from "@/mock/catalogueMockData";
 import { toast } from "@/hooks/useToast";
 import type { CatalogueDetail } from "@/types/Catalogue";
 
@@ -503,37 +502,34 @@ function ThumbnailItem({
 export default function CataloguePublicPreviewPage() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const { catalogueId = "" } = useParams<{ catalogueId: string }>();
+
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      const redirect = `${location.pathname}${location.search}${location.hash}`;
+      navigate(`${PATHS.LOGIN}?redirect=${encodeURIComponent(redirect)}`, {
+        replace: true,
+      });
+    }
+  }, [isAuthLoading, isAuthenticated, location, navigate]);
+
   const {
     data: catalogueData,
     isLoading,
     isError,
     refetch,
-  } = useCatalogueDetail(catalogueId);
+  } = useCatalogueDetail(catalogueId, { enabled: isAuthenticated });
   const containerRef = useRef<HTMLDivElement>(null);
   const thumbnailScrollRef = useRef<HTMLDivElement>(null);
 
-  if (isAuthLoading) {
-    return <FullScreenSpinner />;
-  }
-
-  if (!isAuthenticated) {
-    const redirect = `${location.pathname}${location.search}${location.hash}`;
-    return (
-      <Navigate
-        to={`${PATHS.LOGIN}?redirect=${encodeURIComponent(redirect)}`}
-        replace
-      />
-    );
-  }
-
-  // Fallback to mock data if API is loading fails or returns no details (e.g. offline dev mode)
+  // Không dùng mock data nếu API lỗi hoặc không có chi tiết
   const catalogue = useMemo(() => {
     if (catalogueData && catalogueData.details && catalogueData.details.length > 0) {
       return catalogueData;
     }
-    return getMockCatalogueDetail(catalogueId);
-  }, [catalogueData, catalogueId]);
+    return null;
+  }, [catalogueData]);
 
   const pages = useMemo(() => {
     if (!catalogue?.details) return [];
@@ -841,6 +837,10 @@ export default function CataloguePublicPreviewPage() {
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   };
+
+  if (isAuthLoading) {
+    return <FullScreenSpinner />;
+  }
 
   if (isLoading && !catalogue) {
     return (

@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import { FiSearch, FiX } from "react-icons/fi";
-import { Link, useNavigate, useLocation, Navigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 import { Spinner, FullScreenSpinner } from "@/components/custom_ui/Spinner";
 import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
 import { PATHS } from "@/config/paths";
 import { useAuth } from "@/hooks/useAuth";
 import { useInfiniteCatalogueList } from "@/hooks/data/useCatalogueHooks";
-import { MOCK_CATALOGUES } from "@/mock/catalogueMockData";
 import type { Catalogue, CatalogueDetail } from "@/types/Catalogue";
 
 const PAGE_SIZE = 20;
@@ -175,19 +174,14 @@ export default function CataloguePublicGalleryPage() {
     return () => window.clearTimeout(timer);
   }, [searchInput]);
 
-  if (isAuthLoading) {
-    return <FullScreenSpinner />;
-  }
-
-  if (!isAuthenticated) {
-    const redirect = `${location.pathname}${location.search}${location.hash}`;
-    return (
-      <Navigate
-        to={`${PATHS.LOGIN}?redirect=${encodeURIComponent(redirect)}`}
-        replace
-      />
-    );
-  }
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      const redirect = `${location.pathname}${location.search}${location.hash}`;
+      navigate(`${PATHS.LOGIN}?redirect=${encodeURIComponent(redirect)}`, {
+        replace: true,
+      });
+    }
+  }, [isAuthLoading, isAuthenticated, location, navigate]);
 
   const {
     data,
@@ -196,11 +190,15 @@ export default function CataloguePublicGalleryPage() {
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = useInfiniteCatalogueList({
-    limit: PAGE_SIZE,
-    status: "ACTIVE",
-    search: search || undefined,
-  });
+    refetch,
+  } = useInfiniteCatalogueList(
+    {
+      limit: PAGE_SIZE,
+      status: "ACTIVE",
+      search: search || undefined,
+    },
+    { enabled: isAuthenticated },
+  );
 
   const catalogueMap = new Map<string, Catalogue>();
   data?.pages.forEach((page) => {
@@ -210,22 +208,15 @@ export default function CataloguePublicGalleryPage() {
   });
   const serverCatalogues = Array.from(catalogueMap.values());
 
-  // Use server catalogues if available; otherwise, provide rich mock fallback for dev/demo
   const catalogues = useMemo(() => {
-    if (serverCatalogues.length > 0) {
-      return serverCatalogues;
-    }
-    // Filter mock data based on search input
-    if (!search) return MOCK_CATALOGUES;
+    if (!search) return serverCatalogues;
     const query = search.toLowerCase();
-    return MOCK_CATALOGUES.filter(
+    return serverCatalogues.filter(
       (c) =>
         c.catalogueName.toLowerCase().includes(query) ||
         (c.note && c.note.toLowerCase().includes(query)),
     );
   }, [serverCatalogues, search]);
-
-  const isUsingMock = serverCatalogues.length === 0;
 
   useEffect(() => {
     const target = loadMoreRef.current;
@@ -243,6 +234,10 @@ export default function CataloguePublicGalleryPage() {
     observer.observe(target);
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  if (isAuthLoading) {
+    return <FullScreenSpinner />;
+  }
 
   const handleBackToHome = () => {
     setIsExiting(true);
@@ -338,24 +333,31 @@ export default function CataloguePublicGalleryPage() {
             />
           </motion.div>
 
-          {isUsingMock && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#FFA336]/20 bg-[#FFA336]/[0.05] px-3 py-1 text-[11px] text-[#FFA336]/80"
-            >
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#FFA336]" />
-              Chế độ xem trước với dữ liệu mô phỏng trực quan
-            </motion.div>
-          )}
         </section>
 
         {isLoading && serverCatalogues.length === 0 ? (
           <GallerySkeleton />
         ) : null}
 
-        {!isLoading && catalogues.length === 0 ? (
+        {isError && (
+          <section className="flex min-h-[35vh] flex-col items-center justify-center text-center">
+            <h2 className="text-[1.375rem] leading-none font-medium tracking-[-0.03em] text-white/90">
+              Không thể tải danh sách catalogue
+            </h2>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-white/45">
+              Đã xảy ra lỗi khi kết nối với máy chủ. Vui lòng kiểm tra lại hoặc thử lại sau.
+            </p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="mt-6 inline-flex h-10 items-center justify-center rounded-lg bg-[#FFA336] px-5 text-xs font-semibold text-black transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Thử lại
+            </button>
+          </section>
+        )}
+
+        {!isLoading && !isError && catalogues.length === 0 ? (
           <section className="flex min-h-[35vh] flex-col items-center justify-center text-center">
             <h2 className="text-[1.5rem] leading-none font-medium tracking-[-0.03em] text-white/90">
               {search ? "Không tìm thấy catalogue" : "Thư viện đang cập nhật"}

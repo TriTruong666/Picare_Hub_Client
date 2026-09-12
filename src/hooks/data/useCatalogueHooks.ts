@@ -31,10 +31,12 @@ export function useCatalogueList(params: CatalogueListParams) {
 
 export function useInfiniteCatalogueList(
   params: Omit<CatalogueListParams, "page">,
+  options?: { enabled?: boolean },
 ) {
   return useInfiniteQuery({
     queryKey: ["catalogues", "infinite-list", params],
     initialPageParam: 1,
+    enabled: options?.enabled,
     queryFn: async ({ pageParam }) => {
       const response = await CatalogueService.getListCatalogues({
         ...params,
@@ -66,12 +68,18 @@ export function useInfiniteCatalogueList(
 /**
  * Hook lấy chi tiết Catalogue theo ID
  */
-export function useCatalogueDetail(catalogueId: string) {
+export function useCatalogueDetail(
+  catalogueId: string,
+  options?: { enabled?: boolean },
+) {
   return useFetch(
     ["catalogues", catalogueId],
     () => CatalogueService.getDetailCatalogue(catalogueId),
     {
-      enabled: !!catalogueId,
+      enabled:
+        options?.enabled !== undefined
+          ? options.enabled && !!catalogueId
+          : !!catalogueId,
     },
   );
 }
