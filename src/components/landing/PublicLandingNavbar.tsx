@@ -204,8 +204,8 @@ export function PublicLandingNavbar({
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
                 </span>
                 <p className="font-haffer text-[11px] font-medium tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
-                  Picare Hub đang trong quá trình nâng cấp giao diện, các hệ thống
-                  khác sẽ không bị ảnh hưởng
+                  Toàn bộ hệ thống sẽ bảo trì vào lúc 23:00 ngày 14/09/2026, dự
+                  kiến cập nhật đến 23:59 cùng ngày. Xin trân trọng cảm ơn
                 </p>
               </div>
 
@@ -365,7 +365,7 @@ export function PublicLandingNavbar({
                       </div>
 
                       {/* Menu Items */}
-                      <div className="font-haffer pt-1 space-y-0.5 text-[12px]">
+                      <div className="font-haffer space-y-0.5 pt-1 text-[12px]">
                         {canUseDashboard && (
                           <Link
                             to={PATHS.DASHBOARD.ROOT}

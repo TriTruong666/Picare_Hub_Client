@@ -5,6 +5,11 @@ import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
 import CinematicVideoModal from "@/components/custom_ui/CinematicVideoModal";
 import picareHubLogo from "@/assets/images/logo.png";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
+import { FiArrowRight } from "react-icons/fi";
+import { toast } from "@/hooks/useToast";
+
+const PICARE_WMS_IMG =
+  "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789379206979_85f318ed-1e59-4137-a52b-df52fb49c52a_picarewmsnonbg.png";
 
 // Video demo OMS
 const VIDEO_URL =
@@ -40,6 +45,33 @@ const BENEFITS_LIST = [
   },
 ];
 
+const WMS_BENEFITS = [
+  {
+    id: "01",
+    number: "01",
+    title: "Đồng bộ tồn kho hai chiều Real-time",
+    desc: "Tự động cập nhật và trừ trực tiếp trên hệ thống vật lý ngay khi phát sinh đơn hàng hoặc xuất nhập kho.",
+  },
+  {
+    id: "02",
+    number: "02",
+    title: "Tác động sâu vào dữ liệu kho thực tế",
+    desc: "Can thiệp trực tiếp vào luồng luân chuyển, định vị từng vị trí kệ hàng và xử lý luồng hàng hoàn.",
+  },
+  {
+    id: "03",
+    number: "03",
+    title: "Tối ưu lộ trình nhặt hàng Pick & Pack",
+    desc: "Gợi ý lộ trình di chuyển ngắn nhất, quét Barcode/QR giúp hạn chế sai sót nhầm SKU lên đến 99.9%.",
+  },
+  {
+    id: "04",
+    number: "04",
+    title: "Cảnh báo ngưỡng an toàn & Date thông minh",
+    desc: "Cảnh báo ngưỡng tồn tối thiểu, quản lý chặt chẽ date/lô FEFO & FIFO chống tồn đọng hàng cận hạn.",
+  },
+];
+
 export default function ClientOmsPage() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [titleWidth, setTitleWidth] = useState<number | null>(null);
@@ -51,6 +83,13 @@ export default function ClientOmsPage() {
 
   // Cinematic Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleWmsCtaClick = () => {
+    toast.info(
+      "Picare WMS",
+      "Tính năng chi tiết Picare WMS đang được chuẩn bị. Vui lòng liên hệ đội ngũ Picare để nhận demo & tư vấn giải pháp kho!",
+    );
+  };
 
   useEffect(() => {
     const updateSize = () => {
@@ -368,8 +407,80 @@ export default function ClientOmsPage() {
             </div>
           ))}
         </motion.div>
+
+        {/* Section quảng cáo thêm sản phẩm Picare WMS (Bọc nền sáng full-width, Layout chuẩn 2 cột) */}
+        <section className="relative left-1/2 mt-28 w-screen -translate-x-1/2 bg-white py-20 text-neutral-900 sm:mt-36 sm:py-24 md:mt-44 md:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+            <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
+              {/* Bên trái: Tiêu đề, Subtitle, Features dạng 1 cột (grid col 1), Nút CTA */}
+              <div className="flex flex-col items-start text-left lg:col-span-5">
+                {/* Tiêu đề cỡ vừa */}
+                <h2 className="font-haffer text-2xl leading-snug font-semibold tracking-tight text-neutral-900 sm:text-3xl lg:text-[34px]">
+                  Không thể thiếu Picare WMS.
+                </h2>
+
+                {/* Subtitle */}
+                <p className="font-haffer mt-4 text-sm leading-relaxed font-normal text-neutral-600 sm:text-[15px]">
+                  Chúng tôi nhận thấy nhu cầu quản lý tồn kho của khách hàng sau
+                  khi sử dụng OMS là rất cao, hệ thống hiện tại chỉ xem cơ bản
+                  về mặt tồn kho mà không có tác động vào dữ liệu tồn kho thực
+                  tế của doanh nghiệp.
+                </p>
+
+                {/* Features: 1 cột (grid col 1) */}
+                <div className="mt-8 flex w-full flex-col space-y-4">
+                  {WMS_BENEFITS.map((item) => (
+                    <div
+                      key={item.id}
+                      className="group flex items-start border-t border-neutral-200/90 pt-3.5 transition-colors duration-300 hover:border-neutral-400"
+                    >
+                      {/* Số bên trái */}
+                      <span className="font-haffer shrink-0 text-xs font-normal text-neutral-400">
+                        {item.number}
+                      </span>
+
+                      {/* Title + Desc bên phải */}
+                      <div className="ml-4 flex flex-col">
+                        <h3 className="font-haffer text-[14.5px] leading-snug font-medium text-neutral-900">
+                          {item.title}
+                        </h3>
+                        <p className="font-haffer mt-1 text-[13px] leading-relaxed font-normal text-neutral-600">
+                          {item.desc}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Nút CTA đơn giản, thanh lịch */}
+                <div className="mt-8 flex items-center">
+                  <button
+                    type="button"
+                    onClick={handleWmsCtaClick}
+                    className="group inline-flex cursor-pointer items-center justify-center gap-2.5 rounded-full bg-[#120F17] px-7 py-3.5 text-sm font-medium text-white shadow-lg shadow-black/10 transition-all duration-300 hover:bg-[#F86D2B] hover:shadow-orange-500/25 active:scale-[0.98] sm:text-[15px]"
+                  >
+                    <span>Xem chi tiết hệ thống WMS</span>
+                    <FiArrowRight className="text-base text-[#F86D2B] transition-all duration-300 group-hover:translate-x-1 group-hover:text-white" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Bên phải: Hình ảnh WMS to, chiếm 7 cột */}
+              <div className="relative flex w-full items-center justify-center lg:col-span-7">
+                {/* Ambient backlight glow */}
+                <div className="pointer-events-none absolute -inset-6 rounded-full bg-gradient-to-tr from-[#F86D2B]/25 via-[#FFA336]/20 to-amber-300/15 blur-[70px]" />
+
+                {/* Hình không background to rõ ràng */}
+                <img
+                  src={PICARE_WMS_IMG}
+                  alt="Picare WMS"
+                  className="relative z-10 h-auto w-full scale-[1.4] object-contain transition-transform duration-700 ease-out select-none hover:scale-[1.45]"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );
 }
-
