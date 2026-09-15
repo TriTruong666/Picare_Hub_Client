@@ -115,7 +115,7 @@ export const OMS_FEATURE_GRID_ITEMS: OmsFeatureGridItem[] = [
   },
   {
     id: "feature-grid-6",
-    title: "Nhập xuất kho",
+    title: "Nhập xuất kho tự động",
     description:
       "Tự động cộng - trừ kho đối khi bắt đầu in đơn và trả hàng, tồn kho trên OMS hiện tại chưa hỗ trợ realtime, hệ thống sẽ tự động nâng cấp nếu bạn có module WMS.",
     mediaType: "video",
