@@ -353,6 +353,16 @@ function HotspotDot({
     setIsHovered(true);
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isDragActive) return;
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setIsHovered((prev) => !prev);
+  };
+
   const handleMouseLeave = () => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
@@ -399,14 +409,52 @@ function HotspotDot({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Vòng tròn Dot to hơn một tí, phong cách thanh lịch không nhấp nháy */}
-      <div className="group relative flex cursor-pointer items-center justify-center">
-        {/* Vòng tròn bên ngoài kính mờ sang trọng */}
-        <span className="flex h-6 w-6 items-center justify-center rounded-full border border-white/70 bg-black/40 shadow-[0_4px_16px_rgba(0,0,0,0.5)] backdrop-blur-md transition-all duration-300 group-hover:scale-115 group-hover:border-white group-hover:bg-black/60 sm:h-7 sm:w-7">
-          {/* Chấm tròn tâm màu cam thương hiệu */}
-          <span className="h-2.5 w-2.5 rounded-full bg-[#F86D2B] shadow-[0_0_8px_rgba(248,109,43,0.8)] ring-1 ring-white/80 transition-transform duration-300 group-hover:scale-110 sm:h-3 sm:w-3" />
+      {/* Vòng tròn Hotspot Beacon phong cách tối giản (Apple Minimalist) */}
+      <button
+        type="button"
+        onClick={handleClick}
+        aria-label={hotspot.title}
+        className="group relative flex cursor-pointer items-center justify-center p-2 focus:outline-none select-none"
+      >
+        {/* Vòng sóng breathing mở rộng êm dịu, thanh lịch */}
+        <motion.span
+          className="pointer-events-none absolute rounded-full border border-white/65 bg-white/10"
+          animate={{
+            scale: [1, 2],
+            opacity: [0.65, 0],
+          }}
+          transition={{
+            duration: 2.4,
+            repeat: Infinity,
+            ease: "easeOut",
+          }}
+          style={{ inset: 3 }}
+        />
+
+        {/* Nút kính đen viền trắng tương phản cao, nổi bật trên mọi nền mockup */}
+        <span
+          className={`relative flex h-6 w-6 items-center justify-center rounded-full border backdrop-blur-md transition-all duration-300 sm:h-7 sm:w-7 ${
+            isHovered
+              ? "border-white bg-black shadow-[0_0_16px_rgba(255,255,255,0.4),0_4px_16px_rgba(0,0,0,0.6)] scale-115"
+              : "border-white/70 bg-black/60 shadow-[0_4px_16px_rgba(0,0,0,0.5)] group-hover:border-white group-hover:bg-black/85 group-hover:scale-115"
+          }`}
+        >
+          {/* Biểu tượng '+' mảnh tinh tế, tự xoay thành '×' khi mở */}
+          <svg
+            className={`h-2.5 w-2.5 stroke-white transition-transform duration-300 ease-out sm:h-3 sm:w-3 ${
+              isHovered ? "rotate-45" : "rotate-0"
+            }`}
+            viewBox="0 0 12 12"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          >
+            <line x1="6" y1="2.5" x2="6" y2="9.5" />
+            <line x1="2.5" y1="6" x2="9.5" y2="6" />
+          </svg>
         </span>
-      </div>
+      </button>
 
       {/* Card UI hiển thị khi hover */}
       <AnimatePresence>

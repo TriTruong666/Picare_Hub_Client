@@ -68,18 +68,18 @@ export const OMS_MOCKUP_SLIDES: OmsMockupSlide[] = [
         y: 20.7,
         placement: "bottom-left",
       },
-      {
-        id: "global-search",
-        title: "Tìm kiếm thông minh toàn hệ thống",
-        description:
-          "Truy xuất nhanh đơn hàng, khách hàng, sản phẩm hoặc điều hướng tính năng trên toàn hệ thống OMS chỉ với một thao tác tìm kiếm.",
-        mediaType: "video",
-        mediaUrl:
-          "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789458002777_58b55ca6-dd5d-483f-b91b-441faa0134ba_omsglobalsearch.mp4",
-        x: 20.5,
-        y: 3.8,
-        placement: "bottom-right",
-      },
+      // {
+      //   id: "global-search",
+      //   title: "Tìm kiếm thông minh toàn hệ thống",
+      //   description:
+      //     "Truy xuất nhanh đơn hàng, khách hàng, sản phẩm hoặc điều hướng tính năng trên toàn hệ thống OMS chỉ với một thao tác tìm kiếm.",
+      //   mediaType: "video",
+      //   mediaUrl:
+      //     "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789458002777_58b55ca6-dd5d-483f-b91b-441faa0134ba_omsglobalsearch.mp4",
+      //   x: 20.5,
+      //   y: 3.8,
+      //   placement: "bottom-right",
+      // },
     ],
   },
   {
@@ -98,6 +98,46 @@ export const OMS_MOCKUP_SLIDES: OmsMockupSlide[] = [
           "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789458581713_c334f2b4-9508-4e66-b0a3-d4dc41c80879_omsdetailreturn.mp4",
         x: 92.5,
         y: 47.0,
+        placement: "bottom-left",
+      },
+    ],
+  },
+  {
+    id: "oms-package-video",
+    name: "Quay video đóng gói",
+    image:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789464615318_812c5653-f149-42e9-b52a-f79e2286a8bb_omspackagevideo.png",
+    hotspots: [
+      {
+        id: "package-video-list",
+        title: "Liên kết đến danh sách videos",
+        description:
+          "Danh sách videos đóng hàng bao gồm Đóng hàng và Trả hàng. Liên kết trực tiếp với đơn hàng nhằm tra cứu nhanh và ghép video để khiếu nại lên sàn.",
+        mediaType: "image",
+        mediaUrl:
+          "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789464614470_e912604b-32e5-46d4-aa0a-3ebb3c30a85c_omspackagevideolist.png",
+        x: 4.5,
+        y: 61.0,
+        placement: "top-right",
+      },
+    ],
+  },
+  {
+    id: "oms-print-order",
+    name: "Quản lý in đơn hàng",
+    image:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789465442229_3a99d724-66f9-4b22-bdc8-6085ba6ed06e_oms-print-order.png",
+    hotspots: [
+      {
+        id: "oms-print-order-flow",
+        title: "In đơn hàng loạt",
+        description:
+          "Xuất và in đơn hàng hàng loạt chỉ với những thao tác đơn giản, kết hợp với kiểm tra tồn kho và trừ tồn kho. In xong hệ thống sẽ tự động gộp file PDF để in.",
+        mediaType: "video",
+        mediaUrl:
+          "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040808196_e5d26978-c804-46e8-b634-7056d9519bb6_printorderoms.mp4",
+        x: 86.1,
+        y: 20.7,
         placement: "bottom-left",
       },
     ],
