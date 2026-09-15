@@ -77,6 +77,71 @@ const WMS_BENEFITS = [
   },
 ];
 
+export interface OmsFeatureGridItem {
+  id: string;
+  title: string;
+  description: string;
+  mediaType: "video" | "image";
+  mediaUrl: string;
+}
+
+export const OMS_FEATURE_GRID_ITEMS: OmsFeatureGridItem[] = [
+  {
+    id: "feature-grid-1",
+    title: "Tìm kiếm thông minh",
+    description:
+      "Bạn có thể tìm kiếm đơn hàng, video đơn trả hàng, những cụm đơn xuất kho cũng như điều hướng nhanh tới các Tabs trong hệ thống chỉ với một ô nhập duy nhất",
+    mediaType: "video",
+    mediaUrl:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789458002777_58b55ca6-dd5d-483f-b91b-441faa0134ba_omsglobalsearch.mp4",
+  },
+  {
+    id: "feature-grid-2",
+    title: "Xuất hoá đơn Misa",
+    description:
+      "Hệ thống có liên kết với Misa Amis nhằm phục vụ xuất hoá đơn đầu ra nhanh chóng chỉ với một nút bấm để xuất hàng loạt hoá đơn.",
+    mediaType: "video",
+    mediaUrl:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040818588_274e6a57-8814-4602-a775-eb61a3a008f5_syncorderoms.mp4",
+  },
+  {
+    id: "feature-grid-3",
+    title: "Quản lý vô hạn shop",
+    description:
+      "Không giới hạn số lượng shop Tiktok hay Shopee được kết nối, giúp bạn dễ dàng quản lý nhiều gian hàng trên cùng một hệ thống, thao tác dễ dàng.",
+    mediaType: "video",
+    mediaUrl:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040818588_274e6a57-8814-4602-a775-eb61a3a008f5_syncorderoms.mp4",
+  },
+  {
+    id: "feature-grid-4",
+    title: "Dashboard Realtime",
+    description:
+      "Cung cấp cái nhìn tổng quan và trực quan về hiệu quả hoạt động kinh doanh với các số liệu quan trọng như doanh thu, lợi nhuận,... theo thời gian thực.",
+    mediaType: "video",
+    mediaUrl:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040818588_274e6a57-8814-4602-a775-eb61a3a008f5_syncorderoms.mp4",
+  },
+  {
+    id: "feature-grid-5",
+    title: "UI/UX chính là yếu tố quan trọng",
+    description:
+      "Hệ thống đã nhiều lần nâng cấp giao diện dựa trên trải nghiệm của người dùng thực tế, chúng tôi cũng có thể custom riêng tuỳ nhu cầu.",
+    mediaType: "video",
+    mediaUrl:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040818588_274e6a57-8814-4602-a775-eb61a3a008f5_syncorderoms.mp4",
+  },
+  {
+    id: "feature-grid-6",
+    title: "Tốc độ và bảo mật",
+    description:
+      "Được xây dựng trên nền tảng hiện đại, đảm bảo tốc độ xử lý nhanh và bảo mật dữ liệu cao, giúp bạn yên tâm sử dụng. Bên cạnh đó chúng tôi cũng có đội ngũ hỗ trợ 24/7.",
+    mediaType: "video",
+    mediaUrl:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040818588_274e6a57-8814-4602-a775-eb61a3a008f5_syncorderoms.mp4",
+  },
+];
+
 interface GsapWmsCtaButtonProps {
   onClick?: () => void;
   label?: string;
@@ -414,7 +479,7 @@ function HotspotDot({
         type="button"
         onClick={handleClick}
         aria-label={hotspot.title}
-        className="group relative flex cursor-pointer items-center justify-center p-2 focus:outline-none select-none"
+        className="group relative flex cursor-pointer items-center justify-center p-2 select-none focus:outline-none"
       >
         {/* Vòng sóng breathing mở rộng êm dịu, thanh lịch */}
         <motion.span
@@ -435,8 +500,8 @@ function HotspotDot({
         <span
           className={`relative flex h-6 w-6 items-center justify-center rounded-full border backdrop-blur-md transition-all duration-300 sm:h-7 sm:w-7 ${
             isHovered
-              ? "border-white bg-black shadow-[0_0_16px_rgba(255,255,255,0.4),0_4px_16px_rgba(0,0,0,0.6)] scale-115"
-              : "border-white/70 bg-black/60 shadow-[0_4px_16px_rgba(0,0,0,0.5)] group-hover:border-white group-hover:bg-black/85 group-hover:scale-115"
+              ? "scale-115 border-white bg-black shadow-[0_0_16px_rgba(255,255,255,0.4),0_4px_16px_rgba(0,0,0,0.6)]"
+              : "border-white/70 bg-black/60 shadow-[0_4px_16px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:border-white group-hover:bg-black/85"
           }`}
         >
           {/* Biểu tượng '+' mảnh tinh tế, tự xoay thành '×' khi mở */}
@@ -1031,6 +1096,49 @@ export default function ClientOmsPage() {
 
             {/* Mô hình Apple Mac Studio Display nhiều màn hình (kéo slide hoặc click tab) */}
             <StudioDisplayCarousel />
+
+            {/* Grid 3 cột các tính năng chi tiết ở dưới Mac Display */}
+            <div className="mt-20 border-neutral-200/90 pt-16 sm:mt-28 sm:pt-20">
+              <div className="grid grid-cols-1 gap-x-8 gap-y-12 text-left md:grid-cols-2 lg:grid-cols-3 lg:gap-x-10 lg:gap-y-16">
+                {OMS_FEATURE_GRID_ITEMS.map((item) => (
+                  <div
+                    key={item.id}
+                    className="group flex flex-col border-t border-neutral-200/90 pt-5 transition-colors duration-300 hover:border-neutral-400 sm:pt-6"
+                  >
+                    {/* Title */}
+                    <h3 className="font-haffer text-[17px] font-semibold tracking-tight text-neutral-900 sm:text-[18px]">
+                      {item.title}
+                    </h3>
+
+                    {/* Sub description */}
+                    <p className="font-haffer mt-2 text-[13.5px] leading-relaxed font-normal text-neutral-500 sm:text-[14px]">
+                      {item.description}
+                    </p>
+
+                    {/* Media bên dưới: tự play đối với video hoặc hiển thị ảnh */}
+                    <div className="relative mt-5 aspect-[16/10] w-full overflow-hidden rounded-xl border border-neutral-200/80 bg-neutral-100 shadow-sm transition-all duration-300 group-hover:border-neutral-300 group-hover:shadow-md">
+                      {item.mediaType === "video" ? (
+                        <video
+                          src={item.mediaUrl}
+                          autoPlay
+                          playsInline
+                          muted
+                          loop
+                          preload="metadata"
+                          className="h-full w-full object-cover select-none"
+                        />
+                      ) : (
+                        <img
+                          src={item.mediaUrl}
+                          alt={item.title}
+                          className="h-full w-full object-cover select-none"
+                        />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
