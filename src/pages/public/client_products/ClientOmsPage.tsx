@@ -97,12 +97,12 @@ export const OMS_FEATURE_GRID_ITEMS: OmsFeatureGridItem[] = [
   },
   {
     id: "feature-grid-2",
-    title: "Xuất hoá đơn Misa",
+    title: "Tài chính & Xuất hoá đơn Misa",
     description:
-      "Hệ thống có liên kết với Misa Amis nhằm phục vụ xuất hoá đơn đầu ra nhanh chóng chỉ với một nút bấm để xuất hàng loạt hoá đơn.",
+      "Hệ thống có liên kết với Misa Amis nhằm phục vụ xuất hoá đơn đầu ra nhanh chóng chỉ với một nút bấm. Ngoài ra hệ thống còn có quản lý Tài chính để dễ dàng đối soát.",
     mediaType: "video",
     mediaUrl:
-      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040818588_274e6a57-8814-4602-a775-eb61a3a008f5_syncorderoms.mp4",
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789496426464_ba85bb63-0c10-49ad-ba6e-7587227c4177_omsmisaexport.mp4",
   },
   {
     id: "feature-grid-3",
@@ -111,7 +111,16 @@ export const OMS_FEATURE_GRID_ITEMS: OmsFeatureGridItem[] = [
       "Không giới hạn số lượng shop Tiktok hay Shopee được kết nối, giúp bạn dễ dàng quản lý nhiều gian hàng trên cùng một hệ thống, thao tác dễ dàng.",
     mediaType: "video",
     mediaUrl:
-      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040818588_274e6a57-8814-4602-a775-eb61a3a008f5_syncorderoms.mp4",
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789496430913_ed74e269-4916-43af-b115-05264d9fbde1_omsshop.mp4",
+  },
+  {
+    id: "feature-grid-6",
+    title: "Nhập xuất kho",
+    description:
+      "Tự động cộng - trừ kho đối khi bắt đầu in đơn và trả hàng, tồn kho trên OMS hiện tại chưa hỗ trợ realtime, hệ thống sẽ tự động nâng cấp nếu bạn có module WMS.",
+    mediaType: "video",
+    mediaUrl:
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040808196_e5d26978-c804-46e8-b634-7056d9519bb6_printorderoms.mp4",
   },
   {
     id: "feature-grid-4",
@@ -120,7 +129,7 @@ export const OMS_FEATURE_GRID_ITEMS: OmsFeatureGridItem[] = [
       "Cung cấp cái nhìn tổng quan và trực quan về hiệu quả hoạt động kinh doanh với các số liệu quan trọng như doanh thu, lợi nhuận,... theo thời gian thực.",
     mediaType: "video",
     mediaUrl:
-      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040818588_274e6a57-8814-4602-a775-eb61a3a008f5_syncorderoms.mp4",
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789496422627_e33db31d-02b2-4e91-adfb-2cf0cc80c212_omsdashboard.mp4",
   },
   {
     id: "feature-grid-5",
@@ -129,16 +138,7 @@ export const OMS_FEATURE_GRID_ITEMS: OmsFeatureGridItem[] = [
       "Hệ thống đã nhiều lần nâng cấp giao diện dựa trên trải nghiệm của người dùng thực tế, chúng tôi cũng có thể custom riêng tuỳ nhu cầu.",
     mediaType: "video",
     mediaUrl:
-      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040818588_274e6a57-8814-4602-a775-eb61a3a008f5_syncorderoms.mp4",
-  },
-  {
-    id: "feature-grid-6",
-    title: "Tốc độ và bảo mật",
-    description:
-      "Được xây dựng trên nền tảng hiện đại, đảm bảo tốc độ xử lý nhanh và bảo mật dữ liệu cao, giúp bạn yên tâm sử dụng. Bên cạnh đó chúng tôi cũng có đội ngũ hỗ trợ 24/7.",
-    mediaType: "video",
-    mediaUrl:
-      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789040818588_274e6a57-8814-4602-a775-eb61a3a008f5_syncorderoms.mp4",
+      "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789497724673_a4d31c39-f9d2-4829-8b85-8c3b96231b84_omsgeneralui.mp4",
   },
 ];
 
@@ -1097,26 +1097,26 @@ export default function ClientOmsPage() {
             {/* Mô hình Apple Mac Studio Display nhiều màn hình (kéo slide hoặc click tab) */}
             <StudioDisplayCarousel />
 
-            {/* Grid 3 cột các tính năng chi tiết ở dưới Mac Display */}
+            {/* Grid 2 cột các tính năng chi tiết to rõ ràng, hiển thị full media */}
             <div className="mt-20 border-neutral-200/90 pt-16 sm:mt-28 sm:pt-20">
-              <div className="grid grid-cols-1 gap-x-8 gap-y-12 text-left md:grid-cols-2 lg:grid-cols-3 lg:gap-x-10 lg:gap-y-16">
+              <div className="grid grid-cols-1 gap-x-10 gap-y-14 text-left md:grid-cols-2 lg:gap-x-14 lg:gap-y-20">
                 {OMS_FEATURE_GRID_ITEMS.map((item) => (
                   <div
                     key={item.id}
-                    className="group flex flex-col border-t border-neutral-200/90 pt-5 transition-colors duration-300 hover:border-neutral-400 sm:pt-6"
+                    className="group flex flex-col border-t border-neutral-200/90 pt-6 transition-colors duration-300 hover:border-neutral-400 sm:pt-7"
                   >
-                    {/* Title */}
-                    <h3 className="font-haffer text-[17px] font-semibold tracking-tight text-neutral-900 sm:text-[18px]">
+                    {/* Title to rõ */}
+                    <h3 className="font-haffer text-[19px] font-semibold tracking-tight text-neutral-900 sm:text-[22px]">
                       {item.title}
                     </h3>
 
                     {/* Sub description */}
-                    <p className="font-haffer mt-2 text-[13.5px] leading-relaxed font-normal text-neutral-500 sm:text-[14px]">
+                    <p className="font-haffer mt-2.5 text-[14px] leading-relaxed font-normal text-neutral-500 sm:text-[15px]">
                       {item.description}
                     </p>
 
-                    {/* Media bên dưới: tự play đối với video hoặc hiển thị ảnh */}
-                    <div className="relative mt-5 aspect-[16/10] w-full overflow-hidden rounded-xl border border-neutral-200/80 bg-neutral-100 shadow-sm transition-all duration-300 group-hover:border-neutral-300 group-hover:shadow-md">
+                    {/* Media container to rộng: hiển thị full 100% video/ảnh với object-contain không bị crop */}
+                    <div className="relative mt-6 aspect-[16/9] w-full overflow-hidden rounded-xl border border-neutral-200/90 bg-[#0e0c14] shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-300 group-hover:border-neutral-300 group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] sm:rounded-2xl">
                       {item.mediaType === "video" ? (
                         <video
                           src={item.mediaUrl}
@@ -1125,13 +1125,13 @@ export default function ClientOmsPage() {
                           muted
                           loop
                           preload="metadata"
-                          className="h-full w-full object-cover select-none"
+                          className="h-full w-full object-contain select-none"
                         />
                       ) : (
                         <img
                           src={item.mediaUrl}
                           alt={item.title}
-                          className="h-full w-full object-cover select-none"
+                          className="h-full w-full object-contain select-none"
                         />
                       )}
                     </div>
@@ -1143,7 +1143,7 @@ export default function ClientOmsPage() {
         </section>
 
         {/* Section giới thiệu thêm sản phẩm Picare WMS (Không bg trắng, giữ nguyên layout & padding thoáng rộng như cũ) */}
-        <section className="relative left-1/2 mt-28 w-screen -translate-x-1/2 py-20 sm:mt-36 sm:py-24 md:mt-44 md:py-28">
+        <section className="relative left-1/2 mt-12 w-screen -translate-x-1/2 py-12 sm:mt-36 sm:py-24 md:mt-24 md:py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
             <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
               {/* Bên trái: Tiêu đề, Subtitle, Features dạng 1 cột (grid col 1), Nút CTA */}
