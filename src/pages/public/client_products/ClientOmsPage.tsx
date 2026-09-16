@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
+import Lenis from "lenis";
+import "lenis/dist/lenis.css";
 import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
 import PublicLandingFooter from "@/components/landing/PublicLandingFooter";
 import CinematicVideoModal from "@/components/custom_ui/CinematicVideoModal";
@@ -966,15 +968,63 @@ export default function ClientOmsPage() {
   // Trạng thái cuộn trang để kích hoạt Dark Background cho Navbar tương tự LandingPageTest
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // Tích hợp Lenis Smooth Scrolling chuẩn physics cao cấp (đồng bộ GSAP Ticker & Lerp quán tính siêu mượt)
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY || document.documentElement.scrollTop;
-      setIsScrolled(scrollY > 40);
+    const lenis = new Lenis({
+      lerp: 0.075, // Trọng số nội suy quán tính vật lý (tạo độ lướt trôi êm ái như trên lụa)
+      wheelMultiplier: 0.85, // Giảm độ gắt của bánh xe chuột / trackpad, tạo cảm giác đầm tay
+      touchMultiplier: 1.6,
+      smoothWheel: true,
+      autoRaf: false, // Tắt autoRaf độc lập để đồng bộ trực tiếp với GSAP Ticker
+    });
+
+    // Đồng bộ nhịp render của Lenis với GSAP Ticker để đạt 60-120fps khóa chặt không bao giờ giật lag
+    const updateTicker = (time: number) => {
+      lenis.raf(time * 1000);
     };
 
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    gsap.ticker.add(updateTicker);
+    gsap.ticker.lagSmoothing(0);
+
+    const handleLenisScroll = (e: { scroll: number }) => {
+      setIsScrolled(e.scroll > 40);
+    };
+
+    lenis.on("scroll", handleLenisScroll);
+
+    // Kích hoạt trạng thái ban đầu nếu người dùng tải lại trang khi đang cuộn
+    if (window.scrollY > 40) {
+      setIsScrolled(true);
+    }
+
+    // Bắt sự kiện click các thẻ link anchor nội bộ (#quote-card, #faq-section) để Lenis cuộn mượt
+    const handleAnchorClick = (e: MouseEvent) => {
+      const anchor = (e.target as HTMLElement)?.closest(
+        'a[href^="#"], button[data-anchor]',
+      );
+      if (!anchor) return;
+      const href =
+        anchor.getAttribute("href") || anchor.getAttribute("data-anchor");
+      if (href && href.startsWith("#") && href.length > 1) {
+        const targetEl = document.querySelector(href);
+        if (targetEl) {
+          e.preventDefault();
+          lenis.scrollTo(targetEl as HTMLElement, {
+            offset: -30,
+            duration: 1.5,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          });
+        }
+      }
+    };
+
+    document.addEventListener("click", handleAnchorClick);
+
+    return () => {
+      gsap.ticker.remove(updateTicker);
+      document.removeEventListener("click", handleAnchorClick);
+      lenis.destroy();
+    };
   }, []);
 
   return (

@@ -67,18 +67,63 @@ Mọi trang sản phẩm trong hệ sinh thái Picare cần tuân theo dòng ch�
   - Khi cuộn trang (`scrollY > 40`): Kích hoạt `isDarkBg={true}`, lớp background `bg-[#0E0B14]/92` viền `border-white/[0.12]` cùng hiệu ứng `backdrop-blur-md` tự động trượt xuống êm dịu bằng GSAP (giống hệt `LandingPageTest.tsx`).
 
 ```tsx
-// Pattern chuẩn lắng nghe scroll trong trang sản phẩm:
+// Pattern chuẩn tích hợp Lenis Smooth Scrolling siêu mượt (Lerp quán tính + GSAP Ticker):
+import Lenis from "lenis";
+import "lenis/dist/lenis.css";
+import gsap from "gsap";
+
 const [isScrolled, setIsScrolled] = useState(false);
 
 useEffect(() => {
-  const handleScroll = () => {
-    const scrollY = window.scrollY || document.documentElement.scrollTop;
-    setIsScrolled(scrollY > 40);
+  const lenis = new Lenis({
+    lerp: 0.075, // Trọng số quán tính vật lý (0.07 - 0.08: lướt trôi êm ru như trên lụa)
+    wheelMultiplier: 0.85, // Giảm gắt cho chuột/trackpad, tạo cảm giác đầm tay
+    touchMultiplier: 1.6,
+    smoothWheel: true,
+    autoRaf: false, // Tắt autoRaf độc lập để đồng bộ vào GSAP Ticker
+  });
+
+  // Đồng bộ nhịp render của Lenis với GSAP Ticker để đạt 60-120fps chuẩn ProMotion
+  const updateTicker = (time: number) => {
+    lenis.raf(time * 1000);
   };
 
-  handleScroll();
-  window.addEventListener("scroll", handleScroll, { passive: true });
-  return () => window.removeEventListener("scroll", handleScroll);
+  gsap.ticker.add(updateTicker);
+  gsap.ticker.lagSmoothing(0);
+
+  lenis.on("scroll", (e: { scroll: number }) => {
+    setIsScrolled(e.scroll > 40);
+  });
+
+  if (window.scrollY > 40) {
+    setIsScrolled(true);
+  }
+
+  // Bắt sự kiện click anchor (#quote-card, #faq-section) để Lenis cuộn mượt
+  const handleAnchorClick = (e: MouseEvent) => {
+    const anchor = (e.target as HTMLElement)?.closest('a[href^="#"], button[data-anchor]');
+    if (!anchor) return;
+    const href = anchor.getAttribute("href") || anchor.getAttribute("data-anchor");
+    if (href && href.startsWith("#") && href.length > 1) {
+      const targetEl = document.querySelector(href);
+      if (targetEl) {
+        e.preventDefault();
+        lenis.scrollTo(targetEl as HTMLElement, {
+          offset: -30,
+          duration: 1.5,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        });
+      }
+    }
+  };
+
+  document.addEventListener("click", handleAnchorClick);
+
+  return () => {
+    gsap.ticker.remove(updateTicker);
+    document.removeEventListener("click", handleAnchorClick);
+    lenis.destroy();
+  };
 }, []);
 
 return (
