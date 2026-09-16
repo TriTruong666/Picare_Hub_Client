@@ -2,14 +2,17 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
+import PublicLandingFooter from "@/components/landing/PublicLandingFooter";
 import CinematicVideoModal from "@/components/custom_ui/CinematicVideoModal";
+import Accordion, {
+  type AccordionItemData,
+} from "@/components/custom_ui/Accordion";
 import picareHubLogo from "@/assets/images/logo.png";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
 import { FiArrowRight, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { toast } from "@/hooks/useToast";
 import {
   OMS_MOCKUP_SLIDES,
-  OMS_FEATURE_HOTSPOTS,
   type FeatureHotspotItem,
 } from "@/constants/omsFeatureHotspots";
 
@@ -77,7 +80,7 @@ const WMS_BENEFITS = [
   },
 ];
 
-export interface OmsFeatureGridItem {
+interface OmsFeatureGridItem {
   id: string;
   title: string;
   description: string;
@@ -85,7 +88,7 @@ export interface OmsFeatureGridItem {
   mediaUrl: string;
 }
 
-export const OMS_FEATURE_GRID_ITEMS: OmsFeatureGridItem[] = [
+const OMS_FEATURE_GRID_ITEMS: OmsFeatureGridItem[] = [
   {
     id: "feature-grid-1",
     title: "Tìm kiếm thông minh",
@@ -139,6 +142,46 @@ export const OMS_FEATURE_GRID_ITEMS: OmsFeatureGridItem[] = [
     mediaType: "video",
     mediaUrl:
       "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789497724673_a4d31c39-f9d2-4829-8b85-8c3b96231b84_omsgeneralui.mp4",
+  },
+];
+
+const OMS_FAQ_ITEMS: AccordionItemData[] = [
+  {
+    id: "faq-1",
+    title: "Picare OMS kết nối và đồng bộ được với những sàn nào?",
+    content:
+      "Hệ thống hỗ trợ tích hợp API chính thức với 2 sàn thương mại điện tử lớn tại Việt Nam như Shopee, TikTok Shop, có lộ trình phát triển thêm các sàn TMĐT khác như Tiki, Lazada... Đơn hàng mới và trạng thái vận chuyển được đồng bộ liên tục theo thời gian thực.",
+  },
+  {
+    id: "faq-2",
+    title: "Có cảnh báo đơn hàng Hoả tốc không?",
+    content:
+      "Có, hệ thống sẽ phát ra thông báo của Shopee hoặc Tiktok khi vừa có đơn hỏa tốc nhằm tránh trường hợp quá 2 tiếng theo quy định của sàn để được đề xuất cao trên sàn, hiện tại các doanh nghiệp đang bị vấn đề rớt Shopee Mall vì không kịp xử lý đơn hỏa tốc",
+  },
+  {
+    id: "faq-3",
+    title: "Picare WMS kết hợp và bổ trợ cho Picare OMS như thế nào?",
+    content:
+      "OMS đóng vai trò trung tâm tiếp nhận, xử lý và gom đơn hàng từ các kênh bán. Khi đơn hàng đã sẵn sàng xuất, dữ liệu được chuyển tiếp sang WMS để phân luồng lấy hàng (Wave Picking), chỉ định vị trí kệ hàng tối ưu, quét mã vạch kiểm soát đóng gói và trừ tồn kho vật lý chính xác 100%. Nếu chỉ sở hữu OMS thì tồn kho chỉ xử lý ở mức cơ bản là xem tồn kho và cảnh báo tồn chứ trừ tồn tự động thì không thể.",
+  },
+  {
+    id: "faq-4",
+    title: "Thời gian triển khai và đào tạo nhân sự sử dụng mất bao lâu?",
+    content:
+      "Tuỳ thuộc vào mức độ tuỳ chỉnh của khách hàng, nếu để mặc định thì thông thường chỉ mất từ 1 đến 3 ngày làm việc để hoàn tất việc liên kết gian hàng, cài đặt thông số kho và phân quyền tài khoản. Đội ngũ IT của Picare sẽ hỗ trợ đào tạo 1:1 trực tiếp hoặc online cho nhân sự đến khi vận hành trơn tru.",
+  },
+  {
+    id: "faq-5",
+    title:
+      "Dữ liệu kinh doanh và khách hàng có được bảo mật không? (FAQ Chung)",
+    content:
+      "Tất nhiên là có. Chúng tôi có 2 lựa chọn là triển khai trên hạ tấng của chúng tôi hoặc hạ tầng của riêng doanh nghiệp. Đối với triển khai trên hạ tầng của chúng tôi, chúng tôi vẫn đảm bảo an toàn cho khách hàng, mỗi khách hàng sẽ có cơ sở dữ liệu riêng (Database) và khoá bản quyền riêng (License Key) để đảm bảo không ai có thể can thiệp được dữ liệu của doanh nghiệp.",
+  },
+  {
+    id: "faq-6",
+    title: "Có trả phí nếu muốn nâng cấp hệ thống? (FAQ Chung)",
+    content:
+      "Có, tuy nhiên sẽ tuỳ thuộc vào nhu cầu của doanh nghiệp, nếu những thay đổi hoặc nâng cấp nhỏ thì sẽ là miễn phí. Chi tiết vui lòng liên hệ với Picare.",
   },
 ];
 
@@ -759,6 +802,34 @@ export default function ClientOmsPage() {
     );
   };
 
+  // State form Báo giá & Demo OMS
+  const [quoteForm, setQuoteForm] = useState({
+    fullName: "",
+    email: "",
+    message: "",
+  });
+  const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
+
+  const handleQuoteSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quoteForm.fullName.trim() || !quoteForm.email.trim()) {
+      toast.error(
+        "Vui lòng điền đủ thông tin",
+        "Họ tên và email là thông tin bắt buộc để nhận tư vấn!",
+      );
+      return;
+    }
+    setIsSubmittingQuote(true);
+    setTimeout(() => {
+      setIsSubmittingQuote(false);
+      toast.success(
+        "Gửi yêu cầu thành công!",
+        "Đội ngũ Picare đã nhận thông tin và sẽ liên hệ tư vấn demo trong thời gian sớm nhất.",
+      );
+      setQuoteForm({ fullName: "", email: "", message: "" });
+    }, 600);
+  };
+
   useEffect(() => {
     const updateSize = () => {
       if (titleRef.current) {
@@ -892,13 +963,27 @@ export default function ClientOmsPage() {
     );
   };
 
+  // Trạng thái cuộn trang để kích hoạt Dark Background cho Navbar tương tự LandingPageTest
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      setIsScrolled(scrollY > 40);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="font-haffer relative min-h-screen w-full overflow-x-hidden bg-[#120F17] text-white select-none">
-      {/* Reusable Landing Navbar */}
-      <PublicLandingNavbar />
+      {/* Reusable Landing Navbar với animated Dark Glassmorphism background khi cuộn */}
+      <PublicLandingNavbar isDarkBg={isScrolled} />
 
       {/* Main Content */}
-      <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-start px-4 pt-40 pb-32 text-center sm:px-6 sm:pt-48 md:pt-56">
+      <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-start px-4 pt-40 pb-0 text-center sm:px-6 sm:pt-48 md:pt-56">
         {/* Title & Subtitle */}
         <motion.div
           initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
@@ -1207,7 +1292,188 @@ export default function ClientOmsPage() {
             </div>
           </div>
         </section>
+
+        {/* Card UI: Báo giá & Demo OMS (Gradient Momokemuri / Peach Smoke) */}
+        <section
+          id="quote-card"
+          className="relative mt-20 w-full max-w-7xl px-2 sm:mt-28 sm:px-4 md:mt-36"
+        >
+          <div className="gradient-momokemuri relative w-full rounded-[28px] border border-black/10 p-8 shadow-[0_24px_70px_-15px_rgba(245,177,170,0.45),0_10px_30px_rgba(0,0,0,0.06)] sm:rounded-[36px] sm:p-12 md:p-16">
+            <div className="relative z-10 grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
+              {/* Cột trái (50% width card): Title Báo giá & Demo OMS chữ đen */}
+              <div className="flex flex-col items-center justify-center text-center lg:items-start lg:text-left">
+                {/* Tiêu đề Báo giá & Demo OMS */}
+                <h2 className="font-haffer text-3xl font-semibold text-neutral-950 sm:text-4xl lg:text-[46px] lg:leading-[1.15]">
+                  Báo giá & Demo OMS
+                </h2>
+
+                {/* Mô tả */}
+                <p className="font-haffer mt-4 max-w-lg text-[14.5px] leading-relaxed font-normal text-neutral-700 sm:text-base">
+                  Trải nghiệm trực quan quy trình xử lý đơn hàng đa kênh và nhận
+                  tư vấn giải pháp tối ưu hóa chi phí vận hành dành riêng cho mô
+                  hình kinh doanh của bạn.
+                </p>
+
+                {/* Danh sách quyền lợi */}
+                <div className="mt-8 flex flex-col space-y-3.5 text-left">
+                  <div className="flex items-center gap-3 text-neutral-800">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-semibold text-white">
+                      ✓
+                    </div>
+                    <span className="font-haffer text-[14px] sm:text-[14.5px]">
+                      Demo trực tiếp luồng xử lý đơn hàng Shopee, TikTok Shop &
+                      WMS
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-neutral-800">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-semibold text-white">
+                      ✓
+                    </div>
+                    <span className="font-haffer text-[14px] sm:text-[14.5px]">
+                      Báo giá chi tiết, linh hoạt triển khai Cloud hoặc
+                      On-Premise
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-neutral-800">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-semibold text-white">
+                      ✓
+                    </div>
+                    <span className="font-haffer text-[14px] sm:text-[14.5px]">
+                      Đội ngũ kỹ thuật Picare hỗ trợ tích hợp & đồng hành 24/7
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cột phải (50% width card): Biểu mẫu gửi form chữ đen */}
+              <div className="w-full">
+                <div className="rounded-2xl border border-black/10 bg-white/70 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur-xl sm:rounded-3xl sm:p-8">
+                  <form
+                    onSubmit={handleQuoteSubmit}
+                    className="space-y-4 text-left sm:space-y-5"
+                  >
+                    {/* Tên */}
+                    <div>
+                      <label className="font-haffer mb-1.5 block text-xs font-medium text-neutral-800 uppercase sm:text-[13px]">
+                        Họ và tên <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={quoteForm.fullName}
+                        onChange={(e) =>
+                          setQuoteForm((prev) => ({
+                            ...prev,
+                            fullName: e.target.value,
+                          }))
+                        }
+                        placeholder="Ví dụ: Nguyễn Văn A"
+                        className="font-haffer w-full rounded-xl border border-neutral-300/80 bg-white/90 px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 transition-all duration-200 focus:border-neutral-900 focus:bg-white focus:ring-2 focus:ring-black/10 focus:outline-none sm:text-[14.5px]"
+                      />
+                    </div>
+
+                    {/* Email */}
+                    <div>
+                      <label className="font-haffer mb-1.5 block text-xs font-medium text-neutral-800 uppercase sm:text-[13px]">
+                        Địa chỉ Email <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={quoteForm.email}
+                        onChange={(e) =>
+                          setQuoteForm((prev) => ({
+                            ...prev,
+                            email: e.target.value,
+                          }))
+                        }
+                        placeholder="example@company.com"
+                        className="font-haffer w-full rounded-xl border border-neutral-300/80 bg-white/90 px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 transition-all duration-200 focus:border-neutral-900 focus:bg-white focus:ring-2 focus:ring-black/10 focus:outline-none sm:text-[14.5px]"
+                      />
+                    </div>
+
+                    {/* Lời nhắn */}
+                    <div>
+                      <label className="font-haffer mb-1.5 block text-xs font-medium text-neutral-800 uppercase sm:text-[13px]">
+                        Lời nhắn
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={quoteForm.message}
+                        onChange={(e) =>
+                          setQuoteForm((prev) => ({
+                            ...prev,
+                            message: e.target.value,
+                          }))
+                        }
+                        placeholder="Nhu cầu kết nối gian hàng, quy mô kho hoặc những tính năng bạn quan tâm..."
+                        className="font-haffer w-full resize-none rounded-xl border border-neutral-300/80 bg-white/90 px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 transition-all duration-200 focus:border-neutral-900 focus:bg-white focus:ring-2 focus:ring-black/10 focus:outline-none sm:text-[14.5px]"
+                      />
+                    </div>
+
+                    {/* Nút gửi */}
+                    <button
+                      type="submit"
+                      disabled={isSubmittingQuote}
+                      className="font-haffer group relative mt-2 flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-neutral-950 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/15 transition-all duration-300 hover:scale-[1.01] hover:bg-neutral-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 sm:text-[15px]"
+                    >
+                      {isSubmittingQuote ? (
+                        <div className="flex items-center gap-2">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          <span>Đang gửi thông tin...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <span>Gửi Yêu Cầu & Nhận Demo</span>
+                          <FiArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                        </>
+                      )}
+                    </button>
+
+                    <p className="font-haffer pt-1 text-center text-xs text-neutral-500">
+                      Thông tin của bạn được cam kết bảo mật 100% theo chính
+                      sách của Picare.
+                    </p>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section FAQ (Nền trắng thật full-width giống section Tính Năng, Accordion nằm ở giữa) */}
+        <section
+          id="faq-section"
+          className="relative left-1/2 mt-20 w-screen -translate-x-1/2 bg-white py-24 text-neutral-900 sm:mt-28 sm:py-32 md:mt-36 md:py-36"
+        >
+          <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-10">
+            {/* Tiêu đề chữ to: Câu Hỏi Thường Gặp */}
+            <h2 className="font-haffer text-3xl font-semibold text-neutral-950 sm:text-4xl md:text-5xl lg:text-[54px] lg:leading-[1.15]">
+              Câu Hỏi Thường Gặp
+            </h2>
+
+            {/* Subtitle thu gọn max-w và cỡ chữ nhỏ lại */}
+            <p className="font-haffer mx-auto mt-4 max-w-xl text-xs leading-relaxed font-normal text-neutral-500 sm:text-[13.5px] md:text-base">
+              Mọi thắc mắc về tính năng, khả năng tích hợp đa kênh và vận hành
+              hệ thống{" "}
+              <span className="font-medium text-neutral-800">Picare OMS</span>{" "}
+              đều được giải đáp chi tiết tại đây.
+            </p>
+
+            {/* Accordion component nằm ở giữa */}
+            <div className="mx-auto mt-12 max-w-3xl text-left sm:mt-16 sm:max-w-4xl">
+              <Accordion
+                items={OMS_FAQ_ITEMS}
+                defaultOpenIds={["faq-1"]}
+                allowMultiple={false}
+              />
+            </div>
+          </div>
+        </section>
       </main>
+
+      {/* Footer tái sử dụng đồng bộ hệ thống */}
+      <PublicLandingFooter />
     </div>
   );
 }

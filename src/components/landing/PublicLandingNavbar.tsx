@@ -187,7 +187,7 @@ export function PublicLandingNavbar({
       className={`pointer-events-none fixed inset-x-0 top-0 z-50 flex flex-col items-center ${className}`}
     >
       {/* 0. Top Upgrade Notice Banner (Màu cam) */}
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {isBannerVisible && (
           <motion.aside
             initial={{ opacity: 0, height: 0 }}
@@ -221,7 +221,7 @@ export function PublicLandingNavbar({
             </div>
           </motion.aside>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       <motion.header
         initial={{ opacity: 0, y: -22, filter: "blur(6px)" }}

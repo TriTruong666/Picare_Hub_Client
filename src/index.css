@@ -581,3 +581,86 @@ body.dark {
   background-repeat: no-repeat;
   background-size: cover;
 }
+
+/* Violet hour / Sumire no Toki Gradient Pattern (SAMURAI INDIGO, BELLFLOWER, WISTERIA, PINK DIANTHUS) */
+.gradient-sumire-no-toki {
+  position: relative;
+  overflow: hidden;
+  background-color: #181B3A;
+}
+
+.gradient-sumire-no-toki::before {
+  content: '';
+  position: absolute;
+  inset: -28px;
+  background:
+    radial-gradient(90% 70% at 12% 8%, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 60%),
+    linear-gradient(
+      135deg,
+      #181B3A 12.5%,
+      #1B1E3F 16.1%,
+      #23254D 19.6%,
+      #2F3061 23.2%,
+      #3C3C77 26.8%,
+      #49488C 30.4%,
+      #52519C 33.9%,
+      #5654A2 37.5%,
+      #5B57A4 41.1%,
+      #6760AB 44.6%,
+      #796BB4 48.2%,
+      #8D78BD 51.8%,
+      #9F83C5 55.4%,
+      #AD8CCC 58.9%,
+      #B28FCE 62.5%,
+      #B591CE 66.1%,
+      #BE98CE 69.6%,
+      #C9A1CE 73.2%,
+      #D6AACD 76.8%,
+      #E2B2CC 80.4%,
+      #EBB9CB 83.9%,
+      #EEBBCB 87.5%
+    );
+  filter: blur(14px);
+  pointer-events: none;
+}
+
+.gradient-sumire-no-toki::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(238, 187, 203, 0.25), transparent 55%),
+    radial-gradient(circle at 15% 85%, rgba(86, 84, 162, 0.3), transparent 60%);
+  pointer-events: none;
+}
+
+/* Peach smoke / Momokemuri Gradient Pattern (PALE CHERRY, CORAL, PALE CRIMSON WISTERIA, PALE YELLOW) */
+.gradient-momokemuri {
+  position: relative;
+  overflow: hidden;
+  background-color: #FDEFF2;
+}
+
+.gradient-momokemuri::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background:
+    radial-gradient(72% 58% at 16.0% 82.0%, #FDEFF2 0%, #FDEFF2 22%, rgba(253, 239, 242, 0) 72%),
+    radial-gradient(56% 72% at 78.0% 26.0%, #F5B1AA 0%, #F5B1AA 22%, rgba(245, 177, 170, 0) 72%),
+    radial-gradient(78% 62% at 88.0% 84.0%, #D6BBC6 0%, #D6BBC6 22%, rgba(214, 187, 198, 0) 72%),
+    radial-gradient(50% 44% at 24.0% 16.0%, #F8E58C 0%, #F8E58C 22%, rgba(248, 229, 140, 0) 72%),
+    radial-gradient(130% 120% at 30% 20%, #FDEFF2, #FDEFF2);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.gradient-momokemuri::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.5), transparent 60%);
+  pointer-events: none;
+}
+
+

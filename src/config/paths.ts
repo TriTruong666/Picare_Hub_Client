@@ -11,6 +11,7 @@ export const PATHS = {
   LOGIN_CLIENT: "/login/client", // Form dang nhap cho client cu the
   LOGIN_HUB: "/login", // Da gop vao /login
   CLIENT_OMS: "/client/oms", // Dummy OMS Page test transition
+  CLIENT_PRODUCTS_OMS: "/client/oms", // Alias for Picare OMS client product
   CONTRACT_CREATE: "/contracts/create",
   CONTRACT_DETAIL: "/dashboard/contracts/:contractId",
   CONTRACT_EDIT: "/contracts/:contractId/edit",
