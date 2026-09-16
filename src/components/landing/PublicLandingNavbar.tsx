@@ -8,21 +8,21 @@ import {
   FiGrid,
   FiSettings,
   FiArrowRight,
-  FiX,
 } from "react-icons/fi";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
 import { useAuth } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/data/useAuthHooks";
 import { canAccessDashboard } from "@/config/dashboardAccess";
-import { useHubClients } from "@/hooks/data/useHubClientHooks";
-import { STATIC_HUB_CLIENTS } from "@/constants/staticHubClients";
 import { ROLE_LABELS } from "@/types/User";
 import { PATHS } from "@/config/paths";
 import { useCurveTransition } from "@/components/custom_ui/CurvePageTransition";
+import {
+  LANDING_PRODUCTS,
+  type LandingProductItem,
+} from "@/constants/landingProducts";
 import gsap from "gsap";
 
 import type { User } from "@/types/User";
-import type { HubClient } from "@/types/HubClient";
 
 export interface PublicLandingNavbarProps {
   onOpenLogin?: () => void;
@@ -45,9 +45,7 @@ export function PublicLandingNavbar({
   isDarkBg = false,
   isAuthenticated: propIsAuth,
   user: propUser,
-  showNoticeBanner = true,
 }: PublicLandingNavbarProps) {
-  const [isBannerVisible, setIsBannerVisible] = useState(showNoticeBanner);
   const [isProductMenuOpen, setIsProductMenuOpen] = useState(false);
   const [currentMenuPage, setCurrentMenuPage] = useState(0);
   const menuContainerRef = useRef<HTMLDivElement>(null);
@@ -84,7 +82,6 @@ export function PublicLandingNavbar({
   const userMenuContainerRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
-  const { navigateWithTransition } = useCurveTransition();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -110,25 +107,9 @@ export function PublicLandingNavbar({
     };
   }, [isProductMenuOpen, isUserMenuOpen]);
 
-  const { data: hubClients, isLoading: isClientsLoading } = useHubClients({
-    limit: 100,
-    status: "active",
-  });
-
-  const seenClientIds = new Set<string>();
-  const mergedClients = [...(hubClients || []), ...STATIC_HUB_CLIENTS].filter(
-    (client) => {
-      if (seenClientIds.has(client.clientId)) {
-        return false;
-      }
-      seenClientIds.add(client.clientId);
-      return true;
-    },
-  );
-
-  const totalMenuPages = Math.max(1, Math.ceil(mergedClients.length / 3));
+  const totalMenuPages = Math.max(1, Math.ceil(LANDING_PRODUCTS.length / 3));
   const normalizedMenuPage = currentMenuPage % totalMenuPages;
-  const displayedMenuItems = mergedClients.slice(
+  const displayedMenuItems = LANDING_PRODUCTS.slice(
     normalizedMenuPage * 3,
     normalizedMenuPage * 3 + 3,
   );
@@ -177,10 +158,6 @@ export function PublicLandingNavbar({
       navigate(PATHS.LOGIN_CLIENT);
     }
   };
-
-  useEffect(() => {
-    setIsBannerVisible(showNoticeBanner);
-  }, [showNoticeBanner]);
 
   return (
     <div
@@ -517,17 +494,13 @@ export function PublicLandingNavbar({
                     }}
                     className="grid grid-cols-1 gap-4 md:grid-cols-3"
                   >
-                    {isClientsLoading
-                      ? Array.from({ length: 3 }).map((_, i) => (
-                          <ProductMenuSkeleton key={i} />
-                        ))
-                      : displayedMenuItems.map((item) => (
-                          <ProductMenuCard
-                            key={item.clientId}
-                            item={item}
-                            onNavigate={() => setIsProductMenuOpen(false)}
-                          />
-                        ))}
+                    {displayedMenuItems.map((item) => (
+                      <ProductMenuCard
+                        key={item.id}
+                        item={item}
+                        onNavigate={() => setIsProductMenuOpen(false)}
+                      />
+                    ))}
                   </motion.div>
 
                   {/* Bottom Pagination & Navigation */}
@@ -558,7 +531,7 @@ export function PublicLandingNavbar({
                           onClick={handleNextMenuPage}
                           className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11.5px] font-normal text-zinc-300 transition-colors hover:border-[#FFA336]/40 hover:bg-white/[0.08] hover:text-[#FFA336]"
                         >
-                          <span>Xem thêm hệ thống</span>
+                          <span>Xem thêm sản phẩm</span>
                           <FiArrowRight size={12} />
                         </button>
                       )}
@@ -578,23 +551,28 @@ function ProductMenuCard({
   item,
   onNavigate,
 }: {
-  item: HubClient;
+  item: LandingProductItem;
   onNavigate?: () => void;
 }) {
   const { navigateWithTransition } = useCurveTransition();
+  const isInteractive = Boolean(item.href && item.href !== "#");
 
   const handleClick = (e: React.MouseEvent) => {
-    // If internal route starting with /client/oms or similar
-    if (item.clientInternalUrl?.startsWith("/client/")) {
+    if (!isInteractive) {
+      e.preventDefault();
+      return;
+    }
+    // If internal route starting with /
+    if (item.href.startsWith("/")) {
       e.preventDefault();
       onNavigate?.();
-      navigateWithTransition(item.clientInternalUrl, { text: "Picare Client" });
+      navigateWithTransition(item.href, { text: item.name });
     }
   };
 
   return (
     <motion.a
-      href={item.clientInternalUrl}
+      href={item.href}
       onClick={handleClick}
       variants={{
         hidden: { opacity: 0, y: 16, scale: 0.96 },
@@ -609,20 +587,27 @@ function ProductMenuCard({
         },
       }}
       whileHover={{
-        y: -4,
+        y: isInteractive ? -4 : 0,
         transition: { duration: 0.25 },
       }}
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border border-[#303030] bg-[#161616]/90 p-3.5 transition-all duration-300 hover:border-[#F86D2B]/50 hover:bg-[#212121] hover:shadow-[0_12px_32px_-8px_rgba(248,109,43,0.22)]"
+      className={`group relative flex flex-col overflow-hidden rounded-xl border border-[#303030] bg-[#161616]/90 p-3.5 transition-all duration-300 ${
+        isInteractive
+          ? "cursor-pointer hover:border-[#F86D2B]/50 hover:bg-[#212121] hover:shadow-[0_12px_32px_-8px_rgba(248,109,43,0.22)]"
+          : "cursor-default opacity-85 hover:border-white/20"
+      }`}
     >
       {/* Thumbnail Banner */}
       <div className="relative h-40 w-full overflow-hidden rounded-lg bg-black/60 outline-1 outline-white/5 transition-all group-hover:outline-[#F86D2B]/30">
+        {item.badge && (
+          <div className="absolute top-2.5 right-2.5 z-10">
+            <span className="inline-flex items-center rounded-full border border-orange-400/40 bg-[#F86D2B]/90 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm backdrop-blur-sm">
+              {item.badge}
+            </span>
+          </div>
+        )}
         <img
-          src={
-            item.clientLogoImage?.trim() ||
-            item.clientMockupImage?.trim() ||
-            "https://framerusercontent.com/images/gTH5qA521PTXYmAuTkvadn5fso.png?width=1292&height=450"
-          }
-          alt={item.clientName}
+          src={item.image}
+          alt={item.name}
           className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-106"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent transition-opacity duration-300 group-hover:opacity-90" />
@@ -632,37 +617,31 @@ function ProductMenuCard({
       <div className="mt-3 flex flex-1 flex-col justify-between space-y-2">
         <div>
           <h4 className="text-[14.5px] font-medium tracking-tight text-zinc-100 transition-colors group-hover:text-white">
-            {item.clientName}
+            {item.name}
           </h4>
           <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-zinc-400/90 transition-colors group-hover:text-zinc-300">
-            {item.clientDescription ||
-              "Hệ sinh thái phân hệ tối ưu hóa quy trình vận hành toàn diện."}
+            {item.description}
           </p>
         </div>
 
         {/* Action Link */}
-        <div className="flex items-center gap-1.5 pt-2 text-[11.5px] font-medium tracking-wide text-zinc-400 transition-colors group-hover:text-[#FFA336]">
-          <span>Khám phá ngay</span>
+        <div
+          className={`flex items-center gap-1.5 pt-2 text-[11.5px] font-medium tracking-wide transition-colors ${
+            isInteractive
+              ? "text-zinc-400 group-hover:text-[#FFA336]"
+              : "text-zinc-500"
+          }`}
+        >
+          <span>{isInteractive ? "Khám phá ngay" : item.badge || "Sắp ra mắt"}</span>
           <FiArrowRight
             size={13}
-            className="transition-transform duration-300 group-hover:translate-x-1"
+            className={`transition-transform duration-300 ${
+              isInteractive ? "group-hover:translate-x-1" : "opacity-40"
+            }`}
           />
         </div>
       </div>
     </motion.a>
-  );
-}
-
-function ProductMenuSkeleton() {
-  return (
-    <div className="flex flex-col space-y-3 rounded-xl border border-[#303030] bg-[#161616]/90 p-3.5">
-      <div className="h-40 w-full animate-pulse rounded-lg bg-[#262626]" />
-      <div className="space-y-2 pt-1">
-        <div className="h-4 w-3/5 animate-pulse rounded bg-[#262626]" />
-        <div className="h-3 w-full animate-pulse rounded bg-[#212121]" />
-        <div className="h-3 w-4/5 animate-pulse rounded bg-[#212121]" />
-      </div>
-    </div>
   );
 }
 

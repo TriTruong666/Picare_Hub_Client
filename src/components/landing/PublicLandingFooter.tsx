@@ -22,7 +22,9 @@ interface FooterLinkItem {
   href?: string;
   isExternal?: boolean;
   badge?: string;
-  onClick?: (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
+  onClick?: (
+    e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>,
+  ) => void;
 }
 
 function GsapFooterLoginButton({
@@ -202,12 +204,15 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
     };
 
   const productLinks: FooterLinkItem[] = [
-    { label: "Picare OMS", href: PATHS.CLIENT_OMS, badge: "Mới" },
-    { label: "Picare WMS", href: "#", badge: "Sắp ra mắt" },
-    { label: "Picare Saleforce", href: "#" },
-    { label: "Picare Office", href: "#" },
-    { label: "Picare Lab", href: "#" },
-    { label: "Picare Career", href: "#" },
+    { label: "Picare OMS", href: PATHS.CLIENT_OMS },
+    { label: "Picare WMS", href: "#" },
+    { label: "Picare Saleforce", href: "#", badge: "Mới" },
+    { label: "Picare Office", href: "#", badge: "Sắp ra mắt" },
+    { label: "Picare Lab", href: "#", badge: "Đang phát triển" },
+    { label: "Picare Career", href: "#", badge: "Đang phát triển" },
+    { label: "Picare E-Contract", href: "#" },
+    { label: "Picare QR Generator", href: "#" },
+    { label: "Picare Catalogues", href: "#" },
   ];
 
   const companyLinks: FooterLinkItem[] = [
@@ -311,7 +316,7 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
 
             {/* Social Media Buttons */}
             <div className="mt-8">
-              <span className="text-[11px] font-medium uppercase text-neutral-500">
+              <span className="text-[11px] font-medium text-neutral-500 uppercase">
                 Theo dõi chúng tôi
               </span>
               <div className="mt-2.5 flex items-center gap-2.5">
@@ -338,7 +343,7 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
           <div className="flex w-full flex-wrap justify-between gap-10 sm:gap-14 lg:w-auto lg:gap-16 xl:gap-24">
             {/* 1. Sản phẩm */}
             <div className="flex min-w-[140px] flex-col">
-              <h3 className="text-xs font-semibold uppercase text-white">
+              <h3 className="text-xs font-semibold text-white uppercase">
                 Sản phẩm
               </h3>
               <ul className="mt-4 space-y-2.5 text-xs sm:text-[13.5px]">
@@ -362,7 +367,7 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
 
             {/* 2. Picare Vietnam */}
             <div className="flex min-w-[130px] flex-col">
-              <h3 className="text-xs font-semibold uppercase text-white">
+              <h3 className="text-xs font-semibold text-white uppercase">
                 Picare Vietnam
               </h3>
               <ul className="mt-4 space-y-2.5 text-xs sm:text-[13.5px]">
@@ -384,7 +389,7 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
 
             {/* 3. Liên hệ */}
             <div className="flex min-w-[130px] flex-col">
-              <h3 className="text-xs font-semibold uppercase text-white">
+              <h3 className="text-xs font-semibold text-white uppercase">
                 Liên hệ
               </h3>
               <ul className="mt-4 space-y-2.5 text-xs sm:text-[13.5px]">
