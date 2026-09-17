@@ -632,7 +632,9 @@ function ProductMenuCard({
               : "text-zinc-500"
           }`}
         >
-          <span>{isInteractive ? "Khám phá ngay" : item.badge || "Sắp ra mắt"}</span>
+          <span>
+            {isInteractive ? "Khám phá ngay" : item.badge || "Sắp ra mắt"}
+          </span>
           <FiArrowRight
             size={13}
             className={`transition-transform duration-300 ${

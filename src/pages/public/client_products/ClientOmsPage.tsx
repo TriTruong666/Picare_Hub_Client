@@ -45,13 +45,13 @@ const BENEFITS_LIST = [
     id: "03",
     number: "03",
     title: "Tốc độ và bảo mật",
-    desc: "Nền tảng sẽ tiết kiệm thời gian nếu quản lý nhiều cửa hàng trên cùng một giao diện mà không cần phải chuyển hàng chục cửa sổ trên website sàn. Chỉ với một nút bấm, toàn bộ đơn hàng sẽ được đồng bộ về với hệ thống",
+    desc: "Vận hành trên hạ tầng Cloud hiện đại với khả năng xử lý hàng nghìn đơn cùng lúc. Dữ liệu giao dịch được mã hoá bảo mật đa tầng, đảm bảo hệ thống luôn ổn định và an toàn tuyệt đối.",
   },
   {
     id: "04",
     number: "04",
-    title: "Tập trung là chìa khoá",
-    desc: "Nền tảng sẽ tiết kiệm thời gian nếu quản lý nhiều cửa hàng trên cùng một giao diện mà không cần phải chuyển hàng chục cửa sổ trên website sàn. Chỉ với một nút bấm, toàn bộ đơn hàng sẽ được đồng bộ về với hệ thống",
+    title: "Tự động hoá thông minh",
+    desc: "Thiết lập linh hoạt các bộ quy tắc phân luồng đơn, in vận đơn hàng loạt và tự động kết nối hãng vận chuyển tối ưu, giúp cắt giảm đến 70% thời gian xử lý thủ công.",
   },
 ];
 
@@ -1343,28 +1343,24 @@ export default function ClientOmsPage() {
           </div>
         </section>
 
-        {/* Card UI: Báo giá & Demo OMS (Gradient Momokemuri / Peach Smoke) */}
-        <section
+        {/* Card UI: Báo giá & Demo OMS (Đã tạm thời ẩn theo yêu cầu) */}
+        {/* <section
           id="quote-card"
           className="relative mt-20 w-full max-w-7xl px-2 sm:mt-28 sm:px-4 md:mt-36"
         >
           <div className="gradient-momokemuri relative w-full rounded-[28px] border border-black/10 p-8 shadow-[0_24px_70px_-15px_rgba(245,177,170,0.45),0_10px_30px_rgba(0,0,0,0.06)] sm:rounded-[36px] sm:p-12 md:p-16">
             <div className="relative z-10 grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
-              {/* Cột trái (50% width card): Title Báo giá & Demo OMS chữ đen */}
               <div className="flex flex-col items-center justify-center text-center lg:items-start lg:text-left">
-                {/* Tiêu đề Báo giá & Demo OMS */}
                 <h2 className="font-haffer text-3xl font-semibold text-neutral-950 sm:text-4xl lg:text-[46px] lg:leading-[1.15]">
                   Báo giá & Demo OMS
                 </h2>
 
-                {/* Mô tả */}
                 <p className="font-haffer mt-4 max-w-lg text-[14.5px] leading-relaxed font-normal text-neutral-700 sm:text-base">
                   Trải nghiệm trực quan quy trình xử lý đơn hàng đa kênh và nhận
                   tư vấn giải pháp tối ưu hóa chi phí vận hành dành riêng cho mô
                   hình kinh doanh của bạn.
                 </p>
 
-                {/* Danh sách quyền lợi */}
                 <div className="mt-8 flex flex-col space-y-3.5 text-left">
                   <div className="flex items-center gap-3 text-neutral-800">
                     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-semibold text-white">
@@ -1395,14 +1391,12 @@ export default function ClientOmsPage() {
                 </div>
               </div>
 
-              {/* Cột phải (50% width card): Biểu mẫu gửi form chữ đen */}
               <div className="w-full">
                 <div className="rounded-2xl border border-black/10 bg-white/70 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur-xl sm:rounded-3xl sm:p-8">
                   <form
                     onSubmit={handleQuoteSubmit}
                     className="space-y-4 text-left sm:space-y-5"
                   >
-                    {/* Tên */}
                     <div>
                       <label className="font-haffer mb-1.5 block text-xs font-medium text-neutral-800 uppercase sm:text-[13px]">
                         Họ và tên <span className="text-red-500">*</span>
@@ -1422,7 +1416,6 @@ export default function ClientOmsPage() {
                       />
                     </div>
 
-                    {/* Email */}
                     <div>
                       <label className="font-haffer mb-1.5 block text-xs font-medium text-neutral-800 uppercase sm:text-[13px]">
                         Địa chỉ Email <span className="text-red-500">*</span>
@@ -1442,7 +1435,6 @@ export default function ClientOmsPage() {
                       />
                     </div>
 
-                    {/* Lời nhắn */}
                     <div>
                       <label className="font-haffer mb-1.5 block text-xs font-medium text-neutral-800 uppercase sm:text-[13px]">
                         Lời nhắn
@@ -1461,7 +1453,6 @@ export default function ClientOmsPage() {
                       />
                     </div>
 
-                    {/* Nút gửi */}
                     <button
                       type="submit"
                       disabled={isSubmittingQuote}
@@ -1489,7 +1480,7 @@ export default function ClientOmsPage() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Section FAQ (Nền trắng thật full-width giống section Tính Năng, Accordion nằm ở giữa) */}
         <section
