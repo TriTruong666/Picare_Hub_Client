@@ -2,7 +2,13 @@ import * as UserService from "@/apis/user.service";
 import { getApiErrorMessage, translateErrorMessage } from "@/common/api.error";
 import { toast } from "@/hooks/useToast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { CreateUserPayload, UpdateUserPayload, User, UserRole } from "@/types/User";
+import type {
+  CreateUserPayload,
+  UpdateUserAuthPolicyPayload,
+  UpdateUserPayload,
+  User,
+  UserRole,
+} from "@/types/User";
 import { useFetch } from "../useQuery";
 
 export function useMe() {
@@ -18,9 +24,7 @@ export function useUsers(params: {
   search?: string;
   role?: UserRole;
 }) {
-  return useFetch<User[]>(["users", params], () =>
-    UserService.getUser(params),
-  );
+  return useFetch<User[]>(["users", params], () => UserService.getUser(params));
 }
 
 export function useCreateUser() {
@@ -95,6 +99,42 @@ export function useUpdateUserInfo() {
           "Thất bại",
           translateErrorMessage(data.error_code, data.message),
         );
+      }
+    },
+    onError: (error) => toast.error("Lỗi", getApiErrorMessage(error)),
+  });
+}
+
+export function useUpdateUserAuthPolicy() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      userId,
+      payload,
+    }: {
+      userId: string;
+      payload: UpdateUserAuthPolicyPayload;
+    }) => UserService.updateUserAuthPolicy(userId, payload),
+    onSuccess: (data) => {
+      if (data.success) {
+        queryClient.invalidateQueries({ queryKey: ["users"] });
+        queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      }
+    },
+    onError: (error) => toast.error("Lỗi", getApiErrorMessage(error)),
+  });
+}
+
+export function useRevokeAllUserTrustedIps() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userId: string) => UserService.revokeAllUserTrustedIps(userId),
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã thu hồi toàn bộ IP tin cậy");
+        queryClient.invalidateQueries({ queryKey: ["users"] });
       }
     },
     onError: (error) => toast.error("Lỗi", getApiErrorMessage(error)),

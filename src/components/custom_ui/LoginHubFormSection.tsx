@@ -1,7 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import {
+  Link,
+  useSearchParams,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import {
   FiEye,
   FiEyeOff,
@@ -9,16 +15,26 @@ import {
   FiX,
   FiArrowRight,
   FiArrowLeft,
+  FiRefreshCw,
+  FiShield,
 } from "react-icons/fi";
 import gsap from "gsap";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
 import loginMockup from "@/assets/images/login_mockup.jpeg";
-import { useLogin } from "@/hooks/data/useAuthHooks";
+import {
+  useLogin,
+  useResendLoginCode,
+  useVerifyLogin,
+} from "@/hooks/data/useAuthHooks";
 import { getApiErrorMessage } from "@/common/api.error";
 import { useAuth } from "@/hooks/useAuth";
 import { PATHS } from "@/config/paths";
 import { canAccessDashboard } from "@/config/dashboardAccess";
-import { useHubClients, useHubClientDetail, useCheckAccessHubClient } from "@/hooks/data/useHubClientHooks";
+import {
+  useHubClients,
+  useHubClientDetail,
+  useCheckAccessHubClient,
+} from "@/hooks/data/useHubClientHooks";
 import { checkAccessHubClient } from "@/apis/hub_client.service";
 import { useCurveTransition } from "@/components/custom_ui/CurvePageTransition";
 import {
@@ -29,6 +45,7 @@ import {
 } from "@/constants/staticHubClients";
 import type { HubClient } from "@/types/HubClient";
 import type { User } from "@/types/User";
+import type { LoginVerificationChallenge } from "@/types/Auth";
 import { PublicLandingNavbar } from "@/components/landing/PublicLandingNavbar";
 
 function getSafeRedirectPath(value: string | null) {
@@ -47,6 +64,8 @@ interface LoginHubFormSectionProps {
   onBack?: () => void;
   backTo?: string;
 }
+
+const OTP_LENGTH = 6;
 
 const cardVariants: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -171,7 +190,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       onClick={handleAccess}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="client-card-item group relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-0 lg:h-full w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none"
+      className="client-card-item group relative flex min-h-[360px] w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none sm:min-h-[44vh] lg:h-full lg:min-h-0"
     >
       {/* Subtle Warm Apricot/Amber Glow Layer giống LandingPageTest */}
       <div
@@ -181,7 +200,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       />
 
       {/* Mockup Image Area */}
-      <div className="relative flex-1 w-full overflow-hidden bg-[#0a0a0e]">
+      <div className="relative w-full flex-1 overflow-hidden bg-[#0a0a0e]">
         <img
           ref={imgRef}
           src={mockupSrc}
@@ -199,13 +218,13 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       </div>
 
       {/* Bottom Content Area: Title, Description & Circular CTA (Bỏ role, phẳng hoàn toàn) */}
-      <div className="pointer-events-none relative z-10 flex w-full items-end justify-between p-5 sm:p-6 lg:p-7 border-t border-white/[0.06] bg-[#070709]">
+      <div className="pointer-events-none relative z-10 flex w-full items-end justify-between border-t border-white/[0.06] bg-[#070709] p-5 sm:p-6 lg:p-7">
         <div className="pointer-events-auto flex max-w-[calc(100%-3.5rem)] flex-col text-left">
-          <h3 className="font-haffer text-lg font-medium tracking-tight text-white sm:text-xl lg:text-[22px] transition-colors group-hover:text-white">
+          <h3 className="font-haffer text-lg font-medium tracking-tight text-white transition-colors group-hover:text-white sm:text-xl lg:text-[22px]">
             {client.clientName}
           </h3>
           {client.clientDescription && (
-            <p className="font-haffer mt-1 line-clamp-2 text-xs font-light text-white/60 sm:text-[13px] leading-relaxed transition-colors group-hover:text-white/80">
+            <p className="font-haffer mt-1 line-clamp-2 text-xs leading-relaxed font-light text-white/60 transition-colors group-hover:text-white/80 sm:text-[13px]">
               {client.clientDescription}
             </p>
           )}
@@ -236,9 +255,9 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
 // ─── Subcomponent: Skeleton Loading Card ──────────────────────────────────────
 function ClientSkeleton() {
   return (
-    <div className="relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-0 lg:h-full flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709]">
-      <div className="flex-1 w-full animate-pulse bg-white/3" />
-      <div className="flex flex-col space-y-2 p-5 sm:p-6 lg:p-7 border-t border-white/[0.06]">
+    <div className="relative flex min-h-[360px] flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709] sm:min-h-[44vh] lg:h-full lg:min-h-0">
+      <div className="w-full flex-1 animate-pulse bg-white/3" />
+      <div className="flex flex-col space-y-2 border-t border-white/[0.06] p-5 sm:p-6 lg:p-7">
         <div className="h-6 w-36 animate-pulse rounded-full bg-white/5" />
         <div className="h-3.5 w-2/3 animate-pulse rounded-full bg-white/3" />
       </div>
@@ -249,7 +268,7 @@ function ClientSkeleton() {
 // ─── Subcomponent: Empty Placeholder ──────────────────────────────────────────
 function EmptyCard() {
   return (
-    <div className="relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-0 lg:h-full border-r border-b border-white/[0.08] bg-transparent" />
+    <div className="relative flex min-h-[360px] border-r border-b border-white/[0.08] bg-transparent sm:min-h-[44vh] lg:h-full lg:min-h-0" />
   );
 }
 
@@ -265,12 +284,12 @@ export default function LoginHubFormSection({
 
   const clientId = searchParams.get("clientId");
   const { data: clientDetail } = useHubClientDetail(clientId || "");
-  const {
-    fullResponse: accessResponse,
-    error: accessError,
-  } = useCheckAccessHubClient(isAuthenticated && clientId ? clientId : "");
+  const { fullResponse: accessResponse, error: accessError } =
+    useCheckAccessHubClient(isAuthenticated && clientId ? clientId : "");
 
-  const axiosError = accessError as any;
+  const axiosError = axios.isAxiosError<{ error_code?: string }>(accessError)
+    ? accessError
+    : null;
   const errorCode =
     accessResponse?.error_code || axiosError?.response?.data?.error_code;
   const status = axiosError?.response?.status;
@@ -295,8 +314,8 @@ export default function LoginHubFormSection({
   const navbarWrapperRef = useRef<HTMLDivElement>(null);
 
   // Giữ lại trạng thái ban đầu khi mount để JSX không tự ý snap style đè lên GSAP
-  const initialIsClientRef = useRef(
-    location.pathname.startsWith(PATHS.LOGIN_CLIENT) && !clientId,
+  const [initialIsClient] = useState(
+    () => location.pathname.startsWith(PATHS.LOGIN_CLIENT) && !clientId,
   );
   const prevIsClientRef = useRef(isClientSelectRoute);
   const isFirstRender = useRef(true);
@@ -311,8 +330,18 @@ export default function LoginHubFormSection({
   const [formError, setFormError] = useState("");
   const [showProjects, setShowProjects] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verificationChallenge, setVerificationChallenge] =
+    useState<LoginVerificationChallenge | null>(null);
+  const [otpDigits, setOtpDigits] = useState<string[]>(
+    Array(OTP_LENGTH).fill(""),
+  );
+  const [resendSeconds, setResendSeconds] = useState(0);
+  const [expiresSeconds, setExpiresSeconds] = useState(0);
+  const otpInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const loginMutation = useLogin();
+  const verifyLoginMutation = useVerifyLogin();
+  const resendLoginCodeMutation = useResendLoginCode();
   const queryClient = useQueryClient();
   const redirectParam = searchParams.get("redirect");
   const redirectPath = getSafeRedirectPath(redirectParam);
@@ -332,6 +361,24 @@ export default function LoginHubFormSection({
   });
 
   const clientList = [...(clients || []), ...STATIC_HUB_CLIENTS];
+
+  useEffect(() => {
+    if (!verificationChallenge) return;
+
+    const timer = window.setInterval(() => {
+      setResendSeconds((seconds) => Math.max(0, seconds - 1));
+      setExpiresSeconds((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
+
+    const focusTimer = window.setTimeout(() => {
+      otpInputRefs.current[0]?.focus();
+    }, 250);
+
+    return () => {
+      window.clearInterval(timer);
+      window.clearTimeout(focusTimer);
+    };
+  }, [verificationChallenge]);
 
   // ─── Responsive Resize Listener (chỉ co giãn khi ở form 50%) ────────────────
   useEffect(() => {
@@ -556,6 +603,61 @@ export default function LoginHubFormSection({
   }, [isClientSelectRoute]);
 
   // ─── Form Submission Handler ────────────────────────────────────────────────
+  const completeAuthenticatedLogin = async () => {
+    try {
+      await queryClient.refetchQueries({ queryKey: ["auth", "me"] });
+      const currentUser = queryClient.getQueryData<User>(["auth", "me"]);
+
+      if (clientId && clientDetail) {
+        try {
+          const accessRes = await checkAccessHubClient(clientId);
+          if (accessRes.success && clientDetail.clientExternalUrl) {
+            window.location.href = clientDetail.clientExternalUrl;
+            return;
+          }
+
+          queryClient.setQueryData(["hub-clients-access", clientId], accessRes);
+          setFormError("Tài khoản không có quyền truy cập hệ thống này.");
+          setShowLoginForm(false);
+          return;
+        } catch (error: unknown) {
+          const errCode = axios.isAxiosError<{ error_code?: string }>(error)
+            ? error.response?.data?.error_code
+            : undefined;
+          queryClient.setQueryData(["hub-clients-access", clientId], {
+            success: false,
+            error_code: errCode || "ERR_UNKNOWN",
+          });
+          setFormError("Tài khoản không có quyền truy cập hệ thống này.");
+          setShowLoginForm(false);
+          return;
+        }
+      }
+
+      if (isDashboardRedirect && !canAccessDashboard(currentUser?.role)) {
+        setFormError("Tài khoản không có quyền truy cập dashboard.");
+        return;
+      }
+
+      const targetUrl =
+        redirectParam &&
+        redirectPath !== PATHS.HOME &&
+        redirectPath !== PATHS.LOGIN &&
+        redirectPath !== PATHS.LOGIN_CLIENT
+          ? redirectPath
+          : PATHS.LOGIN_CLIENT;
+
+      navigate(targetUrl);
+    } catch (error) {
+      setFormError(
+        getApiErrorMessage(error) ||
+          "Đăng nhập thành công nhưng không thể tải thông tin tài khoản.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setEmailError("");
@@ -588,68 +690,25 @@ export default function LoginHubFormSection({
       { email: trimmedEmail, password: trimmedPassword },
       {
         onSuccess: async (res) => {
-          if (res.success) {
-            await queryClient.refetchQueries({ queryKey: ["auth", "me"] });
-            const currentUser = queryClient.getQueryData<User>(["auth", "me"]);
-
-            // Nếu đang đăng nhập SSO cho 1 client cụ thể (API Client)
-            if (clientId && clientDetail) {
-              try {
-                const accessRes = await checkAccessHubClient(clientId);
-                if (accessRes.success) {
-                  if (clientDetail.clientExternalUrl) {
-                    window.location.href = clientDetail.clientExternalUrl;
-                    return;
-                  }
-                }
-
-                queryClient.setQueryData(
-                  ["hub-clients-access", clientId],
-                  accessRes,
-                );
-                await queryClient.refetchQueries({ queryKey: ["auth", "me"] });
-                setFormError("Tài khoản không có quyền truy cập hệ thống này.");
-                setShowLoginForm(false);
-                setIsSubmitting(false);
-                return;
-              } catch (err: any) {
-                const errCode = err.response?.data?.error_code;
-                queryClient.setQueryData(["hub-clients-access", clientId], {
-                  success: false,
-                  error_code: errCode || "ERR_UNKNOWN",
-                });
-                await queryClient.refetchQueries({ queryKey: ["auth", "me"] });
-                setFormError("Tài khoản không có quyền truy cập hệ thống này.");
-                setShowLoginForm(false);
-                setIsSubmitting(false);
-                return;
-              }
-            }
-
-            // Đăng nhập Hub chung
-            if (
-              isDashboardRedirect &&
-              !canAccessDashboard(currentUser?.role)
-            ) {
-              setFormError("Tài khoản không có quyền truy cập dashboard.");
-              setIsSubmitting(false);
-              return;
-            }
-
-            const targetUrl =
-              redirectParam &&
-              redirectPath !== PATHS.HOME &&
-              redirectPath !== PATHS.LOGIN &&
-              redirectPath !== PATHS.LOGIN_CLIENT
-                ? redirectPath
-                : PATHS.LOGIN_CLIENT;
-
-            // Điều hướng sang /login/client, kích hoạt GSAP mở rộng 100%
-            navigate(targetUrl);
+          if (!res.success) {
+            setFormError(res.message || "Không thể đăng nhập.");
+            setIsSubmitting(false);
+            return;
           }
-          setIsSubmitting(false);
+
+          if (res.data?.requiresVerification) {
+            setVerificationChallenge(res.data);
+            setOtpDigits(Array(OTP_LENGTH).fill(""));
+            setResendSeconds(res.data.resendAfter);
+            setExpiresSeconds(res.data.expiresIn);
+            setFormError("");
+            setIsSubmitting(false);
+            return;
+          }
+
+          await completeAuthenticatedLogin();
         },
-        onError: (err: any) => {
+        onError: (err: unknown) => {
           setFormError(
             getApiErrorMessage(err) || "Email hoặc mật khẩu không chính xác.",
           );
@@ -657,6 +716,155 @@ export default function LoginHubFormSection({
         },
       },
     );
+  };
+
+  const setOtpFromText = (rawValue: string, startIndex = 0) => {
+    const digits = rawValue.replace(/\D/g, "").slice(0, OTP_LENGTH);
+    if (!digits) return;
+
+    setOtpDigits((current) => {
+      const next = [...current];
+      digits.split("").forEach((digit, offset) => {
+        const targetIndex = startIndex + offset;
+        if (targetIndex < OTP_LENGTH) next[targetIndex] = digit;
+      });
+      return next;
+    });
+    setFormError("");
+
+    const nextIndex = Math.min(startIndex + digits.length, OTP_LENGTH - 1);
+    window.requestAnimationFrame(() => {
+      otpInputRefs.current[nextIndex]?.focus();
+      otpInputRefs.current[nextIndex]?.select();
+    });
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    const digits = value.replace(/\D/g, "");
+    if (digits.length > 1) {
+      setOtpFromText(digits, index);
+      return;
+    }
+
+    setOtpDigits((current) => {
+      const next = [...current];
+      next[index] = digits.slice(-1);
+      return next;
+    });
+    setFormError("");
+
+    if (digits && index < OTP_LENGTH - 1) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (
+    index: number,
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (event.key === "Backspace" && !otpDigits[index] && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+      return;
+    }
+    if (event.key === "ArrowLeft" && index > 0) {
+      event.preventDefault();
+      otpInputRefs.current[index - 1]?.focus();
+    }
+    if (event.key === "ArrowRight" && index < OTP_LENGTH - 1) {
+      event.preventDefault();
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    setOtpFromText(event.clipboardData.getData("text"));
+  };
+
+  const handleVerifySubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!verificationChallenge) return;
+
+    const code = otpDigits.join("");
+    if (expiresSeconds <= 0) {
+      setFormError("Mã xác thực đã hết hạn. Vui lòng đăng nhập lại.");
+      return;
+    }
+    if (code.length !== OTP_LENGTH) {
+      setFormError("Vui lòng nhập đầy đủ mã xác thực gồm 6 số.");
+      const emptyIndex = otpDigits.findIndex((digit) => !digit);
+      otpInputRefs.current[Math.max(0, emptyIndex)]?.focus();
+      return;
+    }
+
+    setFormError("");
+    setIsSubmitting(true);
+    verifyLoginMutation.mutate(
+      { challengeId: verificationChallenge.challengeId, code },
+      {
+        onSuccess: async (response) => {
+          if (!response.success) {
+            setFormError(response.message || "Mã xác thực không chính xác.");
+            setIsSubmitting(false);
+            return;
+          }
+          await completeAuthenticatedLogin();
+        },
+        onError: (error) => {
+          setFormError(
+            getApiErrorMessage(error) || "Mã xác thực không chính xác.",
+          );
+          setOtpDigits(Array(OTP_LENGTH).fill(""));
+          setIsSubmitting(false);
+          window.requestAnimationFrame(() => {
+            otpInputRefs.current[0]?.focus();
+          });
+        },
+      },
+    );
+  };
+
+  const handleResendCode = () => {
+    if (!verificationChallenge || resendSeconds > 0) return;
+
+    setFormError("");
+    resendLoginCodeMutation.mutate(
+      { challengeId: verificationChallenge.challengeId },
+      {
+        onSuccess: (response) => {
+          if (!response.success || !response.data) {
+            setFormError(response.message || "Không thể gửi lại mã xác thực.");
+            return;
+          }
+
+          setVerificationChallenge({
+            requiresVerification: true,
+            ...response.data,
+          });
+          setOtpDigits(Array(OTP_LENGTH).fill(""));
+          setResendSeconds(response.data.resendAfter);
+          setExpiresSeconds(response.data.expiresIn);
+        },
+        onError: (error) => {
+          setFormError(
+            getApiErrorMessage(error) || "Không thể gửi lại mã xác thực.",
+          );
+        },
+      },
+    );
+  };
+
+  const resetVerification = () => {
+    setVerificationChallenge(null);
+    setOtpDigits(Array(OTP_LENGTH).fill(""));
+    setResendSeconds(0);
+    setExpiresSeconds(0);
+    setPassword("");
+    setFormError("");
+    setIsSubmitting(false);
+    loginMutation.reset();
+    verifyLoginMutation.reset();
+    resendLoginCodeMutation.reset();
   };
 
   const handleBack = (e?: React.MouseEvent) => {
@@ -709,14 +917,14 @@ export default function LoginHubFormSection({
   };
 
   return (
-    <div className="font-haffer relative min-h-screen min-h-dvh w-full overflow-x-hidden overflow-y-auto lg:overflow-hidden bg-transparent">
+    <div className="font-haffer relative min-h-dvh min-h-screen w-full overflow-x-hidden overflow-y-auto bg-transparent lg:overflow-hidden">
       {/* ─── Navbar: Fixed ở trên cùng khi ở /login/client đè lên không có bg ─── */}
       <div
         ref={navbarWrapperRef}
         className="pointer-events-none fixed inset-x-0 top-0 z-50"
         style={{
-          display: initialIsClientRef.current ? "block" : "none",
-          opacity: initialIsClientRef.current ? 1 : 0,
+          display: initialIsClient ? "block" : "none",
+          opacity: initialIsClient ? 1 : 0,
         }}
       >
         <PublicLandingNavbar
@@ -731,17 +939,15 @@ export default function LoginHubFormSection({
       {/* ─── Panel Container: 50% khi ở /login, GSAP mở rộng 100% sang /login/client ─── */}
       <div
         ref={panelRef}
-        className="relative z-10 flex min-h-screen flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden will-change-[width,transform,background-color] border-r shadow-2xl backdrop-blur-md"
+        className="relative z-10 flex min-h-screen flex-col overflow-x-hidden overflow-y-auto border-r shadow-2xl backdrop-blur-md will-change-[width,transform,background-color] lg:overflow-hidden"
         style={{
-          width: initialIsClientRef.current
+          width: initialIsClient
             ? "100%"
             : typeof window !== "undefined" && window.innerWidth >= 768
               ? "50%"
               : "100%",
-          backgroundColor: initialIsClientRef.current
-            ? "#050505"
-            : "rgba(0, 0, 0, 0.95)",
-          borderColor: initialIsClientRef.current
+          backgroundColor: initialIsClient ? "#050505" : "rgba(0, 0, 0, 0.95)",
+          borderColor: initialIsClient
             ? "transparent"
             : "rgba(255, 255, 255, 0.08)",
         }}
@@ -750,8 +956,8 @@ export default function LoginHubFormSection({
         <div
           ref={formWrapperRef}
           style={{
-            display: initialIsClientRef.current ? "none" : "flex",
-            opacity: initialIsClientRef.current ? 0 : 1,
+            display: initialIsClient ? "none" : "flex",
+            opacity: initialIsClient ? 0 : 1,
           }}
           className="flex min-h-screen w-full flex-1 flex-col justify-between px-8 py-8 md:px-14 lg:px-20"
         >
@@ -760,7 +966,7 @@ export default function LoginHubFormSection({
             <a
               href="/"
               onClick={handleBack}
-              className="group flex items-center cursor-pointer"
+              className="group flex cursor-pointer items-center"
             >
               <img
                 src={logoPicareNewBlack}
@@ -792,7 +998,7 @@ export default function LoginHubFormSection({
                     </span>
                   ) : (
                     <>
-                      <span className="italic font-light">Picare</span>{" "}
+                      <span className="font-light italic">Picare</span>{" "}
                       <span className="font-normal text-white/90">
                         Client<span className="text-[#FFA336]">.</span>
                       </span>
@@ -805,24 +1011,29 @@ export default function LoginHubFormSection({
                   <div className="mt-3 space-y-2">
                     <p className="font-haffer text-[13px] font-normal text-zinc-300">
                       Đang đăng nhập với tài khoản:{" "}
-                      <span className="font-medium text-white">{user.name}</span>
+                      <span className="font-medium text-white">
+                        {user.name}
+                      </span>
                     </p>
                     {isAccessDenied && (
                       <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-3.5 text-left">
                         <p className="text-[12.5px] font-semibold text-red-400">
                           Truy cập bị từ chối
                         </p>
-                        <p className="mt-0.5 text-[11.5px] font-light leading-relaxed text-zinc-300">
-                          Tài khoản của bạn không có quyền truy cập vào hệ thống này.
+                        <p className="mt-0.5 text-[11.5px] leading-relaxed font-light text-zinc-300">
+                          Tài khoản của bạn không có quyền truy cập vào hệ thống
+                          này.
                         </p>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <p className="font-haffer mt-2.5 text-[13px] font-light leading-relaxed text-zinc-400">
-                    {clientId && clientDetail?.clientName
-                      ? `Vui lòng đăng nhập để vào hệ thống ${clientDetail.clientName}`
-                      : "Đăng nhập không gian làm việc và hệ thống quản trị nội bộ tập trung"}
+                  <p className="font-haffer mt-2.5 text-[13px] leading-relaxed font-light text-zinc-400">
+                    {verificationChallenge
+                      ? `Nhập mã 6 số đã gửi tới ${verificationChallenge.maskedEmail}`
+                      : clientId && clientDetail?.clientName
+                        ? `Vui lòng đăng nhập để vào hệ thống ${clientDetail.clientName}`
+                        : "Đăng nhập không gian làm việc và hệ thống quản trị nội bộ tập trung"}
                   </p>
                 )}
               </div>
@@ -842,7 +1053,9 @@ export default function LoginHubFormSection({
                       whileTap={{ scale: 0.98 }}
                       className="group relative flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-white py-3.5 text-sm font-semibold tracking-wide text-zinc-950 shadow-[0_4px_24px_rgba(255,255,255,0.2)] transition-all hover:bg-zinc-100 active:scale-[0.98]"
                     >
-                      <span>Đi tới {clientDetail?.clientName || "hệ thống"}</span>
+                      <span>
+                        Đi tới {clientDetail?.clientName || "hệ thống"}
+                      </span>
                       <FiArrowRight className="text-base transition-transform duration-200 group-hover:translate-x-1" />
                     </motion.button>
                   )}
@@ -855,6 +1068,145 @@ export default function LoginHubFormSection({
                     Đăng nhập bằng tài khoản khác
                   </button>
                 </div>
+              ) : verificationChallenge ? (
+                <form
+                  noValidate
+                  onSubmit={handleVerifySubmit}
+                  className="space-y-6"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-2xl border border-[#FFA336]/20 bg-[#FFA336]/[0.06] p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFA336]/15 text-[#FFA336]">
+                        <FiShield size={17} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-zinc-100">
+                          Xác minh địa chỉ IP mới
+                        </p>
+                        <p className="mt-1 text-[11px] leading-relaxed font-light text-zinc-400">
+                          Đây là lần đăng nhập đầu tiên từ IP này. Mã xác thực
+                          chỉ dùng một lần và không nên chia sẻ với bất kỳ ai.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-medium tracking-wide text-zinc-400">
+                        Mã xác thực
+                      </label>
+                      <span
+                        className={`font-mono text-[11px] ${
+                          expiresSeconds <= 30
+                            ? "text-rose-400"
+                            : "text-zinc-500"
+                        }`}
+                      >
+                        {expiresSeconds > 0
+                          ? `${Math.floor(expiresSeconds / 60)}:${String(
+                              expiresSeconds % 60,
+                            ).padStart(2, "0")}`
+                          : "Đã hết hạn"}
+                      </span>
+                    </div>
+
+                    <div
+                      className="flex w-full justify-between gap-2 sm:gap-3"
+                      onPaste={handleOtpPaste}
+                    >
+                      {otpDigits.map((digit, index) => (
+                        <input
+                          key={index}
+                          ref={(element) => {
+                            otpInputRefs.current[index] = element;
+                          }}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          autoComplete={index === 0 ? "one-time-code" : "off"}
+                          aria-label={`Số thứ ${index + 1} của mã xác thực`}
+                          value={digit}
+                          maxLength={index === 0 ? OTP_LENGTH : 1}
+                          disabled={isSubmitting || expiresSeconds <= 0}
+                          onChange={(event) =>
+                            handleOtpChange(index, event.target.value)
+                          }
+                          onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                          onFocus={(event) => event.currentTarget.select()}
+                          className="h-13 min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.04] text-center font-mono text-xl font-semibold text-white caret-[#FFA336] transition-all outline-none focus:border-[#FFA336]/70 focus:bg-[#FFA336]/[0.08] focus:shadow-[0_0_0_3px_rgba(255,163,54,0.08)] disabled:cursor-not-allowed disabled:opacity-40 sm:h-14 sm:text-2xl"
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {formError && (
+                    <p
+                      aria-live="polite"
+                      className="text-[11px] font-normal text-rose-400"
+                    >
+                      * {formError}
+                    </p>
+                  )}
+
+                  <motion.button
+                    type="submit"
+                    disabled={isSubmitting || expiresSeconds <= 0}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="group relative flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-white py-3.5 text-sm font-semibold tracking-wide text-zinc-950 shadow-[0_4px_24px_rgba(255,255,255,0.15)] transition-all hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <span>
+                      {isSubmitting
+                        ? "Đang kiểm tra mã..."
+                        : "Xác nhận đăng nhập"}
+                    </span>
+                    <FiArrowRight className="text-base transition-transform duration-200 group-hover:translate-x-1" />
+                  </motion.button>
+
+                  <div className="flex flex-col items-center gap-3 text-xs sm:flex-row sm:justify-between">
+                    <button
+                      type="button"
+                      onClick={resetVerification}
+                      disabled={isSubmitting}
+                      className="inline-flex cursor-pointer items-center gap-1.5 text-zinc-500 transition-colors hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <FiArrowLeft size={13} />
+                      Đổi tài khoản
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleResendCode}
+                      disabled={
+                        expiresSeconds <= 0 ||
+                        resendSeconds > 0 ||
+                        resendLoginCodeMutation.isPending
+                      }
+                      className="inline-flex cursor-pointer items-center gap-1.5 text-zinc-400 transition-colors hover:text-white disabled:cursor-not-allowed disabled:text-zinc-600"
+                    >
+                      <FiRefreshCw
+                        size={13}
+                        className={
+                          resendLoginCodeMutation.isPending
+                            ? "animate-spin"
+                            : ""
+                        }
+                      />
+                      {resendLoginCodeMutation.isPending
+                        ? "Đang gửi lại..."
+                        : expiresSeconds <= 0
+                          ? "Mã đã hết hạn"
+                          : resendSeconds > 0
+                            ? `Gửi lại sau ${resendSeconds}s`
+                            : "Gửi lại mã"}
+                    </button>
+                  </div>
+                </form>
               ) : (
                 /* Login Form */
                 <form noValidate onSubmit={handleSubmit} className="space-y-6">
@@ -964,7 +1316,7 @@ export default function LoginHubFormSection({
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.2 }}
-                    className="form-anim-btn will-change-[transform,opacity,filter] group relative mt-8 flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-white py-3.5 text-sm font-semibold tracking-wide text-zinc-950 shadow-[0_4px_24px_rgba(255,255,255,0.15)] transition-all duration-200 hover:bg-zinc-100 hover:shadow-[0_6px_30px_rgba(255,255,255,0.25)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="form-anim-btn group relative mt-8 flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-white py-3.5 text-sm font-semibold tracking-wide text-zinc-950 shadow-[0_4px_24px_rgba(255,255,255,0.15)] transition-all duration-200 will-change-[transform,opacity,filter] hover:bg-zinc-100 hover:shadow-[0_6px_30px_rgba(255,255,255,0.25)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <span>
                       {isSubmitting ? "Đang xác thực..." : "Đăng nhập hệ thống"}
@@ -977,7 +1329,7 @@ export default function LoginHubFormSection({
                     <button
                       type="button"
                       onClick={() => setShowLoginForm(false)}
-                      className="mt-2 text-center w-full text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                      className="mt-2 w-full text-center text-xs text-zinc-500 transition-colors hover:text-zinc-300"
                     >
                       Sử dụng lại tài khoản hiện tại ({user?.name})
                     </button>
@@ -989,7 +1341,7 @@ export default function LoginHubFormSection({
 
           {/* Footer */}
           <div className="form-anim-footer py-4 will-change-[opacity]">
-            <p className="text-center font-light text-[11px] text-zinc-600">
+            <p className="text-center text-[11px] font-light text-zinc-600">
               Copyright © {new Date().getFullYear()} Picare Client. All rights
               reserved.
             </p>
@@ -999,17 +1351,17 @@ export default function LoginHubFormSection({
         {/* ─── GIAO DIỆN 2: CHỌN CLIENT (Full screen full height 6 items edge-to-edge tại /login/client) ─── */}
         <div
           ref={gridWrapperRef}
-          className="absolute inset-0 z-20 min-h-screen w-full bg-[#050505] overflow-x-hidden overflow-y-auto lg:h-screen lg:overflow-hidden"
+          className="absolute inset-0 z-20 min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#050505] lg:h-screen lg:overflow-hidden"
           style={{
-            display: initialIsClientRef.current ? "block" : "none",
-            opacity: initialIsClientRef.current ? 1 : 0,
+            display: initialIsClient ? "block" : "none",
+            opacity: initialIsClient ? 1 : 0,
           }}
         >
           {/* Outer border frame */}
           <div className="pointer-events-none absolute inset-0 border border-white/[0.08]" />
 
           {/* Grid 6 items: 3 cột x 2 hàng = full height screen 100vh trên desktop, scroll được trên mobile */}
-          <div className="grid h-auto min-h-full w-full grid-cols-1 border-t border-l border-white/[0.08] pt-24 pb-14 sm:pt-28 md:grid-cols-2 lg:h-full lg:p-0 lg:grid-cols-3 lg:grid-rows-2">
+          <div className="grid h-auto min-h-full w-full grid-cols-1 border-t border-l border-white/[0.08] pt-24 pb-14 sm:pt-28 md:grid-cols-2 lg:h-full lg:grid-cols-3 lg:grid-rows-2 lg:p-0">
             {isClientsLoading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <ClientSkeleton key={i} />
@@ -1017,11 +1369,7 @@ export default function LoginHubFormSection({
             ) : (
               <>
                 {clientList.slice(0, 6).map((client, i) => (
-                  <ClientCard
-                    key={client.clientId}
-                    client={client}
-                    index={i}
-                  />
+                  <ClientCard key={client.clientId} client={client} index={i} />
                 ))}
                 {Array.from({
                   length: Math.max(0, 6 - Math.min(6, clientList.length)),
@@ -1064,7 +1412,7 @@ export default function LoginHubFormSection({
                     <span className="text-xs font-medium text-white">
                       {project.name}
                     </span>
-                    <span className="font-light text-[10px] text-zinc-400">
+                    <span className="text-[10px] font-light text-zinc-400">
                       {project.desc}
                     </span>
                   </motion.button>

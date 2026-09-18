@@ -2,6 +2,7 @@ import type { BasePaginatedResponse, BaseResponse } from "@/types/ApiResponse";
 import type {
   CreateUserPayload,
   UpdateUserPayload,
+  UpdateUserAuthPolicyPayload,
   User,
   UserRole,
 } from "@/types/User";
@@ -48,5 +49,25 @@ export async function updateUserInfo(
   userId: string,
 ): Promise<BaseResponse<null>> {
   const res = await hubAxiosClient.put(`/api/v1/users/${userId}`, payload);
+  return res.data;
+}
+
+export async function updateUserAuthPolicy(
+  userId: string,
+  payload: UpdateUserAuthPolicyPayload,
+): Promise<BaseResponse<Pick<User, "userId" | "bypassIpVerification">>> {
+  const res = await hubAxiosClient.patch(
+    `/api/v1/users/${userId}/auth-policy`,
+    payload,
+  );
+  return res.data;
+}
+
+export async function revokeAllUserTrustedIps(
+  userId: string,
+): Promise<BaseResponse<null>> {
+  const res = await hubAxiosClient.delete(
+    `/api/v1/users/${userId}/trusted-ips`,
+  );
   return res.data;
 }

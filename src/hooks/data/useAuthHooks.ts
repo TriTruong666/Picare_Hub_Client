@@ -1,6 +1,11 @@
 import * as AuthService from "@/apis/auth.service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { ChangePasswordPayload, LoginRequest } from "@/types/Auth";
+import type {
+  ChangePasswordPayload,
+  LoginRequest,
+  ResendLoginCodeRequest,
+  VerifyLoginRequest,
+} from "@/types/Auth";
 import type { User } from "@/types/User";
 import { getApiErrorMessage } from "@/common/api.error";
 import { translateErrorMessage } from "@/common/api.error";
@@ -13,13 +18,34 @@ export function useLogin() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: LoginRequest) => AuthService.login(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+    onSuccess: (response) => {
+      if (response.data?.requiresVerification === false) {
+        queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      }
     },
     onError: (err) => {
       const message = getApiErrorMessage(err);
       console.error("Login Error:", message);
     },
+  });
+}
+
+export function useVerifyLogin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: VerifyLoginRequest) => AuthService.verifyLogin(data),
+    onSuccess: (response) => {
+      if (response.success) {
+        queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      }
+    },
+  });
+}
+
+export function useResendLoginCode() {
+  return useMutation({
+    mutationFn: (data: ResendLoginCodeRequest) =>
+      AuthService.resendLoginCode(data),
   });
 }
 

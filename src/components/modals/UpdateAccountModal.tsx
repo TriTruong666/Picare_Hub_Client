@@ -5,7 +5,11 @@ import { FiArrowLeft } from "react-icons/fi";
 import { HiOutlineX } from "react-icons/hi";
 
 import GlassSelect from "@/components/custom_ui/Select";
-import { useUpdateUser } from "@/hooks/data/useUserHooks";
+import {
+  useRevokeAllUserTrustedIps,
+  useUpdateUser,
+  useUpdateUserAuthPolicy,
+} from "@/hooks/data/useUserHooks";
 import { toast } from "@/hooks/useToast";
 import { closeModalAtom } from "@/stores/modalStore";
 import type { UpdateUserPayload, User, UserRole } from "@/types/User";
@@ -15,6 +19,7 @@ type UpdateFormState = {
   email: string;
   phone: string;
   role: UserRole;
+  bypassIpVerification: boolean;
 };
 
 const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
@@ -52,14 +57,18 @@ function FieldLabel({
 export function UpdateAccountModal({ user }: { user: User }) {
   const [, closeModal] = useAtom(closeModalAtom);
   const updateUserMutation = useUpdateUser();
+  const updateAuthPolicyMutation = useUpdateUserAuthPolicy();
+  const revokeTrustedIpsMutation = useRevokeAllUserTrustedIps();
   const [form, setForm] = useState<UpdateFormState>(() => ({
     name: user.name ?? "",
     email: user.email ?? "",
     phone: user.phone ?? "",
     role: user.role,
+    bypassIpVerification: Boolean(user.bypassIpVerification),
   }));
 
-  const isSubmitting = updateUserMutation.isPending;
+  const isSubmitting =
+    updateUserMutation.isPending || updateAuthPolicyMutation.isPending;
 
   const setField = <K extends keyof UpdateFormState>(
     key: K,
@@ -90,8 +99,25 @@ export function UpdateAccountModal({ user }: { user: User }) {
     });
 
     if (response.success) {
+      if (form.bypassIpVerification !== user.bypassIpVerification) {
+        const policyResponse = await updateAuthPolicyMutation.mutateAsync({
+          userId: user.userId,
+          payload: {
+            bypassIpVerification: form.bypassIpVerification,
+          },
+        });
+        if (!policyResponse.success) return;
+      }
       closeModal();
     }
+  };
+
+  const handleRevokeTrustedIps = async () => {
+    const confirmed = window.confirm(
+      "Thu hồi toàn bộ IP tin cậy? Người dùng sẽ phải xác minh email ở lần đăng nhập tiếp theo.",
+    );
+    if (!confirmed) return;
+    await revokeTrustedIpsMutation.mutateAsync(user.userId);
   };
 
   return (
@@ -166,6 +192,55 @@ export function UpdateAccountModal({ user }: { user: User }) {
                 placeholder="Nhập số điện thoại"
               />
             </div>
+          </div>
+
+          <div className="rounded-xl border border-gray-300 bg-gray-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Bỏ qua xác minh IP
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                  Chỉ bật cho tài khoản quản trị đặc biệt. Khi bật, người dùng
+                  không cần nhập mã email khi đăng nhập từ IP mới.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.bypassIpVerification}
+                disabled={isSubmitting}
+                onClick={() =>
+                  setField("bypassIpVerification", !form.bypassIpVerification)
+                }
+                className={clsx(
+                  "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                  form.bypassIpVerification
+                    ? "bg-indigo-600"
+                    : "bg-gray-300 dark:bg-white/15",
+                )}
+              >
+                <span
+                  className={clsx(
+                    "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
+                    form.bypassIpVerification
+                      ? "translate-x-5"
+                      : "translate-x-0.5",
+                  )}
+                />
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleRevokeTrustedIps}
+              disabled={isSubmitting || revokeTrustedIpsMutation.isPending}
+              className="mt-4 text-xs font-medium text-red-600 transition hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400"
+            >
+              {revokeTrustedIpsMutation.isPending
+                ? "Đang thu hồi IP..."
+                : "Thu hồi toàn bộ IP tin cậy"}
+            </button>
           </div>
         </div>
       </div>

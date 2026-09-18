@@ -4,9 +4,11 @@ export type User = {
   email: string;
   phone?: string | null;
   isOnline: boolean;
+  bypassIpVerification: boolean;
   note?: string | null;
   role: UserRole;
   createdAt: string;
+  updatedAt: string;
 };
 
 export const USER_ROLES = [
@@ -65,4 +67,8 @@ export type UpdateUserPayload = {
   password?: string;
   phone?: string | null;
   role: UserRole;
+};
+
+export type UpdateUserAuthPolicyPayload = {
+  bypassIpVerification: boolean;
 };
