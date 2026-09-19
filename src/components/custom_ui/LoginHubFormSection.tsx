@@ -16,7 +16,6 @@ import {
   FiArrowRight,
   FiArrowLeft,
   FiRefreshCw,
-  FiShield,
 } from "react-icons/fi";
 import gsap from "gsap";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
@@ -1074,27 +1073,6 @@ export default function LoginHubFormSection({
                   onSubmit={handleVerifySubmit}
                   className="space-y-6"
                 >
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="rounded-2xl border border-[#FFA336]/20 bg-[#FFA336]/[0.06] p-4"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFA336]/15 text-[#FFA336]">
-                        <FiShield size={17} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-zinc-100">
-                          Xác minh địa chỉ IP mới
-                        </p>
-                        <p className="mt-1 text-[11px] leading-relaxed font-light text-zinc-400">
-                          Đây là lần đăng nhập đầu tiên từ IP này. Mã xác thực
-                          chỉ dùng một lần và không nên chia sẻ với bất kỳ ai.
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-medium tracking-wide text-zinc-400">

@@ -19,7 +19,7 @@ export function useLogin() {
   return useMutation({
     mutationFn: (data: LoginRequest) => AuthService.login(data),
     onSuccess: (response) => {
-      if (response.data?.requiresVerification === false) {
+      if (response.success && response.data?.requiresVerification !== true) {
         queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       }
     },
