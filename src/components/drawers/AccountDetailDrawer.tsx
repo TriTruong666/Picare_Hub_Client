@@ -35,12 +35,18 @@ export function AccountDetailDrawer({
   useEffect(() => {
     if (!isOpen) return;
 
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [isOpen, onClose]);
 
   const copyValue = async (value: string | null | undefined, label: string) => {
@@ -73,29 +79,32 @@ export function AccountDetailDrawer({
     <AnimatePresence>
       {isOpen && user && (
         <>
-          {/* Backdrop - pure bg-black/80 for 60fps performance */}
+          {/* Backdrop - pure bg-black/60 for fast 60fps performance */}
           <motion.div
+            key="drawer-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: "linear" }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/80"
+            className="fixed inset-0 z-40 bg-black/60"
           />
 
-          {/* Sliding drawer container */}
+          {/* Sliding drawer container - GPU hardware accelerated */}
           <motion.div
+            key="drawer-panel"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 z-50 flex h-dvh h-full max-h-screen shadow-2xl"
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-y-0 right-0 z-50 flex h-dvh h-full max-h-screen will-change-transform"
           >
             <aside
               data-lenis-prevent
               className="flex h-dvh h-full max-h-screen w-[min(100vw,600px)] flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0a0a0a]"
             >
-              {/* Header */}
-              <header className="flex shrink-0 items-start justify-between gap-4 border-b border-gray-200 bg-white/90 px-5 py-5 backdrop-blur-md sm:px-6 dark:border-white/10 dark:bg-[#0a0a0a]/90">
+              {/* Header - solid background without backdrop-blur for zero paint lag */}
+              <header className="flex shrink-0 items-start justify-between gap-4 border-b border-gray-200 bg-white px-5 py-5 sm:px-6 dark:border-white/10 dark:bg-[#0a0a0a]">
                 <div className="min-w-0">
                   <h2 className="mt-1 truncate text-base font-semibold text-gray-900 dark:text-white">
                     {user.name || "Chi tiết tài khoản"}

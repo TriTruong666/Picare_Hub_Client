@@ -131,7 +131,7 @@ export function useUserTrustedIps(userId: string, enabled = true) {
   return useFetch<TrustedIpsData>(
     ["users", "trusted-ips", userId],
     () => UserService.getUserTrustedIps(userId),
-    { enabled: enabled && Boolean(userId), staleTime: 0 },
+    { enabled: enabled && Boolean(userId), staleTime: 30 * 1000 },
   );
 }
 
