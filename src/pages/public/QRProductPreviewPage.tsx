@@ -1,12 +1,12 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FiMoon, FiShoppingCart, FiSun } from "react-icons/fi";
-import { Link, useParams } from "react-router-dom";
+import { FiShoppingCart } from "react-icons/fi";
+import { useParams } from "react-router-dom";
 
-import logo from "@/assets/images/logo.png";
 import { Spinner } from "@/components/custom_ui/Spinner";
-import { PATHS } from "@/config/paths";
+import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
+import PublicLandingFooter from "@/components/landing/PublicLandingFooter";
 import { useProductQRDetail } from "@/hooks/data/useProductQRHooks";
 import type { ProductQR } from "@/types/QRProduct";
 
@@ -248,118 +248,6 @@ function ProductImageCarousel({
   );
 }
 
-function ProductPreviewThemeToggle() {
-  const [dark, setDark] = useState(false);
-  const btnRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("theme");
-
-    if (saved === "light") {
-      document.documentElement.classList.remove("dark");
-      setDark(false);
-      return;
-    }
-
-    document.documentElement.classList.add("dark");
-    localStorage.setItem("theme", "dark");
-    setDark(true);
-  }, []);
-
-  const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {
-    const root = document.documentElement;
-    const doc = document as ViewTransitionDocument;
-    const isDark = root.classList.contains("dark");
-    const nextDark = !isDark;
-
-    const rect = btnRef.current?.getBoundingClientRect();
-    const x = rect ? Math.round(rect.left + rect.width / 2) : event.clientX;
-    const y = rect ? Math.round(rect.top + rect.height / 2) : event.clientY;
-    const maxRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y),
-    );
-
-    const applyTheme = () => {
-      root.classList.toggle("dark", nextDark);
-      localStorage.setItem("theme", nextDark ? "dark" : "light");
-      setDark(nextDark);
-    };
-
-    if (!doc.startViewTransition) {
-      applyTheme();
-      return;
-    }
-
-    const transition = doc.startViewTransition(() => {
-      applyTheme();
-    });
-
-    transition.ready.then(() => {
-      document.documentElement.animate(
-        {
-          clipPath: [
-            `circle(0px at ${x}px ${y}px)`,
-            `circle(${maxRadius}px at ${x}px ${y}px)`,
-          ],
-        },
-        {
-          duration: 700,
-          easing: "ease-in-out",
-          pseudoElement: "::view-transition-new(root)",
-        },
-      );
-    });
-  };
-
-  return (
-    <button
-      ref={btnRef}
-      onClick={toggleTheme}
-      className="relative flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white/70 text-gray-700 shadow-sm backdrop-blur-md transition-all hover:border-black/20 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:hover:bg-white/10"
-      aria-label="Toggle theme"
-      type="button"
-    >
-      <AnimatePresence>
-        {dark ? (
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 rounded-full bg-indigo-500/30 blur-md"
-          />
-        ) : null}
-      </AnimatePresence>
-
-      <AnimatePresence mode="wait">
-        {dark ? (
-          <motion.span
-            key="moon"
-            initial={{ opacity: 0, rotate: -90, scale: 0.6 }}
-            animate={{ opacity: 1, rotate: 0, scale: 1 }}
-            exit={{ opacity: 0, rotate: 90, scale: 0.6 }}
-            transition={{ duration: 0.25 }}
-            className="relative z-10"
-          >
-            <FiMoon className="text-lg text-indigo-400" />
-          </motion.span>
-        ) : (
-          <motion.span
-            key="sun"
-            initial={{ opacity: 0, rotate: 90, scale: 0.6 }}
-            animate={{ opacity: 1, rotate: 0, scale: 1 }}
-            exit={{ opacity: 0, rotate: -90, scale: 0.6 }}
-            transition={{ duration: 0.25 }}
-            className="relative z-10"
-          >
-            <FiSun className="text-lg text-amber-400" />
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </button>
-  );
-}
-
 function ProductPreviewContent({ product }: { product: ProductQR }) {
   const info = product.jsonContent;
   const productName = normalizeValue(info.productName) || "Sản phẩm";
@@ -398,40 +286,10 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
   );
 
   return (
-    <main className="min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
-      <div className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-6 lg:px-10 xl:px-12">
-        <header className="relative flex items-center justify-between border-b border-black/10 py-4 sm:py-5 dark:border-white/10">
-          <Link
-            to={PATHS.HOME}
-            className="flex items-center gap-2"
-            aria-label="Về trang chủ"
-          >
-            <img
-              src={logo}
-              alt=""
-              className="h-7 w-7 object-contain sm:h-8 sm:w-8"
-            />
-            <span className="font-bricolage text-base font-medium text-[#111111] sm:text-lg dark:text-white">
-              Picare Hub
-            </span>
-          </Link>
+    <div className="font-haffer min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
+      <PublicLandingNavbar isDarkBg={true} />
 
-          <div className="ml-auto flex items-center gap-2">
-            <ProductPreviewThemeToggle />
-            {website ? (
-              <a
-                href={website}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 text-xs font-medium text-black/70 transition hover:border-black/20 hover:text-black dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:text-white"
-              >
-                <FiShoppingCart />
-                Mua hàng
-              </a>
-            ) : null}
-          </div>
-        </header>
-
+      <main className="mx-auto max-w-[1400px] px-4 pt-24 pb-16 sm:px-6 sm:pt-28 lg:px-10 xl:px-12">
         <section className="py-6 sm:py-8 lg:py-12">
           <div className="grid gap-6 lg:grid-cols-[minmax(360px,0.82fr)_minmax(0,1.18fr)] lg:items-start lg:gap-14 xl:grid-cols-[minmax(420px,0.78fr)_minmax(0,1.22fr)] xl:gap-[4.5rem]">
             <div className="order-1">
@@ -450,6 +308,20 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
               <h1 className="mt-3 max-w-[18ch] text-[1.85rem] leading-[1.08] font-semibold text-[#111111] sm:max-w-[20ch] sm:text-[2.2rem] lg:max-w-[19ch] lg:text-[2.85rem] xl:max-w-[22ch] xl:text-[3rem] dark:text-white">
                 {productName}
               </h1>
+
+              {website ? (
+                <div className="mt-5">
+                  <a
+                    href={website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-10 items-center gap-2 rounded-full border border-black/15 bg-[#111111] px-5 text-xs font-medium text-white shadow-sm transition hover:bg-black/80 dark:border-white/20 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                  >
+                    <FiShoppingCart className="text-sm" />
+                    Mua hàng chính hãng
+                  </a>
+                </div>
+              ) : null}
 
               <div className="mt-5 max-w-[68ch] space-y-3 text-sm leading-7 text-black/68 sm:text-[15px] dark:text-white/62">
                 {normalizeValue(info.uses) ? (
@@ -514,8 +386,10 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
           title="Thông tin thêm"
           content={extraContent}
         />
-      </div>
-    </main>
+      </main>
+
+      <PublicLandingFooter />
+    </div>
   );
 }
 
@@ -530,38 +404,46 @@ export default function QRProductPreviewPage() {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f6f1e8] px-6 text-[#111111] dark:bg-[#050505] dark:text-white">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <Spinner size="lg" color="primary" />
-          <p className="text-sm text-black/55 dark:text-white/55">
-            Đang tải thông tin sản phẩm...
-          </p>
-        </div>
-      </main>
+      <div className="font-haffer min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
+        <PublicLandingNavbar isDarkBg={true} />
+        <main className="flex min-h-[60vh] items-center justify-center px-6 pt-28">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <Spinner size="lg" color="primary" />
+            <p className="text-sm text-black/55 dark:text-white/55">
+              Đang tải thông tin sản phẩm...
+            </p>
+          </div>
+        </main>
+        <PublicLandingFooter />
+      </div>
     );
   }
 
   if (isError || !product) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f6f1e8] px-6 text-[#111111] dark:bg-[#050505] dark:text-white">
-        <div className="max-w-md text-center">
-          <p className="text-[11px] font-medium text-black/35 uppercase dark:text-white/35">
-            Product Preview
-          </p>
-          <h1 className="mt-3 text-2xl font-medium">Không tìm thấy sản phẩm</h1>
-          <p className="mt-3 text-sm leading-7 text-black/58 dark:text-white/58">
-            Link preview này có thể đã hết hiệu lực hoặc mã sản phẩm không còn
-            tồn tại.
-          </p>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="mt-6 inline-flex h-11 items-center justify-center border border-black px-5 text-sm font-medium text-black transition hover:bg-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black"
-          >
-            Tải lại
-          </button>
-        </div>
-      </main>
+      <div className="font-haffer min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
+        <PublicLandingNavbar isDarkBg={true} />
+        <main className="flex min-h-[60vh] items-center justify-center px-6 pt-28">
+          <div className="max-w-md text-center">
+            <p className="text-[11px] font-medium text-black/35 uppercase dark:text-white/35">
+              Product Preview
+            </p>
+            <h1 className="mt-3 text-2xl font-medium">Không tìm thấy sản phẩm</h1>
+            <p className="mt-3 text-sm leading-7 text-black/58 dark:text-white/58">
+              Link preview này có thể đã hết hiệu lực hoặc mã sản phẩm không còn
+              tồn tại.
+            </p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="mt-6 inline-flex h-11 items-center justify-center border border-black px-5 text-sm font-medium text-black transition hover:bg-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black"
+            >
+              Tải lại
+            </button>
+          </div>
+        </main>
+        <PublicLandingFooter />
+      </div>
     );
   }
 
