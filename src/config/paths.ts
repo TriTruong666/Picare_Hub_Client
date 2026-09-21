@@ -7,7 +7,7 @@ export const PATHS = {
   HOME: "/",
   TEST: "/test",
   CHANGES: "/changes", // Trang Blog cập nhật hệ thống / release notes
-  SECURITY_UPDATE_DETAIL: "/cap-nhat-he-thong-bao-mat", // Trang chi tiết nâng cấp bảo mật Picare Office
+  SECURITY_UPDATE_DETAIL: "/nang-cap-dang-nhap", // Trang chi tiết nâng cấp bảo mật Picare Office
   CHANGE_DETAIL: "/changes/:slug",
   MY_PAGE: "/quynhnhu",
   LOGIN: "/login", // Trang dang nhap Hub chung / chon client

@@ -77,7 +77,7 @@ export default function SecurityOfficeUpdateDetailPage() {
             <span className="text-white/20">/</span>
             <time dateTime="2026-09-21">21 Tháng 09, 2026</time>
             <span className="text-white/20">/</span>
-            <span>Bản phát hành v2.5.0-sec</span>
+            <span>Bản phát hành v1.1.0-sec</span>
           </div>
 
           <h1 className="mt-5 text-2xl leading-snug font-semibold text-white sm:text-3xl md:text-[38px]">
