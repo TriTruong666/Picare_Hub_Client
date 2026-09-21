@@ -1,15 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAtom } from "jotai";
-import { FiEdit2, FiPlus, FiSearch, FiUserPlus } from "react-icons/fi";
+import { motion } from "framer-motion";
+import { FiPlus, FiSearch, FiUserPlus } from "react-icons/fi";
 import { PiExport } from "react-icons/pi";
-import { formatRelativeTime } from "@/common/format";
+import { formatDateTime, formatRelativeTime } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
-import IconAction from "@/components/custom_ui/IconAction";
 import { Pagination } from "@/components/custom_ui/Pagination";
 import GlassSelect from "@/components/custom_ui/Select";
-import { Spinner } from "@/components/custom_ui/Spinner";
-import { Tooltip } from "@/components/custom_ui/Tooltip";
+import { StateShell } from "@/components/custom_ui/ShellState";
+import { Td, Th } from "@/components/custom_ui/Table";
+import { AccountDetailDrawer } from "@/components/drawers/AccountDetailDrawer";
 import { useUsers } from "@/hooks/data/useUserHooks";
 import { openModalAtom, openUpdateAccountModalAtom } from "@/stores/modalStore";
 import type { BasePaginatedResponse } from "@/types/ApiResponse";
@@ -45,20 +46,30 @@ const breadcrumbItems = [
   { label: "Tất cả" },
 ];
 
-const columns = [
-  { key: "info", label: "Thông tin cá nhân", width: "w-[30%]", align: "left" },
-  { key: "phone", label: "Số điện thoại", width: "w-[15%]", align: "center" },
-  { key: "role", label: "Vai trò", width: "w-[20%]", align: "center" },
-  { key: "status", label: "Trạng thái", width: "w-[20%]", align: "center" },
-  { key: "actions", label: "Thao tác", width: "w-[15%]", align: "center" },
-] as const;
-
 export default function AccountDashboardPage() {
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(10);
+  const pageSize = 10;
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<UserRole | "">("");
   const [sortType, setSortType] = useState<SortType>("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  const [, openModal] = useAtom(openModalAtom);
+  const [, openUpdateAccountModal] = useAtom(openUpdateAccountModalAtom);
+
+  // Debounce search input like CustomerListPage
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      const nextSearch = searchInput.trim();
+      if (nextSearch !== search) {
+        setPage(1);
+        setSearch(nextSearch);
+      }
+    }, 300);
+
+    return () => window.clearTimeout(handle);
+  }, [search, searchInput]);
 
   const {
     data: users,
@@ -69,16 +80,16 @@ export default function AccountDashboardPage() {
   } = useUsers({
     page,
     limit: pageSize,
-    search: search.trim() || undefined,
+    search: search || undefined,
     role: roleFilter || undefined,
   });
-  const [, openModal] = useAtom(openModalAtom);
 
   const pagination = (fullResponse as BasePaginatedResponse<User[]>)
     ?.pagination;
 
   return (
     <div className="page-layout">
+      {/* Page Header */}
       <div className="mb-2 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <Breadcrumb items={breadcrumbItems} />
@@ -86,8 +97,9 @@ export default function AccountDashboardPage() {
             Quản lý tài khoản
           </h1>
         </div>
+
         <div className="flex items-center gap-3">
-          <div className="ml-2">
+          <div className="w-44">
             <GlassSelect
               value={sortType}
               onChange={(value) => setSortType(value as SortType)}
@@ -98,13 +110,18 @@ export default function AccountDashboardPage() {
               ]}
             />
           </div>
-          <button className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-[13px] font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10">
+
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-[13px] font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10"
+          >
             Xuất file <PiExport />
           </button>
 
           <button
+            type="button"
             onClick={() => openModal("add_account")}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-[13px] font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.03] hover:bg-indigo-500 active:scale-95 dark:bg-indigo-500 dark:shadow-indigo-500/10 dark:hover:bg-indigo-400"
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-[13px] font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.02] hover:bg-indigo-500 active:scale-95 dark:bg-indigo-500 dark:shadow-indigo-500/10 dark:hover:bg-indigo-400"
           >
             <FiUserPlus />
             Thêm tài khoản
@@ -112,6 +129,7 @@ export default function AccountDashboardPage() {
         </div>
       </div>
 
+      {/* Filter & Search Bar */}
       <div className="mt-4 mb-6 flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <FiSearch className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-gray-400 dark:text-white/30" />
@@ -119,14 +137,12 @@ export default function AccountDashboardPage() {
             id="account-search"
             type="text"
             placeholder="Tìm kiếm tài khoản theo tên, email, SĐT..."
-            value={search}
-            onChange={(event) => {
-              setPage(1);
-              setSearch(event.target.value);
-            }}
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
             className="h-10 w-full rounded-lg border border-gray-300 bg-white pr-4 pl-9 text-[13px] text-gray-800 transition outline-none placeholder:text-gray-400 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
           />
         </div>
+
         <div className="w-full sm:w-56">
           <GlassSelect
             value={roleFilter}
@@ -140,24 +156,38 @@ export default function AccountDashboardPage() {
         </div>
       </div>
 
-      <div className="my-8">
+      {/* Table Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="my-6"
+      >
         <AccountTable
           users={users || []}
           isLoading={isLoading}
           isError={isError}
-          refetch={refetch}
+          onRetry={refetch}
           sortType={sortType}
+          onUserClick={(user) => setSelectedUser(user)}
         />
 
-        {pagination ? (
+        {!isLoading && pagination ? (
           <Pagination
             total={pagination.totalRecords || 0}
             page={page}
-            pageSize={pagination.pageSize || 10}
+            pageSize={pageSize}
             onPageChange={setPage}
           />
         ) : null}
-      </div>
+      </motion.div>
+
+      {/* Account Detail Drawer */}
+      <AccountDetailDrawer
+        user={selectedUser}
+        isOpen={Boolean(selectedUser)}
+        onClose={() => setSelectedUser(null)}
+        onEdit={(user) => openUpdateAccountModal(user)}
+      />
     </div>
   );
 }
@@ -166,21 +196,20 @@ interface AccountTableProps {
   users: User[];
   isLoading: boolean;
   isError: boolean;
-  refetch: () => void;
+  onRetry: () => void;
   sortType: SortType;
+  onUserClick: (user: User) => void;
 }
 
 function AccountTable({
   users,
   isLoading,
   isError,
-  refetch,
+  onRetry,
   sortType,
+  onUserClick,
 }: AccountTableProps) {
   const [, openModal] = useAtom(openModalAtom);
-  const [, openUpdateAccountModal] = useAtom(openUpdateAccountModalAtom);
-
-  const roleLabels = ROLE_LABELS;
 
   const sortedUsers = useMemo(
     () => sortUsers(users, sortType),
@@ -188,116 +217,115 @@ function AccountTable({
   );
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-100 flex-col items-center justify-center py-10">
-        <Spinner size="lg" />
-        <p className="mt-4 text-sm font-medium text-gray-500">
-          Đang tải dữ liệu...
-        </p>
-      </div>
-    );
+    return <AccountTableSkeleton />;
   }
 
   if (isError) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
-        <p className="max-w-md text-center text-sm font-medium text-red-400">
-          Đã xảy ra lỗi khi tải danh sách tài khoản
-        </p>
-        <button
-          onClick={refetch}
-          className="mt-6 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 dark:border-white/5 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-        >
-          Thử lại
-        </button>
-      </div>
+      <StateShell
+        title="Không thể tải danh sách tài khoản"
+        message="Có lỗi xảy ra khi tải dữ liệu người dùng từ hệ thống."
+        actionLabel="Thử lại"
+        onAction={onRetry}
+      />
     );
   }
 
   if (users.length === 0) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Danh sách trống
-        </h3>
-        <p className="mt-2 text-sm text-gray-500 dark:text-white/50">
-          Hệ thống chưa có tài khoản nào được tạo
-        </p>
-        <button
-          onClick={() => openModal("add_account")}
-          className="mt-6 flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-xs font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-        >
-          <FiPlus className="text-lg" />
-          Tạo tài khoản ngay
-        </button>
-      </div>
+      <StateShell
+        title="Danh sách trống"
+        message="Không tìm thấy tài khoản nào phù hợp với bộ lọc hiện tại."
+        actionLabel="Thêm tài khoản"
+        onAction={() => openModal("add_account")}
+      />
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-225 table-fixed border-collapse border-x border-t border-gray-400 text-left dark:border-white/10">
+    <div className="flex flex-col overflow-x-auto">
+      <table className="w-full min-w-250 table-fixed border-collapse border-x border-t border-gray-400 text-left dark:border-white/10">
+        <colgroup>
+          <col className="w-[34%]" />
+          <col className="w-[18%]" />
+          <col className="w-[18%]" />
+          <col className="w-[15%]" />
+          <col className="w-[15%]" />
+        </colgroup>
         <thead>
-          <tr className="bg-gray-200/50 dark:bg-white/5">
-            {columns.map((col, i) => (
-              <th
-                key={col.key}
-                className={`border-b border-gray-400 p-4 text-xs font-semibold tracking-wide text-gray-600 uppercase dark:border-white/10 dark:text-gray-400 ${
-                  col.width ?? ""
-                } ${col.align === "center" ? "text-center" : "text-left"} ${
-                  i < columns.length - 1
-                    ? "border-r border-gray-400 dark:border-white/10"
-                    : ""
-                }`}
-              >
-                {col.label}
-              </th>
-            ))}
+          <tr className="bg-gray-50/50 dark:bg-white/5">
+            <Th>Thông tin tài khoản</Th>
+            <Th className="text-center">Số điện thoại</Th>
+            <Th className="text-center">Vai trò</Th>
+            <Th className="text-center">Trạng thái</Th>
+            <Th className="text-center" isLast>
+              Ngày khởi tạo
+            </Th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-400 dark:divide-white/10">
           {sortedUsers.map((user) => (
             <tr
               key={user.userId}
-              className="transition-colors hover:bg-gray-100/50 dark:hover:bg-white/5"
+              onClick={() => onUserClick(user)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onUserClick(user);
+                }
+              }}
+              tabIndex={0}
+              aria-label={`Xem chi tiết tài khoản ${user.name}`}
+              className="cursor-pointer transition-colors hover:bg-gray-50/70 focus:bg-gray-50/70 focus:outline-none dark:hover:bg-white/3 dark:focus:bg-white/3"
             >
-              <td className="border-r border-gray-400 p-4 dark:border-white/10">
+              <Td>
                 <div className="flex items-center gap-3">
-                  <AccountAvatar name={user.name} />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500/15 to-primary/15 text-xs font-bold text-gray-800 dark:text-white">
+                    {user.name?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="truncate text-[13px] font-semibold text-gray-900 dark:text-white">
                       {user.name}
                     </span>
-                    <span className="dark:text-primary/90 text-[12px] font-semibold text-gray-900 italic">
+                    <span className="truncate font-mono text-[11px] text-gray-500 dark:text-white/50">
                       {user.email}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {formatRelativeTime(user.createdAt)}
                     </span>
                   </div>
                 </div>
-              </td>
-              <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
-                <span className="text-[13px] text-gray-600 dark:text-gray-300">
-                  {user.phone || "-"}
-                </span>
-              </td>
-              <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
-                <span className="text-[13px] text-gray-600 dark:text-gray-300">
-                  {roleLabels[user.role]}
-                </span>
-              </td>
-              <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
-                <StatusBadge isOnline={user.isOnline} />
-              </td>
-              <td className="p-4 text-center">
-                <Tooltip content="Chỉnh sửa">
-                  <IconAction
-                    onClick={() => openUpdateAccountModal(user)}
-                    icon={<FiEdit2 />}
+              </Td>
+
+              <Td verticalAlign="middle">
+                <div className="flex min-h-10 w-full items-center justify-center text-center">
+                  <span className="font-mono text-[11px] font-medium text-gray-600 dark:text-gray-400">
+                    {user.phone || "-"}
+                  </span>
+                </div>
+              </Td>
+
+              <Td verticalAlign="middle">
+                <div className="flex min-h-10 w-full items-center justify-center text-center">
+                  <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                    {ROLE_LABELS[user.role] || user.role}
+                  </span>
+                </div>
+              </Td>
+
+              <Td verticalAlign="middle">
+                <div className="flex min-h-10 w-full items-center justify-center text-center">
+                  <Badge
+                    type={user.isOnline ? "success" : "info"}
+                    value={user.isOnline ? "Trực tuyến" : "Ngoại tuyến"}
                   />
-                </Tooltip>
-              </td>
+                </div>
+              </Td>
+
+              <Td verticalAlign="middle" isLast>
+                <div className="flex min-h-10 w-full flex-col items-center justify-center text-center">
+                  <span className="text-[11px] font-medium text-gray-600 dark:text-gray-400">
+                    {formatRelativeTime(user.createdAt)}
+                  </span>
+                </div>
+              </Td>
             </tr>
           ))}
         </tbody>
@@ -306,20 +334,40 @@ function AccountTable({
   );
 }
 
-function StatusBadge({ isOnline }: { isOnline: boolean }) {
-  return isOnline ? (
-    <Badge type="success" value="Trực tuyến" />
-  ) : (
-    <Badge type="info" value="Ngoại tuyến" />
-  );
-}
-
-function AccountAvatar({ name }: { name: string }) {
+function AccountTableSkeleton() {
   return (
-    <div className="relative h-10 w-10 shrink-0">
-      <div className="flex h-full w-full items-center justify-center rounded-full bg-linear-to-br from-gray-200 to-gray-100 text-sm font-semibold text-gray-700 dark:from-white/20 dark:to-white/5 dark:text-white">
-        {name.charAt(0)}
-      </div>
+    <div className="flex flex-col overflow-x-auto">
+      <table className="w-full min-w-250 table-fixed border-collapse border-x border-t border-gray-400 text-left dark:border-white/10">
+        <colgroup>
+          <col className="w-[34%]" />
+          <col className="w-[18%]" />
+          <col className="w-[18%]" />
+          <col className="w-[15%]" />
+          <col className="w-[15%]" />
+        </colgroup>
+        <thead>
+          <tr className="bg-gray-50/50 dark:bg-white/5">
+            <Th>Thông tin tài khoản</Th>
+            <Th className="text-center">Số điện thoại</Th>
+            <Th className="text-center">Vai trò</Th>
+            <Th className="text-center">Trạng thái</Th>
+            <Th className="text-center" isLast>
+              Ngày khởi tạo
+            </Th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-400 dark:divide-white/10">
+          {Array.from({ length: 6 }).map((_, rowIndex) => (
+            <tr key={rowIndex}>
+              {Array.from({ length: 5 }).map((__, cellIndex) => (
+                <Td key={cellIndex} isLast={cellIndex === 4}>
+                  <div className="h-4 w-4/5 animate-pulse rounded bg-gray-200 dark:bg-white/8" />
+                </Td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

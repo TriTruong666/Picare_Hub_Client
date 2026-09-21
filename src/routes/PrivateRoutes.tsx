@@ -146,8 +146,6 @@ export default function PrivateRoutes() {
               </AuthGuard>
             }
           />
-          <Route path="notifications" element={<PrivateStubPage />} />
-          <Route path="messages" element={<PrivateStubPage />} />
           <Route path="profile" element={<PrivateStubPage />} />
           <Route path="settings" element={<SettingDashboardLayout />}>
             <Route index element={<ProfileSettingDashboardPage />} />
