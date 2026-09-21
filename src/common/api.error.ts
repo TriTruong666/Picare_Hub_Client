@@ -60,6 +60,11 @@ export const ErrorCodes = {
     message: "Tài khoản của bạn không có quyền truy cập vào hệ thống này",
     statusCode: 403,
   },
+  AUTH_LOGIN_RATE_LIMITED: {
+    code: "ERR_AUTH_016",
+    message: "Đăng nhập thất bại quá nhiều lần. Vui lòng thử lại sau.",
+    statusCode: 429,
+  },
 
   USER_NOT_FOUND: {
     code: "ERR_USER_001",

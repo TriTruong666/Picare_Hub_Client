@@ -29,9 +29,22 @@ export type ResendLoginCodeRequest = {
   challengeId: string;
 };
 
+export type TrustedIpRecord = {
+  ipAddress: string;
+  trustedAt: string;
+  lastUsedAt: string;
+  expiresAt: string;
+  device: string;
+};
+
 export type TrustedIpsData = {
   trustedIps: string[];
+  trustedIpRecords: TrustedIpRecord[];
   currentLoginIp: string | null;
+  policy: {
+    ttlDays: number;
+    maxRecords: number;
+  };
 };
 
 export type RevokeTrustedIpRequest = {

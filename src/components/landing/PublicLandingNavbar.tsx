@@ -8,6 +8,7 @@ import {
   FiGrid,
   FiSettings,
   FiArrowRight,
+  FiX,
 } from "react-icons/fi";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
 import { useAuth } from "@/hooks/useAuth";
@@ -45,7 +46,9 @@ export function PublicLandingNavbar({
   isDarkBg = false,
   isAuthenticated: propIsAuth,
   user: propUser,
+  showNoticeBanner = true,
 }: PublicLandingNavbarProps) {
+  const [isBannerVisible, setIsBannerVisible] = useState(showNoticeBanner);
   const [isProductMenuOpen, setIsProductMenuOpen] = useState(false);
   const [currentMenuPage, setCurrentMenuPage] = useState(0);
   const menuContainerRef = useRef<HTMLDivElement>(null);
@@ -164,14 +167,14 @@ export function PublicLandingNavbar({
       className={`pointer-events-none fixed inset-x-0 top-0 z-50 flex flex-col items-center ${className}`}
     >
       {/* 0. Top Upgrade Notice Banner (Màu cam) */}
-      {/* <AnimatePresence>
+      <AnimatePresence>
         {isBannerVisible && (
           <motion.aside
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            aria-label="Thông báo nâng cấp giao diện Picare Hub"
+            aria-label="Thông báo nâng cấp bảo mật Picare Hub"
             className="pointer-events-auto w-full overflow-hidden border-b border-orange-400/30 bg-gradient-to-r from-[#F86D2B] via-[#FFA336] to-[#F86D2B] shadow-[0_4px_20px_rgba(248,109,43,0.35)] backdrop-blur-md"
           >
             <div className="flex min-h-[36px] items-center justify-between px-3.5 py-1.5 sm:px-6">
@@ -180,9 +183,17 @@ export function PublicLandingNavbar({
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
                 </span>
-                <p className="font-haffer text-[11px] font-medium tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
-                  Toàn bộ hệ thống sẽ bảo trì vào lúc 23:00 ngày 14/09/2026, dự
-                  kiến cập nhật đến 23:59 cùng ngày. Xin trân trọng cảm ơn
+                <p className="font-haffer text-[11px] font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
+                  <span>Hệ thống vừa nâng cấp toàn diện về mặt bảo mật để phục vụ cho hệ thống Picare Office (Mới): </span>
+                  <a
+                    href="/changes"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-semibold text-white underline underline-offset-4 transition-opacity hover:opacity-85"
+                  >
+                    Xem ngay
+                    <FiArrowRight size={12} className="inline-block" />
+                  </a>
                 </p>
               </div>
 
@@ -198,7 +209,7 @@ export function PublicLandingNavbar({
             </div>
           </motion.aside>
         )}
-      </AnimatePresence> */}
+      </AnimatePresence>
 
       <motion.header
         initial={{ opacity: 0, y: -22, filter: "blur(6px)" }}

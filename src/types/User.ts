@@ -4,6 +4,7 @@ export type User = {
   email: string;
   phone?: string | null;
   isOnline: boolean;
+  status: UserStatus;
   bypassIpVerification: boolean;
   note?: string | null;
   role: UserRole;
@@ -29,6 +30,7 @@ export const USER_ROLES = [
 ] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];
+export type UserStatus = "ACTIVE" | "INACTIVE";
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   admin: "Admin",
@@ -67,6 +69,7 @@ export type UpdateUserPayload = {
   password?: string;
   phone?: string | null;
   role: UserRole;
+  status?: UserStatus;
 };
 
 export type UpdateUserAuthPolicyPayload = {

@@ -10,16 +10,23 @@ import {
   useRevokeAllUserTrustedIps,
   useUpdateUser,
   useUpdateUserAuthPolicy,
+  useUserTrustedIps,
 } from "@/hooks/data/useUserHooks";
 import { toast } from "@/hooks/useToast";
 import { closeModalAtom } from "@/stores/modalStore";
-import type { UpdateUserPayload, User, UserRole } from "@/types/User";
+import type {
+  UpdateUserPayload,
+  User,
+  UserRole,
+  UserStatus,
+} from "@/types/User";
 
 type UpdateFormState = {
   name: string;
   email: string;
   phone: string;
   role: UserRole;
+  status: UserStatus;
   bypassIpVerification: boolean;
 };
 
@@ -39,6 +46,17 @@ const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
   { value: "finance", label: "Finance" },
   { value: "demo", label: "Demo" },
 ];
+
+const STATUS_OPTIONS: Array<{ value: UserStatus; label: string }> = [
+  { value: "ACTIVE", label: "Đang hoạt động" },
+  { value: "INACTIVE", label: "Đã khóa" },
+];
+
+const formatDateTime = (value: string) =>
+  new Intl.DateTimeFormat("vi-VN", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(value));
 
 function FieldLabel({
   children,
@@ -60,11 +78,17 @@ export function UpdateAccountModal({ user }: { user: User }) {
   const updateUserMutation = useUpdateUser();
   const updateAuthPolicyMutation = useUpdateUserAuthPolicy();
   const revokeTrustedIpsMutation = useRevokeAllUserTrustedIps();
+  const {
+    data: trustedIpsData,
+    isLoading: isTrustedIpsLoading,
+    isError: isTrustedIpsError,
+  } = useUserTrustedIps(user.userId, featureFlags.loginVerification);
   const [form, setForm] = useState<UpdateFormState>(() => ({
     name: user.name ?? "",
     email: user.email ?? "",
     phone: user.phone ?? "",
     role: user.role,
+    status: user.status ?? "ACTIVE",
     bypassIpVerification: Boolean(user.bypassIpVerification),
   }));
 
@@ -84,6 +108,7 @@ export function UpdateAccountModal({ user }: { user: User }) {
       email: form.email.trim(),
       phone: form.phone.trim() || null,
       role: form.role,
+      status: form.status,
     };
 
     if (!payload.name || !payload.email) {
@@ -148,16 +173,31 @@ export function UpdateAccountModal({ user }: { user: User }) {
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6">
         <div className="space-y-6">
-          <div>
-            <p className="mb-3 text-xs font-semibold tracking-wide text-gray-600 uppercase dark:text-gray-400">
-              Chọn vai trò
-            </p>
-            <GlassSelect
-              value={form.role}
-              onChange={(value) => setField("role", value as UserRole)}
-              placeholder="Chọn vai trò"
-              options={ROLE_OPTIONS}
-            />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <p className="mb-3 text-xs font-semibold tracking-wide text-gray-600 uppercase dark:text-gray-400">
+                Chọn vai trò
+              </p>
+              <GlassSelect
+                value={form.role}
+                onChange={(value) => setField("role", value as UserRole)}
+                placeholder="Chọn vai trò"
+                options={ROLE_OPTIONS}
+                disabled={isSubmitting}
+              />
+            </div>
+            <div>
+              <p className="mb-3 text-xs font-semibold tracking-wide text-gray-600 uppercase dark:text-gray-400">
+                Trạng thái tài khoản
+              </p>
+              <GlassSelect
+                value={form.status}
+                onChange={(value) => setField("status", value as UserStatus)}
+                placeholder="Chọn trạng thái"
+                options={STATUS_OPTIONS}
+                disabled={isSubmitting}
+              />
+            </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -246,6 +286,65 @@ export function UpdateAccountModal({ user }: { user: User }) {
                   ? "Đang thu hồi IP..."
                   : "Thu hồi toàn bộ IP tin cậy"}
               </button>
+
+              <div className="mt-4 border-t border-gray-200 pt-4 dark:border-white/10">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold tracking-wide text-gray-600 uppercase dark:text-gray-400">
+                    IP đã tin cậy
+                  </p>
+                  <span className="text-[11px] text-gray-500 dark:text-gray-500">
+                    {trustedIpsData?.trustedIpRecords.length ?? 0}/
+                    {trustedIpsData?.policy.maxRecords ?? 10}
+                  </span>
+                </div>
+
+                {isTrustedIpsLoading ? (
+                  <p className="text-xs text-gray-500">Đang tải danh sách...</p>
+                ) : isTrustedIpsError ? (
+                  <p className="text-xs text-red-500">
+                    Không thể tải danh sách IP tin cậy.
+                  </p>
+                ) : trustedIpsData?.trustedIpRecords.length ? (
+                  <div className="max-h-52 space-y-2 overflow-y-auto pr-1">
+                    {trustedIpsData.trustedIpRecords.map((record) => (
+                      <div
+                        key={record.ipAddress}
+                        className="rounded-lg border border-gray-200 bg-white p-3 dark:border-white/10 dark:bg-black/20"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="font-mono text-xs font-semibold text-gray-900 dark:text-white">
+                            {record.ipAddress}
+                          </span>
+                          {record.ipAddress ===
+                          trustedIpsData.currentLoginIp ? (
+                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                              Hiện tại
+                            </span>
+                          ) : null}
+                        </div>
+                        <p
+                          className="mt-1 truncate text-[11px] text-gray-500 dark:text-gray-400"
+                          title={record.device}
+                        >
+                          {record.device}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-500">
+                          <span>
+                            Dùng gần nhất: {formatDateTime(record.lastUsedAt)}
+                          </span>
+                          <span>
+                            Hết hạn: {formatDateTime(record.expiresAt)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">
+                    Chưa có địa chỉ IP nào được tin cậy.
+                  </p>
+                )}
+              </div>
             </div>
           ) : null}
         </div>

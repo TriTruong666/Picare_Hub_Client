@@ -10,6 +10,7 @@ import type { User } from "@/types/User";
 import { getApiErrorMessage } from "@/common/api.error";
 import { translateErrorMessage } from "@/common/api.error";
 import { toast } from "@/hooks/useToast";
+import { PATHS } from "@/config/paths";
 
 /**
  * Hook cho việc đăng nhập hệ thống
@@ -67,12 +68,15 @@ export function useLogout() {
 }
 
 export function useChangePassword() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: ChangePasswordPayload) =>
       AuthService.changePassword(data),
     onSuccess: (data) => {
       if (data.success) {
         toast.success("Thành công", "Đã đổi mật khẩu");
+        queryClient.setQueryData(["auth", "me"], null);
+        window.location.assign(PATHS.LOGIN);
       } else {
         toast.error(
           "Thất bại",

@@ -6,6 +6,9 @@ export const PATHS = {
   // Public Paths
   HOME: "/",
   TEST: "/test",
+  CHANGES: "/changes", // Trang Blog cập nhật hệ thống / release notes
+  SECURITY_UPDATE_DETAIL: "/cap-nhat-he-thong-bao-mat", // Trang chi tiết nâng cấp bảo mật Picare Office
+  CHANGE_DETAIL: "/changes/:slug",
   MY_PAGE: "/quynhnhu",
   LOGIN: "/login", // Trang dang nhap Hub chung / chon client
   LOGIN_CLIENT: "/login/client", // Form dang nhap cho client cu the

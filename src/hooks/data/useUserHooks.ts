@@ -9,6 +9,7 @@ import type {
   User,
   UserRole,
 } from "@/types/User";
+import type { TrustedIpsData } from "@/types/Auth";
 import { useFetch } from "../useQuery";
 
 export function useMe() {
@@ -126,15 +127,26 @@ export function useUpdateUserAuthPolicy() {
   });
 }
 
+export function useUserTrustedIps(userId: string, enabled = true) {
+  return useFetch<TrustedIpsData>(
+    ["users", "trusted-ips", userId],
+    () => UserService.getUserTrustedIps(userId),
+    { enabled: enabled && Boolean(userId) },
+  );
+}
+
 export function useRevokeAllUserTrustedIps() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (userId: string) => UserService.revokeAllUserTrustedIps(userId),
-    onSuccess: (data) => {
+    onSuccess: (data, userId) => {
       if (data.success) {
         toast.success("Thành công", "Đã thu hồi toàn bộ IP tin cậy");
         queryClient.invalidateQueries({ queryKey: ["users"] });
+        queryClient.invalidateQueries({
+          queryKey: ["users", "trusted-ips", userId],
+        });
       }
     },
     onError: (error) => toast.error("Lỗi", getApiErrorMessage(error)),

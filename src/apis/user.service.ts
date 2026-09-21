@@ -6,6 +6,7 @@ import type {
   User,
   UserRole,
 } from "@/types/User";
+import type { TrustedIpsData } from "@/types/Auth";
 import { hubAxiosClient } from "./client";
 
 /**
@@ -69,5 +70,12 @@ export async function revokeAllUserTrustedIps(
   const res = await hubAxiosClient.delete(
     `/api/v1/users/${userId}/trusted-ips`,
   );
+  return res.data;
+}
+
+export async function getUserTrustedIps(
+  userId: string,
+): Promise<BaseResponse<TrustedIpsData>> {
+  const res = await hubAxiosClient.get(`/api/v1/users/${userId}/trusted-ips`);
   return res.data;
 }
