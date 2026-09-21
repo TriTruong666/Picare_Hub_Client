@@ -40,6 +40,7 @@ import { PATHS } from "@/config/paths";
 import { useAuth } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/data/useAuthHooks";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
+import DrawerContainer from "@/components/DrawerContainer";
 
 type ViewTransitionDocument = Document & {
   startViewTransition?: (callback: () => void) => {
@@ -177,6 +178,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="relative bg-white font-sans text-gray-800 transition-colors duration-300 dark:bg-[#050505] dark:text-white">
+      <DrawerContainer />
       <div className="relative flex h-dvh h-screen overflow-hidden">
         {/* Mobile drawer sidebar */}
         <MobileSidebar
@@ -586,6 +588,7 @@ function Navbar({ onMenuOpen }: { onMenuOpen: () => void }) {
     </header>
   );
 }
+
 
 /**
  * Exact DarkModeIconSwitch component from Saleforce Client

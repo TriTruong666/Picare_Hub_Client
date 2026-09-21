@@ -1,27 +1,30 @@
-import { useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useAtom } from "jotai";
 import { HiOutlineX } from "react-icons/hi";
 import { FiEdit3, FiMail, FiPhone } from "react-icons/fi";
 import { Badge } from "@/components/custom_ui/Badge";
 import { formatDateTime, formatRelativeTime } from "@/common/format";
 import { toast } from "@/hooks/useToast";
-import { ROLE_LABELS, type User } from "@/types/User";
+import { ROLE_LABELS } from "@/types/User";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserTrustedIps } from "@/hooks/data/useUserHooks";
+import {
+  accountDetailUserAtom,
+  closeDrawerAtom,
+} from "@/stores/drawerStore";
+import { openUpdateAccountModalAtom } from "@/stores/modalStore";
 
-export interface AccountDetailDrawerProps {
-  user: User | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onEdit: (user: User) => void;
-}
+export function AccountDetailDrawer() {
+  const [user] = useAtom(accountDetailUserAtom);
+  const [, closeDrawer] = useAtom(closeDrawerAtom);
+  const [, openUpdateAccountModal] = useAtom(openUpdateAccountModalAtom);
+  const [isAnimationDone, setIsAnimationDone] = useState(false);
 
-export function AccountDetailDrawer({
-  user,
-  isOpen,
-  onClose,
-  onEdit,
-}: AccountDetailDrawerProps) {
+  useEffect(() => {
+    const timer = setTimeout(() => setIsAnimationDone(true), 350);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { user: currentUser } = useAuth();
   const canViewTrustedIps = currentUser?.role === "admin";
   const {
@@ -30,24 +33,12 @@ export function AccountDetailDrawer({
     isError: isSecurityError,
     isFetching: isSecurityFetching,
     refetch: refetchSecurity,
-  } = useUserTrustedIps(user?.userId ?? "", isOpen && canViewTrustedIps);
+  } = useUserTrustedIps(
+    user?.userId ?? "",
+    Boolean(user && canViewTrustedIps && isAnimationDone),
+  );
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen, onClose]);
+  if (!user) return null;
 
   const copyValue = async (value: string | null | undefined, label: string) => {
     if (!value) {
@@ -71,62 +62,33 @@ export function AccountDetailDrawer({
 
   const handleEdit = () => {
     if (!user) return;
-    onClose();
-    onEdit(user);
+    closeDrawer();
+    openUpdateAccountModal(user);
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && user && (
-        <>
-          {/* Backdrop - pure bg-black/60 for fast 60fps performance */}
-          <motion.div
-            key="drawer-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: "linear" }}
-            onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/60"
-          />
+    <aside className="flex h-full w-[min(100vw,600px)] flex-col border-l border-gray-200 bg-white dark:border-white/10 dark:bg-[#0a0a0a]">
+      {/* Header */}
+      <header className="flex shrink-0 items-start justify-between gap-4 border-b border-gray-200 bg-white px-5 py-5 sm:px-6 dark:border-white/10 dark:bg-[#0a0a0a]">
+        <div className="min-w-0">
+          <h2 className="mt-1 truncate text-base font-semibold text-gray-900 dark:text-white">
+            {user.name || "Chi tiết tài khoản"}
+          </h2>
+        </div>
+        <button
+          type="button"
+          onClick={closeDrawer}
+          className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+          aria-label="Đóng chi tiết tài khoản"
+        >
+          <HiOutlineX className="h-5 w-5" />
+        </button>
+      </header>
 
-          {/* Sliding drawer container - GPU hardware accelerated */}
-          <motion.div
-            key="drawer-panel"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-y-0 right-0 z-50 flex h-dvh h-full max-h-screen will-change-transform"
-          >
-            <aside
-              data-lenis-prevent
-              className="flex h-dvh h-full max-h-screen w-[min(100vw,600px)] flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0a0a0a]"
-            >
-              {/* Header - solid background without backdrop-blur for zero paint lag */}
-              <header className="flex shrink-0 items-start justify-between gap-4 border-b border-gray-200 bg-white px-5 py-5 sm:px-6 dark:border-white/10 dark:bg-[#0a0a0a]">
-                <div className="min-w-0">
-                  <h2 className="mt-1 truncate text-base font-semibold text-gray-900 dark:text-white">
-                    {user.name || "Chi tiết tài khoản"}
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
-                  aria-label="Đóng chi tiết tài khoản"
-                >
-                  <HiOutlineX className="h-5 w-5" />
-                </button>
-              </header>
-
-              {/* Scrollable details */}
-              <div
-                data-lenis-prevent
-                className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6"
-              >
-                {/* Top bar with update date & badges */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pb-5">
+      {/* Scrollable details */}
+      <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+        {/* Top bar with update date & badges */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-5">
                   <p className="text-xs text-gray-500 dark:text-white/45">
                     Cập nhật {formatDateTime(user.updatedAt || user.createdAt)}
                   </p>
@@ -371,11 +333,7 @@ export function AccountDetailDrawer({
                   />
                 </Section>
               </div>
-            </aside>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    </aside>
   );
 }
 

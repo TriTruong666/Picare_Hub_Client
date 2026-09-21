@@ -10,9 +10,9 @@ import { Pagination } from "@/components/custom_ui/Pagination";
 import GlassSelect from "@/components/custom_ui/Select";
 import { StateShell } from "@/components/custom_ui/ShellState";
 import { Td, Th } from "@/components/custom_ui/Table";
-import { AccountDetailDrawer } from "@/components/drawers/AccountDetailDrawer";
 import { useUsers } from "@/hooks/data/useUserHooks";
 import { openModalAtom, openUpdateAccountModalAtom } from "@/stores/modalStore";
+import { openAccountDetailDrawerAtom } from "@/stores/drawerStore";
 import type { BasePaginatedResponse } from "@/types/ApiResponse";
 import {
   ROLE_LABELS,
@@ -53,10 +53,9 @@ export default function AccountDashboardPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<UserRole | "">("");
   const [sortType, setSortType] = useState<SortType>("");
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const [, openModal] = useAtom(openModalAtom);
-  const [, openUpdateAccountModal] = useAtom(openUpdateAccountModalAtom);
+  const [, openAccountDetailDrawer] = useAtom(openAccountDetailDrawerAtom);
 
   // Debounce search input like CustomerListPage
   useEffect(() => {
@@ -168,7 +167,7 @@ export default function AccountDashboardPage() {
           isError={isError}
           onRetry={refetch}
           sortType={sortType}
-          onUserClick={(user) => setSelectedUser(user)}
+          onUserClick={openAccountDetailDrawer}
         />
 
         {!isLoading && pagination ? (
@@ -180,14 +179,6 @@ export default function AccountDashboardPage() {
           />
         ) : null}
       </motion.div>
-
-      {/* Account Detail Drawer */}
-      <AccountDetailDrawer
-        user={selectedUser}
-        isOpen={Boolean(selectedUser)}
-        onClose={() => setSelectedUser(null)}
-        onEdit={(user) => openUpdateAccountModal(user)}
-      />
     </div>
   );
 }
