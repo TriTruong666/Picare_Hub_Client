@@ -93,7 +93,7 @@ export default function AccountDashboardPage() {
       <div className="mb-2 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <Breadcrumb items={breadcrumbItems} />
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl dark:text-white">
+          <h1 className="mt-2 text-3xl font-bold text-gray-900 md:text-4xl dark:text-white">
             Quản lý tài khoản
           </h1>
         </div>

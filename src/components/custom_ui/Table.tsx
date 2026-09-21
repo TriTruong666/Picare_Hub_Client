@@ -32,7 +32,7 @@ export function Th({
   return (
     <th
       className={clsx(
-        "border-b border-gray-400 p-4 text-xs font-semibold tracking-wide text-gray-600 uppercase dark:border-white/10 dark:text-gray-400",
+        "border-b border-gray-400 p-4 text-xs font-semibold text-gray-600 uppercase dark:border-white/10 dark:text-gray-400",
         !isLast && "border-r border-gray-400 dark:border-white/10",
         className,
       )}
