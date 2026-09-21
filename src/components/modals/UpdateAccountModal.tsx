@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useState } from "react";
-import { FiArrowLeft } from "react-icons/fi";
+import { AnimatePresence, motion } from "framer-motion";
+import { FiAlertTriangle, FiArrowLeft, FiShieldOff } from "react-icons/fi";
 import { HiOutlineX } from "react-icons/hi";
 
 import GlassSelect from "@/components/custom_ui/Select";
@@ -66,7 +67,7 @@ function FieldLabel({
   required?: boolean;
 }) {
   return (
-    <label className="mb-2 block text-xs font-semibold tracking-wide text-gray-600 uppercase dark:text-gray-400">
+    <label className="mb-2 block text-xs font-semibold text-gray-600 uppercase dark:text-gray-400">
       {children}
       {required ? <span className="ml-1 text-red-500">*</span> : null}
     </label>
@@ -91,6 +92,8 @@ export function UpdateAccountModal({ user }: { user: User }) {
     status: user.status ?? "ACTIVE",
     bypassIpVerification: Boolean(user.bypassIpVerification),
   }));
+  const [isRevokeConfirmationOpen, setIsRevokeConfirmationOpen] =
+    useState(false);
 
   const isSubmitting =
     updateUserMutation.isPending || updateAuthPolicyMutation.isPending;
@@ -141,12 +144,13 @@ export function UpdateAccountModal({ user }: { user: User }) {
     }
   };
 
-  const handleRevokeTrustedIps = async () => {
-    const confirmed = window.confirm(
-      "Thu hồi toàn bộ IP tin cậy? Người dùng sẽ phải xác minh email ở lần đăng nhập tiếp theo.",
-    );
-    if (!confirmed) return;
-    await revokeTrustedIpsMutation.mutateAsync(user.userId);
+  const handleConfirmRevokeTrustedIps = async () => {
+    try {
+      const response = await revokeTrustedIpsMutation.mutateAsync(user.userId);
+      if (response.success) setIsRevokeConfirmationOpen(false);
+    } catch {
+      // Mutation hook has already shown the API error toast.
+    }
   };
 
   return (
@@ -175,7 +179,7 @@ export function UpdateAccountModal({ user }: { user: User }) {
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <p className="mb-3 text-xs font-semibold tracking-wide text-gray-600 uppercase dark:text-gray-400">
+              <p className="mb-3 text-xs font-semibold text-gray-600 uppercase dark:text-gray-400">
                 Chọn vai trò
               </p>
               <GlassSelect
@@ -187,7 +191,7 @@ export function UpdateAccountModal({ user }: { user: User }) {
               />
             </div>
             <div>
-              <p className="mb-3 text-xs font-semibold tracking-wide text-gray-600 uppercase dark:text-gray-400">
+              <p className="mb-3 text-xs font-semibold text-gray-600 uppercase dark:text-gray-400">
                 Trạng thái tài khoản
               </p>
               <GlassSelect
@@ -259,18 +263,19 @@ export function UpdateAccountModal({ user }: { user: User }) {
                     setField("bypassIpVerification", !form.bypassIpVerification)
                   }
                   className={clsx(
-                    "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                    "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-50",
                     form.bypassIpVerification
                       ? "bg-indigo-600"
                       : "bg-gray-300 dark:bg-white/15",
                   )}
                 >
                   <span
+                    aria-hidden="true"
                     className={clsx(
-                      "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
+                      "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
                       form.bypassIpVerification
                         ? "translate-x-5"
-                        : "translate-x-0.5",
+                        : "translate-x-0",
                     )}
                   />
                 </button>
@@ -278,8 +283,13 @@ export function UpdateAccountModal({ user }: { user: User }) {
 
               <button
                 type="button"
-                onClick={handleRevokeTrustedIps}
-                disabled={isSubmitting || revokeTrustedIpsMutation.isPending}
+                onClick={() => setIsRevokeConfirmationOpen(true)}
+                disabled={
+                  isSubmitting ||
+                  revokeTrustedIpsMutation.isPending ||
+                  isTrustedIpsLoading ||
+                  !trustedIpsData?.trustedIpRecords.length
+                }
                 className="mt-4 text-xs font-medium text-red-600 transition hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400"
               >
                 {revokeTrustedIpsMutation.isPending
@@ -289,7 +299,7 @@ export function UpdateAccountModal({ user }: { user: User }) {
 
               <div className="mt-4 border-t border-gray-200 pt-4 dark:border-white/10">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <p className="text-xs font-semibold tracking-wide text-gray-600 uppercase dark:text-gray-400">
+                  <p className="text-xs font-semibold text-gray-600 uppercase dark:text-gray-400">
                     IP đã tin cậy
                   </p>
                   <span className="text-[11px] text-gray-500 dark:text-gray-500">
@@ -375,6 +385,120 @@ export function UpdateAccountModal({ user }: { user: User }) {
           {isSubmitting ? "Đang cập nhật..." : "Cập nhật tài khoản"}
         </button>
       </div>
+
+      <AnimatePresence>
+        {isRevokeConfirmationOpen ? (
+          <motion.div
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            role="presentation"
+          >
+            <button
+              type="button"
+              aria-label="Đóng xác nhận thu hồi IP"
+              disabled={revokeTrustedIpsMutation.isPending}
+              onClick={() => setIsRevokeConfirmationOpen(false)}
+              className="absolute inset-0 cursor-default bg-black/65 backdrop-blur-[2px]"
+            />
+
+            <motion.section
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="revoke-trusted-ips-title"
+              className="relative flex max-h-[min(720px,calc(100dvh-2rem))] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl dark:border-white/10 dark:bg-[#111111]"
+            >
+              <div className="flex shrink-0 items-start gap-4 border-b border-gray-200 p-5 dark:border-white/10">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-600 dark:text-red-400">
+                  <FiShieldOff size={20} aria-hidden="true" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3
+                    id="revoke-trusted-ips-title"
+                    className="text-base font-semibold text-gray-900 dark:text-white"
+                  >
+                    Thu hồi toàn bộ IP tin cậy
+                  </h3>
+                  <p className="mt-1 text-sm leading-5 text-gray-500 dark:text-gray-400">
+                    Tài khoản {user.name || user.email} sẽ phải xác minh email
+                    khi đăng nhập từ các IP bên dưới.
+                  </p>
+                </div>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto p-5">
+                <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-800 dark:border-amber-400/15 dark:bg-amber-400/5 dark:text-amber-200">
+                  <FiAlertTriangle className="shrink-0" aria-hidden="true" />
+                  Thao tác này không đăng xuất phiên hiện tại, nhưng xóa toàn bộ
+                  quyền tin cậy cho những lần đăng nhập sau.
+                </div>
+
+                <p className="mb-3 text-xs font-semibold text-gray-600 uppercase dark:text-gray-400">
+                  {trustedIpsData?.trustedIpRecords.length ?? 0} IP sẽ bị thu
+                  hồi
+                </p>
+                <div className="space-y-2">
+                  {trustedIpsData?.trustedIpRecords.map((record) => (
+                    <div
+                      key={record.ipAddress}
+                      className="rounded-xl border border-gray-200 bg-gray-50/70 p-3.5 dark:border-white/10 dark:bg-white/[0.025]"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-mono text-xs font-semibold text-gray-900 dark:text-white">
+                          {record.ipAddress}
+                        </span>
+                        {record.ipAddress === trustedIpsData?.currentLoginIp ? (
+                          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                            Đăng nhập gần nhất
+                          </span>
+                        ) : null}
+                      </div>
+                      <p
+                        className="mt-1 truncate text-[11px] text-gray-500 dark:text-gray-400"
+                        title={record.device}
+                      >
+                        {record.device}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-500 dark:text-gray-400">
+                        <span>
+                          Dùng gần nhất: {formatDateTime(record.lastUsedAt)}
+                        </span>
+                        <span>Hết hạn: {formatDateTime(record.expiresAt)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-gray-200 p-5 sm:flex-row sm:justify-end dark:border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setIsRevokeConfirmationOpen(false)}
+                  disabled={revokeTrustedIpsMutation.isPending}
+                  className="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300 dark:hover:bg-white/10"
+                >
+                  Giữ lại IP tin cậy
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleConfirmRevokeTrustedIps()}
+                  disabled={revokeTrustedIpsMutation.isPending}
+                  className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {revokeTrustedIpsMutation.isPending
+                    ? "Đang thu hồi..."
+                    : "Xác nhận thu hồi tất cả"}
+                </button>
+              </div>
+            </motion.section>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }

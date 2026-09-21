@@ -6,6 +6,8 @@ import { Badge } from "@/components/custom_ui/Badge";
 import { formatDateTime, formatRelativeTime } from "@/common/format";
 import { toast } from "@/hooks/useToast";
 import { ROLE_LABELS, type User } from "@/types/User";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserTrustedIps } from "@/hooks/data/useUserHooks";
 
 export interface AccountDetailDrawerProps {
   user: User | null;
@@ -20,6 +22,16 @@ export function AccountDetailDrawer({
   onClose,
   onEdit,
 }: AccountDetailDrawerProps) {
+  const { user: currentUser } = useAuth();
+  const canViewTrustedIps = currentUser?.role === "admin";
+  const {
+    data: security,
+    isLoading: isSecurityLoading,
+    isError: isSecurityError,
+    isFetching: isSecurityFetching,
+    refetch: refetchSecurity,
+  } = useUserTrustedIps(user?.userId ?? "", isOpen && canViewTrustedIps);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -76,11 +88,11 @@ export function AccountDetailDrawer({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 z-50 flex h-full h-dvh max-h-screen shadow-2xl"
+            className="fixed inset-y-0 right-0 z-50 flex h-dvh h-full max-h-screen shadow-2xl"
           >
             <aside
               data-lenis-prevent
-              className="flex h-full h-dvh max-h-screen w-[min(100vw,600px)] flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0a0a0a]"
+              className="flex h-dvh h-full max-h-screen w-[min(100vw,600px)] flex-col overflow-hidden border-l border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0a0a0a]"
             >
               {/* Header */}
               <header className="flex shrink-0 items-start justify-between gap-4 border-b border-gray-200 bg-white/90 px-5 py-5 backdrop-blur-md sm:px-6 dark:border-white/10 dark:bg-[#0a0a0a]/90">
@@ -102,7 +114,7 @@ export function AccountDetailDrawer({
               {/* Scrollable details */}
               <div
                 data-lenis-prevent
-                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6"
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6"
               >
                 {/* Top bar with update date & badges */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-5">
@@ -135,9 +147,7 @@ export function AccountDetailDrawer({
                   <DrawerActionCard
                     title="Sao chép số điện thoại"
                     icon={<FiPhone />}
-                    onClick={() =>
-                      void copyValue(user.phone, "Số điện thoại")
-                    }
+                    onClick={() => void copyValue(user.phone, "Số điện thoại")}
                   />
                   <DrawerActionCard
                     title="Sao chép email"
@@ -190,7 +200,11 @@ export function AccountDetailDrawer({
                     />
                     <Metric
                       label="Mã User ID"
-                      value={user.userId ? `${user.userId.slice(0, 10)}...` : "Chưa có"}
+                      value={
+                        user.userId
+                          ? `${user.userId.slice(0, 10)}...`
+                          : "Chưa có"
+                      }
                     />
                   </div>
                 </section>
@@ -220,10 +234,124 @@ export function AccountDetailDrawer({
                   />
                 </Section>
 
+                <Section title="Bảo mật đăng nhập & IP tin cậy">
+                  {!canViewTrustedIps ? (
+                    <p className="text-xs text-gray-500 dark:text-white/45">
+                      Chỉ quản trị viên được xem thông tin IP tin cậy.
+                    </p>
+                  ) : isSecurityLoading ? (
+                    <p
+                      role="status"
+                      className="text-xs text-gray-500 dark:text-white/45"
+                    >
+                      Đang tải thông tin bảo mật...
+                    </p>
+                  ) : isSecurityError ? (
+                    <div role="alert" className="space-y-2 text-xs">
+                      <p className="text-red-600 dark:text-red-400">
+                        Không thể tải thông tin IP tin cậy.
+                      </p>
+                      <button
+                        type="button"
+                        disabled={isSecurityFetching}
+                        onClick={() => void refetchSecurity()}
+                        className="text-primary underline disabled:opacity-50"
+                      >
+                        {isSecurityFetching ? "Đang tải..." : "Thử lại"}
+                      </button>
+                    </div>
+                  ) : security ? (
+                    <>
+                      <Row
+                        label="Bỏ qua xác minh IP"
+                        value={
+                          security.bypassIpVerification
+                            ? "Đang bật"
+                            : "Đang tắt"
+                        }
+                      />
+                      <Row
+                        label="IP đăng nhập gần nhất"
+                        value={security.currentLoginIp || "Chưa ghi nhận"}
+                        mono
+                      />
+                      <Row
+                        label="Đăng nhập gần nhất"
+                        value={
+                          security.lastLoginAt
+                            ? formatDateTime(security.lastLoginAt)
+                            : "Chưa ghi nhận"
+                        }
+                      />
+                      <Row
+                        label="IP còn tin cậy"
+                        value={`${security.trustedIpRecords.length} / ${security.policy.maxRecords}`}
+                      />
+                      <Row
+                        label="Thời hạn tin cậy"
+                        value={`${security.policy.ttlDays} ngày kể từ xác minh`}
+                      />
+                      {security.bypassIpVerification && (
+                        <p className="text-xs leading-5 text-amber-700 dark:text-amber-400">
+                          Tài khoản này được bỏ qua bước xác minh IP, kể cả khi
+                          danh sách tin cậy trống.
+                        </p>
+                      )}
+                      {security.trustedIpRecords.length ? (
+                        <div className="space-y-3">
+                          {security.trustedIpRecords.map((record) => (
+                            <div
+                              key={record.ipAddress}
+                              className="space-y-3 rounded-xl border border-gray-200 bg-gray-50/60 p-4 dark:border-white/10 dark:bg-white/[0.025]"
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="font-mono text-xs font-semibold break-all text-gray-900 dark:text-white">
+                                  {record.ipAddress}
+                                </span>
+                                {record.ipAddress ===
+                                  security.currentLoginIp && (
+                                  <Badge
+                                    type="primary"
+                                    value="Đăng nhập gần nhất"
+                                  />
+                                )}
+                              </div>
+                              <Row
+                                label="Thiết bị / trình duyệt"
+                                value={record.device || "Chưa ghi nhận"}
+                                multiline
+                              />
+                              <Row
+                                label="Đã xác minh"
+                                value={formatDateTime(record.trustedAt)}
+                              />
+                              <Row
+                                label="Dùng gần nhất"
+                                value={formatDateTime(record.lastUsedAt)}
+                              />
+                              <Row
+                                label="Hết hạn"
+                                value={formatDateTime(record.expiresAt)}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500 dark:text-white/45">
+                          Chưa có IP tin cậy còn hiệu lực.
+                        </p>
+                      )}
+                    </>
+                  ) : null}
+                </Section>
+
                 {/* Section: Thông tin hệ thống */}
                 <Section title="Thông tin hệ thống">
                   <Row label="User ID" value={user.userId || "Chưa có"} mono />
-                  <Row label="Ngày tạo" value={formatDateTime(user.createdAt)} />
+                  <Row
+                    label="Ngày tạo"
+                    value={formatDateTime(user.createdAt)}
+                  />
                   <Row
                     label="Cập nhật"
                     value={formatDateTime(user.updatedAt || user.createdAt)}

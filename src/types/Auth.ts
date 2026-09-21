@@ -41,6 +41,8 @@ export type TrustedIpsData = {
   trustedIps: string[];
   trustedIpRecords: TrustedIpRecord[];
   currentLoginIp: string | null;
+  lastLoginAt: string | null;
+  bypassIpVerification: boolean;
   policy: {
     ttlDays: number;
     maxRecords: number;
