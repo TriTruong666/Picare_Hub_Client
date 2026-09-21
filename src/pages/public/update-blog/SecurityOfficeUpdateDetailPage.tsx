@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import gsap from "gsap";
@@ -7,11 +7,84 @@ import "lenis/dist/lenis.css";
 import { FiArrowLeft } from "react-icons/fi";
 import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
 import PublicLandingFooter from "@/components/landing/PublicLandingFooter";
+import CinematicVideoModal from "@/components/custom_ui/CinematicVideoModal";
+import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
 import { PATHS } from "@/config/paths";
-import securityMockupImg from "@/assets/images/saleforce_intro.png";
+
+const VIDEO_URL =
+  "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1789975922466_a82ad095-24af-4934-ba6b-1a18ff38b7bc_clientloginnew.mp4";
 
 export default function SecurityOfficeUpdateDetailPage() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
+  const cardOverlayRef = useRef<HTMLDivElement>(null);
+  const cardLogoRef = useRef<HTMLDivElement>(null);
+  const cardHelperRef = useRef<HTMLParagraphElement>(null);
+
+  const handleCardMouseEnter = () => {
+    if (!cardOverlayRef.current) return;
+    gsap.killTweensOf([
+      cardOverlayRef.current,
+      cardLogoRef.current,
+      cardHelperRef.current,
+    ]);
+
+    const tl = gsap.timeline();
+    tl.to(
+      cardOverlayRef.current,
+      { opacity: 1, duration: 0.35, ease: "power2.out" },
+      0,
+    );
+
+    if (cardLogoRef.current) {
+      tl.fromTo(
+        cardLogoRef.current,
+        { scale: 0.9, y: 8, opacity: 0 },
+        { scale: 1, y: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        0.05,
+      );
+    }
+
+    if (cardHelperRef.current) {
+      tl.fromTo(
+        cardHelperRef.current,
+        { y: 6, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" },
+        0.1,
+      );
+    }
+  };
+
+  const handleCardMouseLeave = () => {
+    if (!cardOverlayRef.current) return;
+    gsap.killTweensOf([
+      cardOverlayRef.current,
+      cardLogoRef.current,
+      cardHelperRef.current,
+    ]);
+
+    const tl = gsap.timeline();
+    if (cardHelperRef.current) {
+      tl.to(
+        cardHelperRef.current,
+        { y: 4, opacity: 0, duration: 0.2, ease: "power2.in" },
+        0,
+      );
+    }
+    if (cardLogoRef.current) {
+      tl.to(
+        cardLogoRef.current,
+        { scale: 0.92, y: 6, opacity: 0, duration: 0.22, ease: "power2.in" },
+        0,
+      );
+    }
+    tl.to(
+      cardOverlayRef.current,
+      { opacity: 0, duration: 0.25, ease: "power2.in" },
+      0.05,
+    );
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -139,18 +212,60 @@ export default function SecurityOfficeUpdateDetailPage() {
             </p>
           </section>
 
-          {/* Hình ảnh minh họa ở giữa văn bản để test UI theo yêu cầu */}
+          {/* Video minh họa tính năng với hiệu ứng Cinematic Modal */}
           <figure className="my-8 space-y-3 sm:my-10">
-            <div className="overflow-hidden rounded-xl border border-white/10 bg-[#17131C]">
-              <img
-                src={securityMockupImg}
-                alt="Minh họa trải nghiệm bảo mật trên Picare Client"
-                className="h-auto w-full object-cover select-none"
-              />
+            <div
+              onClick={() => setIsVideoModalOpen(true)}
+              onMouseEnter={handleCardMouseEnter}
+              onMouseLeave={handleCardMouseLeave}
+              className="group relative w-full cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-[#0e0b13] shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_50px_rgba(248,109,43,0.12)] transition-all duration-500 hover:border-white/25 hover:shadow-[0_28px_90px_rgba(0,0,0,0.95),0_0_70px_rgba(248,109,43,0.28)] sm:rounded-2xl"
+            >
+              {/* Top ambient highlight line */}
+              <div className="pointer-events-none absolute inset-x-8 top-0 z-30 h-px bg-gradient-to-r from-transparent via-[#F86D2B]/60 to-transparent" />
+
+              {/* Video preview tự nhiên ban đầu */}
+              <div className="relative aspect-video w-full overflow-hidden bg-black/50">
+                <video
+                  src={VIDEO_URL}
+                  playsInline
+                  autoPlay
+                  muted
+                  loop
+                  preload="metadata"
+                  className="h-full w-full object-cover select-none"
+                />
+              </div>
+
+              {/* Lớp layout đen mờ: BAN ĐẦU ẨN (opacity: 0), HOVER MỚI THẤY và click để xem toàn màn hình */}
+              <div
+                ref={cardOverlayRef}
+                className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 px-6 opacity-0 backdrop-blur-[3px]"
+              >
+                {/* Logo Picare Client */}
+                <div
+                  ref={cardLogoRef}
+                  className="flex flex-col items-center justify-center opacity-0"
+                >
+                  <img
+                    src={logoPicareNewBlack}
+                    alt="Picare Client"
+                    className="h-10 w-auto object-contain mix-blend-screen drop-shadow-[0_8px_32px_rgba(248,109,43,0.45)] sm:h-14 md:h-16"
+                  />
+                </div>
+
+                {/* Text helper */}
+                <p
+                  ref={cardHelperRef}
+                  className="font-haffer mt-1 text-[11px] font-normal text-zinc-300 opacity-0 sm:text-xs"
+                >
+                  Nhấn để xem video toàn màn hình
+                </p>
+              </div>
             </div>
+
             <figcaption className="text-center text-xs font-light text-zinc-400">
-              Hình 1: Hình ảnh minh họa cho trải nghiệm sử dụng Picare Client
-              sau bản cập nhật bảo mật đăng nhập.
+              Video 1: Minh họa trải nghiệm xác minh danh tính và đăng nhập an
+              toàn trên Picare Client.
             </figcaption>
           </figure>
 
@@ -232,9 +347,16 @@ export default function SecurityOfficeUpdateDetailPage() {
             Quay lại danh sách cập nhật
           </Link>
 
-          <span>Ban Công nghệ & Bảo mật Picare Hub</span>
+          <span>IT Picare Vietnam</span>
         </div>
       </main>
+
+      {/* Component Transition Video Cinematic đè lên toàn màn hình */}
+      <CinematicVideoModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        videoSrc={VIDEO_URL}
+      />
 
       <PublicLandingFooter />
     </div>

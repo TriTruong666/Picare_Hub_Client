@@ -184,10 +184,13 @@ export function PublicLandingNavbar({
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
                 </span>
                 <p className="font-haffer text-[11px] font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
-                  <span>Hệ thống vừa nâng cấp toàn diện về mặt bảo mật để phục vụ cho hệ thống Picare Office (Mới): </span>
+                  <span>
+                    Hệ thống vừa nâng cấp toàn diện về mặt bảo mật để phục vụ
+                    cho hệ thống Picare Office (Mới):{" "}
+                  </span>
                   <a
-                    href="/changes"
-                    target="_blank"
+                    href="/changes/nang-cap-dang-nhap"
+                    target=""
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 font-semibold text-white underline underline-offset-4 transition-opacity hover:opacity-85"
                   >

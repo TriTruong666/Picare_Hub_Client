@@ -48,7 +48,7 @@ export const BLOG_REGISTRY: BlogItemConfig[] = [
   {
     id: "1",
     // 1. Điền đường link tùy chỉnh
-    path: "/nang-cap-dang-nhap",
+    path: "/changes/nang-cap-dang-nhap",
     // 2. Import file page component từ thư mục update-blog để trỏ tới đường link đó
     component: SecurityOfficeUpdateDetailPage,
     version: "v1.1.0-sec",
@@ -60,7 +60,7 @@ export const BLOG_REGISTRY: BlogItemConfig[] = [
     summary:
       "Triển khai hạ tầng mã hóa ở cấp độ lõi, kiểm soát phiên làm việc Zero Trust thích ứng và giao thức kết nối an toàn chuẩn doanh nghiệp nhằm sẵn sàng bàn giao cho toàn bộ phân hệ văn phòng Picare Office mới.",
     author: "TriTruong666",
-    authorRole: "Bộ phận Kỹ thuật Bảo mật & Hạ tầng",
+    authorRole: "IT Picare Vietnam",
   },
 ];
 

@@ -200,7 +200,7 @@ export default function CinematicVideoModal({
         ref={exitBtnRef}
         type="button"
         onClick={handleClose}
-        className="font-haffer absolute top-6 right-6 z-[1000000] cursor-pointer text-xs font-light tracking-wider text-zinc-400 opacity-0 transition-colors hover:text-white hover:underline underline-offset-4 sm:top-8 sm:right-10 sm:text-[13px]"
+        className="font-haffer absolute top-6 right-6 z-[1000000] cursor-pointer text-xs font-light text-zinc-400 opacity-0 transition-colors hover:text-white hover:underline underline-offset-4 sm:top-8 sm:right-10 sm:text-[13px]"
       >
         Thoát
       </button>
