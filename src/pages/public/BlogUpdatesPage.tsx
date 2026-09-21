@@ -7,10 +7,8 @@ import { BLOG_REGISTRY, type BlogItemConfig } from "@/config/blogRegistry";
 
 const CATEGORIES = [
   { key: "all", label: "Tất cả cập nhật" },
-  { key: "security", label: "Bảo mật & Picare Office" },
+  { key: "security", label: "Bảo mật" },
   { key: "feature", label: "Tính năng mới" },
-  { key: "performance", label: "Hiệu năng & Tối ưu" },
-  { key: "infra", label: "Hạ tầng Cloud" },
 ];
 
 export default function BlogUpdatesPage() {
@@ -22,9 +20,12 @@ export default function BlogUpdatesPage() {
       const matchCategory =
         selectedCategory === "all" ||
         post.category.toLowerCase().includes(selectedCategory) ||
-        (selectedCategory === "security" && post.category.includes("Bảo mật")) ||
-        (selectedCategory === "feature" && post.category.includes("Tính năng")) ||
-        (selectedCategory === "performance" && post.category.includes("Hiệu năng")) ||
+        (selectedCategory === "security" &&
+          post.category.includes("Bảo mật")) ||
+        (selectedCategory === "feature" &&
+          post.category.includes("Tính năng")) ||
+        (selectedCategory === "performance" &&
+          post.category.includes("Hiệu năng")) ||
         (selectedCategory === "infra" && post.category.includes("Hạ tầng"));
 
       const matchSearch =
@@ -43,9 +44,9 @@ export default function BlogUpdatesPage() {
 
       {/* Background Decorative Ambient Gradients */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[520px] w-[800px] rounded-full bg-gradient-to-b from-[#F86D2B]/15 via-[#FFA336]/8 to-transparent blur-3xl" />
+        <div className="absolute -top-40 left-1/2 h-[520px] w-[800px] -translate-x-1/2 rounded-full bg-gradient-to-b from-[#F86D2B]/15 via-[#FFA336]/8 to-transparent blur-3xl" />
         <div className="absolute top-[600px] -left-32 h-[420px] w-[420px] rounded-full bg-[#F86D2B]/8 blur-3xl" />
-        <div className="absolute bottom-20 -right-24 h-[460px] w-[460px] rounded-full bg-[#FFA336]/6 blur-3xl" />
+        <div className="absolute -right-24 bottom-20 h-[460px] w-[460px] rounded-full bg-[#FFA336]/6 blur-3xl" />
         <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:28px_28px] opacity-25" />
       </div>
 
@@ -54,13 +55,15 @@ export default function BlogUpdatesPage() {
         {/* Hero Section */}
         <section className="mb-10 text-left sm:mb-12">
           {/* Title nhỏ gọn, thanh thoát */}
-          <h1 className="font-haffer text-2xl sm:text-3xl md:text-[32px] font-semibold text-white leading-snug">
+          <h1 className="font-haffer text-2xl leading-snug font-semibold text-white sm:text-3xl md:text-[32px]">
             Nhật ký Cập nhật & Bản tin Kỹ thuật
           </h1>
 
           {/* Subtitle nhỏ gọn */}
-          <p className="font-haffer text-xs sm:text-sm text-zinc-400 max-w-2xl mt-2 leading-relaxed font-normal">
-            Theo dõi chi tiết các cột mốc cải tiến hạ tầng, kiến trúc bảo mật doanh nghiệp và những năng lực mới được cập nhật trên hệ sinh thái Picare Hub cùng phân hệ Picare Office.
+          <p className="font-haffer mt-2 max-w-2xl text-xs leading-relaxed font-normal text-zinc-400 sm:text-sm">
+            Theo dõi chi tiết các cột mốc cải tiến hạ tầng, kiến trúc bảo mật
+            doanh nghiệp và những năng lực mới được cập nhật trên hệ sinh thái
+            Picare Hub cùng phân hệ Picare Office.
           </p>
         </section>
 
@@ -76,7 +79,7 @@ export default function BlogUpdatesPage() {
                     key={cat.key}
                     type="button"
                     onClick={() => setSelectedCategory(cat.key)}
-                    className={`cursor-pointer whitespace-nowrap pb-1.5 text-xs font-haffer transition-colors duration-200 ${
+                    className={`font-haffer cursor-pointer pb-1.5 text-xs whitespace-nowrap transition-colors duration-200 ${
                       isActive
                         ? "border-b-2 border-[#F86D2B] font-semibold text-white"
                         : "border-b-2 border-transparent text-zinc-400 hover:text-zinc-200"
@@ -95,11 +98,11 @@ export default function BlogUpdatesPage() {
                 placeholder="Tìm nội dung cập nhật..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border border-zinc-800 bg-zinc-950 px-3 py-1.5 pl-8 text-xs font-haffer text-zinc-200 placeholder-zinc-500 transition-colors focus:border-[#F86D2B] focus:outline-none"
+                className="font-haffer w-full border border-zinc-800 bg-zinc-950 px-3 py-1.5 pl-8 text-xs text-zinc-200 placeholder-zinc-500 transition-colors focus:border-[#F86D2B] focus:outline-none"
               />
               <FiSearch
                 size={13}
-                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500"
+                className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-zinc-500"
               />
             </div>
           </div>
@@ -107,14 +110,14 @@ export default function BlogUpdatesPage() {
 
         {/* Updates Feed List: Đồng bộ font Haffer, không hiện chi tiết trong item, không item tiêu điểm */}
         <section className="space-y-4">
-          <div className="flex items-center justify-between text-xs font-haffer text-zinc-400 pb-1">
+          <div className="font-haffer flex items-center justify-between pb-1 text-xs text-zinc-400">
             <span>DANH SÁCH BẢN PHÁT HÀNH & NÂNG CẤP</span>
             <span>Hiển thị {filteredPosts.length} bản ghi</span>
           </div>
 
           {filteredPosts.length === 0 ? (
             <div className="border border-zinc-800 bg-[#121215] p-10 text-center">
-              <p className="font-haffer text-xs sm:text-sm text-zinc-400">
+              <p className="font-haffer text-xs text-zinc-400 sm:text-sm">
                 Không tìm thấy bản cập nhật nào phù hợp với bộ lọc hiện tại.
               </p>
             </div>
@@ -123,12 +126,14 @@ export default function BlogUpdatesPage() {
               return (
                 <article
                   key={post.id}
-                  className="group border border-zinc-800/90 bg-[#101014] p-5 sm:p-6 transition-colors duration-200 hover:border-zinc-700"
+                  className="group border border-zinc-800/90 bg-[#101014] p-5 transition-colors duration-200 hover:border-zinc-700 sm:p-6"
                 >
                   {/* Header Row: Version, Category, Date (Typography phẳng, không badge pill) */}
-                  <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 text-xs font-haffer text-zinc-400">
+                  <div className="font-haffer mb-2.5 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-400">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-[#FFA336]">{post.version}</span>
+                      <span className="font-semibold text-[#FFA336]">
+                        {post.version}
+                      </span>
                       <span className="text-zinc-600">/</span>
                       <span className="text-zinc-300">{post.category}</span>
                     </div>
@@ -147,7 +152,7 @@ export default function BlogUpdatesPage() {
                   </div>
 
                   {/* Post Title: Nếu có path thì link tới route đó */}
-                  <h2 className="font-haffer text-base sm:text-lg font-semibold text-white leading-snug">
+                  <h2 className="font-haffer text-base leading-snug font-semibold text-white sm:text-lg">
                     {post.path ? (
                       <Link
                         to={post.path}
@@ -165,14 +170,17 @@ export default function BlogUpdatesPage() {
                   </h2>
 
                   {/* Summary: Gọn gàng, không mở rộng chi tiết */}
-                  <p className="font-haffer mt-2 text-xs sm:text-sm font-normal text-zinc-400 leading-relaxed">
+                  <p className="font-haffer mt-2 text-xs leading-relaxed font-normal text-zinc-400 sm:text-sm">
                     {post.summary}
                   </p>
 
                   {/* Footer nhỏ của item */}
-                  <div className="mt-3.5 flex items-center justify-between border-t border-zinc-800/60 pt-2.5 text-xs font-haffer text-zinc-400">
+                  <div className="font-haffer mt-3.5 flex items-center justify-between border-t border-zinc-800/60 pt-2.5 text-xs text-zinc-400">
                     <span>
-                      Tác giả: <span className="text-zinc-300">{post.author || "Picare Engineering"}</span>
+                      Tác giả:{" "}
+                      <span className="text-zinc-300">
+                        {post.author || "Picare Engineering"}
+                      </span>
                     </span>
 
                     {post.path ? (
