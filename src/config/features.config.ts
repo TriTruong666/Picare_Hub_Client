@@ -1,5 +1,5 @@
 const parseBooleanFlag = (value: string | undefined): boolean =>
-  String(value ?? "false").toLowerCase() === "true";
+  String(value ?? "true").toLowerCase() === "true";
 
 export const featureFlags = Object.freeze({
   loginVerification: parseBooleanFlag(
