@@ -15,7 +15,6 @@ import { canAccessDashboard } from "@/config/dashboardAccess";
 import LandingPage from "@/pages/public/LandingPage";
 import ClientOmsPage from "@/pages/public/client_products/ClientOmsPage";
 import BlogUpdatesPage from "@/pages/public/BlogUpdatesPage";
-import { SecurityOfficeUpdateDetailPage } from "@/pages/public/update-blog";
 import LoginHubPage from "@/pages/public/LoginHubPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
 import ContractCreatePage from "@/pages/private/ContractCreatePage";
@@ -67,14 +66,6 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
   {
     path: PATHS.CHANGES,
     element: <BlogUpdatesPage />,
-  },
-  {
-    path: PATHS.SECURITY_UPDATE_DETAIL,
-    element: <SecurityOfficeUpdateDetailPage />,
-  },
-  {
-    path: PATHS.CHANGE_DETAIL,
-    element: <SecurityOfficeUpdateDetailPage />,
   },
   {
     path: "/login/hub",
