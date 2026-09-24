@@ -139,7 +139,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       onClick={handleAccess}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="client-card-item group relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-[440px] w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none"
+      className="client-card-item group relative flex min-h-[360px] sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0 w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none"
     >
       {/* Subtle Warm Apricot/Amber Glow Layer giống LandingPageTest */}
       <div
@@ -204,7 +204,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 function ClientSkeleton() {
   return (
-    <div className="relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-[440px] flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709]">
+    <div className="relative flex min-h-[360px] sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0 flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709]">
       <div className="w-full flex-1 animate-pulse bg-white/3" />
       <div className="flex flex-col space-y-2 border-t border-white/[0.06] p-5 sm:p-6 lg:p-7">
         <div className="h-6 w-36 animate-pulse rounded-full bg-white/5" />
@@ -218,7 +218,7 @@ function ClientSkeleton() {
 function EmptyCard({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`relative min-h-[360px] sm:min-h-[44vh] lg:min-h-[440px] border-r border-b border-white/[0.08] bg-transparent ${className}`}
+      className={`relative min-h-[360px] sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0 border-r border-b border-white/[0.08] bg-transparent ${className}`}
     />
   );
 }
@@ -242,7 +242,10 @@ export default function LoginClientPage() {
   const clientList = [...(clients || []), ...STATIC_HUB_CLIENTS];
 
   return (
-    <div className="relative flex min-h-screen min-h-dvh w-full flex-col overflow-x-hidden overflow-y-auto bg-[#050505]">
+    <div
+      data-lenis-prevent
+      className="relative flex min-h-screen min-h-dvh w-full flex-col overflow-x-hidden overflow-y-auto bg-[#050505]"
+    >
       {/* Navbar: cố định ở trên cùng đè lên, không có background */}
       <div className="pointer-events-none fixed inset-x-0 top-0 z-50">
         <PublicLandingNavbar
@@ -256,13 +259,13 @@ export default function LoginClientPage() {
         initial={{ x: "-100%", opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-        className="relative flex-1 w-full bg-[#050505] pt-20 sm:pt-24 lg:pt-20 pb-10"
+        className="relative flex-1 w-full bg-[#050505] pt-24 pb-14 sm:pt-28 lg:p-0"
       >
         {/* Outer border frame */}
         <div className="pointer-events-none absolute inset-0 border border-white/[0.08]" />
 
         {/* Grid items: 3 cột trên desktop, 2 cột trên tablet, 1 cột trên mobile */}
-        <div className="grid w-full grid-cols-1 border-t border-l border-white/[0.08] md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid h-auto w-full grid-cols-1 border-t border-l border-white/[0.08] md:grid-cols-2 lg:grid-cols-3">
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => <ClientSkeleton key={i} />)
           ) : (

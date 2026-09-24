@@ -190,7 +190,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       onClick={handleAccess}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="client-card-item group relative flex min-h-[360px] w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none sm:min-h-[44vh] lg:min-h-[440px]"
+      className="client-card-item group relative flex min-h-[360px] w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0"
     >
       {/* Subtle Warm Apricot/Amber Glow Layer giống LandingPageTest */}
       <div
@@ -255,7 +255,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
 // ─── Subcomponent: Skeleton Loading Card ──────────────────────────────────────
 function ClientSkeleton() {
   return (
-    <div className="relative flex min-h-[360px] flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709] sm:min-h-[44vh] lg:min-h-[440px]">
+    <div className="relative flex min-h-[360px] flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709] sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0">
       <div className="w-full flex-1 animate-pulse bg-white/3" />
       <div className="flex flex-col space-y-2 border-t border-white/[0.06] p-5 sm:p-6 lg:p-7">
         <div className="h-6 w-36 animate-pulse rounded-full bg-white/5" />
@@ -269,7 +269,7 @@ function ClientSkeleton() {
 function EmptyCard({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`relative flex min-h-[360px] border-r border-b border-white/[0.08] bg-transparent sm:min-h-[44vh] lg:min-h-[440px] ${className}`}
+      className={`relative flex min-h-[360px] border-r border-b border-white/[0.08] bg-transparent sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0 ${className}`}
     />
   );
 }
@@ -381,38 +381,6 @@ export default function LoginHubFormSection({
       window.clearTimeout(focusTimer);
     };
   }, [verificationChallenge]);
-
-  // ─── Tự động điều hướng sang /login/client nếu đã đăng nhập và không có clientId ───
-  useEffect(() => {
-    if (
-      isAuthenticated &&
-      !clientId &&
-      !location.pathname.startsWith(PATHS.LOGIN_CLIENT)
-    ) {
-      if (
-        redirectParam &&
-        redirectPath !== PATHS.HOME &&
-        !redirectPath.startsWith(PATHS.LOGIN)
-      ) {
-        if (isDashboardRedirect && !canAccessDashboard(user?.role)) {
-          navigate(PATHS.LOGIN_CLIENT, { replace: true });
-        } else {
-          navigate(redirectPath, { replace: true });
-        }
-      } else {
-        navigate(PATHS.LOGIN_CLIENT, { replace: true });
-      }
-    }
-  }, [
-    isAuthenticated,
-    clientId,
-    location.pathname,
-    redirectParam,
-    redirectPath,
-    isDashboardRedirect,
-    user?.role,
-    navigate,
-  ]);
 
   // ─── Responsive Resize Listener (chỉ co giãn khi ở form 50%) ────────────────
   useEffect(() => {
@@ -1366,7 +1334,8 @@ export default function LoginHubFormSection({
         {/* ─── GIAO DIỆN 2: CHỌN CLIENT (Scroll được toàn màn hình khi có 7+ clients tại /login/client) ─── */}
         <div
           ref={gridWrapperRef}
-          className="absolute inset-0 z-20 min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#050505]"
+          data-lenis-prevent
+          className="absolute inset-0 z-20 h-full w-full overflow-x-hidden overflow-y-auto bg-[#050505]"
           style={{
             display: initialIsClient ? "block" : "none",
             opacity: initialIsClient ? 1 : 0,
@@ -1375,8 +1344,8 @@ export default function LoginHubFormSection({
           {/* Outer border frame */}
           <div className="pointer-events-none absolute inset-0 border border-white/[0.08]" />
 
-          {/* Grid items: 3 cột trên desktop, 2 cột trên tablet, 1 cột trên mobile */}
-          <div className="grid w-full grid-cols-1 border-t border-l border-white/[0.08] pt-20 sm:pt-24 lg:pt-20 pb-10 md:grid-cols-2 lg:grid-cols-3">
+          {/* Grid items: như cũ (lg:p-0, 50vh mỗi hàng trên desktop, scroll được toàn trang) */}
+          <div className="grid h-auto w-full grid-cols-1 border-t border-l border-white/[0.08] pt-24 pb-14 sm:pt-28 md:grid-cols-2 lg:grid-cols-3 lg:p-0">
             {isClientsLoading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <ClientSkeleton key={i} />

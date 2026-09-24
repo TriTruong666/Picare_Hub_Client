@@ -204,8 +204,10 @@ export default function LandingPageTest() {
     }
   }, [isFromCatalogue, location.pathname]);
 
-  // Tích hợp Lenis Smooth Scroll mượt mà cuộn từ Hero xuống Footer
+  // Tích hợp Lenis Smooth Scroll mượt mà cuộn từ Hero xuống Footer (chỉ ở landing page, tắt khi ở login/client)
   useEffect(() => {
+    if (isLoginPage) return;
+
     const container = scrollContainerRef.current;
     const content = scrollContentRef.current;
     if (!container || !content) return;
@@ -242,32 +244,6 @@ export default function LandingPageTest() {
   const handleOpenClientSelect = () => {
     navigate(PATHS.LOGIN_CLIENT);
   };
-
-  // Nếu đã đăng nhập mà truy cập vào route /login (không có clientId), tự động điều hướng sang /login/client
-  useEffect(() => {
-    if (isLoginPage && !isClientSelectPage && isAuthenticated) {
-      const searchParams = new URLSearchParams(location.search);
-      const clientId = searchParams.get("clientId");
-      const redirectParam = searchParams.get("redirect");
-      if (!clientId) {
-        if (
-          redirectParam &&
-          redirectParam.startsWith("/") &&
-          !redirectParam.startsWith(PATHS.LOGIN)
-        ) {
-          navigate(redirectParam, { replace: true });
-        } else {
-          navigate(PATHS.LOGIN_CLIENT, { replace: true });
-        }
-      }
-    }
-  }, [
-    isLoginPage,
-    isClientSelectPage,
-    isAuthenticated,
-    location.search,
-    navigate,
-  ]);
 
   // Chuyển sang thư viện catalogue với hiệu ứng AeroShard chảy đi mất
   const handleNavigateToCatalogue = () => {
