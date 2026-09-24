@@ -8,6 +8,7 @@ import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
 import PublicLandingFooter from "@/components/landing/PublicLandingFooter";
 import { PATHS } from "@/config/paths";
 import picareHubLogo from "@/assets/images/logo.png";
+import { useAuth } from "@/hooks/useAuth";
 import gsap from "gsap";
 
 interface GsapCtaButtonProps {
@@ -18,7 +19,7 @@ interface GsapCtaButtonProps {
 
 function GsapCtaButton({
   onClick,
-  label = "Trải nghiệm ngay",
+  label = "Khám phá ngay",
   delay = 0.85,
 }: GsapCtaButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -152,6 +153,7 @@ function GsapCtaButton({
 export default function LandingPageTest() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const isLoginPage = location.pathname.startsWith(PATHS.LOGIN);
   const isClientSelectPage = location.pathname.startsWith(PATHS.LOGIN_CLIENT);
 
@@ -227,15 +229,45 @@ export default function LandingPageTest() {
     };
   }, [isLoginPage, isIntro]);
 
-  // Chuyển sang giao diện đăng nhập /login
+  // Chuyển sang giao diện đăng nhập /login (hoặc /login/client nếu đã đăng nhập)
   const handleOpenLogin = () => {
-    navigate(PATHS.LOGIN);
+    if (isAuthenticated) {
+      navigate(PATHS.LOGIN_CLIENT);
+    } else {
+      navigate(PATHS.LOGIN);
+    }
   };
 
   // Chuyển sang giao diện chọn client /login/client
   const handleOpenClientSelect = () => {
     navigate(PATHS.LOGIN_CLIENT);
   };
+
+  // Nếu đã đăng nhập mà truy cập vào route /login (không có clientId), tự động điều hướng sang /login/client
+  useEffect(() => {
+    if (isLoginPage && !isClientSelectPage && isAuthenticated) {
+      const searchParams = new URLSearchParams(location.search);
+      const clientId = searchParams.get("clientId");
+      const redirectParam = searchParams.get("redirect");
+      if (!clientId) {
+        if (
+          redirectParam &&
+          redirectParam.startsWith("/") &&
+          !redirectParam.startsWith(PATHS.LOGIN)
+        ) {
+          navigate(redirectParam, { replace: true });
+        } else {
+          navigate(PATHS.LOGIN_CLIENT, { replace: true });
+        }
+      }
+    }
+  }, [
+    isLoginPage,
+    isClientSelectPage,
+    isAuthenticated,
+    location.search,
+    navigate,
+  ]);
 
   // Chuyển sang thư viện catalogue với hiệu ứng AeroShard chảy đi mất
   const handleNavigateToCatalogue = () => {
@@ -482,7 +514,7 @@ export default function LandingPageTest() {
                   <div className="mt-9 flex justify-center sm:mt-10">
                     <GsapCtaButton
                       onClick={handleOpenLogin}
-                      label="Trải nghiệm ngay"
+                      label="Khám phá ngay"
                       delay={0.85}
                     />
                   </div>

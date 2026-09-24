@@ -15,6 +15,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useCurveTransition } from "@/components/custom_ui/CurvePageTransition";
 import { PublicLandingNavbar } from "@/components/landing/PublicLandingNavbar";
+import PublicLandingFooter from "@/components/landing/PublicLandingFooter";
 
 const cardVariants: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -138,7 +139,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       onClick={handleAccess}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="client-card-item group relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-0 lg:h-full w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none"
+      className="client-card-item group relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-[440px] w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none"
     >
       {/* Subtle Warm Apricot/Amber Glow Layer giống LandingPageTest */}
       <div
@@ -203,7 +204,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 function ClientSkeleton() {
   return (
-    <div className="relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-0 lg:h-full flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709]">
+    <div className="relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-[440px] flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709]">
       <div className="w-full flex-1 animate-pulse bg-white/3" />
       <div className="flex flex-col space-y-2 border-t border-white/[0.06] p-5 sm:p-6 lg:p-7">
         <div className="h-6 w-36 animate-pulse rounded-full bg-white/5" />
@@ -214,14 +215,17 @@ function ClientSkeleton() {
 }
 
 // ─── Empty Placeholder ────────────────────────────────────────────────────────
-function EmptyCard() {
+function EmptyCard({ className = "" }: { className?: string }) {
   return (
-    <div className="relative flex min-h-[360px] sm:min-h-[44vh] lg:min-h-0 lg:h-full border-r border-b border-white/[0.08] bg-transparent" />
+    <div
+      className={`relative min-h-[360px] sm:min-h-[44vh] lg:min-h-[440px] border-r border-b border-white/[0.08] bg-transparent ${className}`}
+    />
   );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function LoginClientPage() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const clientId = searchParams.get("clientId");
 
@@ -238,7 +242,7 @@ export default function LoginClientPage() {
   const clientList = [...(clients || []), ...STATIC_HUB_CLIENTS];
 
   return (
-    <div className="relative min-h-screen min-h-dvh w-full overflow-x-hidden overflow-y-auto bg-[#050505] lg:h-screen lg:overflow-hidden">
+    <div className="relative flex min-h-screen min-h-dvh w-full flex-col overflow-x-hidden overflow-y-auto bg-[#050505]">
       {/* Navbar: cố định ở trên cùng đè lên, không có background */}
       <div className="pointer-events-none fixed inset-x-0 top-0 z-50">
         <PublicLandingNavbar
@@ -247,34 +251,56 @@ export default function LoginClientPage() {
         />
       </div>
 
-      {/* Main Grid: Full Screen, Full Height 100vh Edge-to-Edge - Slide in from Left to Right */}
+      {/* Main Grid: Edge-to-Edge - Slide in from Left to Right */}
       <motion.main
         initial={{ x: "-100%", opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-        className="relative min-h-screen w-full bg-[#050505] pt-24 pb-14 sm:pt-28 lg:h-screen lg:p-0"
+        className="relative flex-1 w-full bg-[#050505] pt-20 sm:pt-24 lg:pt-20 pb-10"
       >
         {/* Outer border frame */}
         <div className="pointer-events-none absolute inset-0 border border-white/[0.08]" />
 
-        {/* Grid 6 items: Exactly 3 cols x 2 rows = full screen 100vh trên desktop */}
-        <div className="grid h-auto min-h-full w-full grid-cols-1 border-t border-l border-white/[0.08] md:grid-cols-2 lg:h-full lg:grid-cols-3 lg:grid-rows-2">
+        {/* Grid items: 3 cột trên desktop, 2 cột trên tablet, 1 cột trên mobile */}
+        <div className="grid w-full grid-cols-1 border-t border-l border-white/[0.08] md:grid-cols-2 lg:grid-cols-3">
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => <ClientSkeleton key={i} />)
           ) : (
             <>
-              {clientList.slice(0, 6).map((client, i) => (
+              {clientList.map((client, i) => (
                 <ClientCard key={client.clientId} client={client} index={i} />
               ))}
               {Array.from({
-                length: Math.max(0, 6 - Math.min(6, clientList.length)),
+                length:
+                  clientList.length % 3 === 0
+                    ? 0
+                    : 3 - (clientList.length % 3),
               }).map((_, i) => (
-                <EmptyCard key={`empty-${i}`} />
+                <EmptyCard key={`empty-lg-${i}`} className="hidden lg:flex" />
+              ))}
+              {Array.from({
+                length:
+                  clientList.length % 2 === 0
+                    ? 0
+                    : 2 - (clientList.length % 2),
+              }).map((_, i) => (
+                <EmptyCard
+                  key={`empty-md-${i}`}
+                  className="hidden md:flex lg:hidden"
+                />
               ))}
             </>
           )}
         </div>
       </motion.main>
+
+      {/* Footer */}
+      <PublicLandingFooter
+        onOpenLogin={() => navigate(PATHS.LOGIN)}
+        onOpenClientSelect={() => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
     </div>
   );
 }
