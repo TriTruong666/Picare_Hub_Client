@@ -156,7 +156,7 @@ export function PublicLandingNavbar({
       }
       navigateWithTransition(PATHS.CHANGES, {
         text: "Tin tức",
-        subtext: "Picare Hub",
+        subtext: "Tổng hợp các thông tin mới nhất",
       });
     }
   };
