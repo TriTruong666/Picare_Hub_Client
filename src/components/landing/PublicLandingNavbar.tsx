@@ -30,6 +30,7 @@ export interface PublicLandingNavbarProps {
   onOpenClientSelect?: () => void;
   onLogoClick?: () => void;
   onCatalogueClick?: () => void;
+  onNewsClick?: () => void;
   className?: string;
   isDarkBg?: boolean;
   isAuthenticated?: boolean;
@@ -42,6 +43,7 @@ export function PublicLandingNavbar({
   onOpenClientSelect,
   onLogoClick,
   onCatalogueClick,
+  onNewsClick,
   className = "",
   isDarkBg = false,
   isAuthenticated: propIsAuth,
@@ -85,6 +87,7 @@ export function PublicLandingNavbar({
   const userMenuContainerRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
+  const { navigateWithTransition } = useCurveTransition();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -139,6 +142,22 @@ export function PublicLandingNavbar({
       onCatalogueClick();
     } else {
       navigate("/catalogue/public/gallery");
+    }
+  };
+
+  const handleNewsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onNewsClick) {
+      onNewsClick();
+    } else {
+      if (location.pathname === PATHS.CHANGES) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      navigateWithTransition(PATHS.CHANGES, {
+        text: "Tin tức",
+        subtext: "Picare Hub",
+      });
     }
   };
 
@@ -296,6 +315,14 @@ export function PublicLandingNavbar({
               className="group relative flex cursor-pointer items-center px-0.5 py-1.5 font-normal text-white/75 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] transition-colors duration-200 hover:text-white"
             >
               <span className="nav-link-underline">Catalogues</span>
+            </a>
+            {/* 5. Tin tức */}
+            <a
+              href={PATHS.CHANGES}
+              onClick={handleNewsClick}
+              className="group relative flex cursor-pointer items-center px-0.5 py-1.5 font-normal text-white/75 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] transition-colors duration-200 hover:text-white"
+            >
+              <span className="nav-link-underline">Tin tức</span>
             </a>
           </nav>
 
