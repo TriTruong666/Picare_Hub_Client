@@ -66,6 +66,11 @@ export default function LandingHeader({
       hasDropdown: false,
       href: "/catalogue/public/gallery",
     },
+    {
+      name: "Tin tức",
+      hasDropdown: false,
+      href: "/changes",
+    },
   ];
 
   const { data: hubClients, isLoading } = useHubClients({

@@ -185,10 +185,10 @@ export function PublicLandingNavbar({
                 </span>
                 <p className="font-haffer text-[11px] font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
                   <span>
-                    Hệ thống vừa nâng cấp toàn diện về mặt bảo mật để phục vụ
-                    cho hệ thống Picare Office (Mới):{" "}
+                    Picare Saleforce chính thức hoàn thành giai đoạn phát triển,
+                    xin cảm ơn tất cả thành viên đã tham gia góp ý và hỗ trợ!
                   </span>
-                  <a
+                  {/* <a
                     href="/changes/nang-cap-dang-nhap"
                     target=""
                     rel="noopener noreferrer"
@@ -196,7 +196,7 @@ export function PublicLandingNavbar({
                   >
                     Xem ngay
                     <FiArrowRight size={12} className="inline-block" />
-                  </a>
+                  </a> */}
                 </p>
               </div>
 

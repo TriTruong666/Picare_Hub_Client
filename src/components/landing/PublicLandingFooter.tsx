@@ -368,7 +368,7 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
             {/* 2. Picare Vietnam */}
             <div className="flex min-w-[130px] flex-col">
               <h3 className="text-xs font-semibold text-white uppercase">
-                Picare Vietnam
+                Về chúng tôi
               </h3>
               <ul className="mt-4 space-y-2.5 text-xs sm:text-[13.5px]">
                 {companyLinks.map((item) => (

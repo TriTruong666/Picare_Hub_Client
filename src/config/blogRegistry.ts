@@ -75,7 +75,7 @@ export const BLOG_REGISTRY: BlogItemConfig[] = [
     title: "Đăng nhập an toàn hơn trên Picare Client",
     summary:
       "Triển khai hạ tầng mã hóa ở cấp độ lõi, kiểm soát phiên làm việc Zero Trust thích ứng và giao thức kết nối an toàn chuẩn doanh nghiệp nhằm sẵn sàng bàn giao cho toàn bộ phân hệ văn phòng Picare Office mới.",
-    author: "TriTruong666",
+    author: "IT Picare Vietnam",
     authorRole: "IT Picare Vietnam",
   },
 ];
