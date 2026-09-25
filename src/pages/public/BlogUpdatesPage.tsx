@@ -61,9 +61,8 @@ export default function BlogUpdatesPage() {
 
           {/* Subtitle nhỏ gọn */}
           <p className="font-haffer mt-2 max-w-2xl text-xs leading-relaxed font-normal text-zinc-400 sm:text-sm">
-            Theo dõi chi tiết các cột mốc cải tiến hạ tầng, kiến trúc bảo mật
-            doanh nghiệp và những năng lực mới được cập nhật trên hệ sinh thái
-            Picare Hub cùng phân hệ Picare Office.
+            Theo dõi chi tiết các cột mốc cải tiến phần mềm, phân hệ, các thông
+            tin mới đến từ Picare Client.
           </p>
         </section>
 
