@@ -4,6 +4,7 @@ import { FiCalendar, FiClock, FiSearch, FiArrowUpRight } from "react-icons/fi";
 import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
 import PublicLandingFooter from "@/components/landing/PublicLandingFooter";
 import { BLOG_REGISTRY, type BlogItemConfig } from "@/config/blogRegistry";
+import { BlogAuthGuard } from "./update-blog";
 
 const CATEGORIES = [
   { key: "all", label: "Tất cả cập nhật" },
@@ -38,7 +39,8 @@ export default function BlogUpdatesPage() {
   }, [selectedCategory, searchQuery]);
 
   return (
-    <div className="font-haffer relative min-h-screen bg-[#09090b] text-zinc-100 selection:bg-[#F86D2B] selection:text-white">
+    <BlogAuthGuard>
+      <div className="font-haffer relative min-h-screen bg-[#09090b] text-zinc-100 selection:bg-[#F86D2B] selection:text-white">
       {/* 1. Header Navigation */}
       <PublicLandingNavbar isDarkBg={true} showNoticeBanner={false} />
 
@@ -204,5 +206,6 @@ export default function BlogUpdatesPage() {
       {/* 3. Footer */}
       <PublicLandingFooter />
     </div>
+    </BlogAuthGuard>
   );
 }

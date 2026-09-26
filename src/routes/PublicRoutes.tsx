@@ -3,6 +3,7 @@ import { getBlogCustomRoutes } from "@/config/blogRegistry";
 import { PATHS } from "@/config/paths";
 import { PUBLIC_ROUTES } from "@/config/routes.config";
 import LandingPage from "@/pages/public/LandingPage";
+import { BlogAuthGuard } from "@/pages/public/update-blog";
 
 export default function PublicRoutes() {
   const blogRoutes = getBlogCustomRoutes();
@@ -14,7 +15,15 @@ export default function PublicRoutes() {
         <Route path="/login/*" element={null} />
       </Route>
       {blogRoutes.map(({ path, component: Component }) => (
-        <Route key={path} path={path} element={<Component />} />
+        <Route
+          key={path}
+          path={path}
+          element={
+            <BlogAuthGuard>
+              <Component />
+            </BlogAuthGuard>
+          }
+        />
       ))}
       <Route
         path={PATHS.CHANGE_DETAIL}

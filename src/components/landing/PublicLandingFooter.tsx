@@ -1,12 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import gsap from "gsap";
-import {
-  FaInstagram,
-  FaFacebookF,
-  FaTiktok,
-  FaYoutube,
-} from "react-icons/fa6";
+import { FaInstagram, FaFacebookF, FaTiktok, FaYoutube } from "react-icons/fa6";
 import { FiArrowUpRight, FiHeart } from "react-icons/fi";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
 import { PATHS } from "@/config/paths";
@@ -183,11 +178,21 @@ function GsapSocialButton({ social }: { social: SocialLinkItem }) {
   const iconRef = useRef<HTMLSpanElement>(null);
   const Icon = social.icon;
 
+  useEffect(() => {
+    // Khởi tạo vị trí dòng nước ở bên ngoài cạnh trái bằng GSAP transform cache
+    if (waveLeadingRef.current) {
+      gsap.set(waveLeadingRef.current, { x: "-100%" });
+    }
+    if (waveBodyRef.current) {
+      gsap.set(waveBodyRef.current, { x: "-100%" });
+    }
+  }, []);
+
   const handleMouseEnter = () => {
-    // Sóng nước tràn từ trái sang phải phủ kín toàn bộ nền thành màu trắng
+    // Dòng nước tràn từ trái sang phải phủ kín toàn bộ nền thành màu trắng
     if (waveLeadingRef.current) {
       gsap.to(waveLeadingRef.current, {
-        xPercent: 0,
+        x: "0%",
         duration: 0.32,
         ease: "power2.out",
         overwrite: "auto",
@@ -195,7 +200,7 @@ function GsapSocialButton({ social }: { social: SocialLinkItem }) {
     }
     if (waveBodyRef.current) {
       gsap.to(waveBodyRef.current, {
-        xPercent: 0,
+        x: "0%",
         duration: 0.38,
         ease: "power2.out",
         overwrite: "auto",
@@ -203,7 +208,7 @@ function GsapSocialButton({ social }: { social: SocialLinkItem }) {
     }
     if (btnRef.current) {
       gsap.to(btnRef.current, {
-        borderColor: "rgba(255, 255, 255, 0.45)",
+        borderColor: "#ffffff",
         duration: 0.3,
         ease: "power2.out",
         overwrite: "auto",
@@ -220,10 +225,10 @@ function GsapSocialButton({ social }: { social: SocialLinkItem }) {
   };
 
   const handleMouseLeave = () => {
-    // Nước rút êm dịu về bên trái
+    // Dòng nước êm dịu rút ngược về bên trái
     if (waveBodyRef.current) {
       gsap.to(waveBodyRef.current, {
-        xPercent: -105,
+        x: "-100%",
         duration: 0.32,
         ease: "power2.inOut",
         overwrite: "auto",
@@ -231,7 +236,7 @@ function GsapSocialButton({ social }: { social: SocialLinkItem }) {
     }
     if (waveLeadingRef.current) {
       gsap.to(waveLeadingRef.current, {
-        xPercent: -105,
+        x: "-100%",
         duration: 0.28,
         ease: "power2.inOut",
         overwrite: "auto",
@@ -264,19 +269,19 @@ function GsapSocialButton({ social }: { social: SocialLinkItem }) {
       aria-label={social.ariaLabel}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="relative flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.04] text-neutral-400 active:scale-95 transition-transform"
+      className="relative flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.04] text-neutral-400 transition-transform active:scale-95"
     >
-      {/* Lớp gợn sóng nước dẫn trước */}
+      {/* Lớp sóng nước mờ dẫn trước */}
       <span
         ref={waveLeadingRef}
-        className="pointer-events-none absolute inset-y-0 -left-[30%] w-[160%] rounded-r-[50%] bg-white/40"
-        style={{ transform: "translateX(-105%)", willChange: "transform" }}
+        className="pointer-events-none absolute inset-y-0 left-0 z-[1] h-full w-[150%] rounded-r-full bg-white/40"
+        style={{ willChange: "transform" }}
       />
-      {/* Lớp dòng nước chính phủ kín trắng */}
+      {/* Lớp dòng nước chính phủ kín màu trắng */}
       <span
         ref={waveBodyRef}
-        className="pointer-events-none absolute inset-y-0 -left-[20%] w-[140%] rounded-r-[50%] bg-white"
-        style={{ transform: "translateX(-105%)", willChange: "transform" }}
+        className="pointer-events-none absolute inset-y-0 left-0 z-[2] h-full w-[130%] rounded-r-full bg-white"
+        style={{ willChange: "transform" }}
       />
       {/* Icon nhận diện thương hiệu */}
       <span
@@ -486,9 +491,6 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
 
               {/* Dòng email hỗ trợ rainbow */}
               <div className="mt-3.5 flex items-center gap-1.5">
-                <span className="text-[11.5px] font-normal text-neutral-500">
-                  Email:
-                </span>
                 <RainbowEmailLink />
               </div>
             </div>
