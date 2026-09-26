@@ -1,11 +1,11 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import {
   FaInstagram,
   FaFacebookF,
   FaTiktok,
-  FaLinkedinIn,
+  FaYoutube,
 } from "react-icons/fa6";
 import { FiArrowUpRight, FiHeart } from "react-icons/fi";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
@@ -168,6 +168,166 @@ function GsapFooterStartButton({
   );
 }
 
+interface SocialLinkItem {
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+  ariaLabel: string;
+  brandColor: string;
+}
+
+function GsapSocialButton({ social }: { social: SocialLinkItem }) {
+  const btnRef = useRef<HTMLAnchorElement>(null);
+  const waveLeadingRef = useRef<HTMLSpanElement>(null);
+  const waveBodyRef = useRef<HTMLSpanElement>(null);
+  const iconRef = useRef<HTMLSpanElement>(null);
+  const Icon = social.icon;
+
+  const handleMouseEnter = () => {
+    // Sóng nước tràn từ trái sang phải phủ kín toàn bộ nền thành màu trắng
+    if (waveLeadingRef.current) {
+      gsap.to(waveLeadingRef.current, {
+        xPercent: 0,
+        duration: 0.32,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (waveBodyRef.current) {
+      gsap.to(waveBodyRef.current, {
+        xPercent: 0,
+        duration: 0.38,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (btnRef.current) {
+      gsap.to(btnRef.current, {
+        borderColor: "rgba(255, 255, 255, 0.45)",
+        duration: 0.3,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (iconRef.current) {
+      gsap.to(iconRef.current, {
+        color: social.brandColor,
+        duration: 0.28,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    // Nước rút êm dịu về bên trái
+    if (waveBodyRef.current) {
+      gsap.to(waveBodyRef.current, {
+        xPercent: -105,
+        duration: 0.32,
+        ease: "power2.inOut",
+        overwrite: "auto",
+      });
+    }
+    if (waveLeadingRef.current) {
+      gsap.to(waveLeadingRef.current, {
+        xPercent: -105,
+        duration: 0.28,
+        ease: "power2.inOut",
+        overwrite: "auto",
+      });
+    }
+    if (btnRef.current) {
+      gsap.to(btnRef.current, {
+        borderColor: "rgba(255, 255, 255, 0.1)",
+        duration: 0.3,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+    if (iconRef.current) {
+      gsap.to(iconRef.current, {
+        color: "rgb(163, 163, 163)",
+        duration: 0.28,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+  };
+
+  return (
+    <a
+      ref={btnRef}
+      href={social.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={social.ariaLabel}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="relative flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.04] text-neutral-400 active:scale-95 transition-transform"
+    >
+      {/* Lớp gợn sóng nước dẫn trước */}
+      <span
+        ref={waveLeadingRef}
+        className="pointer-events-none absolute inset-y-0 -left-[30%] w-[160%] rounded-r-[50%] bg-white/40"
+        style={{ transform: "translateX(-105%)", willChange: "transform" }}
+      />
+      {/* Lớp dòng nước chính phủ kín trắng */}
+      <span
+        ref={waveBodyRef}
+        className="pointer-events-none absolute inset-y-0 -left-[20%] w-[140%] rounded-r-[50%] bg-white"
+        style={{ transform: "translateX(-105%)", willChange: "transform" }}
+      />
+      {/* Icon nhận diện thương hiệu */}
+      <span
+        ref={iconRef}
+        className="relative z-10 inline-flex items-center justify-center text-neutral-400"
+        style={{ willChange: "color" }}
+      >
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+    </a>
+  );
+}
+
+function RainbowEmailLink() {
+  const textRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+
+    const anim = gsap.to(el, {
+      backgroundPosition: "-200% center",
+      duration: 5,
+      repeat: -1,
+      ease: "none",
+    });
+
+    return () => {
+      anim.kill();
+    };
+  }, []);
+
+  return (
+    <a
+      ref={textRef}
+      href="mailto:client@picare.vn"
+      className="inline-block text-xs font-normal tracking-wide transition-opacity hover:opacity-80"
+      style={{
+        background:
+          "linear-gradient(90deg, #ff3366, #ff7a00, #ffc700, #00e676, #00b0ff, #9d4edd, #ff3366)",
+        backgroundSize: "200% auto",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+      }}
+      title="Gửi email tới client@picare.vn"
+    >
+      client@picare.vn
+    </a>
+  );
+}
+
 export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
   className = "",
   onOpenLogin,
@@ -216,7 +376,7 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
   ];
 
   const companyLinks: FooterLinkItem[] = [
-    { label: "Picare", href: PATHS.HOME },
+    { label: "Picare Vietnam", href: PATHS.HOME },
     { label: "Trung Hạnh", href: "#" },
     { label: "Dermacoon", href: "#" },
     { label: "Độc quyền", href: "#" },
@@ -224,18 +384,13 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
 
   const contactLinks: FooterLinkItem[] = [
     {
-      label: "Báo giá",
-      href: "#quote-card",
-      onClick: scrollToElement("quote-card"),
-    },
-    {
       label: "FAQ",
       href: "#faq-section",
       onClick: scrollToElement("faq-section"),
     },
     {
       label: "Hỗ trợ",
-      href: "#",
+      href: "mailto:client@picare.vn",
     },
     {
       label: "Demo",
@@ -244,30 +399,34 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
     },
   ];
 
-  const socialLinks = [
+  const socialLinks: SocialLinkItem[] = [
     {
       name: "Facebook",
       icon: FaFacebookF,
       href: "https://facebook.com/picarevietnam",
       ariaLabel: "Truy cập Facebook Picare",
+      brandColor: "#1877F2",
     },
     {
       name: "Instagram",
       icon: FaInstagram,
       href: "https://instagram.com/picarevietnam",
       ariaLabel: "Truy cập Instagram Picare",
+      brandColor: "#E1306C",
     },
     {
       name: "TikTok",
       icon: FaTiktok,
       href: "https://tiktok.com/@picarevietnam",
       ariaLabel: "Truy cập TikTok Picare",
+      brandColor: "#000000",
     },
     {
-      name: "LinkedIn",
-      icon: FaLinkedinIn,
-      href: "https://linkedin.com/company/picarevietnam",
-      ariaLabel: "Truy cập LinkedIn Picare",
+      name: "YouTube",
+      icon: FaYoutube,
+      href: "https://youtube.com/@picarevietnam",
+      ariaLabel: "Truy cập YouTube Picare",
+      brandColor: "#FF0000",
     },
   ];
 
@@ -314,27 +473,23 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
               <GsapFooterStartButton onClick={handleStartClick} />
             </div>
 
-            {/* Social Media Buttons */}
+            {/* Social Media Buttons & Email */}
             <div className="mt-8">
               <span className="text-[11px] font-medium text-neutral-500 uppercase">
                 Theo dõi chúng tôi
               </span>
               <div className="mt-2.5 flex items-center gap-2.5">
-                {socialLinks.map((social) => {
-                  const Icon = social.icon;
-                  return (
-                    <a
-                      key={social.name}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={social.ariaLabel}
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-neutral-400 transition-all duration-300 hover:scale-105 hover:border-white/25 hover:bg-white/15 hover:text-white active:scale-95"
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                    </a>
-                  );
-                })}
+                {socialLinks.map((social) => (
+                  <GsapSocialButton key={social.name} social={social} />
+                ))}
+              </div>
+
+              {/* Dòng email hỗ trợ rainbow */}
+              <div className="mt-3.5 flex items-center gap-1.5">
+                <span className="text-[11.5px] font-normal text-neutral-500">
+                  Email:
+                </span>
+                <RainbowEmailLink />
               </div>
             </div>
           </div>
