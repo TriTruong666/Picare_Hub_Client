@@ -139,8 +139,21 @@ export async function downloadS3AssetByKey(
 export async function getS3Folders(): Promise<
   BasePaginatedResponse<S3Folder[]>
 > {
-  const res = await hubAxiosClient.get("/api/v1/s3-folders");
-  return res.data;
+  const firstPage = await hubAxiosClient.get<
+    BasePaginatedResponse<S3Folder[]>
+  >("/api/v1/s3-folders", { params: { page: 1, limit: 100 } });
+  const response = firstPage.data;
+  const folders = [...(response.data || [])];
+  const totalPages = response.pagination?.totalPages || 1;
+
+  for (let page = 2; page <= totalPages; page += 1) {
+    const nextPage = await hubAxiosClient.get<
+      BasePaginatedResponse<S3Folder[]>
+    >("/api/v1/s3-folders", { params: { page, limit: 100 } });
+    folders.push(...(nextPage.data.data || []));
+  }
+
+  return { ...response, data: folders };
 }
 
 export async function createS3Folder(
