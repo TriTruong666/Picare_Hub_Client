@@ -443,7 +443,7 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
 
   return (
     <footer
-      className={`font-haffer relative w-full overflow-hidden border-t border-white/10 bg-[#0B0910] text-neutral-300 ${className}`}
+      className={`font-haffer relative w-full max-w-full overflow-hidden border-t border-white/10 bg-[#0B0910] text-neutral-300 ${className}`}
     >
       {/* Background ambient lighting effects */}
       <div className="pointer-events-none absolute top-0 left-1/4 -z-10 h-96 w-96 -translate-y-1/2 rounded-full bg-[#FFA336]/5 blur-[120px]" />

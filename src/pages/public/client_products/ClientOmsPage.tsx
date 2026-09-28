@@ -785,6 +785,150 @@ function StudioDisplayCarousel() {
   );
 }
 
+function FeatureVideoCard({
+  item,
+  onPlayVideo,
+}: {
+  item: OmsFeatureGridItem;
+  onPlayVideo: (url: string) => void;
+}) {
+  const cardOverlayRef = useRef<HTMLDivElement>(null);
+  const cardLogoRef = useRef<HTMLDivElement>(null);
+  const cardHelperRef = useRef<HTMLParagraphElement>(null);
+
+  const handleMouseEnter = () => {
+    if (!cardOverlayRef.current) return;
+    gsap.killTweensOf([
+      cardOverlayRef.current,
+      cardLogoRef.current,
+      cardHelperRef.current,
+    ]);
+
+    const tl = gsap.timeline();
+    tl.to(
+      cardOverlayRef.current,
+      { opacity: 1, duration: 0.35, ease: "power2.out" },
+      0,
+    );
+    if (cardLogoRef.current) {
+      tl.fromTo(
+        cardLogoRef.current,
+        { scale: 0.9, y: 6, opacity: 0 },
+        { scale: 1, y: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        0.04,
+      );
+    }
+    if (cardHelperRef.current) {
+      tl.fromTo(
+        cardHelperRef.current,
+        { y: 5, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.32, ease: "power2.out" },
+        0.08,
+      );
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!cardOverlayRef.current) return;
+    gsap.killTweensOf([
+      cardOverlayRef.current,
+      cardLogoRef.current,
+      cardHelperRef.current,
+    ]);
+
+    const tl = gsap.timeline();
+    if (cardHelperRef.current) {
+      tl.to(
+        cardHelperRef.current,
+        { y: 4, opacity: 0, duration: 0.18, ease: "power2.in" },
+        0,
+      );
+    }
+    if (cardLogoRef.current) {
+      tl.to(
+        cardLogoRef.current,
+        { scale: 0.92, y: 4, opacity: 0, duration: 0.22, ease: "power2.in" },
+        0,
+      );
+    }
+    tl.to(
+      cardOverlayRef.current,
+      { opacity: 0, duration: 0.25, ease: "power2.in" },
+      0.04,
+    );
+  };
+
+  return (
+    <div className="group flex flex-col border-t border-neutral-200/90 pt-6 transition-colors duration-300 hover:border-neutral-400 sm:pt-7">
+      {/* Title to rõ */}
+      <h3 className="font-haffer text-[19px] font-semibold tracking-tight text-neutral-900 sm:text-[22px]">
+        {item.title}
+      </h3>
+
+      {/* Sub description */}
+      <p className="font-haffer mt-2.5 text-[14px] leading-relaxed font-normal text-neutral-500 sm:text-[15px]">
+        {item.description}
+      </p>
+
+      {/* Media container: Click để mở CinematicVideoModal giống video ở header */}
+      <div
+        onClick={() => onPlayVideo(item.mediaUrl)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="group/media relative mt-6 aspect-[16/9] w-full cursor-pointer overflow-hidden rounded-xl border border-neutral-200/90 bg-[#0e0c14] shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-300 hover:border-neutral-400 hover:shadow-[0_12px_36px_rgba(0,0,0,0.18)] sm:rounded-2xl"
+      >
+        {/* Top ambient highlight line */}
+        <div className="pointer-events-none absolute inset-x-8 top-0 z-30 h-px bg-gradient-to-r from-transparent via-[#F86D2B]/50 to-transparent opacity-0 transition-opacity duration-300 group-hover/media:opacity-100" />
+
+        {/* Video preview tự động loop mượt mà */}
+        {item.mediaType === "video" ? (
+          <video
+            src={item.mediaUrl}
+            autoPlay
+            playsInline
+            muted
+            loop
+            preload="metadata"
+            className="h-full w-full object-contain select-none"
+          />
+        ) : (
+          <img
+            src={item.mediaUrl}
+            alt={item.title}
+            className="h-full w-full object-contain select-none"
+          />
+        )}
+
+        {/* Lớp overlay đen mờ giống video ở header: hover mới hiện logo + text helper */}
+        <div
+          ref={cardOverlayRef}
+          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 px-4 opacity-0 backdrop-blur-[3px]"
+        >
+          {/* Logo Picare Client */}
+          <div
+            ref={cardLogoRef}
+            className="flex flex-col items-center justify-center opacity-0"
+          >
+            <img
+              src={logoPicareNewBlack}
+              alt="Picare Client"
+              className="h-9 w-auto object-contain mix-blend-screen drop-shadow-[0_8px_32px_rgba(248,109,43,0.45)] sm:h-12 md:h-14"
+            />
+          </div>
+
+          {/* Text helper */}
+          <p
+            ref={cardHelperRef}
+            className="font-haffer mt-1 text-[11px] font-normal text-zinc-300 opacity-0 sm:text-[12px]"
+          >
+            Nhấn để chơi video
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ClientOmsPage() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [titleWidth, setTitleWidth] = useState<number | null>(null);
@@ -796,6 +940,12 @@ export default function ClientOmsPage() {
 
   // Cinematic Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeVideoModalUrl, setActiveVideoModalUrl] = useState<string>(VIDEO_URL);
+
+  const handleOpenVideoModal = (url: string = VIDEO_URL) => {
+    setActiveVideoModalUrl(url);
+    setIsModalOpen(true);
+  };
 
   const handleWmsCtaClick = () => {
     toast.info(
@@ -1108,7 +1258,7 @@ export default function ClientOmsPage() {
           className="mt-16 flex w-full max-w-5xl items-center justify-center sm:mt-20 md:mt-24"
         >
           <div
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => handleOpenVideoModal(VIDEO_URL)}
             onMouseEnter={handleCardMouseEnter}
             onMouseLeave={handleCardMouseLeave}
             className="group relative w-full cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-[#0e0b13] shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_50px_rgba(248,109,43,0.12)] transition-all duration-500 hover:border-white/25 hover:shadow-[0_28px_90px_rgba(0,0,0,0.95),0_0_70px_rgba(248,109,43,0.28)] sm:rounded-3xl"
@@ -1159,7 +1309,7 @@ export default function ClientOmsPage() {
         <CinematicVideoModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          videoSrc={VIDEO_URL}
+          videoSrc={activeVideoModalUrl}
         />
 
         {/* Text giải pháp bài toán vận hành dưới mockup */}
@@ -1236,41 +1386,11 @@ export default function ClientOmsPage() {
             <div className="mt-20 border-neutral-200/90 pt-16 sm:mt-28 sm:pt-20">
               <div className="grid grid-cols-1 gap-x-10 gap-y-14 text-left md:grid-cols-2 lg:gap-x-14 lg:gap-y-20">
                 {OMS_FEATURE_GRID_ITEMS.map((item) => (
-                  <div
+                  <FeatureVideoCard
                     key={item.id}
-                    className="group flex flex-col border-t border-neutral-200/90 pt-6 transition-colors duration-300 hover:border-neutral-400 sm:pt-7"
-                  >
-                    {/* Title to rõ */}
-                    <h3 className="font-haffer text-[19px] font-semibold tracking-tight text-neutral-900 sm:text-[22px]">
-                      {item.title}
-                    </h3>
-
-                    {/* Sub description */}
-                    <p className="font-haffer mt-2.5 text-[14px] leading-relaxed font-normal text-neutral-500 sm:text-[15px]">
-                      {item.description}
-                    </p>
-
-                    {/* Media container to rộng: hiển thị full 100% video/ảnh với object-contain không bị crop */}
-                    <div className="relative mt-6 aspect-[16/9] w-full overflow-hidden rounded-xl border border-neutral-200/90 bg-[#0e0c14] shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-300 group-hover:border-neutral-300 group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] sm:rounded-2xl">
-                      {item.mediaType === "video" ? (
-                        <video
-                          src={item.mediaUrl}
-                          autoPlay
-                          playsInline
-                          muted
-                          loop
-                          preload="metadata"
-                          className="h-full w-full object-contain select-none"
-                        />
-                      ) : (
-                        <img
-                          src={item.mediaUrl}
-                          alt={item.title}
-                          className="h-full w-full object-contain select-none"
-                        />
-                      )}
-                    </div>
-                  </div>
+                    item={item}
+                    onPlayVideo={handleOpenVideoModal}
+                  />
                 ))}
               </div>
             </div>

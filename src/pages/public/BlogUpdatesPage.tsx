@@ -40,7 +40,7 @@ export default function BlogUpdatesPage() {
 
   return (
     <BlogAuthGuard>
-      <div className="font-haffer relative min-h-screen bg-[#09090b] text-zinc-100 selection:bg-[#F86D2B] selection:text-white">
+      <div className="font-haffer relative min-h-screen w-full overflow-x-hidden bg-[#09090b] text-zinc-100 selection:bg-[#F86D2B] selection:text-white">
       {/* 1. Header Navigation */}
       <PublicLandingNavbar isDarkBg={true} showNoticeBanner={false} />
 

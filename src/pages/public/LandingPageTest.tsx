@@ -362,7 +362,7 @@ export default function LandingPageTest() {
   const guestContent = (
     <div
       ref={scrollContainerRef}
-      className="font-haffer relative flex h-screen w-full flex-col overflow-x-hidden overflow-y-auto bg-[#120F17] text-white select-none"
+      className="font-haffer relative flex h-screen w-full flex-col overflow-x-hidden overflow-y-auto bg-[#120F17] text-white select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
     >
       {/* Background WebGPU AeroShards CỐ ĐỊNH XUYÊN SUỐT TẤT CẢ SECTION VÀ LOGIN VIEW */}
       <div className="pointer-events-auto fixed inset-0 z-0 overflow-hidden">
