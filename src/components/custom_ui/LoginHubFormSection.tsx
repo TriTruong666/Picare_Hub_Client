@@ -1441,7 +1441,7 @@ export default function LoginHubFormSection({
                   onClick={() => setShowProjects(false)}
                 />
 
-                <div className="absolute right-0 bottom-16 z-50 mb-2 flex max-h-[calc(100vh-140px)] flex-col items-end gap-2 overflow-y-auto pr-1">
+                <div className="absolute right-0 bottom-16 z-50 mb-2 flex max-h-[calc(100vh-140px)] flex-col items-end gap-2 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                   {isClientsLoading && clientList.length === 0 ? (
                     <div className="flex w-60 items-center justify-center rounded-xl border border-white/10 bg-zinc-900/95 px-4 py-3 shadow-2xl backdrop-blur-md">
                       <span className="text-xs font-light text-zinc-400">
@@ -1471,31 +1471,21 @@ export default function LoginHubFormSection({
                             duration: 0.25,
                             ease: [0.16, 1, 0.3, 1],
                           }}
-                          className={`group flex w-60 cursor-pointer flex-col items-start gap-1 rounded-xl border px-4 py-2.5 text-left shadow-2xl backdrop-blur-md transition-all hover:scale-[1.02] ${
+                          className={`group flex w-60 cursor-pointer flex-col items-start gap-1 rounded-xl border px-4 py-2.5 text-left shadow-2xl backdrop-blur-md transition-colors ${
                             isCurrentClient
                               ? "border-[#FFA336]/60 bg-zinc-900/95 ring-1 ring-[#FFA336]/40"
                               : "border-white/10 bg-zinc-900/95 hover:border-white/20 hover:bg-zinc-800"
                           }`}
                         >
-                          <div className="flex w-full items-center justify-between">
-                            <span
-                              className={`text-xs font-medium transition-colors ${
-                                isCurrentClient
-                                  ? "text-[#FFA336]"
-                                  : "text-white group-hover:text-[#FFA336]"
-                              }`}
-                            >
-                              {client.clientName}
-                            </span>
-                            <FiArrowRight
-                              size={12}
-                              className={`transition-all ${
-                                isCurrentClient
-                                  ? "text-[#FFA336] opacity-100"
-                                  : "text-zinc-500 opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 group-hover:text-[#FFA336]"
-                              }`}
-                            />
-                          </div>
+                          <span
+                            className={`text-xs font-medium transition-colors ${
+                              isCurrentClient
+                                ? "text-[#FFA336]"
+                                : "text-white group-hover:text-[#FFA336]"
+                            }`}
+                          >
+                            {client.clientName}
+                          </span>
                           {client.clientDescription && (
                             <span className="line-clamp-1 text-[10px] font-light text-zinc-400">
                               {client.clientDescription}

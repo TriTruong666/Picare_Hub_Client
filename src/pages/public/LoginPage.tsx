@@ -454,7 +454,7 @@ export default function LoginPage() {
                   className="fixed inset-0 z-40"
                   onClick={() => setShowProjects(false)}
                 />
-                <div className="absolute right-0 bottom-20 z-50 flex max-h-[calc(100vh-140px)] flex-col items-end gap-2 overflow-y-auto pr-1">
+                <div className="absolute right-0 bottom-20 z-50 flex max-h-[calc(100vh-140px)] flex-col items-end gap-2 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                   {isClientsLoading && clientList.length === 0 ? (
                     <div className="flex w-52 items-center justify-center rounded-xl bg-white px-4 py-3 shadow-lg">
                       <span className="text-xs text-black/60">
@@ -482,18 +482,15 @@ export default function LoginPage() {
                           duration: 0.4,
                           ease: [0.16, 1, 0.3, 1],
                         }}
-                        className={`flex w-56 cursor-pointer flex-col items-start gap-0.5 rounded-xl px-4 py-2.5 text-left shadow-lg transition-all hover:scale-[1.02] ${
+                        className={`flex w-56 cursor-pointer flex-col items-start gap-0.5 rounded-xl px-4 py-2.5 text-left shadow-lg transition-colors ${
                           clientId === client.clientId
                             ? "bg-[#FFA336] text-black"
                             : "bg-white text-black hover:bg-zinc-100"
                         }`}
                       >
-                        <div className="flex w-full items-center justify-between">
-                          <span className="text-[12px] font-semibold">
-                            {client.clientName}
-                          </span>
-                          <FiArrowRight size={13} />
-                        </div>
+                        <span className="text-[12px] font-semibold">
+                          {client.clientName}
+                        </span>
                         {client.clientDescription && (
                           <span
                             className={`line-clamp-1 text-[10px] ${
