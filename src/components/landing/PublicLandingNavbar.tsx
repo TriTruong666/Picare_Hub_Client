@@ -212,7 +212,7 @@ export function PublicLandingNavbar({
                     href="/changes/huong-dan-kiem-ke"
                     target=""
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-semibold text-white underline underline-offset-4 transition-opacity hover:opacity-85"
+                    className="ml-2 inline-flex items-center gap-1 font-semibold text-white underline underline-offset-4 transition-opacity hover:opacity-85"
                   >
                     Xem ngay
                     <FiArrowRight size={12} className="inline-block" />
