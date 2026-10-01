@@ -345,24 +345,63 @@ export default function LoginHubFormSection({
   const verifyLoginMutation = useVerifyLogin();
   const resendLoginCodeMutation = useResendLoginCode();
   const queryClient = useQueryClient();
+  const { navigateWithTransition } = useCurveTransition();
   const redirectParam = searchParams.get("redirect");
   const redirectPath = getSafeRedirectPath(redirectParam);
   const isDashboardRedirect = redirectPath.startsWith(PATHS.DASHBOARD.ROOT);
 
-  const projects = [
-    { name: "Picare CRM", desc: "Quản lý khách hàng chuyên sâu" },
-    { name: "Picare OMS", desc: "Hệ thống vận hành đơn hàng" },
-    { name: "Picare Client", desc: "Trung tâm quản trị tập trung" },
-    { name: "Picare Analytics", desc: "Phân tích dữ liệu kinh doanh" },
-  ];
-
-  // Fetch danh sách clients cho giao diện grid
+  // Fetch danh sách clients cho giao diện grid và menu floating projects
   const { data: clients, isLoading: isClientsLoading } = useHubClients({
     limit: 100,
     status: "active",
   });
 
-  const clientList = [...(clients || []), ...STATIC_HUB_CLIENTS];
+  const seenClientIds = new Set<string>();
+  const clientList = [...(clients || []), ...STATIC_HUB_CLIENTS].filter(
+    (client) => {
+      if (seenClientIds.has(client.clientId)) {
+        return false;
+      }
+      seenClientIds.add(client.clientId);
+      return true;
+    },
+  );
+
+  const handleClientAccess = (client: HubClient) => {
+    if (client.clientStatus !== "active") {
+      return;
+    }
+
+    setShowProjects(false);
+
+    const isStatic =
+      client.clientId === DIGITAL_CONTRACT_CLIENT_ID ||
+      client.clientId === QR_CODE_GENERATOR_CLIENT_ID ||
+      client.clientId === DIGITAL_CATALOGUE_CLIENT_ID;
+
+    // 1. Static Client: Dùng CurvePageTransition để tự chuyển trang nếu đã đăng nhập; nếu chưa đăng nhập -> về /login?redirect=...
+    if (isStatic) {
+      const internalUrl = client.clientInternalUrl || PATHS.CONTRACT_CREATE;
+      if (!isAuthenticated) {
+        navigate(`${PATHS.LOGIN}?redirect=${encodeURIComponent(internalUrl)}`);
+        return;
+      }
+      navigateWithTransition(internalUrl, {
+        text: client.clientName,
+      });
+      return;
+    }
+
+    // 2. API Client (Server): /login/client KHÔNG tự redirect tới trang ngoài
+    // Luôn redirect về /login?clientId=... để trang /login tự kiểm tra quyền và điều hướng
+    navigate(`${PATHS.LOGIN}?clientId=${client.clientId}`);
+  };
+
+  useEffect(() => {
+    setShowLoginForm(false);
+    setFormError("");
+    setPasswordError("");
+  }, [clientId]);
 
   useEffect(() => {
     if (!verificationChallenge) return;
@@ -1395,37 +1434,79 @@ export default function LoginHubFormSection({
         <div className="fixed right-6 bottom-6 z-50">
           <AnimatePresence>
             {showProjects && (
-              <div className="absolute right-0 bottom-16 mb-2 flex flex-col items-end gap-2">
-                {projects.map((project, idx) => (
-                  <motion.button
-                    key={project.name}
-                    initial={{ opacity: 0, y: 12, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{
-                      opacity: 0,
-                      y: 8,
-                      scale: 0.95,
-                      transition: {
-                        delay: (projects.length - 1 - idx) * 0.03,
-                        duration: 0.15,
-                      },
-                    }}
-                    transition={{
-                      delay: idx * 0.05,
-                      duration: 0.3,
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
-                    className="flex w-52 cursor-pointer flex-col items-start gap-0.5 rounded-xl border border-white/10 bg-zinc-900/95 px-4 py-2.5 text-left shadow-2xl backdrop-blur-md transition-all hover:scale-[1.02] hover:bg-zinc-800"
-                  >
-                    <span className="text-xs font-medium text-white">
-                      {project.name}
-                    </span>
-                    <span className="text-[10px] font-light text-zinc-400">
-                      {project.desc}
-                    </span>
-                  </motion.button>
-                ))}
-              </div>
+              <>
+                {/* Backdrop to close when clicking outside */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowProjects(false)}
+                />
+
+                <div className="absolute right-0 bottom-16 z-50 mb-2 flex max-h-[calc(100vh-140px)] flex-col items-end gap-2 overflow-y-auto pr-1">
+                  {isClientsLoading && clientList.length === 0 ? (
+                    <div className="flex w-60 items-center justify-center rounded-xl border border-white/10 bg-zinc-900/95 px-4 py-3 shadow-2xl backdrop-blur-md">
+                      <span className="text-xs font-light text-zinc-400">
+                        Đang tải danh sách...
+                      </span>
+                    </div>
+                  ) : (
+                    clientList.map((client, idx) => {
+                      const isCurrentClient = clientId === client.clientId;
+                      return (
+                        <motion.button
+                          key={client.clientId}
+                          onClick={() => handleClientAccess(client)}
+                          initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{
+                            opacity: 0,
+                            y: 8,
+                            scale: 0.95,
+                            transition: {
+                              delay: (clientList.length - 1 - idx) * 0.03,
+                              duration: 0.15,
+                            },
+                          }}
+                          transition={{
+                            delay: idx * 0.04,
+                            duration: 0.25,
+                            ease: [0.16, 1, 0.3, 1],
+                          }}
+                          className={`group flex w-60 cursor-pointer flex-col items-start gap-1 rounded-xl border px-4 py-2.5 text-left shadow-2xl backdrop-blur-md transition-all hover:scale-[1.02] ${
+                            isCurrentClient
+                              ? "border-[#FFA336]/60 bg-zinc-900/95 ring-1 ring-[#FFA336]/40"
+                              : "border-white/10 bg-zinc-900/95 hover:border-white/20 hover:bg-zinc-800"
+                          }`}
+                        >
+                          <div className="flex w-full items-center justify-between">
+                            <span
+                              className={`text-xs font-medium transition-colors ${
+                                isCurrentClient
+                                  ? "text-[#FFA336]"
+                                  : "text-white group-hover:text-[#FFA336]"
+                              }`}
+                            >
+                              {client.clientName}
+                            </span>
+                            <FiArrowRight
+                              size={12}
+                              className={`transition-all ${
+                                isCurrentClient
+                                  ? "text-[#FFA336] opacity-100"
+                                  : "text-zinc-500 opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 group-hover:text-[#FFA336]"
+                              }`}
+                            />
+                          </div>
+                          {client.clientDescription && (
+                            <span className="line-clamp-1 text-[10px] font-light text-zinc-400">
+                              {client.clientDescription}
+                            </span>
+                          )}
+                        </motion.button>
+                      );
+                    })
+                  )}
+                </div>
+              </>
             )}
           </AnimatePresence>
 

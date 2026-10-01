@@ -1,18 +1,27 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate, Navigate } from "react-router-dom";
 import { FiEye, FiEyeOff, FiArrowRight, FiGrid, FiX } from "react-icons/fi";
 import logo from "@/assets/images/logo.png";
 import loginMockup from "@/assets/images/login_mockup.jpeg";
 import { useLogin } from "@/hooks/data/useAuthHooks";
 import { getApiErrorMessage } from "@/common/api.error";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
+import { PATHS } from "@/config/paths";
 import {
   useCheckAccessHubClient,
   useHubClientDetail,
+  useHubClients,
 } from "@/hooks/data/useHubClientHooks";
+import {
+  DIGITAL_CATALOGUE_CLIENT_ID,
+  DIGITAL_CONTRACT_CLIENT_ID,
+  QR_CODE_GENERATOR_CLIENT_ID,
+  STATIC_HUB_CLIENTS,
+} from "@/constants/staticHubClients";
+import { useCurveTransition } from "@/components/custom_ui/CurvePageTransition";
+import type { HubClient } from "@/types/HubClient";
 import { ClientAccessGuard } from "@/components/guards/ClientAccessGuard";
 import { checkAccessHubClient } from "@/apis/hub_client.service";
 import { toast } from "@/hooks/useToast";
@@ -30,15 +39,53 @@ export default function LoginPage() {
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
+  const navigate = useNavigate();
+  const { navigateWithTransition } = useCurveTransition();
   const loginMutation = useLogin();
   const queryClient = useQueryClient();
 
-  const projects = [
-    { name: "Picare CRM", desc: "Quản lý khách hàng chuyên sâu" },
-    { name: "Picare OMS", desc: "Hệ thống vận hành đơn hàng" },
-    { name: "Picare Client", desc: "Trung tâm quản trị tập trung" },
-    { name: "Picare Analytics", desc: "Phân tích dữ liệu kinh doanh" },
-  ];
+  const { data: clients, isLoading: isClientsLoading } = useHubClients({
+    limit: 100,
+    status: "active",
+  });
+
+  const seenClientIds = new Set<string>();
+  const clientList = [...(clients || []), ...STATIC_HUB_CLIENTS].filter(
+    (client) => {
+      if (seenClientIds.has(client.clientId)) {
+        return false;
+      }
+      seenClientIds.add(client.clientId);
+      return true;
+    },
+  );
+
+  const handleClientAccess = (client: HubClient) => {
+    if (client.clientStatus !== "active") {
+      return;
+    }
+
+    setShowProjects(false);
+
+    const isStatic =
+      client.clientId === DIGITAL_CONTRACT_CLIENT_ID ||
+      client.clientId === QR_CODE_GENERATOR_CLIENT_ID ||
+      client.clientId === DIGITAL_CATALOGUE_CLIENT_ID;
+
+    if (isStatic) {
+      const internalUrl = client.clientInternalUrl || PATHS.CONTRACT_CREATE;
+      if (!isAuthenticated) {
+        navigate(`${PATHS.LOGIN}?redirect=${encodeURIComponent(internalUrl)}`);
+        return;
+      }
+      navigateWithTransition(internalUrl, {
+        text: client.clientName,
+      });
+      return;
+    }
+
+    navigate(`${PATHS.LOGIN}?clientId=${client.clientId}`);
+  };
 
   const { data: clientDetail } = useHubClientDetail(clientId || "");
 
@@ -402,37 +449,67 @@ export default function LoginPage() {
         <div className="fixed right-8 bottom-8 z-100">
           <AnimatePresence>
             {showProjects && (
-              <div className="absolute right-0 bottom-20 flex flex-col items-end gap-2">
-                {projects.map((project, idx) => (
-                  <motion.button
-                    key={project.name}
-                    initial={{ opacity: 0, y: 16, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{
-                      opacity: 0,
-                      y: 10,
-                      scale: 0.95,
-                      transition: {
-                        delay: (projects.length - 1 - idx) * 0.04,
-                        duration: 0.2,
-                      },
-                    }}
-                    transition={{
-                      delay: idx * 0.07,
-                      duration: 0.4,
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
-                    className="flex w-52 flex-col items-start gap-0.5 rounded-xl bg-white px-4 py-2.5 text-left shadow-lg transition-all hover:scale-[1.02]"
-                  >
-                    <span className="text-[12px] font-semibold text-black">
-                      {project.name}
-                    </span>
-                    <span className="text-[10px] text-black/80">
-                      {project.desc}
-                    </span>
-                  </motion.button>
-                ))}
-              </div>
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowProjects(false)}
+                />
+                <div className="absolute right-0 bottom-20 z-50 flex max-h-[calc(100vh-140px)] flex-col items-end gap-2 overflow-y-auto pr-1">
+                  {isClientsLoading && clientList.length === 0 ? (
+                    <div className="flex w-52 items-center justify-center rounded-xl bg-white px-4 py-3 shadow-lg">
+                      <span className="text-xs text-black/60">
+                        Đang tải danh sách...
+                      </span>
+                    </div>
+                  ) : (
+                    clientList.map((client, idx) => (
+                      <motion.button
+                        key={client.clientId}
+                        onClick={() => handleClientAccess(client)}
+                        initial={{ opacity: 0, y: 16, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{
+                          opacity: 0,
+                          y: 10,
+                          scale: 0.95,
+                          transition: {
+                            delay: (clientList.length - 1 - idx) * 0.04,
+                            duration: 0.2,
+                          },
+                        }}
+                        transition={{
+                          delay: idx * 0.07,
+                          duration: 0.4,
+                          ease: [0.16, 1, 0.3, 1],
+                        }}
+                        className={`flex w-56 cursor-pointer flex-col items-start gap-0.5 rounded-xl px-4 py-2.5 text-left shadow-lg transition-all hover:scale-[1.02] ${
+                          clientId === client.clientId
+                            ? "bg-[#FFA336] text-black"
+                            : "bg-white text-black hover:bg-zinc-100"
+                        }`}
+                      >
+                        <div className="flex w-full items-center justify-between">
+                          <span className="text-[12px] font-semibold">
+                            {client.clientName}
+                          </span>
+                          <FiArrowRight size={13} />
+                        </div>
+                        {client.clientDescription && (
+                          <span
+                            className={`line-clamp-1 text-[10px] ${
+                              clientId === client.clientId
+                                ? "text-black/80"
+                                : "text-black/60"
+                            }`}
+                          >
+                            {client.clientDescription}
+                          </span>
+                        )}
+                      </motion.button>
+                    ))
+                  )}
+                </div>
+              </>
             )}
           </AnimatePresence>
 
