@@ -1,5 +1,6 @@
 export { default as SecurityOfficeUpdateDetailPage } from "./SecurityOfficeUpdateDetailPage";
 export { default as OrderReturnGuideUpdateDetailPage } from "./OrderReturnGuideUpdateDetailPage";
+export { default as StocktakingGuideUpdateDetailPage } from "./StocktakingGuideUpdateDetailPage";
 export {
   BlogAuthGuard,
   withBlogAuth,

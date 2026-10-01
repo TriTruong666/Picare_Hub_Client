@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import {
   OrderReturnGuideUpdateDetailPage,
   SecurityOfficeUpdateDetailPage,
+  StocktakingGuideUpdateDetailPage,
 } from "@/pages/public/update-blog";
 
 export interface BlogItemConfig {
@@ -48,6 +49,20 @@ export interface BlogItemConfig {
 }
 
 export const BLOG_REGISTRY: BlogItemConfig[] = [
+  {
+    id: "huong-dan-kiem-ke",
+    path: "/changes/huong-dan-kiem-ke",
+    component: StocktakingGuideUpdateDetailPage,
+    version: "v1.0.0-stocktaking",
+    category: "Tính năng mới",
+    date: "01/10/2026",
+    readTime: "8 phút đọc",
+    title: "Hướng dẫn kiểm kê: từ tạo đợt đến ký biên bản",
+    summary:
+      "Hướng dẫn Kế toán, Kho và QC/QA kiểm theo kho hoặc brand, nhập số đếm, xác nhận, ký và tải biên bản kiểm kê.",
+    author: "IT Picare Vietnam",
+    authorRole: "Picare Engineering",
+  },
   {
     id: "huong-dan-quy-trinh-tra-hang",
     path: "/changes/huong-dan-quy-trinh-tra-hang",
