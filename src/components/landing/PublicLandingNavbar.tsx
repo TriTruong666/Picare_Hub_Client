@@ -204,18 +204,19 @@ export function PublicLandingNavbar({
                 </span>
                 <p className="font-haffer text-[11px] font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
                   <span>
-                    Picare Saleforce chính thức hoàn thành giai đoạn phát triển,
-                    xin cảm ơn tất cả thành viên đã tham gia góp ý và hỗ trợ!
+                    Tính năng kiểm kê của Picare WMS cơ bản đã hoàn thành bước
+                    thử nghiệm, các phòng ban liên quan có thể thao tác theo
+                    luồng đã hướng dẫn
                   </span>
-                  {/* <a
-                    href="/changes/nang-cap-dang-nhap"
+                  <a
+                    href="/changes/huong-dan-kiem-ke"
                     target=""
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 font-semibold text-white underline underline-offset-4 transition-opacity hover:opacity-85"
                   >
                     Xem ngay
                     <FiArrowRight size={12} className="inline-block" />
-                  </a> */}
+                  </a>
                 </p>
               </div>
 
