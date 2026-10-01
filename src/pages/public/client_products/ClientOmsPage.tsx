@@ -940,7 +940,8 @@ export default function ClientOmsPage() {
 
   // Cinematic Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeVideoModalUrl, setActiveVideoModalUrl] = useState<string>(VIDEO_URL);
+  const [activeVideoModalUrl, setActiveVideoModalUrl] =
+    useState<string>(VIDEO_URL);
 
   const handleOpenVideoModal = (url: string = VIDEO_URL) => {
     setActiveVideoModalUrl(url);
@@ -1218,7 +1219,7 @@ export default function ClientOmsPage() {
             </span>
             <img
               src={picareHubLogo}
-              alt="Picare Hub"
+              alt="Picare Client"
               className="pointer-events-none inline-block h-10 w-10 object-contain drop-shadow-[0_4px_28px_rgba(248,109,43,0.5)] select-none sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-18 lg:w-18"
             />
             <span className="inline-flex items-center">

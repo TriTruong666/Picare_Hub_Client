@@ -27,7 +27,7 @@ export const FEATURED_SECURITY_UPDATE: BlogUpdate = {
   category: "Bảo mật",
   title: "Đăng nhập an toàn hơn với OTP, Trusted IP và kiểm soát phiên",
   summary:
-    "Picare Hub bổ sung lớp xác minh email khi đăng nhập từ IP mới, giới hạn thử mật khẩu và cơ chế thu hồi phiên tức thời khi thông tin bảo mật thay đổi.",
+    "Picare Client bổ sung lớp xác minh email khi đăng nhập từ IP mới, giới hạn thử mật khẩu và cơ chế thu hồi phiên tức thời khi thông tin bảo mật thay đổi.",
   readingTime: "4 phút đọc",
   isFeatured: true,
   hasDetail: true,

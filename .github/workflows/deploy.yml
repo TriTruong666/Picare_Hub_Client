@@ -1,4 +1,4 @@
-name: Deploy Picare Hub Client
+name: Deploy Picare Client Client
 
 on:
   push:
@@ -82,6 +82,6 @@ jobs:
 
             # Dọn dẹp image cũ
             docker image prune -f
-            
+
             # (Tùy chọn) Reload Nginx Gateway nếu cần cập nhật IP nội bộ
             docker exec nginx-gateway nginx -s reload

@@ -193,7 +193,7 @@ export function PublicLandingNavbar({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            aria-label="Thông báo nâng cấp bảo mật Picare Hub"
+            aria-label="Thông báo nâng cấp bảo mật Picare Client"
             className="pointer-events-auto w-full overflow-hidden border-b border-orange-400/30 bg-gradient-to-r from-[#F86D2B] via-[#FFA336] to-[#F86D2B] shadow-[0_4px_20px_rgba(248,109,43,0.35)] backdrop-blur-md"
           >
             <div className="flex min-h-[36px] items-center justify-between px-3.5 py-1.5 sm:px-6">

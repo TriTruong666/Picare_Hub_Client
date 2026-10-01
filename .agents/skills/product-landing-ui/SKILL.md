@@ -1,13 +1,14 @@
 ---
 name: product-landing-ui
-description: "Comprehensive layout & UI architecture guide for building high-end, Apple-inspired public product showcase landing pages in Picare Hub (e.g. OMS, WMS, Saleforce, Office, Lab, Career). Covers sticky navbar scroll transitions, video hero overlays, Studio Display 3D mockups with interactive beacon hotspots, contrast feature sections, cross-sell ecosystem cards, quote forms, and FAQ accordions."
+description: "Comprehensive layout & UI architecture guide for building high-end, Apple-inspired public product showcase landing pages in Picare Client (e.g. OMS, WMS, Saleforce, Office, Lab, Career). Covers sticky navbar scroll transitions, video hero overlays, Studio Display 3D mockups with interactive beacon hotspots, contrast feature sections, cross-sell ecosystem cards, quote forms, and FAQ accordions."
 ---
 
 # Picare Product Landing Page UI Architecture & Implementation Guide
 
-Tài liệu này là **chuẩn mực (master blueprint)** để xây dựng giao diện landing page giới thiệu các sản phẩm con trong hệ sinh thái Picare (ví dụ: **Picare OMS**, **Picare WMS**, **Picare Saleforce**, **Picare Office**, **Picare Lab**, **Picare Career**,...). 
+Tài liệu này là **chuẩn mực (master blueprint)** để xây dựng giao diện landing page giới thiệu các sản phẩm con trong hệ sinh thái Picare (ví dụ: **Picare OMS**, **Picare WMS**, **Picare Saleforce**, **Picare Office**, **Picare Lab**, **Picare Career**,...).
 
 Mẫu chuẩn mực hiện tại được triển khai tại:
+
 - Page: [ClientOmsPage.tsx](file:///Users/it_picare/it_develop/picare_repo/Picare_Hub_Client/src/pages/public/client_products/ClientOmsPage.tsx)
 - Route: `/client/oms` (`PATHS.CLIENT_OMS` / `PATHS.CLIENT_PRODUCTS_OMS`)
 
@@ -101,9 +102,12 @@ useEffect(() => {
 
   // Bắt sự kiện click anchor (#quote-card, #faq-section) để Lenis cuộn mượt
   const handleAnchorClick = (e: MouseEvent) => {
-    const anchor = (e.target as HTMLElement)?.closest('a[href^="#"], button[data-anchor]');
+    const anchor = (e.target as HTMLElement)?.closest(
+      'a[href^="#"], button[data-anchor]',
+    );
     if (!anchor) return;
-    const href = anchor.getAttribute("href") || anchor.getAttribute("data-anchor");
+    const href =
+      anchor.getAttribute("href") || anchor.getAttribute("data-anchor");
     if (href && href.startsWith("#") && href.length > 1) {
       const targetEl = document.querySelector(href);
       if (targetEl) {
@@ -141,7 +145,7 @@ return (
 - **Title & Subtitle**: Sử dụng font display (`font-haffer`), chữ to rõ với gradient text hoặc white tương phản cao (`text-4xl sm:text-5xl lg:text-6xl`).
 - **Video Card Preview**:
   - Không zoom video khi hover để tránh layout shift hoặc mỏi mắt.
-  - Hover hiển thị lớp phủ mờ đen (`opacity: 0 -> 1`), Logo Picare Client và nhãn *"Nhấn để chơi video"*.
+  - Hover hiển thị lớp phủ mờ đen (`opacity: 0 -> 1`), Logo Picare Client và nhãn _"Nhấn để chơi video"_.
 - **Cinematic Modal**: Khi click, mở `CinematicVideoModal` phủ full viewport với video tự động phát ở độ phân giải gốc.
 
 ```tsx
@@ -209,7 +213,7 @@ export interface FeatureHotspotItem {
   ```css
   /* Token css gradient-momokemuri trong src/index.css */
   .gradient-momokemuri {
-    background: linear-gradient(135deg, #FDE8E4 0%, #F5B1AA 50%, #F19A90 100%);
+    background: linear-gradient(135deg, #fde8e4 0%, #f5b1aa 50%, #f19a90 100%);
   }
   ```
 - Typography chữ đen tương phản cao (`text-neutral-950`), kèm form liên hệ hoặc nút điều hướng đăng ký trải nghiệm.
@@ -223,13 +227,11 @@ export interface FeatureHotspotItem {
 - Hỗ trợ chế độ đa mục (`allowMultiple={false}` để tự động đóng mục trước), animation `AnimatePresence` trơn tru không bị giật layout.
 
 ```tsx
-import Accordion, { type AccordionItemData } from "@/components/custom_ui/Accordion";
+import Accordion, {
+  type AccordionItemData,
+} from "@/components/custom_ui/Accordion";
 
-<Accordion
-  items={FAQ_LIST}
-  allowMultiple={false}
-  defaultOpenIndex={0}
-/>
+<Accordion items={FAQ_LIST} allowMultiple={false} defaultOpenIndex={0} />;
 ```
 
 ---
@@ -247,6 +249,7 @@ import Accordion, { type AccordionItemData } from "@/components/custom_ui/Accord
 ## 4. Checklist Khi Tạo Trang Sản Phẩm Mới (e.g. WMS, Saleforce)
 
 Khi tạo một trang sản phẩm mới (ví dụ `ClientWmsPage.tsx`):
+
 1. **Đăng ký Route**:
    - Thêm hằng số vào [src/config/paths.ts](file:///Users/it_picare/it_develop/picare_repo/Picare_Hub_Client/src/config/paths.ts) (ví dụ `CLIENT_WMS: "/client/wms"`).
    - Đăng ký vào [src/config/routes.config.tsx](file:///Users/it_picare/it_develop/picare_repo/Picare_Hub_Client/src/config/routes.config.tsx) trong `PUBLIC_ROUTES`.

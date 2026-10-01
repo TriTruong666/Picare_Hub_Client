@@ -113,7 +113,7 @@ export default function LandingHeader({
         <div className="flex items-center gap-2 text-white">
           <img src={logo} alt="" className="h-9 w-9 object-contain" />
           <span className="font-bricolage text-xl font-medium tracking-tight text-white">
-            Picare Hub
+            Picare Client
           </span>
         </div>
 

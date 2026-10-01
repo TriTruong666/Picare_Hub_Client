@@ -1,6 +1,6 @@
 ---
 name: picare-release-sync
-description: Safely publish Picare HUB changes by checking git status, committing intended edits, pushing `main`, fast-forwarding `production` from `main`, and pushing `production`. Use when Codex needs to release repo changes without rewriting shared history or disturbing unrelated working tree changes.
+description: Safely publish Picare Client changes by checking git status, committing intended edits, pushing `main`, fast-forwarding `production` from `main`, and pushing `production`. Use when Codex needs to release repo changes without rewriting shared history or disturbing unrelated working tree changes.
 ---
 
 # Picare Release Sync

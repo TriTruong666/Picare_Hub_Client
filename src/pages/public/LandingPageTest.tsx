@@ -159,7 +159,7 @@ export default function LandingPageTest() {
 
   const isFromCatalogue = Boolean(
     (location.state as { fromCatalogue?: boolean })?.fromCatalogue ||
-      new URLSearchParams(location.search).get("from") === "catalogue",
+    new URLSearchParams(location.search).get("from") === "catalogue",
   );
 
   // Quản lý trạng thái Intro "Picare Client" ban đầu (chỉ thấy đúng 1 lần khi vào web và chỉ khi ở trang chủ)
@@ -362,7 +362,7 @@ export default function LandingPageTest() {
   const guestContent = (
     <div
       ref={scrollContainerRef}
-      className="font-haffer relative flex h-screen w-full flex-col overflow-x-hidden overflow-y-auto bg-[#120F17] text-white select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+      className="font-haffer relative flex h-screen w-full [scrollbar-width:none] flex-col overflow-x-hidden overflow-y-auto bg-[#120F17] text-white select-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
     >
       {/* Background WebGPU AeroShards CỐ ĐỊNH XUYÊN SUỐT TẤT CẢ SECTION VÀ LOGIN VIEW */}
       <div className="pointer-events-auto fixed inset-0 z-0 overflow-hidden">
@@ -444,7 +444,7 @@ export default function LandingPageTest() {
               <section className="relative flex h-screen min-h-screen w-full flex-col justify-between overflow-hidden bg-transparent">
                 {/* Main Hero Content: cascade animate tuần tự từng phần tử */}
                 <main className="relative z-20 mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 pt-32 pb-16 text-center sm:pt-40 sm:pb-20">
-                  {/* Main Headline: Picare Client {logo picare hub} Nền tảng ERP */}
+                  {/* Main Headline: Picare Client {logo Picare Client} Nền tảng ERP */}
                   <motion.h1
                     initial={{
                       opacity: 0,
@@ -475,7 +475,7 @@ export default function LandingPageTest() {
                     </span>
                     <img
                       src={picareHubLogo}
-                      alt="Picare Hub"
+                      alt="Picare Client"
                       className="pointer-events-none inline-block h-10 w-10 object-contain drop-shadow-[0_4px_28px_rgba(248,109,43,0.5)] select-none sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-18 lg:w-18"
                     />
                     <span className="inline-flex items-center">

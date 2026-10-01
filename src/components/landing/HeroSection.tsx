@@ -54,8 +54,8 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="mt-6 max-w-lg font-sans text-sm leading-relaxed font-light text-white/60 md:mt-8"
         >
-          Picare Hub là trung tâm điều hướng đến toàn bộ hệ thống phần mềm nội
-          bộ — giúp cải thiện năng suất làm việc của bạn mỗi ngày.
+          Picare Client là trung tâm điều hướng đến toàn bộ hệ thống phần mềm
+          nội bộ — giúp cải thiện năng suất làm việc của bạn mỗi ngày.
         </motion.p>
 
         {/* Action Buttons */}

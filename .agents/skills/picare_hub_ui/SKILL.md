@@ -1,11 +1,11 @@
 ---
 name: picare_hub_ui
-description: Master UI animation & interaction architecture guide for Picare HUB Frontend. Integrates Framer Motion, OGL WebGL shaders, spring physics (critically damped release/settle), gesture holding progress refs, and image decoding/caching for high-performance complex UI animations. Use when building or refactoring complex interactive UI animations, 3D cards, WebGL overlays, interactive canvases, or dynamic micro-interactions.
+description: Master UI animation & interaction architecture guide for Picare Client Frontend. Integrates Framer Motion, OGL WebGL shaders, spring physics (critically damped release/settle), gesture holding progress refs, and image decoding/caching for high-performance complex UI animations. Use when building or refactoring complex interactive UI animations, 3D cards, WebGL overlays, interactive canvases, or dynamic micro-interactions.
 ---
 
-# Picare HUB Frontend UI Animation & Complex Interaction Architecture
+# Picare Client Frontend UI Animation & Complex Interaction Architecture
 
-Tài liệu này định nghĩa **Kiến trúc & Pattern Animation Chuẩn hóa** cho Frontend Picare HUB. Được thiết kế để giải quyết bài toán: **Khi Framer Motion / CSS 3D đơn thuần không đạt độ thẩm mỹ, không thể hiện được chiều sâu/vật lý phức tạp (như uốn cong bề mặt 3D, mesh deformation, kéo thả mượt mà 60-120fps theo ngón tay)**.
+Tài liệu này định nghĩa **Kiến trúc & Pattern Animation Chuẩn hóa** cho Frontend Picare Client. Được thiết kế để giải quyết bài toán: **Khi Framer Motion / CSS 3D đơn thuần không đạt độ thẩm mỹ, không thể hiện được chiều sâu/vật lý phức tạp (như uốn cong bề mặt 3D, mesh deformation, kéo thả mượt mà 60-120fps theo ngón tay)**.
 
 ---
 
@@ -37,6 +37,7 @@ Không bao giờ dùng một thư viện duy nhất cho mọi nhu cầu. Mọi c
 **Vấn đề**: Ghi nhận tọa độ kéo thả (Drag/Swipe) vào `useState` làm React re-render toàn bộ component tree ở mỗi frame (60-120Hz), gây trễ giật (lag).
 
 **Quy tắc Cấu trúc**:
+
 1. Component cha giữ một `progressRef` (`MutableRefObject<number>`) từ `0.0` đến `1.0`.
 2. Sự kiện `onPointerMove` mutate trực tiếp `progressRef.current = progress` (không trigger React render).
 3. Component render/canvas đọc `progressRef.current` bên trong `requestAnimationFrame` loop.
@@ -91,7 +92,10 @@ const render = (now: number) => {
     previousTime = now;
   } else {
     // Người dùng thả tay -> Lò xo tự động kéo vật thể về vị trí đích
-    const deltaSeconds = Math.min(0.032, Math.max(0.001, (now - previousTime) / 1000));
+    const deltaSeconds = Math.min(
+      0.032,
+      Math.max(0.001, (now - previousTime) / 1000),
+    );
     previousTime = now;
 
     // Stiffness = 92, Damping = 15
@@ -100,7 +104,10 @@ const render = (now: number) => {
     currentProgress += velocity * deltaSeconds;
 
     // Dừng khi đạt điểm cân bằng
-    if (Math.abs(requestedSettle - currentProgress) < 0.002 && Math.abs(velocity) < 0.012) {
+    if (
+      Math.abs(requestedSettle - currentProgress) < 0.002 &&
+      Math.abs(velocity) < 0.012
+    ) {
       currentProgress = requestedSettle;
       didSettle = true;
     }
@@ -118,6 +125,7 @@ const render = (now: number) => {
 **Vấn đề**: Chờ `await loadImage()` nạp ảnh từ server trước khi tạo WebGL Canvas làm giật khựng 200-500ms khi người dùng tương tác.
 
 **Quy tắc Cấu trúc**:
+
 1. **Synchronous Canvas Mount**: Khởi tạo OGL `Renderer`, `Program`, `Plane Mesh` ngay ở frame 0 với Texture 2x2 tạm trên RAM (`createDummyCanvas()`).
 2. **Background Async Texture Decoding**: Nạp và decode ảnh thật qua Image Cache / Blob URL.
 3. **Seamless Texture Swap**: Ngay khi ảnh nạp xong, gán `texture.image = img; texture.needsUpdate = true` để GPU cập nhật tức thì.
@@ -162,7 +170,7 @@ void main() {
   float distanceToAnchor = uDirection > 0.0 ? uv.x : 1.0 - uv.x;
   float cornerFactor = pow(1.0 - uv.y, 2.65);
   float forceFalloff = pow(distanceToAnchor, 1.45);
-  
+
   float turnForce = sin(PI * uProgress);
   float localAngle = PI * uProgress + turnForce * cornerFactor * forceFalloff;
 
@@ -170,7 +178,7 @@ void main() {
   float x = uDirection * distanceToAnchor * cos(localAngle);
   float z = distanceToAnchor * sin(localAngle);
   float perspective = 1.0 / (1.0 - z * 0.19);
-  
+
   gl_Position = vec4(vec2(x, y) * perspective, 0.25 - z * 0.12, 1.0);
 }
 ```
@@ -192,7 +200,7 @@ export async function getDecodedImage(url: string): Promise<HTMLImageElement> {
     const response = await fetch(url, { mode: "cors" });
     const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
-    
+
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
@@ -213,18 +221,19 @@ export async function getDecodedImage(url: string): Promise<HTMLImageElement> {
 
 ## 3. Bảng Phân Định Công Nghệ Animation
 
-| Tình huống UI | Công nghệ khuyến nghị | Lưu ý kiến trúc |
-| :--- | :--- | :--- |
-| **Modal, Dialog, Toast, Drawer** | `Framer Motion` | Kết hợp `AnimatePresence` và `layoutId`. |
-| **Hover, Scale, Button Ripple** | `Tailwind CSS / Motion` | Sử dụng CSS GPU hardware acceleration (`transform-gpu`). |
-| **Cử chỉ vuốt kéo (Gesture Drag)** | `useRef` + Spring Physics | Dùng `progressRef`, tuyệt đối không lưu drag state vào `useState`. |
-| **Uốn cong 3D, Particle, Wave, Mesh** | `OGL (WebGL Canvas)` | Mount Canvas đồng bộ 0ms với Dummy Canvas 2x2. |
+| Tình huống UI                         | Công nghệ khuyến nghị     | Lưu ý kiến trúc                                                    |
+| :------------------------------------ | :------------------------ | :----------------------------------------------------------------- |
+| **Modal, Dialog, Toast, Drawer**      | `Framer Motion`           | Kết hợp `AnimatePresence` và `layoutId`.                           |
+| **Hover, Scale, Button Ripple**       | `Tailwind CSS / Motion`   | Sử dụng CSS GPU hardware acceleration (`transform-gpu`).           |
+| **Cử chỉ vuốt kéo (Gesture Drag)**    | `useRef` + Spring Physics | Dùng `progressRef`, tuyệt đối không lưu drag state vào `useState`. |
+| **Uốn cong 3D, Particle, Wave, Mesh** | `OGL (WebGL Canvas)`      | Mount Canvas đồng bộ 0ms với Dummy Canvas 2x2.                     |
 
 ---
 
 ## 4. Reusable Custom UI Components
 
 Các component mẫu chuẩn hóa cấu trúc nằm tại `src/components/custom_ui/`:
+
 - [CataloguePageTurnCanvas.tsx](file:///d:/OJT/Picare_Hub_Client/src/components/custom_ui/CataloguePageTurnCanvas.tsx): Component OGL Canvas mẫu kết hợp Progress Ref, Critically Damped Spring Physics và WebGL Mesh Deformation.
 
 ---

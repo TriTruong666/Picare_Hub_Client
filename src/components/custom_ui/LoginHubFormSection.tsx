@@ -352,7 +352,7 @@ export default function LoginHubFormSection({
   const projects = [
     { name: "Picare CRM", desc: "Quản lý khách hàng chuyên sâu" },
     { name: "Picare OMS", desc: "Hệ thống vận hành đơn hàng" },
-    { name: "Picare Hub", desc: "Trung tâm quản trị tập trung" },
+    { name: "Picare Client", desc: "Trung tâm quản trị tập trung" },
     { name: "Picare Analytics", desc: "Phân tích dữ liệu kinh doanh" },
   ];
 

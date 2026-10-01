@@ -589,7 +589,6 @@ function Navbar({ onMenuOpen }: { onMenuOpen: () => void }) {
   );
 }
 
-
 /**
  * Exact DarkModeIconSwitch component from Saleforce Client
  */
@@ -1027,7 +1026,7 @@ function SidebarContent({
   return (
     <div className="flex h-full w-full flex-col justify-between overflow-hidden">
       <div className="flex flex-1 flex-col overflow-y-auto [&::-webkit-scrollbar]:w-1">
-        {/* Logo Header: Exactly like PublicLandingNavbar, no Picare Hub text */}
+        {/* Logo Header: Exactly like PublicLandingNavbar, no Picare Client text */}
         <div className="flex items-center justify-between gap-3 px-5 py-5 select-none xl:px-6">
           <Link
             to={PATHS.HOME}

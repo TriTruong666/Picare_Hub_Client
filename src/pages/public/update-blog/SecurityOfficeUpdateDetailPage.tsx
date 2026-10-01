@@ -107,7 +107,7 @@ export default function SecurityOfficeUpdateDetailPage() {
     lenis.on("scroll", handleLenisScroll);
 
     return () => {
-      document.title = "Picare Hub";
+      document.title = "Picare Client";
       gsap.ticker.remove(updateTicker);
       lenis.destroy();
     };

@@ -105,13 +105,13 @@ export default function StocktakingGuideUpdateDetailPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = "Hướng dẫn kiểm kê và ký biên bản | Picare Hub";
+    document.title = "Hướng dẫn kiểm kê và ký biên bản | Picare Client";
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      document.title = "Picare Hub";
+      document.title = "Picare Client";
     };
   }, []);
 

@@ -36,7 +36,7 @@ export default function LoginPage() {
   const projects = [
     { name: "Picare CRM", desc: "Quản lý khách hàng chuyên sâu" },
     { name: "Picare OMS", desc: "Hệ thống vận hành đơn hàng" },
-    { name: "Picare Hub", desc: "Trung tâm quản trị tập trung" },
+    { name: "Picare Client", desc: "Trung tâm quản trị tập trung" },
     { name: "Picare Analytics", desc: "Phân tích dữ liệu kinh doanh" },
   ];
 
@@ -149,7 +149,7 @@ export default function LoginPage() {
             <Link to="/" className="flex w-fit">
               <img
                 src={logo}
-                alt="Picare Hub"
+                alt="Picare Client"
                 className="h-8 w-8 object-contain"
               />
             </Link>
@@ -169,7 +169,7 @@ export default function LoginPage() {
                 }}
               >
                 <h1 className="font-bricolage text-3xl font-bold tracking-tight text-white">
-                  {clientDetail?.clientName || "Picare Hub"}
+                  {clientDetail?.clientName || "Picare Client"}
                 </h1>
 
                 {isAuthenticated && user && !showLoginForm ? (
@@ -193,7 +193,7 @@ export default function LoginPage() {
                 ) : (
                   <p className="font-inter mt-2 text-[13px] font-light text-white/40">
                     Vui lòng đăng nhập để vào hệ thống{" "}
-                    {clientDetail?.clientName || "Picare Hub"}
+                    {clientDetail?.clientName || "Picare Client"}
                   </p>
                 )}
               </motion.div>
@@ -373,7 +373,7 @@ export default function LoginPage() {
             transition={{ duration: 1, delay: 1.0 }}
           >
             <p className="text-center text-[11px] text-white/20">
-              Copyright © {new Date().getFullYear()} Picare Hub - All rights
+              Copyright © {new Date().getFullYear()} Picare Client - All rights
               reserved.
             </p>
           </motion.div>
@@ -388,7 +388,7 @@ export default function LoginPage() {
         >
           <img
             src={clientMockupImage}
-            alt="Picare Hub Interface"
+            alt="Picare Client Interface"
             className="h-full w-full object-cover brightness-90 transition-all duration-1000 hover:brightness-100 hover:grayscale-0"
             onError={(event) => {
               event.currentTarget.onerror = null;

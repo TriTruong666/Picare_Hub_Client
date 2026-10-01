@@ -117,7 +117,7 @@ export default function OrderReturnGuideUpdateDetailPage() {
     lenis.on("scroll", handleLenisScroll);
 
     return () => {
-      document.title = "Picare Hub";
+      document.title = "Picare Client";
       gsap.ticker.remove(updateTicker);
       lenis.destroy();
     };

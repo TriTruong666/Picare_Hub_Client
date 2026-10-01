@@ -1,4 +1,4 @@
 @echo off
-title Picare Hub Client - Dev
+title Picare Client Client - Dev
 npm run dev
 pause
