@@ -1094,7 +1094,7 @@ export default function LoginHubFormSection({
                       }}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.98 }}
-                      className="group relative flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-white py-3.5 text-sm font-semibold tracking-wide text-zinc-950 shadow-[0_4px_24px_rgba(255,255,255,0.2)] transition-all hover:bg-zinc-100 active:scale-[0.98]"
+                      className="group relative flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-white py-3.5 text-sm text-zinc-950 shadow-[0_4px_24px_rgba(255,255,255,0.2)] transition-all hover:bg-zinc-100 active:scale-[0.98]"
                     >
                       <span>
                         Đi tới {clientDetail?.clientName || "hệ thống"}
@@ -1338,7 +1338,7 @@ export default function LoginHubFormSection({
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.2 }}
-                    className="form-anim-btn group relative mt-8 flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-white py-3.5 text-sm font-semibold tracking-wide text-zinc-950 shadow-[0_4px_24px_rgba(255,255,255,0.15)] transition-all duration-200 will-change-[transform,opacity,filter] hover:bg-zinc-100 hover:shadow-[0_6px_30px_rgba(255,255,255,0.25)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="form-anim-btn group relative mt-8 flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-white py-3.5 text-sm text-zinc-950 shadow-[0_4px_24px_rgba(255,255,255,0.15)] transition-all duration-200 will-change-[transform,opacity,filter] hover:bg-zinc-100 hover:shadow-[0_6px_30px_rgba(255,255,255,0.25)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <span>
                       {isSubmitting ? "Đang xác thực..." : "Đăng nhập hệ thống"}
@@ -1441,7 +1441,7 @@ export default function LoginHubFormSection({
                   onClick={() => setShowProjects(false)}
                 />
 
-                <div className="absolute right-0 bottom-16 z-50 mb-2 flex max-h-[calc(100vh-140px)] flex-col items-end gap-2 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <div className="absolute right-0 bottom-16 z-50 mb-2 flex max-h-[calc(100vh-140px)] [scrollbar-width:none] flex-col items-end gap-2 overflow-y-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                   {isClientsLoading && clientList.length === 0 ? (
                     <div className="flex w-60 items-center justify-center rounded-xl border border-white/10 bg-zinc-900/95 px-4 py-3 shadow-2xl backdrop-blur-md">
                       <span className="text-xs font-light text-zinc-400">
