@@ -9,7 +9,7 @@ export const PATHS = {
   CHANGES: "/changes", // Trang Blog cập nhật hệ thống / release notes
   SECURITY_UPDATE_DETAIL: "/changes/nang-cap-dang-nhap", // Trang chi tiết nâng cấp bảo mật Picare Office
   CHANGE_DETAIL: "/changes/:slug",
-  MY_PAGE: "/quynhnhu",
+  BIRTHDATE_SEPTRUNG: "/birthdate/septrung",
   LOGIN: "/login", // Trang dang nhap Hub chung / chon client
   LOGIN_CLIENT: "/login/client", // Form dang nhap cho client cu the
   LOGIN_HUB: "/login", // Da gop vao /login
