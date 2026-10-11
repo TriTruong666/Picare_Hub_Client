@@ -4,6 +4,7 @@ dist
 .github
 .vscode
 .agents
+setup
 .env
 .env.*
 !.env.production

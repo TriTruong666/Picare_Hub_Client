@@ -16,64 +16,164 @@ gsap.registerPlugin(useGSAP);
 
 const MOCK_PHOTOS = [huongdan1, huongdan2, huongdan3, huongdan4, huongdan5];
 
-// 8 tấm ảnh tách rời các hướng rõ rệt, kích thước tự nhiên to rõ (không ép vuông)
-// Xuất hiện so le nhịp nhàng 2s/tấm, tạo chiều sâu 3D sâu hun hút
-const TUNNEL_ITEMS = [
+// Hỗ trợ cả hình ảnh và video (.mp4, .webm, .mov hoặc gán type: 'video')
+const isMediaVideo = (src: string, type?: "video" | "image") => {
+  if (type === "video") return true;
+  if (type === "image") return false;
+  return /\.(mp4|webm|mov|ogg|m4v)(\?.*)?$/i.test(src);
+};
+
+// 20 media đa dạng (ảnh và video) tỏa đều các hướng xung quanh tâm, kích thước tự nhiên
+// Xuất hiện so le liên tục 1s/tấm tạo dòng chảy đường hầm 3D dồi dào, sống động
+const TUNNEL_ITEMS: Array<{
+  src: string;
+  type?: "video" | "image";
+  tx: string;
+  ty: string;
+  rot: string;
+  delay: string;
+}> = [
   {
     src: huongdan1,
     tx: "-42rem",
     ty: "-20rem",
-    rot: "-4deg",
+    rot: "0deg",
     delay: "0s",
   },
   {
-    src: huongdan2,
+    src: "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1790064168652_9f235726-a528-4e55-9052-47489360b497_trahangcustomer.mp4",
+    type: "video",
     tx: "42rem",
     ty: "20rem",
-    rot: "4deg",
-    delay: "2s",
+    rot: "0deg",
+    delay: "1s",
   },
   {
     src: huongdan3,
-    tx: "-42rem",
-    ty: "20rem",
-    rot: "3deg",
-    delay: "4s",
+    tx: "-44rem",
+    ty: "18rem",
+    rot: "0deg",
+    delay: "2s",
   },
   {
     src: huongdan4,
-    tx: "42rem",
-    ty: "-20rem",
-    rot: "-3deg",
-    delay: "6s",
+    tx: "44rem",
+    ty: "-18rem",
+    rot: "0deg",
+    delay: "3s",
   },
   {
     src: huongdan5,
-    tx: "-48rem",
+    tx: "-50rem",
     ty: "0rem",
-    rot: "-5deg",
-    delay: "8s",
+    rot: "0deg",
+    delay: "4s",
   },
   {
     src: huongdan1,
-    tx: "48rem",
+    tx: "50rem",
     ty: "0rem",
-    rot: "5deg",
-    delay: "10s",
+    rot: "0deg",
+    delay: "5s",
   },
   {
     src: huongdan2,
-    tx: "-20rem",
+    tx: "-18rem",
     ty: "-28rem",
-    rot: "2deg",
+    rot: "0deg",
+    delay: "6s",
+  },
+  {
+    src: huongdan3,
+    tx: "18rem",
+    ty: "28rem",
+    rot: "0deg",
+    delay: "7s",
+  },
+  {
+    src: huongdan4,
+    tx: "-38rem",
+    ty: "-24rem",
+    rot: "0deg",
+    delay: "8s",
+  },
+  {
+    src: "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1790064168652_9f235726-a528-4e55-9052-47489360b497_trahangcustomer.mp4",
+    type: "video",
+    tx: "38rem",
+    ty: "24rem",
+    rot: "0deg",
+    delay: "9s",
+  },
+  {
+    src: huongdan5,
+    tx: "-46rem",
+    ty: "-10rem",
+    rot: "0deg",
+    delay: "10s",
+  },
+  {
+    src: huongdan1,
+    tx: "46rem",
+    ty: "10rem",
+    rot: "0deg",
+    delay: "11s",
+  },
+  {
+    src: huongdan2,
+    tx: "-46rem",
+    ty: "12rem",
+    rot: "0deg",
     delay: "12s",
   },
   {
     src: huongdan3,
-    tx: "20rem",
-    ty: "28rem",
-    rot: "-2deg",
+    tx: "46rem",
+    ty: "-12rem",
+    rot: "0deg",
+    delay: "13s",
+  },
+  {
+    src: huongdan4,
+    tx: "18rem",
+    ty: "-28rem",
+    rot: "0deg",
     delay: "14s",
+  },
+  {
+    src: huongdan5,
+    tx: "-18rem",
+    ty: "28rem",
+    rot: "0deg",
+    delay: "15s",
+  },
+  {
+    src: huongdan1,
+    tx: "-52rem",
+    ty: "-6rem",
+    rot: "0deg",
+    delay: "16s",
+  },
+  {
+    src: huongdan2,
+    tx: "52rem",
+    ty: "6rem",
+    rot: "0deg",
+    delay: "17s",
+  },
+  {
+    src: huongdan3,
+    tx: "-40rem",
+    ty: "22rem",
+    rot: "0deg",
+    delay: "18s",
+  },
+  {
+    src: huongdan4,
+    tx: "40rem",
+    ty: "-22rem",
+    rot: "0deg",
+    delay: "19s",
   },
 ];
 
@@ -201,9 +301,8 @@ export default function SepTrungBirthPage() {
 
   // Section 3: Video logic
   const [showVideo, setShowVideo] = useState(false);
-  const [showAfterCredits, setShowAfterCredits] = useState(true);
+  const [showAfterCredits, setShowAfterCredits] = useState(false);
   const [showTunnelGallery, setShowTunnelGallery] = useState(false);
-  const [showCenterText, setShowCenterText] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const blackWipeRef = useRef<HTMLDivElement>(null);
   const creditsRollRef = useRef<HTMLDivElement>(null);
@@ -244,12 +343,14 @@ export default function SepTrungBirthPage() {
     { scope: containerRef },
   );
 
-  // Section 2: Sau khi chuyển cảnh xong, delay đúng 0.5s hiển thị số 10
+  // Section 2: Sau khi chuyển cảnh sang nền sáng xong, delay 0.5s hiển thị số 10 và TỰ ĐỘNG đếm ngược luôn
   useEffect(() => {
     if (!isSection2Active) return;
 
     const timer = setTimeout(() => {
       setShowTimer(true);
+      // Tự động đếm ngược luôn, không cần người dùng phải bấm thêm lần nào nữa
+      setIsCounting(true);
     }, 500);
 
     return () => clearTimeout(timer);
@@ -391,40 +492,69 @@ export default function SepTrungBirthPage() {
     });
   };
 
-  // After-Credit: Tự động cuộn chậm rãi, trang trọng từ dưới lên trên chuẩn điện ảnh
-  // Khi logo Powered By cuộn lên khỏi đỉnh màn hình, dải cuộn kết thúc và lớp chữ trung tâm xuất hiện
+  // After-Credit: Tự động cuộn chậm rãi, trang trọng từ dưới lên trên chuẩn điện ảnh và neo cụm chữ cuối tại giữa màn hình
   useEffect(() => {
     if (!showAfterCredits || !creditsRollRef.current) return;
 
     const creditsEl = creditsRollRef.current;
+    const finalMsgEl = finalMessageRef.current;
     const windowH = window.innerHeight;
 
     // Đặt vị trí ban đầu hoàn toàn dưới đáy màn hình
     gsap.set(creditsEl, { y: windowH, opacity: 1 });
 
-    // Cuộn hết toàn bộ credits lên qua khỏi đỉnh màn hình
-    const targetY = -(creditsEl.scrollHeight + 60);
+    // Tính điểm dừng targetY để chữ "Chúc mừng sinh nhật" neo chính xác tại giữa màn hình (đo trực tiếp h1 và xích nhẹ xuống theo yêu cầu)
+    let targetY = -(creditsEl.scrollHeight + 100);
+    if (finalMsgEl) {
+      const h1El = finalMsgEl.querySelector("h1") || finalMsgEl;
+      const creditsTop = creditsEl.getBoundingClientRect().top;
+      const h1Top = h1El.getBoundingClientRect().top;
+      const h1Offset = h1Top - creditsTop;
+      const h1H = h1El.offsetHeight;
+      // Tâm của h1 nằm ở giữa màn hình và xích nhẹ xuống (+ 28px) cho vừa vặn tầm nhìn
+      targetY = (windowH - h1H) / 2 - h1Offset + 28;
+    }
+
+    // Tổng quãng đường từ đáy (y = windowH) đến điểm neo (y = targetY)
     const totalDistance = windowH - targetY;
-    const speed = 220; // 220px/s cuộn mượt mà
-    const duration = totalDistance / speed;
+    const speed = 60; // px/s cuộn êm đềm
+    const settleDistance = 100; // 100px cuối cùng hãm phanh nhẹ nhàng vào vị trí neo
 
     const tl = gsap.timeline({
       delay: 0.2,
       onComplete: () => {
-        // Logo cuối vừa lên hết màn hình -> hiện ngay chữ ở giữa màn hình (lớp riêng biệt độc lập 100% ở tâm)
-        setShowCenterText(true);
-        // Sau khi chữ xuất hiện, delay 1s bắt đầu các tấm hình 3D tunnel bay ra từ trong sâu
+        // Sau khi chữ neo vững chắc ở giữa màn hình rồi thì delay cỡ 1s bắt đầu các tấm hình 3D tunnel bay ra
         setTimeout(() => {
           setShowTunnelGallery(true);
         }, 1000);
       },
     });
 
-    tl.to(creditsEl, {
-      y: targetY,
-      duration: duration,
-      ease: "none",
-    });
+    if (totalDistance > settleDistance) {
+      const linearDistance = totalDistance - settleDistance;
+      const linearDuration = linearDistance / speed;
+      const settleDuration = 2.0;
+
+      // Giai đoạn 1: Cuộn đều đặn tuyến tính cùng credit
+      tl.to(creditsEl, {
+        y: targetY + settleDistance,
+        duration: linearDuration,
+        ease: "none",
+      });
+
+      // Giai đoạn 2: Giảm tốc mềm mại, dính và neo vững chắc ở giữa màn hình
+      tl.to(creditsEl, {
+        y: targetY,
+        duration: settleDuration,
+        ease: "power2.out",
+      });
+    } else {
+      tl.to(creditsEl, {
+        y: targetY,
+        duration: totalDistance / speed,
+        ease: "power2.out",
+      });
+    }
 
     return () => {
       tl.kill();
@@ -435,11 +565,20 @@ export default function SepTrungBirthPage() {
   const handleSkipCredits = () => {
     if (creditsRollRef.current) {
       gsap.killTweensOf(creditsRollRef.current);
-      gsap.set(creditsRollRef.current, {
-        y: -(creditsRollRef.current.scrollHeight + 60),
-      });
+      const creditsEl = creditsRollRef.current;
+      const finalMsgEl = finalMessageRef.current;
+      const windowH = window.innerHeight;
+      let targetY = -(creditsEl.scrollHeight + 100);
+      if (finalMsgEl) {
+        const h1El = finalMsgEl.querySelector("h1") || finalMsgEl;
+        const creditsTop = creditsEl.getBoundingClientRect().top;
+        const h1Top = h1El.getBoundingClientRect().top;
+        const h1Offset = h1Top - creditsTop;
+        const h1H = h1El.offsetHeight;
+        targetY = (windowH - h1H) / 2 - h1Offset + 28;
+      }
+      gsap.set(creditsEl, { y: targetY });
     }
-    setShowCenterText(true);
     setShowTunnelGallery(true);
   };
 
@@ -581,7 +720,7 @@ export default function SepTrungBirthPage() {
           {/* Dải cuộn After-Credit: xuất phát hoàn toàn từ dưới đáy màn hình (translateY 100vh) */}
           <div
             ref={creditsRollRef}
-            className="absolute top-0 right-0 left-0 mx-auto flex w-full flex-col items-center px-6 will-change-transform sm:px-12 md:px-20"
+            className="absolute top-0 right-0 left-0 z-30 mx-auto flex w-full flex-col items-center px-6 will-change-transform sm:px-12 md:px-20"
             style={{ transform: "translateY(100vh)" }}
           >
             {/* Header: Happy Birthday */}
@@ -819,35 +958,35 @@ export default function SepTrungBirthPage() {
               <h2 className="mb-10 text-center text-[14px] font-normal text-white uppercase">
                 Powered By
               </h2>
-              <div className="mb-20 flex items-center justify-center">
+              <div className="flex items-center justify-center">
                 <img
                   src={logoPicareNewBlack}
                   alt="Picare Client"
                   className="h-[43px] w-auto object-contain brightness-0 invert sm:h-[68px]"
                 />
               </div>
-            </div>
-          </div>
 
-          {/* LAYER RIÊNG BIỆT CHO CHỮ "Picare Vietnam" - CỐ ĐỊNH 100% Ở TÂM MÀN HÌNH, NẰM TRÊN CÙNG (Z-50) KHÔNG BAO GIỜ BỊ HÌNH CHE */}
-          {showCenterText && (
-            <div
-              ref={finalMessageRef}
-              className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center animate-in fade-in zoom-in-95 duration-700"
-            >
-              <div className="max-w-4xl px-6 text-center">
-                <h1
-                  className="text-4xl font-bold tracking-tight text-white select-none sm:text-5xl md:text-6xl lg:text-7xl"
-                  style={{
-                    textShadow:
-                      "0 0 1.5rem rgba(0, 0, 0, 0.95), 0 0 3rem rgba(0, 0, 0, 0.85), 0 0 5rem rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 163, 54, 0.5)",
-                  }}
-                >
-                  Picare Vietnam
-                </h1>
+              {/* DÒNG CHỮ KẾT THÚC: Đi chung với credit roll, tới giữa màn hình hãm phanh neo lại chuẩn xác */}
+              <div
+                ref={finalMessageRef}
+                className="pointer-events-none relative z-50 mt-[60vh] flex w-full flex-col items-center justify-center text-center"
+              >
+                <div className="max-w-3xl px-6">
+                  <h1
+                    className="font-haffer select-none text-3xl font-normal sm:text-4xl bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(135deg, #FFFDF8 0%, #FFE2B7 25%, #FFA336 55%, #FF8D10 80%, #FFB049 100%)",
+                      filter:
+                        "drop-shadow(0 0 16px rgba(255, 163, 54, 0.8)) drop-shadow(0 0 35px rgba(255, 141, 16, 0.45)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.95))",
+                    }}
+                  >
+                    From Picare With Love
+                  </h1>
+                </div>
               </div>
             </div>
-          )}
+          </div>
 
           {/* 3D TUNNEL GALLERY COMPONENT (Clone từ https://centered-future-205322.framer.app/)
               Xuất hiện sau khi chữ xuất hiện delay 1s, chiều sâu 3D sâu hun hút, không chạm và không bao giờ che chữ (z-10 < z-50) */}
@@ -893,7 +1032,7 @@ export default function SepTrungBirthPage() {
                   will-change: transform, opacity;
                   cursor: pointer;
                   opacity: 0;
-                  animation: move-3d 16s linear infinite;
+                  animation: move-3d 20s linear infinite;
                   animation-delay: var(--delay);
                   transition: box-shadow 0.3s ease, border-color 0.3s ease, filter 0.3s ease;
                 }
@@ -907,27 +1046,42 @@ export default function SepTrungBirthPage() {
               `}</style>
 
               <div className="absolute inset-0 flex items-center justify-center [transform-style:preserve-3d]">
-                {TUNNEL_ITEMS.map((item, index) => (
-                  <div
-                    key={index}
-                    className="tunnel-photo overflow-hidden rounded-2xl border-2 border-white/20 bg-neutral-900/90 shadow-2xl backdrop-blur-sm"
-                    style={
-                      {
-                        "--tx": item.tx,
-                        "--ty": item.ty,
-                        "--rot": item.rot,
-                        "--delay": item.delay,
-                      } as React.CSSProperties
-                    }
-                  >
-                    <img
-                      src={item.src}
-                      alt={`Kỷ niệm ${index + 1}`}
-                      className="pointer-events-none block h-auto w-auto max-h-[19rem] max-w-[28rem] select-none rounded-2xl object-contain sm:max-h-[24rem] sm:max-w-[34rem] md:max-h-[28rem] md:max-w-[40rem]"
-                      loading="eager"
-                    />
-                  </div>
-                ))}
+                {TUNNEL_ITEMS.map((item, index) => {
+                  const isVideo = isMediaVideo(item.src, item.type);
+                  return (
+                    <div
+                      key={index}
+                      className="tunnel-photo overflow-hidden rounded-2xl border-2 border-white/20 bg-neutral-900/90 shadow-2xl backdrop-blur-sm"
+                      style={
+                        {
+                          "--tx": item.tx,
+                          "--ty": item.ty,
+                          "--rot": item.rot,
+                          "--delay": item.delay,
+                        } as React.CSSProperties
+                      }
+                    >
+                      {isVideo ? (
+                        <video
+                          src={item.src}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          preload="auto"
+                          className="pointer-events-none block h-auto max-h-[19rem] w-auto max-w-[28rem] rounded-2xl object-contain select-none sm:max-h-[24rem] sm:max-w-[34rem] md:max-h-[28rem] md:max-w-[40rem]"
+                        />
+                      ) : (
+                        <img
+                          src={item.src}
+                          alt={`Kỷ niệm ${index + 1}`}
+                          className="pointer-events-none block h-auto max-h-[19rem] w-auto max-w-[28rem] rounded-2xl object-contain select-none sm:max-h-[24rem] sm:max-w-[34rem] md:max-h-[28rem] md:max-w-[40rem]"
+                          loading="eager"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -962,7 +1116,7 @@ export default function SepTrungBirthPage() {
       <div
         ref={state2Ref}
         onClick={handleStartCountdown}
-        className="fixed inset-0 z-30 flex h-screen w-screen cursor-pointer flex-col items-center justify-center bg-[#F6F4EF] text-[#161413] opacity-0 select-none"
+        className="fixed inset-0 z-30 flex h-screen w-screen cursor-default flex-col items-center justify-center bg-[#F6F4EF] text-[#161413] opacity-0 select-none"
         style={{
           clipPath: "circle(0px at 0px 0px)",
         }}
