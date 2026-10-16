@@ -10,6 +10,7 @@ export type HubClient = {
   clientExternalUrl: string;
   clientStatus: HubClientStatus;
   allowedRoles: HubClientRole[];
+  isActive?: boolean;
   note: string | null;
   createdAt: string;
   updatedAt: string;

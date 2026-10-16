@@ -37,6 +37,7 @@ import clsx from "clsx";
 import { getSidebarNavigation, PRIVATE_ROUTES } from "@/config/routes.config";
 import type { RouteConfig } from "@/config/routes.config";
 import { PATHS } from "@/config/paths";
+import { isStaticHubClientActive } from "@/constants/staticHubClients";
 import { useAuth } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/data/useAuthHooks";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
@@ -322,6 +323,12 @@ function Navbar({ onMenuOpen }: { onMenuOpen: () => void }) {
       for (const route of configList) {
         const hasRole = !route.roles || (role && route.roles.includes(role));
         if (!hasRole) continue;
+        if (
+          route.staticClientId &&
+          !isStaticHubClientActive(route.staticClientId)
+        ) {
+          continue;
+        }
 
         if (
           route.label &&

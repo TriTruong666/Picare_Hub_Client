@@ -61,7 +61,9 @@ export default function LoginPage() {
   );
 
   const handleClientAccess = (client: HubClient) => {
-    if (client.clientStatus !== "active") {
+    const isClientActive =
+      client.clientStatus === "active" && client.isActive !== false;
+    if (!isClientActive) {
       return;
     }
 
@@ -462,48 +464,63 @@ export default function LoginPage() {
                       </span>
                     </div>
                   ) : (
-                    clientList.map((client, idx) => (
-                      <motion.button
-                        key={client.clientId}
-                        onClick={() => handleClientAccess(client)}
-                        initial={{ opacity: 0, y: 16, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{
-                          opacity: 0,
-                          y: 10,
-                          scale: 0.95,
-                          transition: {
-                            delay: (clientList.length - 1 - idx) * 0.04,
-                            duration: 0.2,
-                          },
-                        }}
-                        transition={{
-                          delay: idx * 0.07,
-                          duration: 0.4,
-                          ease: [0.16, 1, 0.3, 1],
-                        }}
-                        className={`flex w-56 cursor-pointer flex-col items-start gap-0.5 rounded-xl px-4 py-2.5 text-left shadow-lg transition-colors ${
-                          clientId === client.clientId
-                            ? "bg-[#FFA336] text-black"
-                            : "bg-white text-black hover:bg-zinc-100"
-                        }`}
-                      >
-                        <span className="text-[12px] font-semibold">
-                          {client.clientName}
-                        </span>
-                        {client.clientDescription && (
-                          <span
-                            className={`line-clamp-1 text-[10px] ${
-                              clientId === client.clientId
-                                ? "text-black/80"
-                                : "text-black/60"
-                            }`}
-                          >
-                            {client.clientDescription}
-                          </span>
-                        )}
-                      </motion.button>
-                    ))
+                    clientList.map((client, idx) => {
+                      const isClientActive =
+                        client.clientStatus === "active" &&
+                        client.isActive !== false;
+                      return (
+                        <motion.button
+                          key={client.clientId}
+                          onClick={() => handleClientAccess(client)}
+                          disabled={!isClientActive}
+                          initial={{ opacity: 0, y: 16, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{
+                            opacity: 0,
+                            y: 10,
+                            scale: 0.95,
+                            transition: {
+                              delay: (clientList.length - 1 - idx) * 0.04,
+                              duration: 0.2,
+                            },
+                          }}
+                          transition={{
+                            delay: idx * 0.07,
+                            duration: 0.4,
+                            ease: [0.16, 1, 0.3, 1],
+                          }}
+                          className={`flex w-56 flex-col items-start gap-0.5 rounded-xl px-4 py-2.5 text-left shadow-lg transition-colors ${
+                            !isClientActive
+                              ? "cursor-not-allowed bg-zinc-100 opacity-60 text-zinc-500"
+                              : clientId === client.clientId
+                                ? "cursor-pointer bg-[#FFA336] text-black"
+                                : "cursor-pointer bg-white text-black hover:bg-zinc-100"
+                          }`}
+                        >
+                          <div className="flex w-full items-center justify-between gap-1.5">
+                            <span className="text-[12px] font-semibold">
+                              {client.clientName}
+                            </span>
+                            {!isClientActive && (
+                              <span className="rounded-full border border-rose-500/20 bg-rose-500/10 px-1.5 py-0.2 text-[9px] font-medium text-rose-500">
+                                Ngưng HĐ
+                              </span>
+                            )}
+                          </div>
+                          {client.clientDescription && (
+                            <span
+                              className={`line-clamp-1 text-[10px] ${
+                                clientId === client.clientId
+                                  ? "text-black/80"
+                                  : "text-black/60"
+                              }`}
+                            >
+                              {client.clientDescription}
+                            </span>
+                          )}
+                        </motion.button>
+                      );
+                    })
                   )}
                 </div>
               </>

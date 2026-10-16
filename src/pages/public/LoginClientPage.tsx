@@ -38,7 +38,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
   const preferredMockup = client.clientMockupImage?.trim() || loginMockup;
   const [mockupSrc, setMockupSrc] = useState(preferredMockup);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const isActive = client.clientStatus === "active";
+  const isActive = client.clientStatus === "active" && client.isActive !== false;
 
   const bgRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -73,6 +73,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
   };
 
   const handleMouseEnter = () => {
+    if (!isActive) return;
     if (bgRef.current) {
       gsap.to(bgRef.current, {
         opacity: 1,
@@ -102,6 +103,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
   };
 
   const handleMouseLeave = () => {
+    if (!isActive) return;
     if (bgRef.current) {
       gsap.to(bgRef.current, {
         opacity: 0,
@@ -139,7 +141,9 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       onClick={handleAccess}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="client-card-item group relative flex min-h-[360px] sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0 w-full cursor-pointer flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none"
+      className={`client-card-item group relative flex min-h-[360px] sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0 w-full flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none ${
+        !isActive ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+      }`}
     >
       {/* Subtle Warm Apricot/Amber Glow Layer giống LandingPageTest */}
       <div
@@ -169,9 +173,16 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       {/* Bottom Content Area: Title, Description & Circular CTA (Bỏ role, phẳng hoàn toàn) */}
       <div className="pointer-events-none relative z-10 flex w-full items-end justify-between border-t border-white/[0.06] bg-[#070709] p-5 sm:p-6 lg:p-7">
         <div className="pointer-events-auto flex max-w-[calc(100%-3.5rem)] flex-col text-left">
-          <h3 className="font-haffer text-lg font-medium tracking-tight text-white transition-colors group-hover:text-white sm:text-xl lg:text-[22px]">
-            {client.clientName}
-          </h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-haffer text-lg font-medium tracking-tight text-white transition-colors group-hover:text-white sm:text-xl lg:text-[22px]">
+              {client.clientName}
+            </h3>
+            {!isActive && (
+              <span className="inline-flex items-center rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] font-medium text-rose-400">
+                Ngưng hoạt động
+              </span>
+            )}
+          </div>
           {client.clientDescription && (
             <p className="font-haffer mt-1 line-clamp-2 text-xs leading-relaxed font-light text-white/60 transition-colors group-hover:text-white/80 sm:text-[13px]">
               {client.clientDescription}

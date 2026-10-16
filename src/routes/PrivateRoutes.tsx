@@ -1,6 +1,12 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthGuard } from "@/components/guards/AuthGuard";
 import { PATHS } from "@/config/paths";
+import ServiceSuspendedPage from "@/components/common/ServiceSuspendedPage";
+import {
+  DIGITAL_CONTRACT_CLIENT_ID,
+  QR_CODE_GENERATOR_CLIENT_ID,
+  isStaticHubClientActive,
+} from "@/constants/staticHubClients";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
 import ContractDetailDashboardPage from "@/pages/private/ContractDetailDashboardPage";
@@ -44,7 +50,14 @@ export default function PrivateRoutes() {
             path="contracts"
             element={
               <AuthGuard allowedRoles={["admin", "ceo", "hr", "finance"]}>
-                <ContractDashboardPage />
+                {isStaticHubClientActive(DIGITAL_CONTRACT_CLIENT_ID) ? (
+                  <ContractDashboardPage />
+                ) : (
+                  <ServiceSuspendedPage
+                    clientName="Picare E-Contract"
+                    isDashboard
+                  />
+                )}
               </AuthGuard>
             }
           />
@@ -54,7 +67,14 @@ export default function PrivateRoutes() {
               <AuthGuard
                 allowedRoles={["admin", "ceo", "business_development"]}
               >
-                <QRProductDashboardPage />
+                {isStaticHubClientActive(QR_CODE_GENERATOR_CLIENT_ID) ? (
+                  <QRProductDashboardPage />
+                ) : (
+                  <ServiceSuspendedPage
+                    clientName="Picare QR Generator"
+                    isDashboard
+                  />
+                )}
               </AuthGuard>
             }
           />
@@ -62,7 +82,14 @@ export default function PrivateRoutes() {
             path="contracts/:contractId"
             element={
               <AuthGuard allowedRoles={["admin", "ceo", "hr", "finance"]}>
-                <ContractDetailDashboardPage />
+                {isStaticHubClientActive(DIGITAL_CONTRACT_CLIENT_ID) ? (
+                  <ContractDetailDashboardPage />
+                ) : (
+                  <ServiceSuspendedPage
+                    clientName="Picare E-Contract"
+                    isDashboard
+                  />
+                )}
               </AuthGuard>
             }
           />

@@ -204,11 +204,12 @@ export function PublicLandingNavbar({
                 </span>
                 <p className="font-haffer text-[11px] font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
                   <span>
-                    Tính năng kiểm kê của Picare WMS cơ bản đã hoàn thành bước
-                    thử nghiệm, các phòng ban liên quan có thể thao tác theo
-                    luồng đã hướng dẫn
+                    Hệ thống sẽ ngưng hoạt động E-Contract trên Picare Client để
+                    chuyển đổi và nâng cấp tại Picare Office (Mới). Phòng IT sẽ
+                    tắt Office cũ và chuyển sang hệ thống mới vào ngày
+                    19/10/2026
                   </span>
-                  <a
+                  {/* <a
                     href="/changes/huong-dan-kiem-ke"
                     target=""
                     rel="noopener noreferrer"
@@ -216,7 +217,7 @@ export function PublicLandingNavbar({
                   >
                     Xem ngay
                     <FiArrowRight size={12} className="inline-block" />
-                  </a>
+                  </a> */}
                 </p>
               </div>
 

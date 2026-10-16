@@ -37,6 +37,11 @@ import LicenseEditPage from "@/pages/private/LicenseEditPage";
 import LicenseDetailPage from "@/pages/private/LicenseDetailPage";
 import LicenseListPage from "@/pages/private/LicenseListPage";
 import LicenseSupportPage from "@/pages/private/LicenseSupportPage";
+import {
+  DIGITAL_CONTRACT_CLIENT_ID,
+  QR_CODE_GENERATOR_CLIENT_ID,
+  isStaticHubClientActive,
+} from "@/constants/staticHubClients";
 import { PATHS } from "./paths";
 
 export interface RouteConfig {
@@ -48,6 +53,7 @@ export interface RouteConfig {
   roles?: Role[];
   children?: RouteConfig[];
   index?: boolean;
+  staticClientId?: string;
 }
 
 export const PUBLIC_ROUTES: RouteConfig[] = [
@@ -120,6 +126,7 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     icon: FiFileText,
     showInSidebar: true,
     roles: ["admin", "ceo", "hr", "finance"],
+    staticClientId: DIGITAL_CONTRACT_CLIENT_ID,
   },
   {
     path: PATHS.DASHBOARD.QR_PRODUCTS,
@@ -128,6 +135,7 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     icon: FiBox,
     showInSidebar: true,
     roles: ["admin", "ceo", "business_development"],
+    staticClientId: QR_CODE_GENERATOR_CLIENT_ID,
   },
   {
     path: PATHS.DASHBOARD.STORAGE,
@@ -223,5 +231,8 @@ export const getSidebarNavigation = (role?: Role) =>
   PRIVATE_ROUTES.filter((route) => {
     if (!canAccessDashboard(role)) return false;
     const hasRole = !route.roles || (role && route.roles.includes(role));
+    if (route.staticClientId && !isStaticHubClientActive(route.staticClientId)) {
+      return false;
+    }
     return route.showInSidebar && hasRole;
   });

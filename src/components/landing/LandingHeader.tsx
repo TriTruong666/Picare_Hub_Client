@@ -440,6 +440,42 @@ export default function LandingHeader({
 }
 
 function HubClientCard({ item }: { item: HubClient }) {
+  const isActive = item.clientStatus === "active" && item.isActive !== false;
+
+  if (!isActive) {
+    return (
+      <div className="flex flex-col space-y-3 rounded-xl border border-white/5 bg-neutral-900/20 p-4 opacity-60 cursor-not-allowed select-none">
+        <div className="relative overflow-hidden rounded-lg outline-1 outline-white/5">
+          <img
+            src={
+              item.clientLogoImage?.trim() ||
+              "https://framerusercontent.com/images/gTH5qA521PTXYmAuTkvadn5fso.png?width=1292&height=450"
+            }
+            alt={item.clientName}
+            className="h-44 w-full object-cover grayscale opacity-50"
+          />
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h4 className="text-[15px] font-semibold tracking-tight text-white/80">
+              {item.clientName}
+            </h4>
+            <span className="rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[10px] font-medium text-rose-400">
+              Ngưng hoạt động
+            </span>
+          </div>
+          <p className="line-clamp-2 text-[13px] leading-relaxed text-white/40">
+            {item.clientDescription}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 pt-2 text-[12px] font-medium text-rose-400/80">
+          <span>Tạm ngưng phục vụ</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <motion.a
       href={item.clientInternalUrl}
