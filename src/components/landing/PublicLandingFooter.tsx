@@ -371,8 +371,8 @@ export const PublicLandingFooter: React.FC<PublicLandingFooterProps> = ({
   const productLinks: FooterLinkItem[] = [
     { label: "Picare OMS", href: PATHS.CLIENT_OMS },
     { label: "Picare WMS", href: "#" },
-    { label: "Picare Saleforce", href: "#", badge: "Mới" },
-    { label: "Picare Office", href: "#", badge: "Sắp ra mắt" },
+    { label: "Picare Saleforce", href: "#" },
+    { label: "Picare Office", href: "#", badge: "Mới" },
     { label: "Picare Lab", href: "#", badge: "Đang phát triển" },
     { label: "Picare Career", href: "#", badge: "Đang phát triển" },
     { label: "Picare E-Contract", href: "#" },

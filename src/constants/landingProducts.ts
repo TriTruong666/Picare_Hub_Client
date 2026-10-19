@@ -35,7 +35,6 @@ export const LANDING_PRODUCTS: LandingProductItem[] = [
     id: "picare-saleforce",
     name: "Picare Saleforce",
     href: "#",
-    badge: "Mới",
     description:
       "Quản lý đội ngũ kinh doanh, chỉ tiêu bán hàng và mở rộng mạng lưới phân phối.",
     image: "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1787048687332_23254c2e-0d2d-4376-90bf-8a0f61237acb_upload1787048687302.png",
@@ -44,7 +43,7 @@ export const LANDING_PRODUCTS: LandingProductItem[] = [
     id: "picare-office",
     name: "Picare Office",
     href: "#",
-    badge: "Sắp ra mắt",
+    badge: "Mới",
     description:
       "Không gian làm việc số và số hóa quy trình phê duyệt hành chính nội bộ.",
     image: DEFAULT_PRODUCT_MOCK_IMAGE,

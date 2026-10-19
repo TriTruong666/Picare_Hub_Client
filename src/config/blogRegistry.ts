@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import {
+  OfficeSetupGuideUpdateDetailPage,
   OrderReturnGuideUpdateDetailPage,
   SecurityOfficeUpdateDetailPage,
   StocktakingGuideUpdateDetailPage,
@@ -49,6 +50,20 @@ export interface BlogItemConfig {
 }
 
 export const BLOG_REGISTRY: BlogItemConfig[] = [
+  {
+    id: "huong-dan-thiet-lap-picare-office",
+    path: "/changes/huong-dan-thiet-lap-picare-office",
+    component: OfficeSetupGuideUpdateDetailPage,
+    version: "v1.2.0-office",
+    category: "Tính năng mới",
+    date: "19/10/2026",
+    readTime: "5 phút đọc",
+    title: "Hướng dẫn thiết lập tài khoản và kích hoạt Picare Office",
+    summary:
+      "Hướng dẫn chi tiết từng bước cho toàn thể nhân sự nhận thư mời tham gia Picare Office: bổ sung thông tin cá nhân & ngân hàng, đối soát CCCD với OCR, tạo chữ ký số và hoàn tất kích hoạt.",
+    author: "IT Picare Vietnam",
+    authorRole: "Picare Engineering",
+  },
   {
     id: "huong-dan-kiem-ke",
     path: "/changes/huong-dan-kiem-ke",

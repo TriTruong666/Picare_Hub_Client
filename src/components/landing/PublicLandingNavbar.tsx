@@ -204,20 +204,17 @@ export function PublicLandingNavbar({
                 </span>
                 <p className="font-haffer text-[11px] font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
                   <span>
-                    Hệ thống sẽ ngưng hoạt động E-Contract trên Picare Client để
-                    chuyển đổi và nâng cấp tại Picare Office (Mới). Phòng IT sẽ
-                    tắt Office cũ và chuyển sang hệ thống mới vào ngày
-                    19/10/2026
+                    Tất cả các nhân sự công ty vui lòng kiểm tra mail lời mời
+                    của Picare Office để hoàn tất quá trình setup tài khoản.
+                    Video hướng dẫn:
                   </span>
-                  {/* <a
-                    href="/changes/huong-dan-kiem-ke"
-                    target=""
-                    rel="noopener noreferrer"
+                  <Link
+                    to={PATHS.OFFICE_SETUP_GUIDE}
                     className="ml-2 inline-flex items-center gap-1 font-semibold text-white underline underline-offset-4 transition-opacity hover:opacity-85"
                   >
                     Xem ngay
                     <FiArrowRight size={12} className="inline-block" />
-                  </a> */}
+                  </Link>
                 </p>
               </div>
 
