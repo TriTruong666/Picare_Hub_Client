@@ -1,3 +1,4 @@
+export { default as PaymentRequestGuideUpdateDetailPage } from "./PaymentRequestGuideUpdateDetailPage";
 export { default as OfficeSetupGuideUpdateDetailPage } from "./OfficeSetupGuideUpdateDetailPage";
 export { default as SecurityOfficeUpdateDetailPage } from "./SecurityOfficeUpdateDetailPage";
 export { default as OrderReturnGuideUpdateDetailPage } from "./OrderReturnGuideUpdateDetailPage";

@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import {
+  PaymentRequestGuideUpdateDetailPage,
   OfficeSetupGuideUpdateDetailPage,
   OrderReturnGuideUpdateDetailPage,
   SecurityOfficeUpdateDetailPage,
@@ -50,6 +51,20 @@ export interface BlogItemConfig {
 }
 
 export const BLOG_REGISTRY: BlogItemConfig[] = [
+  {
+    id: "huong-dan-tao-va-ky-duyet-de-nghi-thanh-toan",
+    path: "/changes/huong-dan-tao-va-ky-duyet-de-nghi-thanh-toan",
+    component: PaymentRequestGuideUpdateDetailPage,
+    version: "v1.3.0-finance",
+    category: "Tính năng mới",
+    date: "20/10/2026",
+    readTime: "6 phút đọc",
+    title: "Hướng dẫn tạo đơn và quy trình ký duyệt đề nghị thanh toán",
+    summary:
+      "Hướng dẫn toàn diện quy trình lên đơn đề nghị thanh toán / tạm ứng trên Picare Office: chọn biểu mẫu, kê khai chi phí & hoá đơn, đính kèm chứng từ, ký số nội bộ và theo dõi tiến trình phê duyệt đa cấp.",
+    author: "IT Picare Vietnam",
+    authorRole: "Picare Engineering & Finance",
+  },
   {
     id: "huong-dan-thiet-lap-picare-office",
     path: "/changes/huong-dan-thiet-lap-picare-office",
