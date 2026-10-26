@@ -31,6 +31,7 @@ export interface MasonryItem {
 
 export interface MasonryProps {
   items?: MasonryItem[];
+  preset?: "default" | "mosaic" | string;
   columns?: "auto" | number;
   columnWidth?: number;
   gap?: number;
@@ -289,7 +290,8 @@ const slotsFor = (
 };
 
 const Masonry = ({
-  items = [],
+  items: rawItems = [],
+  preset = "default",
   columns = "auto",
   columnWidth = 240,
   gap = 12,
@@ -311,6 +313,15 @@ const Masonry = ({
   className = "",
   style,
 }: MasonryProps) => {
+  const items = useMemo(() => {
+    if (preset !== "mosaic") return rawItems;
+    const MOSAIC_SPANS = [1, 2, 1, 1, 2, 1, 1, 2, 1];
+    return rawItems.map((item, index) => ({
+      ...item,
+      span: item.span ?? (MOSAIC_SPANS[index % MOSAIC_SPANS.length] || 1),
+    }));
+  }, [rawItems, preset]);
+
   const rootRef = useRef<HTMLDivElement>(null);
   const nodes = useRef(new Map<string, HTMLDivElement>());
   const springs = useRef(new Map<string, Spring>());

@@ -46,7 +46,7 @@ export const LANDING_PRODUCTS: LandingProductItem[] = [
     badge: "Mới",
     description:
       "Không gian làm việc số và số hóa quy trình phê duyệt hành chính nội bộ.",
-    image: DEFAULT_PRODUCT_MOCK_IMAGE,
+    image: "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1790234314486_6ea0751b-b508-4a16-9102-1072fde8a07c_picareoffice.png",
   },
   {
     id: "picare-lab",

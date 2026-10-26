@@ -60,7 +60,7 @@ export default function LandingHeader({
     { name: "Giới thiệu", hasDropdown: false },
     { name: "Hệ thống", hasDropdown: true },
     { name: "Tính năng", hasDropdown: false },
-    { name: "Liên hệ", hasDropdown: false },
+    { name: "Pimory", hasDropdown: false, href: PATHS.PIMORY },
     {
       name: "Catalogues",
       hasDropdown: false,

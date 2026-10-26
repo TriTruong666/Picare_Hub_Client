@@ -11,6 +11,7 @@ export const PATHS = {
   OFFICE_SETUP_GUIDE: "/changes/huong-dan-thiet-lap-picare-office", // Trang hướng dẫn thiết lập tài khoản Picare Office
   SECURITY_UPDATE_DETAIL: "/changes/nang-cap-dang-nhap", // Trang chi tiết nâng cấp bảo mật Picare Office
   CHANGE_DETAIL: "/changes/:slug",
+  PIMORY: "/pimory", // Trang bộ sưu tập khoảnh khắc Pimory
   BIRTHDATE_SEPTRUNG: "/celebration/birthdate",
   CELEBRATION_BIRTHDATE: "/celebration/birthdate",
   LOGIN: "/login", // Trang dang nhap Hub chung / chon client

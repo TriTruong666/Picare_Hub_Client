@@ -161,6 +161,18 @@ export function PublicLandingNavbar({
     }
   };
 
+  const handlePimoryClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (location.pathname === PATHS.PIMORY) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    navigateWithTransition(PATHS.PIMORY, {
+      text: "Pimory",
+      subtext: "Bộ sưu tập khoảnh khắc Picare",
+    });
+  };
+
   const handleDefaultLoginClick = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
@@ -299,12 +311,19 @@ export function PublicLandingNavbar({
               <span className="nav-link-underline">Picare Vietnam</span>
             </a>
 
-            {/* 3. Giải pháp */}
+            {/* 3. Pimory (trước là Liên hệ) */}
             <a
-              href="/test#solutions"
+              href={PATHS.PIMORY}
+              onClick={handlePimoryClick}
               className="group relative flex cursor-pointer items-center px-0.5 py-1.5 font-normal text-white/75 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] transition-colors duration-200 hover:text-white"
             >
-              <span className="nav-link-underline">Liên hệ</span>
+              <span
+                className={`nav-link-underline ${
+                  location.pathname === PATHS.PIMORY ? "active text-white" : ""
+                }`}
+              >
+                Pimory
+              </span>
             </a>
 
             {/* 4. Tài nguyên */}
