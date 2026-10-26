@@ -1,5 +1,5 @@
 import type { ChangeEvent, DragEvent } from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   FiCheckCircle,
@@ -9,6 +9,7 @@ import {
   FiXCircle,
 } from "react-icons/fi";
 import { HiOutlineX } from "react-icons/hi";
+import clsx from "clsx";
 
 import { formatFileSize } from "@/common/format";
 import { Spinner } from "@/components/custom_ui/Spinner";
@@ -37,6 +38,7 @@ export default function UploadS3AssetsModal({
   onSuccess,
 }: UploadS3AssetsModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileItemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const uploadMutation = useUploadS3Asset({
     showSuccessToast: false,
     showErrorToast: false,
@@ -53,6 +55,30 @@ export default function UploadS3AssetsModal({
   const successCount = files.filter((item) => item.status === "success").length;
   const totalSize = files.reduce((total, item) => total + item.file.size, 0);
   const canClose = !isUploading;
+
+  const currentUploadingId = files.find((item) => item.status === "uploading")?.id;
+
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open]);
+
+  // Auto-scroll and focus to the currently uploading file
+  useEffect(() => {
+    if (!currentUploadingId) return;
+    const targetElement = fileItemRefs.current.get(currentUploadingId);
+    if (targetElement) {
+      targetElement.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [currentUploadingId]);
 
   const resetModal = () => {
     setFiles([]);
@@ -222,6 +248,7 @@ export default function UploadS3AssetsModal({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", duration: 0.3 }}
+            data-lenis-prevent
             className="dashboard-theme relative flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0b0b]"
           >
             <div className="flex shrink-0 items-center justify-between border-b border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
@@ -244,7 +271,10 @@ export default function UploadS3AssetsModal({
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6">
+            <div
+              data-lenis-prevent
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6"
+            >
               <input
                 ref={inputRef}
                 type="file"
@@ -329,35 +359,84 @@ export default function UploadS3AssetsModal({
                     </span>
                   </div>
 
-                  <div className="max-h-56 divide-y divide-gray-200 overflow-y-auto dark:divide-white/10">
-                    {files.map((item) => (
+                  {isUploading && (
+                    <div className="h-1 w-full overflow-hidden bg-gray-200 dark:bg-white/10">
                       <div
-                        key={item.id}
-                        className="flex items-center gap-3 bg-white px-4 py-3 dark:bg-transparent"
-                      >
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-300">
-                          <FiFile />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                            {item.file.name}
-                          </p>
-                          <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                            <span>{formatFileSize(item.file.size)}</span>
-                            {item.message && <span>· {item.message}</span>}
-                          </div>
-                        </div>
-                        {renderStatus(item.status)}
-                        <button
-                          type="button"
-                          disabled={isUploading}
-                          onClick={() => removeFile(item.id)}
-                          className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-white/10 dark:hover:text-white"
+                        className="h-full bg-indigo-600 transition-all duration-300 dark:bg-indigo-500"
+                        style={{
+                          width: `${(successCount / files.length) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  <div
+                    data-lenis-prevent
+                    className="max-h-64 divide-y divide-gray-200 overflow-y-auto overscroll-contain dark:divide-white/10 sm:max-h-72"
+                  >
+                    {files.map((item) => {
+                      const isItemUploading = item.status === "uploading";
+
+                      return (
+                        <div
+                          key={item.id}
+                          ref={(el) => {
+                            if (el) fileItemRefs.current.set(item.id, el);
+                            else fileItemRefs.current.delete(item.id);
+                          }}
+                          className={clsx(
+                            "flex items-center gap-3 px-4 py-3 transition-all duration-200",
+                            isItemUploading
+                              ? "border-l-4 border-indigo-600 bg-indigo-50/80 dark:border-indigo-400 dark:bg-indigo-500/15"
+                              : item.status === "success"
+                                ? "border-l-4 border-emerald-500 bg-emerald-50/30 dark:border-emerald-400 dark:bg-emerald-500/5"
+                                : item.status === "error"
+                                  ? "border-l-4 border-red-500 bg-red-50/30 dark:border-red-400 dark:bg-red-500/5"
+                                  : "border-l-4 border-transparent bg-white hover:bg-gray-50/80 dark:bg-transparent dark:hover:bg-white/5",
+                          )}
                         >
-                          <FiX />
-                        </button>
-                      </div>
-                    ))}
+                          <div
+                            className={clsx(
+                              "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors",
+                              isItemUploading
+                                ? "bg-indigo-100 text-indigo-600 ring-2 ring-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-300"
+                                : item.status === "success"
+                                  ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                  : item.status === "error"
+                                    ? "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-300"
+                                    : "bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-300",
+                            )}
+                          >
+                            <FiFile />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={clsx(
+                                "truncate text-sm font-semibold transition-colors",
+                                isItemUploading
+                                  ? "text-indigo-600 dark:text-indigo-400"
+                                  : "text-gray-900 dark:text-white",
+                              )}
+                            >
+                              {item.file.name}
+                            </p>
+                            <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                              <span>{formatFileSize(item.file.size)}</span>
+                              {item.message && <span>· {item.message}</span>}
+                            </div>
+                          </div>
+                          {renderStatus(item.status)}
+                          <button
+                            type="button"
+                            disabled={isUploading}
+                            onClick={() => removeFile(item.id)}
+                            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-white/10 dark:hover:text-white"
+                          >
+                            <FiX />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

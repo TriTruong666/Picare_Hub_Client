@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FiDownload,
@@ -350,7 +350,6 @@ export default function StorageFolderDetailPage() {
           onDelete={setAssetToDelete}
           onDownload={handleDownloadAsset}
           onUpload={() => setIsUploadModalOpen(true)}
-          pagination={pagination}
         />
       )}
 
@@ -387,9 +386,7 @@ function StorageGridSection({
   onDelete,
   onDownload,
   onUpload,
-  pagination,
 }: {
-  pagination?: S3AssetsPagination;
   assets: S3Asset[];
   hasMore: boolean;
   isLoading: boolean;
@@ -402,6 +399,31 @@ function StorageGridSection({
   onDownload: (asset: S3Asset) => void;
   onUpload: () => void;
 }) {
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !isFetching) {
+          onLoadMore();
+        }
+      },
+      {
+        root: null,
+        rootMargin: "300px",
+        threshold: 0,
+      },
+    );
+
+    observer.observe(target);
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, isFetching, onLoadMore]);
+
   if ((isLoading || isFetching) && assets.length === 0) {
     return <StorageGridSkeleton />;
   }
@@ -433,32 +455,15 @@ function StorageGridSection({
         onDownload={onDownload}
       />
 
-      <div className="mt-12 flex flex-col items-center justify-center pb-20">
-        {hasMore ? (
-          <button
-            onClick={onLoadMore}
-            disabled={isFetching}
-            className={clsx(
-              "btn-secondary gap-3 rounded-xl border-gray-300 bg-white py-3 text-xs shadow-sm transition-all hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10",
-              isFetching && "cursor-not-allowed opacity-50",
-            )}
-          >
-            {isFetching ? (
-              <>
-                <Spinner size="sm" color="primary" />
-                <span>Đang tải thêm...</span>
-              </>
-            ) : (
-              <>
-                <span>Tải thêm files</span>
-                <Badge
-                  type="info"
-                  value={`${assets.length} tệp`}
-                />
-              </>
-            )}
-          </button>
-        ) : (
+      {/* Infinite loading sentinel for Grid */}
+      <div ref={loadMoreRef} className="flex flex-col items-center justify-center py-6">
+        {isFetching && (
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <Spinner size="sm" color="primary" />
+            <span>Đang tải thêm tệp...</span>
+          </div>
+        )}
+        {!hasMore && assets.length > 0 && (
           <div className="flex flex-col items-center gap-2">
             <div className="h-px w-20 bg-gray-300 dark:bg-white/5" />
             <p className="text-[10px] tracking-widest text-gray-500 dark:text-white/20">
@@ -497,6 +502,140 @@ function StorageGridSkeleton() {
   );
 }
 
+const StorageGridCard = memo(function StorageGridCard({
+  asset,
+  index,
+  onView,
+  onDelete,
+  onDownload,
+}: {
+  asset: S3Asset;
+  index: number;
+  onView: (asset: S3Asset) => void;
+  onDelete: (asset: S3Asset) => void;
+  onDownload: (asset: S3Asset) => void;
+}) {
+  const isPrivate = asset.visibility === "private";
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -8 }}
+      transition={{ duration: 0.25, ease: "easeOut", delay: (index % 4) * 0.04 }}
+      onClick={() => onView(asset)}
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-300 bg-gray-50 transition-all duration-300 hover:border-gray-400 hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/[0.08] dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+    >
+      <div className="relative aspect-square overflow-hidden border-b border-gray-300 dark:border-white/10">
+        {isPrivate ? (
+          <div className="flex h-full w-full flex-col items-center justify-center bg-gray-100/50 dark:bg-white/5">
+            <FiEyeOff className="mb-2 text-3xl text-gray-400" />
+            <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">
+              Private
+            </span>
+          </div>
+        ) : asset.assetType === "image" ? (
+          <img
+            src={asset.presignedUrl || asset.s3Url}
+            alt={asset.originalName}
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-white/5">
+            <FiPlayCircle className="text-4xl text-gray-300" />
+          </div>
+        )}
+
+        <div className="absolute inset-0 bg-linear-to-t from-black/45 via-black/10 to-transparent" />
+
+        <div className="absolute top-4 left-4 flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
+            {(() => {
+              const { icon: Icon } = getAssetMimeInfo(asset.mimeType);
+              return <Icon />;
+            })()}
+          </span>
+          <Badge
+            type={getAssetMimeInfo(asset.mimeType).badgeType}
+            value={getAssetMimeInfo(asset.mimeType).label}
+          />
+        </div>
+
+        {isPrivate && (
+          <div className="absolute top-4 right-4">
+            <Badge type="error" value="Private" />
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-3.5 p-4">
+        <div className="space-y-2">
+          <h2 className="line-clamp-1 text-sm font-bold tracking-tight text-gray-900 dark:text-white">
+            {asset.originalName}
+          </h2>
+          <div className="grid grid-cols-2 gap-2">
+            <FileMetaBlock
+              label="Kích thước"
+              value={formatFileSize(asset.fileSize)}
+            />
+            <FileMetaBlock
+              label="Loại"
+              value={getAssetMimeInfo(asset.mimeType).label}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-gray-300 pt-3 dark:border-white/10">
+          <div className="flex flex-wrap gap-1">
+            {asset.tags?.length ? (
+              asset.tags
+                .slice(0, 2)
+                .map((tag) => <Badge key={tag} type="info" value={tag} />)
+            ) : (
+              <span className="text-[10px] text-gray-400">No tags</span>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <Tooltip content="Xem">
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onView(asset);
+                }}
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white"
+              >
+                <FiEye size={14} />
+              </button>
+            </Tooltip>
+            <Tooltip content="Tải xuống">
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDownload(asset);
+                }}
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white"
+              >
+                <FiDownload size={14} />
+              </button>
+            </Tooltip>
+            <Tooltip content="Xóa">
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete(asset);
+                }}
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+              >
+                <FiTrash2 size={14} />
+              </button>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+    </motion.article>
+  );
+});
+
 function StorageGrid({
   assets,
   onView,
@@ -510,128 +649,16 @@ function StorageGrid({
 }) {
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-      {assets.map((asset, index) => {
-        const isPrivate = asset.visibility === "private";
-
-        return (
-          <motion.article
-            key={asset.assetId}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ y: -8 }}
-            transition={{ duration: 0.3, delay: index * 0.04 }}
-            onClick={() => onView(asset)}
-            className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-300 bg-gray-50 transition-all duration-300 hover:border-gray-400 hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/[0.08] dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
-          >
-            <div className="relative aspect-square overflow-hidden border-b border-gray-300 dark:border-white/10">
-              {isPrivate ? (
-                <div className="flex h-full w-full flex-col items-center justify-center bg-gray-100/50 dark:bg-white/5">
-                  <FiEyeOff className="mb-2 text-3xl text-gray-400" />
-                  <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">
-                    Private
-                  </span>
-                </div>
-              ) : asset.assetType === "image" ? (
-                <img
-                  src={asset.presignedUrl || asset.s3Url}
-                  alt={asset.originalName}
-                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-white/5">
-                  <FiPlayCircle className="text-4xl text-gray-300" />
-                </div>
-              )}
-
-              <div className="absolute inset-0 bg-linear-to-t from-black/45 via-black/10 to-transparent" />
-
-              <div className="absolute top-4 left-4 flex items-center gap-2">
-                <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
-                  {(() => {
-                    const { icon: Icon } = getAssetMimeInfo(asset.mimeType);
-                    return <Icon />;
-                  })()}
-                </span>
-                <Badge
-                  type={getAssetMimeInfo(asset.mimeType).badgeType}
-                  value={getAssetMimeInfo(asset.mimeType).label}
-                />
-              </div>
-
-              {isPrivate && (
-                <div className="absolute top-4 right-4">
-                  <Badge type="error" value="Private" />
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-3.5 p-4">
-              <div className="space-y-2">
-                <h2 className="line-clamp-1 text-sm font-bold tracking-tight text-gray-900 dark:text-white">
-                  {asset.originalName}
-                </h2>
-                <div className="grid grid-cols-2 gap-2">
-                  <FileMetaBlock
-                    label="Kích thước"
-                    value={formatFileSize(asset.fileSize)}
-                  />
-                  <FileMetaBlock
-                    label="Loại"
-                    value={getAssetMimeInfo(asset.mimeType).label}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-gray-300 pt-3 dark:border-white/10">
-                <div className="flex flex-wrap gap-1">
-                  {asset.tags?.length ? (
-                    asset.tags
-                      .slice(0, 2)
-                      .map((tag) => <Badge key={tag} type="info" value={tag} />)
-                  ) : (
-                    <span className="text-[10px] text-gray-400">No tags</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Tooltip content="Xem">
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onView(asset);
-                      }}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white"
-                    >
-                      <FiEye size={14} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip content="Tải xuống">
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onDownload(asset);
-                      }}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white"
-                    >
-                      <FiDownload size={14} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip content="Xóa">
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onDelete(asset);
-                      }}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
-                    >
-                      <FiTrash2 size={14} />
-                    </button>
-                  </Tooltip>
-                </div>
-              </div>
-            </div>
-          </motion.article>
-        );
-      })}
+      {assets.map((asset, index) => (
+        <StorageGridCard
+          key={asset.assetId}
+          asset={asset}
+          index={index}
+          onView={onView}
+          onDelete={onDelete}
+          onDownload={onDownload}
+        />
+      ))}
     </div>
   );
 }
