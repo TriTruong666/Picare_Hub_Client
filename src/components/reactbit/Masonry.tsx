@@ -182,10 +182,12 @@ const keyOf = (item: MasonryItem) => String(item.id);
 const aspectOf = (item: MasonryItem, measured: Measured) => {
   const width = item.width ?? 0;
   const height = item.height ?? 0;
-  if (width > 0 && height > 0) return height / width;
-  if (measured[keyOf(item)]) return measured[keyOf(item)];
-  if (height > 0) return height / 600;
-  return 1;
+  let ratio = 1;
+  if (width > 0 && height > 0) ratio = height / width;
+  else if (measured[keyOf(item)]) ratio = measured[keyOf(item)];
+  else if (height > 0) ratio = height / 600;
+  // Giới hạn tỷ lệ hài hòa (0.75 đến 1.33) để các tấm không bị lệch nhau quá nhiều làm thủng lưới
+  return clamp(ratio, 0.75, 1.33);
 };
 
 const needsMeasure = (item: MasonryItem) => !((item.height ?? 0) > 0);
@@ -314,13 +316,12 @@ const Masonry = ({
   style,
 }: MasonryProps) => {
   const items = useMemo(() => {
-    if (preset !== "mosaic") return rawItems;
-    const MOSAIC_SPANS = [1, 2, 1, 1, 2, 1, 1, 2, 1];
-    return rawItems.map((item, index) => ({
+    return rawItems.map((item) => ({
       ...item,
-      span: item.span ?? (MOSAIC_SPANS[index % MOSAIC_SPANS.length] || 1),
+      // Cố định span = 1 để các ảnh khớp chặt vào từng cột không để lại khoảng trống
+      span: 1,
     }));
-  }, [rawItems, preset]);
+  }, [rawItems]);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const nodes = useRef(new Map<string, HTMLDivElement>());

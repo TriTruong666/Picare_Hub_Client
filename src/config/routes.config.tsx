@@ -19,6 +19,7 @@ import LoginHubPage from "@/pages/public/LoginHubPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
 import SepTrungBirthPage from "@/pages/public/birthdate/SepTrungBirthPage";
 import PimoryPage from "@/pages/public/PimoryPage";
+import { AuthGuard } from "@/components/guards/AuthGuard";
 import ContractCreatePage from "@/pages/private/ContractCreatePage";
 import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
 import ContractEditPage from "@/pages/private/ContractEditPage";
@@ -101,7 +102,11 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
   },
   {
     path: PATHS.PIMORY,
-    element: <PimoryPage />,
+    element: (
+      <AuthGuard requireDashboardAccess={false}>
+        <PimoryPage />
+      </AuthGuard>
+    ),
   },
 ];
 

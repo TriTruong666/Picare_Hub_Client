@@ -1,11 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { FiRefreshCw, FiImage, FiDatabase } from "react-icons/fi";
+import { FiRefreshCw, FiImage } from "react-icons/fi";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
 import PublicLandingFooter from "@/components/landing/PublicLandingFooter";
 import Masonry, { type MasonryItem } from "@/components/reactbit/Masonry";
-import { useS3Assets } from "@/hooks/data/useS3Hooks";
-// Sử dụng getS3Assets từ s3.service.ts thông qua hook useS3Assets
+import { getS3Assets } from "@/apis/s3.service";
 
 // Danh sách mock đa dạng tỉ lệ ảnh (ngang, dọc, vuông) dành cho môi trường Dev xem UI
 const DEV_MOCK_ITEMS: MasonryItem[] = [
@@ -112,24 +112,53 @@ const DEV_MOCK_ITEMS: MasonryItem[] = [
 ];
 
 export default function PimoryPage() {
-  // Lấy dữ liệu trực tiếp từ folder picare_gallery qua API getS3Assets
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [mockBatch, setMockBatch] = useState(1);
+
+  // Infinite Query gọi getS3Assets tự động theo cursor
   const {
-    data: assetsData,
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isLoading,
     isError,
     refetch,
     isFetching,
-  } = useS3Assets({
-    folder: "picare_gallery",
-    assetType: "",
-    limit: 12,
+  } = useInfiniteQuery({
+    queryKey: ["s3-assets-pimory-infinite"],
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam }) => {
+      const res = await getS3Assets({
+        folder: "picare_gallery",
+        assetType: "",
+        limit: 12,
+        cursor: pageParam || undefined,
+      });
+
+      if (!res.success) {
+        throw new Error(res.message || "Không thể tải thư viện ảnh");
+      }
+
+      return res.data;
+    },
+    getNextPageParam: (lastPage) => {
+      if (lastPage?.pagination?.hasNext && lastPage.pagination.nextCursor) {
+        return lastPage.pagination.nextCursor;
+      }
+      return undefined;
+    },
+    retry: 1,
   });
 
-  // Chuyển đổi S3 assets thành Masonry items (bỏ hoàn toàn title/description)
-  // Nếu S3 chưa có ảnh hoặc lỗi (chưa đăng nhập ở môi trường Dev) -> tự động fallback sang mock data
+  // Gom tất cả các trang ảnh từ S3
+  const allAssets = useMemo(() => {
+    return data?.pages.flatMap((page) => page?.assets ?? []) ?? [];
+  }, [data]);
+
+  // Chuyển đổi thành Masonry items (span=1 để các ảnh khớp tuyệt đối không sinh khoảng trống)
   const items = useMemo<MasonryItem[]>(() => {
-    const rawAssets = assetsData?.assets ?? [];
-    const validAssets = rawAssets.filter((asset) =>
+    const validAssets = allAssets.filter((asset) =>
       Boolean(asset.presignedUrl || asset.s3Url),
     );
 
@@ -138,13 +167,49 @@ export default function PimoryPage() {
         id: asset.assetId || asset.s3Key,
         img: asset.presignedUrl || asset.s3Url,
         alt: asset.originalName || "Pimory Picare Gallery",
-        // Bỏ hoàn toàn title theo yêu cầu
+        span: 1,
       }));
     }
 
-    // Fallback sang DEV_MOCK_ITEMS
-    return DEV_MOCK_ITEMS;
-  }, [assetsData]);
+    // Fallback sang DEV_MOCK_ITEMS hỗ trợ infinite load mô phỏng cho Dev
+    const mocked: MasonryItem[] = [];
+    for (let b = 0; b < mockBatch; b++) {
+      DEV_MOCK_ITEMS.forEach((item, idx) => {
+        mocked.push({
+          ...item,
+          id: `mock-${b}-${idx}-${item.id}`,
+          span: 1,
+        });
+      });
+    }
+    return mocked;
+  }, [allAssets, mockBatch]);
+
+  // Tự động kích hoạt infinite loading khi cuộn xuống gần cuối trang
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry.isIntersecting) return;
+
+        if (allAssets.length > 0) {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        } else if (mockBatch < 4) {
+          // Mô phỏng tải thêm cho Dev khi cuộn
+          setMockBatch((prev) => prev + 1);
+        }
+      },
+      { rootMargin: "350px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [allAssets.length, hasNextPage, isFetchingNextPage, fetchNextPage, mockBatch]);
 
   const shouldShowGrid = items.length > 0;
 
@@ -163,22 +228,22 @@ export default function PimoryPage() {
 
       {/* 2. Main Full Screen Masonry Container */}
       <main className="relative z-10 mx-auto flex w-full max-w-[1920px] flex-1 flex-col px-3 pb-16 sm:px-6 md:px-8 lg:px-10">
-        {/* Loading State Skeleton (khi đang fetch và chưa có dữ liệu) */}
+        {/* Loading State Skeleton (khi đang fetch trang đầu) */}
         {isLoading && !shouldShowGrid && (
-          <div className="grid animate-pulse grid-cols-2 gap-4 py-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {Array.from({ length: 12 }).map((_, i) => (
+          <div className="grid animate-pulse grid-cols-2 gap-1 py-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
+            {Array.from({ length: 24 }).map((_, i) => (
               <div
                 key={i}
-                className="w-full rounded-2xl border border-white/[0.06] bg-white/[0.04]"
+                className="w-full rounded-[4px] border border-white/[0.06] bg-white/[0.04]"
                 style={{
-                  height: `${[260, 340, 290, 380, 240, 310][i % 6]}px`,
+                  height: `${[140, 180, 160, 200, 150, 190][i % 6]}px`,
                 }}
               />
             ))}
           </div>
         )}
 
-        {/* Error State khi không có cả mock lẫn API */}
+        {/* Error State khi không có ảnh */}
         {!isLoading && isError && !shouldShowGrid && (
           <div className="my-auto flex flex-col items-center justify-center py-24 text-center">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#F86D2B]">
@@ -229,7 +294,7 @@ export default function PimoryPage() {
             <Masonry
               items={items}
               preset="mosaic"
-              columns={4}
+              columns="auto"
               columnWidth={160}
               gap={4}
               radius={4}
@@ -244,6 +309,19 @@ export default function PimoryPage() {
             />
           </motion.div>
         )}
+
+        {/* Infinite Scroll Sentinel & Loader */}
+        <div
+          ref={loadMoreRef}
+          className="flex w-full items-center justify-center py-8"
+        >
+          {(isFetchingNextPage || (allAssets.length === 0 && mockBatch < 4)) && (
+            <div className="flex items-center gap-2 text-xs font-haffer text-zinc-400">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#FFA336] border-t-transparent" />
+              <span>Đang tải thêm khoảnh khắc...</span>
+            </div>
+          )}
+        </div>
       </main>
 
       {/* 3. Footer */}
