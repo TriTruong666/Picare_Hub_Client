@@ -252,7 +252,7 @@ export default function PimoryPage() {
         {isLoading && (
           <div className="my-auto flex min-h-[60vh] flex-col items-center justify-center text-center">
             <div className="relative mb-5 flex items-center justify-center">
-              <div className="absolute h-14 w-14 rounded-full bg-[#FFA336]/20 blur-md animate-pulse" />
+              <div className="absolute h-14 w-14 animate-pulse rounded-full bg-[#FFA336]/20 blur-md" />
               <div className="h-10 w-10 animate-spin rounded-full border-[2.5px] border-white/10 border-t-[#FFA336]" />
             </div>
             <p className="font-haffer text-sm font-normal tracking-wide text-zinc-300">
@@ -320,11 +320,11 @@ export default function PimoryPage() {
               duration={0.9}
               bounce={0.06}
               captions="none"
-              hoverEffect="lift"
+              hoverEffect="none"
               lightbox={true}
               draggable={true}
               animateFrom="bottom"
-              blurToFocus={true}
+              blurToFocus={false}
             />
           </motion.div>
         )}
