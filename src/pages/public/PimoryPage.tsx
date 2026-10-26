@@ -320,10 +320,10 @@ export default function PimoryPage() {
               duration={0.9}
               bounce={0.06}
               captions="none"
-              hoverEffect="zoom"
+              hoverEffect="tilt"
               lightbox={true}
               draggable={true}
-              animateFrom="top"
+              animateFrom="bottom"
               blurToFocus={false}
             />
           </motion.div>
