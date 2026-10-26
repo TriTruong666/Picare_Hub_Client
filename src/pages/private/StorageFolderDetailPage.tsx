@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FiDownload,
@@ -327,6 +326,7 @@ export default function StorageFolderDetailPage() {
       {viewMode === "table" ? (
         <StorageTable
           assets={displayAssets}
+          hasMore={hasMore}
           isLoading={isLoadingAssets}
           isFetching={isFetchingAssets}
           isError={isError}
@@ -335,14 +335,7 @@ export default function StorageFolderDetailPage() {
           onDelete={setAssetToDelete}
           onDownload={handleDownloadAsset}
           onUpload={() => setIsUploadModalOpen(true)}
-          pagination={
-            <CursorLoadMoreControl
-              assetCount={displayAssets.length}
-              hasMore={hasMore}
-              isFetching={isFetchingAssets}
-              onLoadMore={handleLoadMore}
-            />
-          }
+          onLoadMore={handleLoadMore}
         />
       ) : (
         <StorageGridSection
@@ -478,44 +471,9 @@ function StorageGridSection({
   );
 }
 
-function CursorLoadMoreControl({
-  assetCount,
-  hasMore,
-  isFetching,
-  onLoadMore,
-}: {
-  assetCount: number;
-  hasMore: boolean;
-  isFetching: boolean;
-  onLoadMore: () => void;
-}) {
-  if (!hasMore) {
-    return (
-      <p className="py-4 text-center text-[10px] tracking-widest text-gray-500 dark:text-white/20">
-        Hiển thị ({assetCount}) tệp
-      </p>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={onLoadMore}
-      disabled={isFetching}
-      className={clsx(
-        "btn-secondary mx-auto flex gap-3 rounded-xl border-gray-300 bg-white py-3 text-xs shadow-sm transition-all hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10",
-        isFetching && "cursor-not-allowed opacity-50",
-      )}
-    >
-      {isFetching ? <Spinner size="sm" color="primary" /> : null}
-      <span>{isFetching ? "Đang tải thêm..." : `Tải thêm tệp (${assetCount})`}</span>
-    </button>
-  );
-}
-
 function StorageGridSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {Array.from({ length: 8 }).map((_, index) => (
         <div
           key={index}
@@ -551,7 +509,7 @@ function StorageGrid({
   onDownload: (asset: S3Asset) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {assets.map((asset, index) => {
         const isPrivate = asset.visibility === "private";
 
@@ -680,6 +638,7 @@ function StorageGrid({
 
 function StorageTable({
   assets,
+  hasMore,
   isLoading,
   isFetching,
   isError,
@@ -688,9 +647,10 @@ function StorageTable({
   onDelete,
   onDownload,
   onUpload,
-  pagination,
+  onLoadMore,
 }: {
   assets: S3Asset[];
+  hasMore: boolean;
   isLoading: boolean;
   isFetching: boolean;
   isError: boolean;
@@ -699,8 +659,33 @@ function StorageTable({
   onDelete: (asset: S3Asset) => void;
   onDownload: (asset: S3Asset) => void;
   onUpload: () => void;
-  pagination: ReactNode;
+  onLoadMore: () => void;
 }) {
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !isFetching) {
+          onLoadMore();
+        }
+      },
+      {
+        root: null,
+        rootMargin: "300px",
+        threshold: 0,
+      },
+    );
+
+    observer.observe(target);
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, isFetching, onLoadMore]);
+
   if ((isLoading || isFetching) && assets.length === 0) {
     return (
       <div className="flex min-h-100 flex-col items-center justify-center py-10">
@@ -733,7 +718,7 @@ function StorageTable({
   return (
     <div className="relative">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[850px] table-fixed border-collapse border-x border-t border-gray-400 text-left dark:border-white/10">
+        <table className="w-full min-w-[850px] table-fixed border-collapse border border-gray-400 text-left dark:border-white/10">
           <thead>
             <tr className="bg-gray-100/50 dark:bg-white/5">
               {columns.map((column, index) => (
@@ -844,7 +829,21 @@ function StorageTable({
             })}
           </tbody>
         </table>
-        <div className="border-gray-400 dark:border-white/10">{pagination}</div>
+      </div>
+
+      {/* Infinite loading sentinel & loading indicator */}
+      <div ref={loadMoreRef} className="flex flex-col items-center justify-center py-6">
+        {isFetching && (
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <Spinner size="sm" color="primary" />
+            <span>Đang tải thêm tệp...</span>
+          </div>
+        )}
+        {!hasMore && assets.length > 0 && (
+          <p className="text-[10px] tracking-widest text-gray-500 dark:text-white/20">
+            Hiển thị ({assets.length}) files
+          </p>
+        )}
       </div>
     </div>
   );

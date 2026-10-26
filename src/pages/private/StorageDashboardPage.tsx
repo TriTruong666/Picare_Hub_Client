@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FiEdit3,
   FiFolder,
   FiFolderPlus,
+  FiSearch,
   FiTrash2,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
@@ -34,8 +35,19 @@ export default function StorageDashboardPage() {
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
   const [editingFolder, setEditingFolder] = useState<S3Folder | null>(null);
   const [deletingFolder, setDeletingFolder] = useState<S3Folder | null>(null);
+  const [searchInput, setSearchInput] = useState<string>("");
 
   const folders: S3Folder[] = (foldersData as S3Folder[] | undefined) || [];
+
+  const filteredFolders = useMemo(() => {
+    if (!searchInput.trim()) return folders;
+    const query = searchInput.trim().toLowerCase();
+    return folders.filter(
+      (folder) =>
+        folder.name.toLowerCase().includes(query) ||
+        folder.description?.toLowerCase().includes(query),
+    );
+  }, [folders, searchInput]);
 
   const openCreateFolderModal = () => setIsCreateFolderModalOpen(true);
   const closeCreateFolderModal = () => setIsCreateFolderModalOpen(false);
@@ -95,6 +107,20 @@ export default function StorageDashboardPage() {
         </button>
       </div>
 
+      <div className="mt-6 mb-6 flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1">
+          <FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-gray-400 dark:text-white/30" />
+          <input
+            id="storage-folder-search"
+            type="text"
+            placeholder="Tìm kiếm theo tên thư mục..."
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 placeholder:text-gray-500 outline-none transition hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+          />
+        </div>
+      </div>
+
       {folders.length === 0 ? (
         <StateShell
           title="Danh sách trống"
@@ -102,9 +128,15 @@ export default function StorageDashboardPage() {
           actionLabel="Tạo thư mục ngay"
           onAction={openCreateFolderModal}
         />
+      ) : filteredFolders.length === 0 ? (
+        <div className="flex min-h-[240px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 py-12 text-center dark:border-white/10">
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Không tìm thấy thư mục nào phù hợp với từ khóa &ldquo;{searchInput}&rdquo;
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
-          {folders.map((folder, index) => {
+          {filteredFolders.map((folder, index) => {
             const accent = ACCENTS[index % ACCENTS.length];
 
             return (
