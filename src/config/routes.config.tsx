@@ -94,6 +94,10 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
     path: PATHS.BIRTHDATE_SEPTRUNG,
     element: <SepTrungBirthPage />,
   },
+  {
+    path: "/birthdate/septrung",
+    element: <Navigate to={PATHS.BIRTHDATE_SEPTRUNG} replace />,
+  },
 ];
 
 export const PRIVATE_ROUTES: RouteConfig[] = [

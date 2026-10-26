@@ -288,10 +288,8 @@ function SpinDigit({ value }: { value: string }) {
 
 export default function SepTrungBirthPage() {
   const [isIntro, setIsIntro] = useState(true);
-  // stage: 'idle' (chờ click 1) -> 'animating' (đang chảy nước) -> 'ready' (chảy xong, chờ click 2) -> 'exiting'
-  const [stage, setStage] = useState<
-    "idle" | "animating" | "ready" | "exiting"
-  >("idle");
+  // stage: 'idle' (sẵn sàng click) -> 'exiting' (đang quét vòng tròn sang Section 2)
+  const [stage, setStage] = useState<"idle" | "exiting">("idle");
 
   // Section 2: Timer 10s logic
   const [isSection2Active, setIsSection2Active] = useState(false);
@@ -310,22 +308,38 @@ export default function SepTrungBirthPage() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const introOverlayRef = useRef<HTMLDivElement>(null);
+  const introLogosRef = useRef<HTMLDivElement>(null);
   const introTextRef = useRef<HTMLDivElement>(null);
   const introTitleRef = useRef<HTMLHeadingElement>(null);
-  const liquidContainerRef = useRef<HTMLDivElement>(null);
   const introSubTextRef = useRef<HTMLParagraphElement>(null);
 
   // State 2: Lớp nền màu sáng quét mở rộng theo hình tròn từ vị trí con trỏ chuột
   const state2Ref = useRef<HTMLDivElement>(null);
   const timerContainerRef = useRef<HTMLDivElement>(null);
 
-  // Entrance ban đầu: Chữ Picare Client màu trắng tĩnh xuất hiện mượt mà
+  // Entrance ban đầu: Toàn bộ chữ và logo xuất hiện mượt mà ngay từ đầu
   useGSAP(
     () => {
-      if (!introTitleRef.current) return;
+      if (introLogosRef.current) {
+        gsap.fromTo(
+          introLogosRef.current,
+          {
+            opacity: 0,
+            y: -10,
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.9,
+            ease: "power2.out",
+          },
+        );
+      }
+
+      if (!introTextRef.current) return;
 
       gsap.fromTo(
-        introTitleRef.current,
+        introTextRef.current,
         {
           opacity: 0,
           y: 16,
@@ -594,8 +608,7 @@ export default function SepTrungBirthPage() {
   const unitsDigit = formattedCountdown[1];
 
   // Xử lý click ở State 1:
-  // Click 1: Chảy nước vàng đa hướng trong chữ
-  // Click 2: Quét vòng tròn mở rộng chậm rãi từ vị trí con trỏ chuột sang State 2
+  // Ban đầu hiện hết toàn bộ chữ. Người dùng bấm 1 lần duy nhất để quét vòng tròn mở rộng sang Section 2 (đếm số).
   const handleContainerClick = (event: React.MouseEvent<HTMLDivElement>) => {
     // Nếu Section 2 đã kích hoạt, bấm vào màn hình là kích hoạt đếm ngược
     if (isSection2Active) {
@@ -603,105 +616,41 @@ export default function SepTrungBirthPage() {
       return;
     }
 
-    if (stage === "animating" || stage === "exiting") return;
+    if (stage === "exiting") return;
 
-    // CLICK LẦN 2: Làn sóng tròn mở rộng chậm rãi từ đúng tọa độ con trỏ chuột
-    if (stage === "ready") {
-      setStage("exiting");
+    // Bấm 1 lần: Làn sóng tròn mở rộng chậm rãi từ đúng tọa độ con trỏ chuột sang Section 2
+    setStage("exiting");
 
-      const x = event.clientX;
-      const y = event.clientY;
-      const maxRadius = Math.hypot(
-        Math.max(x, window.innerWidth - x),
-        Math.max(y, window.innerHeight - y),
-      );
+    const x = event.clientX;
+    const y = event.clientY;
+    const maxRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
 
-      const tl = gsap.timeline({
-        onComplete: () => {
-          setIsIntro(false);
-          setIsSection2Active(true);
-        },
-      });
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setIsIntro(false);
+        setIsSection2Active(true);
+      },
+    });
 
-      // Lớp State 2 (màu sáng) mở rộng chậm rãi từ tọa độ con trỏ (x, y)
-      const waveState = { r: 0 };
-      if (state2Ref.current) {
-        state2Ref.current.style.clipPath = `circle(0px at ${x}px ${y}px)`;
-        state2Ref.current.style.opacity = "1";
+    // Lớp State 2 (màu sáng) mở rộng chậm rãi từ tọa độ con trỏ (x, y)
+    const waveState = { r: 0 };
+    if (state2Ref.current) {
+      state2Ref.current.style.clipPath = `circle(0px at ${x}px ${y}px)`;
+      state2Ref.current.style.opacity = "1";
 
-        tl.to(waveState, {
-          r: maxRadius * 1.05,
-          duration: 3.0,
-          ease: "power2.inOut",
-          onUpdate: () => {
-            if (state2Ref.current) {
-              state2Ref.current.style.clipPath = `circle(${waveState.r}px at ${x}px ${y}px)`;
-            }
-          },
-        });
-      }
-
-      return;
-    }
-
-    // CLICK LẦN 1: Kích hoạt dòng nước chảy đa hướng trong chữ
-    if (stage === "idle") {
-      setStage("animating");
-
-      const tl = gsap.timeline({
-        onComplete: () => {
-          setStage("ready");
-        },
-      });
-
-      if (liquidContainerRef.current) {
-        tl.set(liquidContainerRef.current, { opacity: 1 });
-      }
-
-      const fluidState = { p: 0 };
-
-      // Chạy animation chậm rãi trong 3.6s
-      tl.to(fluidState, {
-        p: 1,
-        duration: 3.6,
+      tl.to(waveState, {
+        r: maxRadius * 1.05,
+        duration: 3.0,
         ease: "power2.inOut",
         onUpdate: () => {
-          if (!liquidContainerRef.current) return;
-          const p = fluidState.p;
-
-          const solid = p * 130;
-          const fade = solid + 15;
-
-          const maskVal = `
-            linear-gradient(to top, rgba(0,0,0,1) ${solid}%, rgba(0,0,0,0) ${fade}%),
-            radial-gradient(ellipse 90% 90% at 50% 50%, rgba(0,0,0,1) ${solid * 0.9}%, rgba(0,0,0,0) ${fade}%),
-            linear-gradient(125deg, rgba(0,0,0,1) ${solid}%, rgba(0,0,0,0) ${fade}%)
-          `;
-
-          liquidContainerRef.current.style.maskImage = maskVal;
-          liquidContainerRef.current.style.webkitMaskImage = maskVal;
+          if (state2Ref.current) {
+            state2Ref.current.style.clipPath = `circle(${waveState.r}px at ${x}px ${y}px)`;
+          }
         },
       });
-
-      // Giữa chừng (giây thứ 1.6), hiện chữ helper mượt mà
-      if (introSubTextRef.current) {
-        tl.fromTo(
-          introSubTextRef.current,
-          {
-            opacity: 0,
-            y: 12,
-            filter: "blur(5px)",
-          },
-          {
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-            duration: 1.2,
-            ease: "power2.out",
-          },
-          1.6,
-        );
-      }
     }
   };
 
@@ -973,7 +922,7 @@ export default function SepTrungBirthPage() {
               >
                 <div className="max-w-3xl px-6">
                   <h1
-                    className="font-haffer select-none text-3xl font-normal sm:text-4xl bg-clip-text text-transparent"
+                    className="font-haffer bg-clip-text text-3xl font-normal text-transparent select-none sm:text-4xl"
                     style={{
                       backgroundImage:
                         "linear-gradient(135deg, #FFFDF8 0%, #FFE2B7 25%, #FFA336 55%, #FF8D10 80%, #FFB049 100%)",
@@ -1144,52 +1093,51 @@ export default function SepTrungBirthPage() {
           ref={introOverlayRef}
           className="fixed inset-0 z-20 flex items-center justify-center overflow-hidden bg-black select-none"
         >
-          {/* Trung tâm: Khối chữ Picare Client */}
+          {/* 3 logo ở góc trên bên trái */}
+          <div
+            ref={introLogosRef}
+            className="absolute top-6 left-6 z-20 flex items-center gap-6 sm:top-4 sm:left-10 sm:gap-9"
+          >
+            <img
+              src={logoPicareNonBg}
+              alt="Picare"
+              className="h-[38px] w-auto object-contain opacity-95 brightness-0 invert transition-all hover:scale-105 sm:h-[52px] md:h-[58px]"
+            />
+            <img
+              src={logoTrungHanhNonBg}
+              alt="Trung Hạnh"
+              className="h-[50px] w-auto object-contain opacity-95 transition-all hover:scale-105 sm:h-[68px] md:h-[76px]"
+            />
+            <img
+              src={logoDermacoonNonBg}
+              alt="Dermacoon"
+              className="h-[36px] w-auto object-contain opacity-95 transition-all hover:scale-105 sm:h-[50px] md:h-[66px]"
+            />
+          </div>
+
+          {/* Trung tâm: Khối chữ Picare Client hiển thị đầy đủ ngay từ đầu */}
           <div
             ref={introTextRef}
             className="relative z-10 flex flex-col items-center justify-center px-4 text-center"
           >
-            {/* Box chứa 2 lớp: Lớp chữ trắng ban đầu & Lớp chất lỏng vàng chảy đa hướng */}
-            <div className="relative flex items-center justify-center">
-              {/* Lớp 1 (Gốc): Chữ màu trắng nguyên bản kích thước chuẩn */}
-              <h1
-                ref={introTitleRef}
-                className="font-haffer text-3xl font-light tracking-[-0.04em] text-white sm:text-4xl"
-              >
-                <span className="font-light italic">Picare</span>{" "}
-                <span className="font-normal text-white/90">
-                  Client<span className="text-[#FFA336]">.</span>
-                </span>
-              </h1>
+            <h1
+              ref={introTitleRef}
+              className="font-haffer bg-clip-text text-3xl font-light tracking-[-0.04em] text-transparent drop-shadow-[0_0_20px_rgba(255,163,54,0.65)] select-none sm:text-4xl"
+              style={{
+                backgroundImage:
+                  "linear-gradient(135deg, #FF6F00 0%, #FFA336 40%, #FFD074 75%, #FFECC0 100%)",
+              }}
+            >
+              <span className="font-light italic">Picare</span>{" "}
+              <span className="font-normal">
+                Client<span className="text-[#FF8D10]">.</span>
+              </span>
+            </h1>
 
-              {/* Lớp 2: Dòng nước màu vàng kim chảy ĐA HƯỚNG */}
-              <div
-                ref={liquidContainerRef}
-                className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0"
-                style={{
-                  maskComposite: "add",
-                  WebkitMaskComposite: "destination-in",
-                }}
-              >
-                <h1
-                  className="font-haffer bg-clip-text text-3xl font-light tracking-[-0.04em] text-transparent drop-shadow-[0_0_20px_rgba(255,163,54,0.65)] select-none sm:text-4xl"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(135deg, #FF6F00 0%, #FFA336 40%, #FFD074 75%, #FFECC0 100%)",
-                  }}
-                >
-                  <span className="font-light italic">Picare</span>{" "}
-                  <span className="font-normal">
-                    Client<span className="text-[#FF8D10]">.</span>
-                  </span>
-                </h1>
-              </div>
-            </div>
-
-            {/* Dòng chữ ở dưới: Hiện lên trong lúc nước đang chảy */}
+            {/* Dòng chữ ở dưới: Hiển thị đầy đủ ngay từ đầu */}
             <p
               ref={introSubTextRef}
-              className="font-haffer mt-3 text-[12px] font-light text-zinc-400 opacity-0"
+              className="font-haffer mt-3 text-[12px] font-light text-zinc-400"
             >
               Happy birthday! Cheers to more laughs together.
             </p>
