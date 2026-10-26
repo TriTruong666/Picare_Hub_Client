@@ -12,11 +12,19 @@ const DEV_MOCK_ITEMS: MasonryItem[] = [
   {
     id: "mock-1",
     img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Picare Collaboration Team",
+  },
+  {
+    id: "mock-video-1",
+    img: "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1790064168652_9f235726-a528-4e55-9052-47489360b497_trahangcustomer.mp4",
+    type: "video",
+    alt: "Picare Customer Return Demo Video",
   },
   {
     id: "mock-2",
     img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Picare Technology & Data",
   },
   {
@@ -60,8 +68,15 @@ const DEV_MOCK_ITEMS: MasonryItem[] = [
     alt: "Engineering Center",
   },
   {
+    id: "mock-video-2",
+    img: "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1790064213123_843477d9-2efd-4ca0-9494-0a37910faec2_taoyeucautrahang.mp4",
+    type: "video",
+    alt: "Picare Order Create Return Demo Video",
+  },
+  {
     id: "mock-11",
     img: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Partnership Signing",
   },
   {
@@ -163,12 +178,22 @@ export default function PimoryPage() {
     );
 
     if (validAssets.length > 0) {
-      return validAssets.map((asset) => ({
-        id: asset.assetId || asset.s3Key,
-        img: asset.presignedUrl || asset.s3Url,
-        alt: asset.originalName || "Pimory Picare Gallery",
-        span: 1,
-      }));
+      return validAssets.map((asset) => {
+        const isVideo =
+          asset.assetType === "video" ||
+          asset.mimeType?.startsWith("video/") ||
+          /\.(mp4|webm|mov|ogg|m4v)(\?.*)?$/i.test(
+            asset.s3Url || asset.s3Key || "",
+          );
+
+        return {
+          id: asset.assetId || asset.s3Key,
+          img: asset.presignedUrl || asset.s3Url,
+          type: isVideo ? ("video" as const) : ("image" as const),
+          alt: asset.originalName || "Pimory Picare Gallery",
+          span: 1,
+        };
+      });
     }
 
     // Fallback sang DEV_MOCK_ITEMS hỗ trợ infinite load mô phỏng cho Dev
@@ -209,7 +234,13 @@ export default function PimoryPage() {
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [allAssets.length, hasNextPage, isFetchingNextPage, fetchNextPage, mockBatch]);
+  }, [
+    allAssets.length,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    mockBatch,
+  ]);
 
   const shouldShowGrid = items.length > 0;
 
@@ -227,7 +258,7 @@ export default function PimoryPage() {
       </div>
 
       {/* 2. Main Full Screen Masonry Container */}
-      <main className="relative z-10 mx-auto flex w-full max-w-[1920px] flex-1 flex-col px-3 pb-16 sm:px-6 md:px-8 lg:px-10">
+      <main className="relative z-10 mx-auto flex w-full max-w-[1920px] flex-1 flex-col px-3 pt-24 pb-16 sm:px-6 md:px-8 lg:px-10">
         {/* Loading State Skeleton (khi đang fetch trang đầu) */}
         {isLoading && !shouldShowGrid && (
           <div className="grid animate-pulse grid-cols-2 gap-1 py-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
@@ -298,13 +329,14 @@ export default function PimoryPage() {
               columnWidth={160}
               gap={4}
               radius={4}
-              stagger={0.02}
+              stagger={0.035}
+              duration={0.9}
+              bounce={0.06}
               captions="none"
               hoverEffect="lift"
               lightbox={true}
               draggable={true}
               animateFrom="bottom"
-              duration={0.65}
               blurToFocus={true}
             />
           </motion.div>
@@ -315,8 +347,9 @@ export default function PimoryPage() {
           ref={loadMoreRef}
           className="flex w-full items-center justify-center py-8"
         >
-          {(isFetchingNextPage || (allAssets.length === 0 && mockBatch < 4)) && (
-            <div className="flex items-center gap-2 text-xs font-haffer text-zinc-400">
+          {(isFetchingNextPage ||
+            (allAssets.length === 0 && mockBatch < 4)) && (
+            <div className="font-haffer flex items-center gap-2 text-xs text-zinc-400">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#FFA336] border-t-transparent" />
               <span>Đang tải thêm khoảnh khắc...</span>
             </div>

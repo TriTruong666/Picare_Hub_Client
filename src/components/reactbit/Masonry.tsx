@@ -20,6 +20,7 @@ import {
 export interface MasonryItem {
   id: string | number;
   img: string;
+  type?: "image" | "video";
   width?: number;
   height?: number;
   title?: string;
@@ -179,6 +180,13 @@ const clamp = (value: number, min: number, max: number) =>
 
 const keyOf = (item: MasonryItem) => String(item.id);
 
+const isVideoMedia = (item?: MasonryItem | null) => {
+  if (!item?.img) return false;
+  if (item.type === "video") return true;
+  if (item.type === "image") return false;
+  return /\.(mp4|webm|mov|ogg|m4v)(\?.*)?$/i.test(item.img);
+};
+
 const aspectOf = (item: MasonryItem, measured: Measured) => {
   const width = item.width ?? 0;
   const height = item.height ?? 0;
@@ -186,6 +194,7 @@ const aspectOf = (item: MasonryItem, measured: Measured) => {
   if (width > 0 && height > 0) ratio = height / width;
   else if (measured[keyOf(item)]) ratio = measured[keyOf(item)];
   else if (height > 0) ratio = height / 600;
+  else if (isVideoMedia(item)) ratio = 1.15;
   // Giới hạn tỷ lệ hài hòa (0.75 đến 1.33) để các tấm không bị lệch nhau quá nhiều làm thủng lưới
   return clamp(ratio, 0.75, 1.33);
 };
@@ -414,7 +423,7 @@ const Masonry = ({
   useEffect(() => {
     const known = measuredRef.current;
     const missing = itemsRef.current.filter(
-      (item) => needsMeasure(item) && !known[keyOf(item)],
+      (item) => needsMeasure(item) && !known[keyOf(item)] && !isVideoMedia(item),
     );
     if (!missing.length) {
       setReady(true);
@@ -423,21 +432,31 @@ const Masonry = ({
     let cancelled = false;
     const timer = setTimeout(() => {
       if (!cancelled) setReady(true);
-    }, 2500);
+    }, 1200);
+
+    const pendingBatch: Measured = {};
+    let batchTimer: number | null = null;
+
     missing.forEach((item) => {
       const image = new Image();
       image.onload = () => {
         if (cancelled || !image.naturalWidth) return;
-        setMeasured((current) => ({
-          ...current,
-          [keyOf(item)]: image.naturalHeight / image.naturalWidth,
-        }));
+        pendingBatch[keyOf(item)] = image.naturalHeight / image.naturalWidth;
+        if (!batchTimer) {
+          batchTimer = window.setTimeout(() => {
+            if (!cancelled) {
+              setMeasured((current) => ({ ...current, ...pendingBatch }));
+              batchTimer = null;
+            }
+          }, 80);
+        }
       };
       image.src = item.img;
     });
     return () => {
       cancelled = true;
       clearTimeout(timer);
+      if (batchTimer) clearTimeout(batchTimer);
     };
   }, [itemsKey]);
 
@@ -573,10 +592,10 @@ const Masonry = ({
         s.animateFrom === "random"
           ? DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)]
           : s.animateFrom;
-      const distance = 60 + Math.min(spring.h, 280) * 0.35;
+      const distance = 28 + Math.min(spring.h, 160) * 0.15;
       spring.x = spring.tx;
       spring.y = spring.ty;
-      spring.s = 0.96;
+      spring.s = 0.98;
       if (direction === "center") {
         spring.x = rootWidth / 2 - spring.w / 2;
         spring.y = centerY - spring.h / 2;
@@ -612,7 +631,9 @@ const Masonry = ({
   const markLoaded = (id: string) => {
     loaded.current.add(id);
     const node = nodes.current.get(id);
-    node?.querySelector("img")?.setAttribute("data-loaded", "");
+    node?.querySelectorAll("img, video").forEach((el) => {
+      el.setAttribute("data-loaded", "");
+    });
     if (waiting.current.has(id)) requestReveal(id);
   };
 
@@ -1199,24 +1220,45 @@ const Masonry = ({
         const content = (
           <span className={MEDIA} data-media="">
             <span className={PARALLAX} data-parallax="">
-              <img
-                className={IMAGE}
-                src={item.img}
-                alt={item.alt ?? item.title ?? ""}
-                draggable={false}
-                decoding="async"
-                data-loaded={loaded.current.has(id) ? "" : undefined}
-                ref={(image) => {
-                  if (
-                    image?.complete &&
-                    image.naturalWidth &&
-                    !loaded.current.has(id)
-                  )
-                    markLoaded(id);
-                }}
-                onLoad={() => markLoaded(id)}
-                onError={() => markLoaded(id)}
-              />
+              {isVideoMedia(item) ? (
+                <video
+                  className={`${IMAGE} object-cover`}
+                  src={item.img}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  data-loaded={loaded.current.has(id) ? "" : undefined}
+                  ref={(vid) => {
+                    if (vid && !loaded.current.has(id)) {
+                      if (vid.readyState >= 1) markLoaded(id);
+                    }
+                  }}
+                  onLoadedMetadata={() => markLoaded(id)}
+                  onCanPlay={() => markLoaded(id)}
+                  onError={() => markLoaded(id)}
+                />
+              ) : (
+                <img
+                  className={IMAGE}
+                  src={item.img}
+                  alt={item.alt ?? item.title ?? ""}
+                  draggable={false}
+                  decoding="async"
+                  data-loaded={loaded.current.has(id) ? "" : undefined}
+                  ref={(image) => {
+                    if (
+                      image?.complete &&
+                      image.naturalWidth &&
+                      !loaded.current.has(id)
+                    )
+                      markLoaded(id);
+                  }}
+                  onLoad={() => markLoaded(id)}
+                  onError={() => markLoaded(id)}
+                />
+              )}
             </span>
             {captionMode !== "none" && (item.title || item.description) && (
               <span className={CAPTION} data-mode={captionMode}>
@@ -1302,21 +1344,45 @@ const Masonry = ({
               data-box-backdrop=""
               onClick={closeBox}
             />
-            <img
-              className={BOX_IMAGE}
-              data-box-image=""
-              src={openItem.img}
-              alt={openItem.alt ?? openItem.title ?? ""}
-              draggable={false}
-              style={{
-                width: box.width,
-                height: box.height,
-                left: box.left,
-                top: box.top,
-                borderRadius: 6,
-              }}
-              onClick={closeBox}
-            />
+            {isVideoMedia(openItem) ? (
+              <video
+                ref={(vid) => {
+                  if (vid) {
+                    vid.currentTime = 0;
+                    vid.play().catch(() => {});
+                  }
+                }}
+                className={`${BOX_IMAGE} object-contain bg-black/90`}
+                data-box-image=""
+                src={openItem.img}
+                autoPlay
+                controls
+                playsInline
+                style={{
+                  width: box.width,
+                  height: box.height,
+                  left: box.left,
+                  top: box.top,
+                  borderRadius: 6,
+                }}
+              />
+            ) : (
+              <img
+                className={BOX_IMAGE}
+                data-box-image=""
+                src={openItem.img}
+                alt={openItem.alt ?? openItem.title ?? ""}
+                draggable={false}
+                style={{
+                  width: box.width,
+                  height: box.height,
+                  left: box.left,
+                  top: box.top,
+                  borderRadius: 6,
+                }}
+                onClick={closeBox}
+              />
+            )}
             {box.room > 0 && (
               <div
                 className={BOX_CAPTION}
