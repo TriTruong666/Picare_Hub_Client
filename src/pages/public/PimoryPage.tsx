@@ -1,11 +1,22 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { FiRefreshCw, FiImage } from "react-icons/fi";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import PublicLandingNavbar from "@/components/landing/PublicLandingNavbar";
 import PublicLandingFooter from "@/components/landing/PublicLandingFooter";
 import Masonry, { type MasonryItem } from "@/components/reactbit/Masonry";
 import { getS3Assets } from "@/apis/s3.service";
+import type { S3Asset } from "@/types/S3";
+
+// Hàm xáo trộn ngẫu nhiên (Fisher-Yates shuffle)
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 // Danh sách mock đa dạng tỉ lệ ảnh (ngang, dọc, vuông) dành cho môi trường Dev xem UI
 const DEV_MOCK_ITEMS: MasonryItem[] = [
@@ -30,41 +41,49 @@ const DEV_MOCK_ITEMS: MasonryItem[] = [
   {
     id: "mock-3",
     img: "https://images.unsplash.com/photo-1600132806370-bf17e65e942f?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Modern Design Workspace",
   },
   {
     id: "mock-4",
     img: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Picare Office Interior",
   },
   {
     id: "mock-5",
     img: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Minimalist Workspace",
   },
   {
     id: "mock-6",
     img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Enterprise Architecture",
   },
   {
     id: "mock-7",
     img: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Product Design Review",
   },
   {
     id: "mock-8",
     img: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Executive Conference",
   },
   {
     id: "mock-9",
     img: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Creative Session",
   },
   {
     id: "mock-10",
     img: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Engineering Center",
   },
   {
@@ -82,103 +101,112 @@ const DEV_MOCK_ITEMS: MasonryItem[] = [
   {
     id: "mock-12",
     img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Picare Leadership",
   },
   {
     id: "mock-13",
     img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Business Growth",
   },
   {
     id: "mock-14",
     img: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Team Strategy",
   },
   {
     id: "mock-15",
     img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Skyscraper Architecture",
   },
   {
     id: "mock-16",
     img: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Digital Workflow",
   },
   {
     id: "mock-17",
     img: "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Creative Agency",
   },
   {
     id: "mock-18",
     img: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Code Development",
   },
   {
     id: "mock-19",
     img: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "All Hands Meeting",
   },
   {
     id: "mock-20",
     img: "https://images.unsplash.com/photo-1531973576160-7125cd663d86?q=80&w=800&auto=format&fit=crop",
+    type: "image",
     alt: "Corporate Campus",
   },
 ];
 
-export default function PimoryPage() {
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const [mockBatch, setMockBatch] = useState(1);
+// Hàm tự động load toàn bộ file trong folder picare_gallery theo cursor
+async function fetchAllPimoryAssets(): Promise<S3Asset[]> {
+  const all: S3Asset[] = [];
+  let cursor: string | undefined = undefined;
+  let hasNext = true;
 
-  // Infinite Query gọi getS3Assets tự động theo cursor
+  while (hasNext) {
+    const res = await getS3Assets({
+      folder: "picare_gallery",
+      assetType: "",
+      limit: 50,
+      cursor,
+    });
+
+    if (!res.success) {
+      throw new Error(res.message || "Không thể tải thư viện ảnh");
+    }
+
+    const pageAssets = res.data?.assets || [];
+    all.push(...pageAssets);
+
+    hasNext = Boolean(
+      res.data?.pagination?.hasNext && res.data?.pagination?.nextCursor,
+    );
+    cursor = res.data?.pagination?.nextCursor || undefined;
+  }
+
+  return all;
+}
+
+export default function PimoryPage() {
+  // Tự động load cho đến khi nào đầy đủ toàn bộ data
   const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
+    data: allAssets,
     isLoading,
     isError,
     refetch,
     isFetching,
-  } = useInfiniteQuery({
-    queryKey: ["s3-assets-pimory-infinite"],
-    initialPageParam: undefined as string | undefined,
-    queryFn: async ({ pageParam }) => {
-      const res = await getS3Assets({
-        folder: "picare_gallery",
-        assetType: "",
-        limit: 12,
-        cursor: pageParam || undefined,
-      });
-
-      if (!res.success) {
-        throw new Error(res.message || "Không thể tải thư viện ảnh");
-      }
-
-      return res.data;
-    },
-    getNextPageParam: (lastPage) => {
-      if (lastPage?.pagination?.hasNext && lastPage.pagination.nextCursor) {
-        return lastPage.pagination.nextCursor;
-      }
-      return undefined;
-    },
+  } = useQuery({
+    queryKey: ["s3-assets-pimory-all"],
+    queryFn: fetchAllPimoryAssets,
+    staleTime: 5 * 60 * 1000,
     retry: 1,
   });
 
-  // Gom tất cả các trang ảnh từ S3
-  const allAssets = useMemo(() => {
-    return data?.pages.flatMap((page) => page?.assets ?? []) ?? [];
-  }, [data]);
-
-  // Chuyển đổi thành Masonry items (span=1 để các ảnh khớp tuyệt đối không sinh khoảng trống)
+  // Chuyển đổi thành Masonry items và xáo trộn ngẫu nhiên toàn bộ danh sách
   const items = useMemo<MasonryItem[]>(() => {
-    const validAssets = allAssets.filter((asset) =>
+    const validAssets = (allAssets ?? []).filter((asset) =>
       Boolean(asset.presignedUrl || asset.s3Url),
     );
 
     if (validAssets.length > 0) {
-      return validAssets.map((asset) => {
+      const mapped: MasonryItem[] = validAssets.map((asset) => {
         const isVideo =
           asset.assetType === "video" ||
           asset.mimeType?.startsWith("video/") ||
@@ -194,55 +222,16 @@ export default function PimoryPage() {
           span: 1,
         };
       });
+
+      // Tự random các tấm hình ngẫu nhiên
+      return shuffleArray(mapped);
     }
 
-    // Fallback sang DEV_MOCK_ITEMS hỗ trợ infinite load mô phỏng cho Dev
-    const mocked: MasonryItem[] = [];
-    for (let b = 0; b < mockBatch; b++) {
-      DEV_MOCK_ITEMS.forEach((item, idx) => {
-        mocked.push({
-          ...item,
-          id: `mock-${b}-${idx}-${item.id}`,
-          span: 1,
-        });
-      });
-    }
-    return mocked;
-  }, [allAssets, mockBatch]);
+    // Fallback sang DEV_MOCK_ITEMS cũng được xáo trộn ngẫu nhiên
+    return shuffleArray(DEV_MOCK_ITEMS);
+  }, [allAssets]);
 
-  // Tự động kích hoạt infinite loading khi cuộn xuống gần cuối trang
-  useEffect(() => {
-    const sentinel = loadMoreRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (!entry.isIntersecting) return;
-
-        if (allAssets.length > 0) {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
-        } else if (mockBatch < 4) {
-          // Mô phỏng tải thêm cho Dev khi cuộn
-          setMockBatch((prev) => prev + 1);
-        }
-      },
-      { rootMargin: "350px" },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [
-    allAssets.length,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-    mockBatch,
-  ]);
-
-  const shouldShowGrid = items.length > 0;
+  const shouldShowGrid = !isLoading && items.length > 0;
 
   return (
     <div className="font-haffer relative flex min-h-screen flex-col overflow-x-hidden bg-[#07060A] text-white selection:bg-[#F86D2B] selection:text-white">
@@ -257,24 +246,22 @@ export default function PimoryPage() {
         <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:32px_32px] opacity-20" />
       </div>
 
-      {/* 2. Main Full Screen Masonry Container */}
+      {/* 2. Main Container */}
       <main className="relative z-10 mx-auto flex w-full max-w-[1920px] flex-1 flex-col px-3 pt-24 pb-16 sm:px-6 md:px-8 lg:px-10">
-        {/* Loading State Skeleton (khi đang fetch trang đầu) */}
-        {isLoading && !shouldShowGrid && (
-          <div className="grid animate-pulse grid-cols-2 gap-1 py-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
-            {Array.from({ length: 24 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-full rounded-[4px] border border-white/[0.06] bg-white/[0.04]"
-                style={{
-                  height: `${[140, 180, 160, 200, 150, 190][i % 6]}px`,
-                }}
-              />
-            ))}
+        {/* Loading State: 1 cái spinner và 1 dòng text ở chính giữa màn hình */}
+        {isLoading && (
+          <div className="my-auto flex min-h-[60vh] flex-col items-center justify-center text-center">
+            <div className="relative mb-5 flex items-center justify-center">
+              <div className="absolute h-14 w-14 rounded-full bg-[#FFA336]/20 blur-md animate-pulse" />
+              <div className="h-10 w-10 animate-spin rounded-full border-[2.5px] border-white/10 border-t-[#FFA336]" />
+            </div>
+            <p className="font-haffer text-sm font-normal tracking-wide text-zinc-300">
+              Đang tải toàn bộ khoảnh khắc Pimory...
+            </p>
           </div>
         )}
 
-        {/* Error State khi không có ảnh */}
+        {/* Error State khi tải dữ liệu thất bại */}
         {!isLoading && isError && !shouldShowGrid && (
           <div className="my-auto flex flex-col items-center justify-center py-24 text-center">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#F86D2B]">
@@ -314,12 +301,12 @@ export default function PimoryPage() {
           </div>
         )}
 
-        {/* Masonry Grid Full Screen */}
+        {/* Khi nào load hết thì hiện 1 thể toàn bộ Masonry Grid (đã random) */}
         {shouldShowGrid && (
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             className="w-full flex-1"
           >
             <Masonry
@@ -341,20 +328,6 @@ export default function PimoryPage() {
             />
           </motion.div>
         )}
-
-        {/* Infinite Scroll Sentinel & Loader */}
-        <div
-          ref={loadMoreRef}
-          className="flex w-full items-center justify-center py-8"
-        >
-          {(isFetchingNextPage ||
-            (allAssets.length === 0 && mockBatch < 4)) && (
-            <div className="font-haffer flex items-center gap-2 text-xs text-zinc-400">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#FFA336] border-t-transparent" />
-              <span>Đang tải thêm khoảnh khắc...</span>
-            </div>
-          )}
-        </div>
       </main>
 
       {/* 3. Footer */}
