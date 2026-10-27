@@ -7,15 +7,9 @@ import logoPicareNonBg from "@/assets/images/logo_picare_nonbg.png";
 import logoTrungHanhNonBg from "@/assets/images/logo_trunghanh_nonbg.png";
 import logoDermacoonNonBg from "@/assets/images/logo_dermacoon_nonbg.png";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
-import huongdan1 from "@/assets/images/huongdan1.jpg";
-import huongdan2 from "@/assets/images/huongdan2.jpg";
-import huongdan3 from "@/assets/images/huongdan3.jpg";
-import huongdan4 from "@/assets/images/huongdan4.jpg";
-import huongdan5 from "@/assets/images/huongdan5.jpg";
+import { TUNNEL_ITEMS } from "./SepTrungTunnelData";
 
 gsap.registerPlugin(useGSAP);
-
-const MOCK_PHOTOS = [huongdan1, huongdan2, huongdan3, huongdan4, huongdan5];
 
 // Hỗ trợ cả hình ảnh và video (.mp4, .webm, .mov hoặc gán type: 'video')
 const isMediaVideo = (src: string, type?: "video" | "image") => {
@@ -23,160 +17,6 @@ const isMediaVideo = (src: string, type?: "video" | "image") => {
   if (type === "image") return false;
   return /\.(mp4|webm|mov|ogg|m4v)(\?.*)?$/i.test(src);
 };
-
-// 20 media đa dạng (ảnh và video) tỏa đều các hướng xung quanh tâm, kích thước tự nhiên
-// Xuất hiện so le liên tục 1s/tấm tạo dòng chảy đường hầm 3D dồi dào, sống động
-const TUNNEL_ITEMS: Array<{
-  src: string;
-  type?: "video" | "image";
-  tx: string;
-  ty: string;
-  rot: string;
-  delay: string;
-}> = [
-  {
-    src: huongdan1,
-    tx: "-42rem",
-    ty: "-20rem",
-    rot: "0deg",
-    delay: "0s",
-  },
-  {
-    src: "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1790064168652_9f235726-a528-4e55-9052-47489360b497_trahangcustomer.mp4",
-    type: "video",
-    tx: "42rem",
-    ty: "20rem",
-    rot: "0deg",
-    delay: "1s",
-  },
-  {
-    src: huongdan3,
-    tx: "-44rem",
-    ty: "18rem",
-    rot: "0deg",
-    delay: "2s",
-  },
-  {
-    src: huongdan4,
-    tx: "44rem",
-    ty: "-18rem",
-    rot: "0deg",
-    delay: "3s",
-  },
-  {
-    src: huongdan5,
-    tx: "-50rem",
-    ty: "0rem",
-    rot: "0deg",
-    delay: "4s",
-  },
-  {
-    src: huongdan1,
-    tx: "50rem",
-    ty: "0rem",
-    rot: "0deg",
-    delay: "5s",
-  },
-  {
-    src: huongdan2,
-    tx: "-18rem",
-    ty: "-28rem",
-    rot: "0deg",
-    delay: "6s",
-  },
-  {
-    src: huongdan3,
-    tx: "18rem",
-    ty: "28rem",
-    rot: "0deg",
-    delay: "7s",
-  },
-  {
-    src: huongdan4,
-    tx: "-38rem",
-    ty: "-24rem",
-    rot: "0deg",
-    delay: "8s",
-  },
-  {
-    src: "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1790064168652_9f235726-a528-4e55-9052-47489360b497_trahangcustomer.mp4",
-    type: "video",
-    tx: "38rem",
-    ty: "24rem",
-    rot: "0deg",
-    delay: "9s",
-  },
-  {
-    src: huongdan5,
-    tx: "-46rem",
-    ty: "-10rem",
-    rot: "0deg",
-    delay: "10s",
-  },
-  {
-    src: huongdan1,
-    tx: "46rem",
-    ty: "10rem",
-    rot: "0deg",
-    delay: "11s",
-  },
-  {
-    src: huongdan2,
-    tx: "-46rem",
-    ty: "12rem",
-    rot: "0deg",
-    delay: "12s",
-  },
-  {
-    src: huongdan3,
-    tx: "46rem",
-    ty: "-12rem",
-    rot: "0deg",
-    delay: "13s",
-  },
-  {
-    src: huongdan4,
-    tx: "18rem",
-    ty: "-28rem",
-    rot: "0deg",
-    delay: "14s",
-  },
-  {
-    src: huongdan5,
-    tx: "-18rem",
-    ty: "28rem",
-    rot: "0deg",
-    delay: "15s",
-  },
-  {
-    src: huongdan1,
-    tx: "-52rem",
-    ty: "-6rem",
-    rot: "0deg",
-    delay: "16s",
-  },
-  {
-    src: huongdan2,
-    tx: "52rem",
-    ty: "6rem",
-    rot: "0deg",
-    delay: "17s",
-  },
-  {
-    src: huongdan3,
-    tx: "-40rem",
-    ty: "22rem",
-    rot: "0deg",
-    delay: "18s",
-  },
-  {
-    src: huongdan4,
-    tx: "40rem",
-    ty: "-22rem",
-    rot: "0deg",
-    delay: "19s",
-  },
-];
 
 const STEP_INTERVAL = 1500; // 1.5s cho mỗi nhịp đếm
 const VIDEO_FADE_IN_DURATION = 8.5; // Video sáng dần chậm rãi hơn (8.5s)
@@ -1001,7 +841,7 @@ export default function SepTrungBirthPage() {
                   will-change: transform, opacity;
                   cursor: pointer;
                   opacity: 0;
-                  animation: move-3d 20s linear infinite;
+                  animation: move-3d 28s linear infinite;
                   animation-delay: var(--delay);
                   transition: box-shadow 0.3s ease, border-color 0.3s ease, filter 0.3s ease;
                 }
