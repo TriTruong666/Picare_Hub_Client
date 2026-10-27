@@ -710,7 +710,7 @@ function SendPartnerMailModal({
 
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-6">
               <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
                   Email đối tác
                 </span>
                 <input
@@ -723,7 +723,7 @@ function SendPartnerMailModal({
               </label>
 
               <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
                   Tiêu đề
                 </span>
                 <input
@@ -737,7 +737,7 @@ function SendPartnerMailModal({
               </label>
 
               <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
                   Lời mở đầu
                 </span>
                 <input
@@ -751,7 +751,7 @@ function SendPartnerMailModal({
               </label>
 
               <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
                   Nội dung
                 </span>
                 <textarea

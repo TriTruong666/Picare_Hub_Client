@@ -59,7 +59,7 @@ function OptionCard({
         </div>
 
         <span
-          className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase ${badgeClasses}`}
+          className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase ${badgeClasses}`}
         >
           {badge}
         </span>
@@ -127,7 +127,7 @@ export default function PartnerSignTypeModal({
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-5 p-6">
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-6">
               <div className="grid gap-3 md:grid-cols-2">
                 <OptionCard
                   icon={<FiUser />}

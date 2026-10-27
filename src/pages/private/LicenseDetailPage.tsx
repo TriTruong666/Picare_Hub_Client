@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { FiDownload, FiEdit2, FiExternalLink, FiServer, FiMail } from "react-icons/fi";
+import {
+  FiDownload,
+  FiEdit2,
+  FiExternalLink,
+  FiServer,
+  FiMail,
+} from "react-icons/fi";
 import { HiOutlineX } from "react-icons/hi";
 import { Link, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -350,7 +356,7 @@ function SoftwareList({ software }: { software: SoftwareItem[] }) {
 
           {item.serverConfig?.length > 0 && (
             <div className="mt-4 border-t border-gray-200 pt-3 dark:border-white/[0.07]">
-              <p className="mb-2 text-[10px] tracking-wider text-gray-400 uppercase dark:text-white/30">
+              <p className="mb-2 text-[10px] text-gray-400 uppercase dark:text-white/30">
                 Cấu hình dịch vụ
               </p>
               <div className="flex flex-wrap gap-2">
@@ -430,7 +436,7 @@ function DetailCell({
 }) {
   return (
     <div>
-      <p className="text-[10px] tracking-wider text-gray-400 uppercase dark:text-white/30">
+      <p className="text-[10px] text-gray-400 uppercase dark:text-white/30">
         {label}
       </p>
       <div className="mt-1 text-[11px] text-gray-700 dark:text-white/60">
@@ -490,8 +496,12 @@ function createActivationCopy(
 }
 
 function createLicenseActiveMailForm(license: License): LicenseActiveMailForm {
-  const serverSoftware = license.software.find((software) => software.type === "server");
-  const clientSoftware = license.software.find((software) => software.type === "client");
+  const serverSoftware = license.software.find(
+    (software) => software.type === "server",
+  );
+  const clientSoftware = license.software.find(
+    (software) => software.type === "client",
+  );
   const softwareName = serverSoftware?.name || clientSoftware?.name || "";
   const clientUrl = normalizeSoftwareUrl(clientSoftware?.domain);
 
@@ -566,8 +576,12 @@ function LicenseActivationMailDialog({
 
     const isDev = import.meta.env.DEV;
     const response = await sendMailMutation.mutateAsync({
-      smtpUser: isDev ? "tritruonghoang3@gmail.com" : "picare-noreply@picare.vn",
-      mailFrom: isDev ? "tritruonghoang3@gmail.com" : "picare-noreply@picare.vn",
+      smtpUser: isDev
+        ? "tritruonghoang3@gmail.com"
+        : "picare-noreply@picare.vn",
+      mailFrom: isDev
+        ? "tritruonghoang3@gmail.com"
+        : "picare-noreply@picare.vn",
       mailFromName: isDev ? "Picare Dev" : "Picare Việt Nam",
       to: normalizedTo,
       subject: form.subject.trim(),
@@ -590,246 +604,232 @@ function LicenseActivationMailDialog({
   };
 
   return (
+    <div
+      data-lenis-prevent
+      className="fixed inset-0 z-[300] flex items-center justify-center overflow-hidden p-4"
+      onWheel={(event) => event.stopPropagation()}
+    >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => !isSending && onClose()}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      />
+
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ type: "spring", duration: 0.3 }}
+        className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border backdrop-blur-xl"
+      >
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 bg-white/[0.04] p-4">
+          <div>
+            <h2 className="text-base font-semibold text-white">
+              Gửi mail kích hoạt bản quyền
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-white/45">
+              Kiểm tra nội dung trước khi gửi email thông tin kích hoạt bản
+              quyền cho khách hàng.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            disabled={isSending}
+            onClick={onClose}
+            className="rounded-md p-1.5 text-white/45 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <HiOutlineX className="size-4" />
+          </button>
+        </div>
+
         <div
           data-lenis-prevent
-          className="fixed inset-0 z-[300] flex items-center justify-center overflow-hidden p-4"
-          onWheel={(event) => event.stopPropagation()}
+          className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4"
         >
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => !isSending && onClose()}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          />
+          <label className="block">
+            <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
+              Email khách hàng
+            </span>
+            <input
+              type="email"
+              value={form.to}
+              disabled={isSending}
+              onChange={(event) => updateField("to", event.target.value)}
+              className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+            />
+          </label>
 
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ type: "spring", duration: 0.3 }}
-            className="dashboard-theme contract-surface relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border backdrop-blur-xl"
-          >
-            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 bg-white/[0.04] p-4">
-              <div>
-                <h2 className="text-base font-semibold text-white">
-                  Gửi mail kích hoạt bản quyền
-                </h2>
-                <p className="mt-1 text-xs leading-5 text-white/45">
-                  Kiểm tra nội dung trước khi gửi email thông tin kích hoạt bản quyền cho khách hàng.
-                </p>
-              </div>
+          <label className="block">
+            <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
+              Tên phần mềm
+            </span>
+            <input
+              value={form.softwareName}
+              disabled={isSending}
+              onChange={(event) => {
+                const softwareName = event.target.value;
+                setForm((current) => ({
+                  ...current,
+                  softwareName,
+                  ...createActivationCopy(license, softwareName, clientUrl),
+                }));
+              }}
+              placeholder="Ví dụ: Picare OMS"
+              className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+            />
+          </label>
 
-              <button
-                type="button"
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
+                Phần mềm Server
+              </span>
+              <GlassSelect
+                value={form.serverSoftwareId}
                 disabled={isSending}
-                onClick={onClose}
-                className="rounded-md p-1.5 text-white/45 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <HiOutlineX className="size-4" />
-              </button>
-            </div>
+                placeholder="Chọn Server"
+                options={serverSoftware.map((software) => ({
+                  value: software.softwareId,
+                  label: software.name || software.softwareId,
+                }))}
+                onChange={(value) => {
+                  const software = serverSoftware.find(
+                    (item) => item.softwareId === value,
+                  );
+                  const softwareName = software?.name || form.softwareName;
+                  setForm((current) => ({
+                    ...current,
+                    serverSoftwareId: value,
+                    softwareName,
+                    ...createActivationCopy(license, softwareName, clientUrl),
+                  }));
+                }}
+              />
+              <span className="mt-1.5 block text-[10px] text-white/30">
+                ID gửi đi: {form.serverSoftwareId || "Chưa chọn"}
+              </span>
+            </label>
 
-            <div
-              data-lenis-prevent
-              className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4"
-            >
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Email khách hàng
-                </span>
-                <input
-                  type="email"
-                  value={form.to}
-                  disabled={isSending}
-                  onChange={(event) => updateField("to", event.target.value)}
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Tên phần mềm
-                </span>
-                <input
-                  value={form.softwareName}
-                  disabled={isSending}
-                  onChange={(event) => {
-                    const softwareName = event.target.value;
-                    setForm((current) => ({
-                      ...current,
-                      softwareName,
-                      ...createActivationCopy(
-                        license,
-                        softwareName,
-                        clientUrl,
-                      ),
-                    }));
-                  }}
-                  placeholder="Ví dụ: Picare OMS"
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                    Phần mềm Server
-                  </span>
-                  <GlassSelect
-                    value={form.serverSoftwareId}
-                    disabled={isSending}
-                    placeholder="Chọn Server"
-                    options={serverSoftware.map((software) => ({
-                      value: software.softwareId,
-                      label: software.name || software.softwareId,
-                    }))}
-                    onChange={(value) => {
-                      const software = serverSoftware.find(
-                        (item) => item.softwareId === value,
-                      );
-                      const softwareName =
-                        software?.name || form.softwareName;
-                      setForm((current) => ({
-                        ...current,
-                        serverSoftwareId: value,
-                        softwareName,
-                        ...createActivationCopy(
-                          license,
-                          softwareName,
-                          clientUrl,
-                        ),
-                      }));
-                    }}
-                  />
-                  <span className="mt-1.5 block text-[10px] text-white/30">
-                    ID gửi đi: {form.serverSoftwareId || "Chưa chọn"}
-                  </span>
-                </label>
-
-                <label className="block">
-                  <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                    Phần mềm Client
-                  </span>
-                  <GlassSelect
-                    value={form.clientSoftwareId}
-                    disabled={isSending}
-                    placeholder="Chọn Client"
-                    options={clientSoftware.map((software) => ({
-                      value: software.softwareId,
-                      label: software.name || software.softwareId,
-                    }))}
-                    onChange={(value) => {
-                      const selected = clientSoftware.find(
-                        (software) => software.softwareId === value,
-                      );
-                      const nextClientUrl = normalizeSoftwareUrl(
-                        selected?.domain,
-                      );
-                      setForm((current) => ({
-                        ...current,
-                        clientSoftwareId: value,
-                        ...createActivationCopy(
-                          license,
-                          current.softwareName,
-                          nextClientUrl,
-                        ),
-                      }));
-                    }}
-                  />
-                  <span className="mt-1.5 block truncate text-[10px] text-white/30">
-                    Đường dẫn: {clientUrl || "Chưa chọn"}
-                  </span>
-                </label>
-              </div>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Tiêu đề email
-                </span>
-                <input
-                  value={form.subject}
-                  disabled={isSending}
-                  onChange={(event) =>
-                    updateField("subject", event.target.value)
-                  }
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Tiêu đề nội dung
-                </span>
-                <input
-                  value={form.title}
-                  disabled={isSending}
-                  onChange={(event) => updateField("title", event.target.value)}
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Lời chào
-                </span>
-                <input
-                  value={form.intro}
-                  disabled={isSending}
-                  onChange={(event) => updateField("intro", event.target.value)}
-                  className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Nội dung hướng dẫn
-                </span>
-                <textarea
-                  value={form.message}
-                  disabled={isSending}
-                  rows={8}
-                  onChange={(event) =>
-                    updateField("message", event.target.value)
-                  }
-                  className="w-full resize-y rounded-lg border border-white/10 bg-white/[0.025] px-3 py-2 text-xs leading-5 text-white outline-none transition focus:border-white/25 disabled:opacity-50"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
-                  Footer bảo mật
-                </span>
-                <textarea
-                  value={form.footer}
-                  disabled={isSending}
-                  rows={2}
-                  onChange={(event) => updateField("footer", event.target.value)}
-                  className="w-full resize-y rounded-lg border border-white/10 bg-white/[0.025] px-3 py-2 text-xs leading-5 text-white outline-none transition focus:border-white/25 disabled:opacity-50"
-                />
-              </label>
-            </div>
-
-            <div className="flex shrink-0 justify-end gap-2 border-t border-white/10 bg-white/[0.04] p-4">
-              <button
-                type="button"
+            <label className="block">
+              <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
+                Phần mềm Client
+              </span>
+              <GlassSelect
+                value={form.clientSoftwareId}
                 disabled={isSending}
-                onClick={onClose}
-                className="inline-flex h-8 items-center rounded-md bg-[rgba(255,255,255,0.08)] px-3 text-xs text-white/75 transition hover:bg-[rgba(255,255,255,0.14)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 dark:bg-[rgba(255,255,255,0.08)] dark:hover:bg-[rgba(255,255,255,0.16)]"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                disabled={isSending}
-                onClick={handleSend}
-                className="flex h-8 items-center gap-1.5 rounded-md bg-indigo-600 px-3 text-xs font-semibold text-white shadow-sm shadow-indigo-500/20 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isSending ? <Spinner size="sm" /> : <FiMail size={14} />}
-                Gửi mail
-              </button>
-            </div>
-          </motion.div>
+                placeholder="Chọn Client"
+                options={clientSoftware.map((software) => ({
+                  value: software.softwareId,
+                  label: software.name || software.softwareId,
+                }))}
+                onChange={(value) => {
+                  const selected = clientSoftware.find(
+                    (software) => software.softwareId === value,
+                  );
+                  const nextClientUrl = normalizeSoftwareUrl(selected?.domain);
+                  setForm((current) => ({
+                    ...current,
+                    clientSoftwareId: value,
+                    ...createActivationCopy(
+                      license,
+                      current.softwareName,
+                      nextClientUrl,
+                    ),
+                  }));
+                }}
+              />
+              <span className="mt-1.5 block truncate text-[10px] text-white/30">
+                Đường dẫn: {clientUrl || "Chưa chọn"}
+              </span>
+            </label>
+          </div>
+
+          <label className="block">
+            <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
+              Tiêu đề email
+            </span>
+            <input
+              value={form.subject}
+              disabled={isSending}
+              onChange={(event) => updateField("subject", event.target.value)}
+              className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
+              Tiêu đề nội dung
+            </span>
+            <input
+              value={form.title}
+              disabled={isSending}
+              onChange={(event) => updateField("title", event.target.value)}
+              className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
+              Lời chào
+            </span>
+            <input
+              value={form.intro}
+              disabled={isSending}
+              onChange={(event) => updateField("intro", event.target.value)}
+              className="h-10 w-full border-b border-white/10 bg-transparent text-sm text-white transition outline-none focus:border-white/35 disabled:opacity-50"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
+              Nội dung hướng dẫn
+            </span>
+            <textarea
+              value={form.message}
+              disabled={isSending}
+              rows={8}
+              onChange={(event) => updateField("message", event.target.value)}
+              className="w-full resize-y rounded-lg border border-white/10 bg-white/[0.025] px-3 py-2 text-xs leading-5 text-white transition outline-none focus:border-white/25 disabled:opacity-50"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
+              Footer bảo mật
+            </span>
+            <textarea
+              value={form.footer}
+              disabled={isSending}
+              rows={2}
+              onChange={(event) => updateField("footer", event.target.value)}
+              className="w-full resize-y rounded-lg border border-white/10 bg-white/[0.025] px-3 py-2 text-xs leading-5 text-white transition outline-none focus:border-white/25 disabled:opacity-50"
+            />
+          </label>
         </div>
+
+        <div className="flex shrink-0 justify-end gap-2 border-t border-white/10 bg-white/[0.04] p-4">
+          <button
+            type="button"
+            disabled={isSending}
+            onClick={onClose}
+            className="inline-flex h-8 items-center rounded-md bg-[rgba(255,255,255,0.08)] px-3 text-xs text-white/75 transition hover:bg-[rgba(255,255,255,0.14)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 dark:bg-[rgba(255,255,255,0.08)] dark:hover:bg-[rgba(255,255,255,0.16)]"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            disabled={isSending}
+            onClick={handleSend}
+            className="flex h-8 items-center gap-1.5 rounded-md bg-indigo-600 px-3 text-xs font-semibold text-white shadow-sm shadow-indigo-500/20 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSending ? <Spinner size="sm" /> : <FiMail size={14} />}
+            Gửi mail
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 }

@@ -14,7 +14,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import GlassSelect from "@/components/custom_ui/Select";
 import { Spinner } from "@/components/custom_ui/Spinner";
-import { StateShell, StateLoadingContainer } from "@/components/custom_ui/ShellState";
+import {
+  StateShell,
+  StateLoadingContainer,
+} from "@/components/custom_ui/ShellState";
 import { PATHS } from "@/config/paths";
 import {
   useDeleteHubClient,
@@ -48,7 +51,7 @@ const STATUS_OPTIONS: { value: HubClientStatus; label: string }[] = [
 
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <label className="mb-1.5 block text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40">
+    <label className="mb-1.5 block text-xs font-semibold text-gray-500 uppercase dark:text-white/40">
       {children}
     </label>
   );
@@ -148,7 +151,7 @@ function ImageUploadField({
     if (urlValue) {
       toast.error(
         "Lỗi hình ảnh",
-        "Không thể vừa tải file vừa chèn link ảnh. Đã xoá file upload."
+        "Không thể vừa tải file vừa chèn link ảnh. Đã xoá file upload.",
       );
       onClear();
       return;
@@ -252,7 +255,7 @@ function ImageUploadField({
             if (nextUrl && fileName) {
               toast.error(
                 "Lỗi hình ảnh",
-                "Không thể vừa tải file vừa chèn link ảnh. Đã xoá file upload."
+                "Không thể vừa tải file vừa chèn link ảnh. Đã xoá file upload.",
               );
               onClear();
             }

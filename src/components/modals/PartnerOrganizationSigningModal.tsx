@@ -741,7 +741,7 @@ function PinSigningModal({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-5 p-6">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-6">
           <div className="border-l border-white/15 pl-4">
             <p className="text-sm font-semibold text-white">{token.label}</p>
             <p className="mt-1 text-xs leading-5 text-white/45">
@@ -750,7 +750,7 @@ function PinSigningModal({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+            <label className="mb-1.5 block text-[11px] font-semibold text-white/40 uppercase">
               Mã PIN
             </label>
             <input
@@ -1135,7 +1135,7 @@ function ContractOrganizationSigningForm({
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-5 px-6 pb-4">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-6 pb-4">
             <div>
               <dl className="mt-4 divide-y divide-white/8 border-white/10">
                 <div className="grid grid-cols-[112px_1fr] gap-4 py-3">

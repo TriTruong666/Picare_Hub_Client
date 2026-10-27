@@ -102,7 +102,8 @@ const FAQS = [
       "Vì lý do an toàn bảo mật dữ liệu, mỗi mã liên kết (token) chỉ có hiệu lực trong vòng 3 ngày kể từ khi phát hành. Nếu quá hạn, bạn sẽ nhận được thông báo hết hạn và cần yêu cầu cấp liên kết mới.",
   },
   {
-    question: "Ảnh CCCD tải lên bị ngược hoặc công nghệ OCR đọc sai thông tin thì sao?",
+    question:
+      "Ảnh CCCD tải lên bị ngược hoặc công nghệ OCR đọc sai thông tin thì sao?",
     answer:
       "Hệ thống cung cấp sẵn nút Xoay ảnh (Rotate 90°) trực tiếp trên giao diện để đưa thẻ về đúng chiều đọc. Sau khi OCR quét, bạn có thể chỉnh sửa thủ công từng ô thông tin (số CCCD, ngày cấp, nơi cấp...) để đảm bảo khớp hoàn toàn với thực tế.",
   },
@@ -112,7 +113,7 @@ const FAQS = [
       "Có. Sau khi vào được giao diện chính của Picare Office, bạn hoàn toàn có thể vào mục Cài đặt tài khoản / Hồ sơ cá nhân để vẽ lại hoặc tải lên chữ ký mới bất cứ lúc nào.",
   },
   {
-    question: "Tại sao màn hình báo lỗi \"Không thể sử dụng lời mời\"?",
+    question: 'Tại sao màn hình báo lỗi "Không thể sử dụng lời mời"?',
     answer:
       "Lỗi này xuất hiện khi bạn đang đăng nhập vào trình duyệt bằng một tài khoản email khác với email được mời. Hãy đăng xuất hoặc mở liên kết trong cửa sổ ẩn danh và đăng nhập đúng email nhận thư mời.",
   },
@@ -203,9 +204,9 @@ export default function OfficeSetupGuideUpdateDetailPage() {
           {/* Tóm tắt nhanh */}
           <div className="border-l-2 border-[#F86D2B] pl-4 text-sm leading-7 text-zinc-300 sm:pl-5 sm:text-[15px]">
             <strong className="font-semibold text-white">Xem nhanh:</strong> Mở
-            email lời mời → Điền thông tin cá nhân & Ngân hàng → Quét 2 mặt
-            CCCD qua OCR → Ký tay điện tử → Tải ảnh đại diện → Kích hoạt tài
-            khoản vào Picare Office.
+            email lời mời → Điền thông tin cá nhân & Ngân hàng → Quét 2 mặt CCCD
+            qua OCR → Ký tay điện tử → Tải ảnh đại diện → Kích hoạt tài khoản
+            vào Picare Office.
           </div>
 
           {/* Mục lục bài viết */}
@@ -213,7 +214,7 @@ export default function OfficeSetupGuideUpdateDetailPage() {
             aria-label="Nội dung bài viết"
             className="border border-white/10 bg-white/[0.025] p-5"
           >
-            <p className="mb-3 text-xs font-semibold tracking-wider text-[#FFA336]">
+            <p className="mb-3 text-xs font-semibold text-[#FFA336]">
               TRONG BÀI NÀY
             </p>
             <div className="grid gap-2 text-sm sm:grid-cols-2">
@@ -240,9 +241,12 @@ export default function OfficeSetupGuideUpdateDetailPage() {
             <SectionHeading number="1" title="Tiếp nhận lời mời & Xác thực" />
             <p>
               Khi bạn được phân quyền gia nhập nền tảng văn phòng số{" "}
-              <strong className="font-semibold text-white">Picare Office</strong>,
-              hệ thống sẽ tự động gửi một email thông báo kèm đường liên kết mời
-              riêng biệt chứa mã định danh bảo mật cá nhân (invitation token).
+              <strong className="font-semibold text-white">
+                Picare Office
+              </strong>
+              , hệ thống sẽ tự động gửi một email thông báo kèm đường liên kết
+              mời riêng biệt chứa mã định danh bảo mật cá nhân (invitation
+              token).
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <InfoCard title="Đúng tài khoản email" icon={FiMail}>
@@ -251,19 +255,23 @@ export default function OfficeSetupGuideUpdateDetailPage() {
                 mời.
               </InfoCard>
               <InfoCard title="Thời hạn bảo mật 3 ngày" icon={FiLock}>
-                Mỗi mã lời mời có hiệu lực bảo mật nghiêm ngặt trong vòng 3 ngày.
-                Hãy hoàn tất thiết lập sớm nhất để tránh token bị hủy kích hoạt.
+                Mỗi mã lời mời có hiệu lực bảo mật nghiêm ngặt trong vòng 3
+                ngày. Hãy hoàn tất thiết lập sớm nhất để tránh token bị hủy kích
+                hoạt.
               </InfoCard>
             </div>
             <p>
-              Khi nhấp vào liên kết từ thư mời, bạn sẽ được dẫn trực tiếp đến màn
-              hình khởi tạo hồ sơ nhân sự bảo mật.
+              Khi nhấp vào liên kết từ thư mời, bạn sẽ được dẫn trực tiếp đến
+              màn hình khởi tạo hồ sơ nhân sự bảo mật.
             </p>
           </section>
 
           {/* Mục 2: 5 bước thiết lập */}
           <section id="quy-trinh-5-buoc" className="scroll-mt-28 space-y-5">
-            <SectionHeading number="2" title="Quy trình 5 bước thiết lập tài khoản" />
+            <SectionHeading
+              number="2"
+              title="Quy trình 5 bước thiết lập tài khoản"
+            />
             <p>
               Quy trình thiết lập được tối ưu thành 5 bước tuần tự, trực quan và
               bảo mật cao:
@@ -310,11 +318,11 @@ export default function OfficeSetupGuideUpdateDetailPage() {
                 Bước 2: Xác minh Căn cước công dân qua OCR
               </h3>
               <p>
-                Tải lên ảnh 2 mặt của thẻ Căn cước công dân (CCCD). Hệ thống tích
-                hợp sẵn công nghệ nhận diện ký tự quang học (OCR) để tự động đọc
-                số CCCD, ngày cấp, nơi cấp, ngày hết hạn và địa chỉ thường trú.
-                Nếu ảnh chụp bị lệch góc, sử dụng nút xoay ảnh để đưa về hướng
-                chuẩn xác.
+                Tải lên ảnh 2 mặt của thẻ Căn cước công dân (CCCD). Hệ thống
+                tích hợp sẵn công nghệ nhận diện ký tự quang học (OCR) để tự
+                động đọc số CCCD, ngày cấp, nơi cấp, ngày hết hạn và địa chỉ
+                thường trú. Nếu ảnh chụp bị lệch góc, sử dụng nút xoay ảnh để
+                đưa về hướng chuẩn xác.
               </p>
 
               <h3 className="font-semibold text-white">
@@ -353,7 +361,10 @@ export default function OfficeSetupGuideUpdateDetailPage() {
 
           {/* Mục 3: Video minh họa */}
           <section id="video-huong-dan" className="scroll-mt-28 space-y-5">
-            <SectionHeading number="3" title="Video hướng dẫn thao tác thực tế" />
+            <SectionHeading
+              number="3"
+              title="Video hướng dẫn thao tác thực tế"
+            />
             <p>
               Theo dõi chi tiết toàn bộ các thao tác từng bước từ khi mở email
               đến khi kích hoạt tài khoản thành công qua video dưới đây:
@@ -368,7 +379,10 @@ export default function OfficeSetupGuideUpdateDetailPage() {
 
           {/* Mục 4: Lưu ý CCCD & Chữ ký */}
           <section id="cccd-va-chu-ky" className="scroll-mt-28 space-y-5">
-            <SectionHeading number="4" title="Lưu ý khi quét CCCD & Chữ ký số" />
+            <SectionHeading
+              number="4"
+              title="Lưu ý khi quét CCCD & Chữ ký số"
+            />
             <div className="space-y-3">
               <RoleRow
                 role="Chất lượng ảnh CCCD"
@@ -391,8 +405,11 @@ export default function OfficeSetupGuideUpdateDetailPage() {
 
           {/* Mục 5: Trạng thái & FAQ */}
           <section id="trang-thai-va-faq" className="scroll-mt-28 space-y-5">
-            <SectionHeading number="5" title="Trạng thái tài khoản & Câu hỏi thường gặp" />
-            
+            <SectionHeading
+              number="5"
+              title="Trạng thái tài khoản & Câu hỏi thường gặp"
+            />
+
             <div className="divide-y divide-white/10 border border-white/10">
               {ACCOUNT_STATUSES.map((status) => (
                 <div
@@ -409,7 +426,7 @@ export default function OfficeSetupGuideUpdateDetailPage() {
               ))}
             </div>
 
-            <div className="pt-4 space-y-3">
+            <div className="space-y-3 pt-4">
               <h3 className="font-semibold text-white">Câu hỏi thường gặp</h3>
               {FAQS.map((item) => (
                 <div
@@ -420,7 +437,7 @@ export default function OfficeSetupGuideUpdateDetailPage() {
                     <FiHelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#FFA336]" />
                     <span>{item.question}</span>
                   </h4>
-                  <p className="mt-2 text-sm leading-6 text-zinc-400 pl-6.5">
+                  <p className="mt-2 pl-6.5 text-sm leading-6 text-zinc-400">
                     {item.answer}
                   </p>
                 </div>

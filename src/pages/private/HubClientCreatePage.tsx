@@ -44,7 +44,7 @@ const STATUS_OPTIONS: { value: HubClientStatus; label: string }[] = [
 
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <label className="mb-1.5 block text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40">
+    <label className="mb-1.5 block text-xs font-semibold text-gray-500 uppercase dark:text-white/40">
       {children}
     </label>
   );

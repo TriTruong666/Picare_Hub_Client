@@ -92,7 +92,7 @@ function HubClientCard({ client }: { client: HubClient }) {
         <div className="h-px bg-gray-300 dark:bg-white/10" />
 
         <div className="flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-white/30">
+          <span className="text-[10px] text-gray-400 uppercase dark:text-white/30">
             {client.clientId.slice(0, 8).toUpperCase()}
           </span>
           <a
@@ -185,7 +185,7 @@ export default function HubClientDashboardPage() {
             placeholder="Tìm kiếm theo tên..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 placeholder:text-gray-500 outline-none transition hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 transition outline-none placeholder:text-gray-500 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
           />
         </div>
         <div className="w-48">
@@ -244,8 +244,11 @@ export default function HubClientDashboardPage() {
 
       {!isLoading && !isError && clients && clients.length > 0 && (
         <div className="mt-6 flex items-center justify-center">
-          <span className="tabular-nums text-xs text-gray-400 dark:text-white/30">
-            Đang hiển thị <span className="font-semibold text-gray-600 dark:text-white/50">{clients.length}</span>{" "}
+          <span className="text-xs text-gray-400 tabular-nums dark:text-white/30">
+            Đang hiển thị{" "}
+            <span className="font-semibold text-gray-600 dark:text-white/50">
+              {clients.length}
+            </span>{" "}
             client
           </span>
         </div>

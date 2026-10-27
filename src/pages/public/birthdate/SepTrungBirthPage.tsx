@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { motion, AnimatePresence } from "framer-motion";
+import { SepTrungVideoPlayer } from "./SepTrungVideoPlayer";
 import logoPicareNonBg from "@/assets/images/logo_picare_nonbg.png";
 import logoTrungHanhNonBg from "@/assets/images/logo_trunghanh_nonbg.png";
 import logoDermacoonNonBg from "@/assets/images/logo_dermacoon_nonbg.png";
@@ -180,77 +181,45 @@ const TUNNEL_ITEMS: Array<{
 const STEP_INTERVAL = 1500; // 1.5s cho mỗi nhịp đếm
 const VIDEO_FADE_IN_DURATION = 8.5; // Video sáng dần chậm rãi hơn (8.5s)
 const VIDEO_SRC =
-  "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1790064168652_9f235726-a528-4e55-9052-47489360b497_trahangcustomer.mp4";
+  "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1793127884749_7ff9e3c0-34a7-4b6e-9b4a-9dcb49a1716b_finalweb.mp4";
 
 const ACTORS_44 = [
-  "Nguyễn Thành Trung",
-  "Trần Thị Mỹ Hạnh",
+  "Lê Thị Bích Hạnh",
   "Trương Hoàng Trí",
-  "Nguyễn Khánh Ngọc",
+  "Nguyễn Viết Khánh Ngọc",
   "Dương Ngọc Tiến",
-  "Phạm Minh Hoàng",
-  "Lê Thị Mai Phương",
-  "Trần Thị Thu Hà",
-  "Đỗ Minh Tuấn",
-  "Hoàng Văn Đạt",
-  "Vũ Anh Khoa",
-  "Bùi Thanh Phong",
-  "Đặng Hữu Tài",
-  "Ngô Quang Huy",
-  "Lê Thị Hồng Nhung",
-  "Phạm Thùy Linh",
-  "Nguyễn Ngọc Mai",
-  "Trần Phương Uyên",
-  "Võ Quỳnh Trang",
-  "Đỗ Thị Lan Anh",
-  "Phan Bích Ngọc",
-  "Trịnh Kim Ngân",
-  "Nguyễn Văn Nam",
-  "Trần Đình Trọng",
-  "Lê Văn Hải",
-  "Phạm Quốc Bảo",
-  "Huỳnh Tấn Phát",
-  "Đoàn Minh Khang",
-  "Lâm Hoài An",
-  "Trương Gia Hưng",
-  "Vũ Bảo Long",
-  "Nguyễn Hoàng Anh",
-  "Lê Minh Khôi",
-  "Trần Đăng Khoa",
-  "Đặng Thị Ngọc Ánh",
-  "Hà Thảo Vy",
-  "Lý Tuấn Kiệt",
-  "Mai Nhật Minh",
-  "Chu Thị Diệu Huyền",
-  "Hồ Bảo Ngọc",
-  "Tống Gia Huy",
-  "Cao Thục Quyên",
-  "Lương Trọng Nghĩa",
-  "Quách Gia Lạc",
+  "Lương Việt Anh",
+  "Võ Thị Tiên",
+  "Nguyễn Trọng Danh",
+  "Nguyễn Đặng Minh Tú",
+  "Trương Nguyễn Mạnh Tưởng",
+  "Nguyễn Thị Thanh Xiếu",
+  "Nguyễn Lê Hoài Thương",
+  "Giang Anh Thư",
+  "Lê Phạm Thị Ngọc Hiếu",
+  "Lê Thị Hương Giang",
+  "Nguyễn Bảo Quang",
+  "Bùi Phạm Mỹ Duyên",
+  "Diệp Thái Nhật Nguyên",
+  "Trần Thị Thanh Thương",
+  "Nguyễn Mộng Bích",
+  "Huỳnh Thị Bạch Tuyết Nhung",
+  "Phạm Thị Xuân Trang",
+  "Phan Ngọc Thảo Nguyên",
 ];
 
 const WAREHOUSE_TEAM = [
-  "Nguyễn Văn Nam",
-  "Trần Đình Trọng",
-  "Lê Văn Hải",
-  "Phạm Quốc Bảo",
-  "Đỗ Minh Tuấn",
-  "Hoàng Văn Đạt",
-  "Vũ Anh Khoa",
-  "Bùi Thanh Phong",
-  "Đặng Hữu Tài",
-  "Ngô Quang Huy",
+  "Đào Cao Thành",
+  "Phan Ngọc Thảo Nguyên",
+  "Phạm Ngọc Hằng",
 ];
 
 const ECOM_TEAM = [
-  "Lê Thị Hồng Nhung",
-  "Phạm Thùy Linh",
-  "Nguyễn Ngọc Mai",
-  "Trần Phương Uyên",
-  "Võ Quỳnh Trang",
-  "Đỗ Thị Lan Anh",
-  "Phan Bích Ngọc",
-  "Trịnh Kim Ngân",
+  "Lương Việt Anh",
+  "Võ Thị Tiên",
+  "Nguyễn Trọng Danh",
+  "Nguyễn Đặng Minh Tú",
+  "Trương Nguyễn Mạnh Tưởng",
 ];
 
 /**
@@ -302,7 +271,6 @@ export default function SepTrungBirthPage() {
   const [showAfterCredits, setShowAfterCredits] = useState(false);
   const [showTunnelGallery, setShowTunnelGallery] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const blackWipeRef = useRef<HTMLDivElement>(null);
   const creditsRollRef = useRef<HTMLDivElement>(null);
   const finalMessageRef = useRef<HTMLDivElement>(null);
 
@@ -315,6 +283,99 @@ export default function SepTrungBirthPage() {
 
   // State 2: Lớp nền màu sáng quét mở rộng theo hình tròn từ vị trí con trỏ chuột
   const state2Ref = useRef<HTMLDivElement>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  // Âm thanh tíc tắc cơ học chân thực, âm lượng nhỏ dần về các số cuối
+  const playClockTick = useCallback((step: number) => {
+    try {
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
+      if (!AudioContextClass) return;
+
+      if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
+        audioCtxRef.current = new AudioContextClass();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(() => {});
+      }
+
+      const now = ctx.currentTime;
+
+      // Giảm dần âm lượng khi tiến gần về 0 (từ 5 về 1, số 0 tắt hẳn)
+      let volumeMultiplier = 1;
+      if (step <= 0) return;
+      if (step === 5) volumeMultiplier = 0.75;
+      else if (step === 4) volumeMultiplier = 0.5;
+      else if (step === 3) volumeMultiplier = 0.3;
+      else if (step === 2) volumeMultiplier = 0.15;
+      else if (step === 1) volumeMultiplier = 0.05;
+
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0.35 * volumeMultiplier, now);
+      masterGain.connect(ctx.destination);
+
+      const isTick = step % 2 === 0; // Chẵn: "Tíc" (pitch cao hơn), Lẻ: "Tắc" (pitch trầm hơn)
+
+      // 1. Tiếng va chạm cơ học bánh răng đồng hồ (transient bandpass noise)
+      const bufferSize = Math.floor(ctx.sampleRate * 0.012);
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = "bandpass";
+      noiseFilter.frequency.setValueAtTime(isTick ? 3200 : 2500, now);
+      noiseFilter.Q.setValueAtTime(2.8, now);
+
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.7, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012);
+
+      noise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(masterGain);
+
+      noise.start(now);
+      noise.stop(now + 0.015);
+
+      // 2. Độ vang cộng hưởng âm thoa / buồng máy (resonant body tone)
+      const osc = ctx.createOscillator();
+      const oscGain = ctx.createGain();
+
+      osc.type = "sine";
+      const startFreq = isTick ? 1150 : 850;
+      const endFreq = isTick ? 620 : 440;
+
+      osc.frequency.setValueAtTime(startFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.035);
+
+      oscGain.gain.setValueAtTime(0.65, now);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.038);
+
+      osc.connect(oscGain);
+      oscGain.connect(masterGain);
+
+      osc.start(now);
+      osc.stop(now + 0.04);
+    } catch {
+      // Audio context không khả dụng hoặc bị chặn bởi chính sách bảo mật
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close().catch(() => {});
+      }
+    };
+  }, []);
   const timerContainerRef = useRef<HTMLDivElement>(null);
 
   // Entrance ban đầu: Toàn bộ chữ và logo xuất hiện mượt mà ngay từ đầu
@@ -391,23 +452,30 @@ export default function SepTrungBirthPage() {
     }
   }, [showTimer]);
 
-  // Đếm ngược chậm rãi: mỗi bước chuyển số cách nhau 1.5s
+  // Đếm ngược chậm rãi: mỗi bước chuyển số cách nhau 1.5s kèm âm thanh tíc tắc
   useEffect(() => {
     if (!isCounting) return;
 
+    // Phát âm thanh nhịp đầu tiên (số 10)
+    playClockTick(countdown);
+
     const interval = setInterval(() => {
       setCountdown((prev) => {
+        const next = prev - 1;
+        if (next >= 1) {
+          playClockTick(next);
+        }
         if (prev <= 1) {
           clearInterval(interval);
           setIsCounting(false);
           return 0;
         }
-        return prev - 1;
+        return next;
       });
     }, STEP_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [isCounting]);
+  }, [isCounting, playClockTick]);
 
   // Bắt đầu làm tối màn hình từ từ TỪ SỐ 5 (5 bước x 1.5s = 7.5s)
   // Bằng cách fade out toàn bộ lớp State 2 (#F6F4EF) vào nền đen (bg-black) phía sau:
@@ -430,80 +498,20 @@ export default function SepTrungBirthPage() {
     }
   }, [countdown, isCounting]);
 
-  // Khi đếm về 0 (màn hình tối hoàn tất và chữ biến mất), delay 0.5s bắt đầu video
+  // Khi đếm về 0 (màn hình tối hoàn tất và chữ biến mất), delay 1.0s tĩnh lặng hoàn toàn trong bóng tối trước khi bắt đầu video
   useEffect(() => {
     if (countdown === 0 && isSection2Active) {
       const timer = setTimeout(() => {
         setShowVideo(true);
-      }, 500);
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
   }, [countdown, isSection2Active]);
 
-  // Khi video bắt đầu: auto play trong bóng tối và chuyển cảnh sáng dần lâu hơn (8.5s)
-  useEffect(() => {
-    if (!showVideo || !videoRef.current) return;
-
-    const videoEl = videoRef.current;
-    videoEl.play().catch(() => {
-      // Fallback nếu trình duyệt yêu cầu tương tác thêm cho âm thanh
-      videoEl.muted = true;
-      videoEl.play();
-    });
-
-    // Chuyển cảnh video sáng dần từ bóng tối cho đến khi full sáng (duration 8.5s)
-    gsap.fromTo(
-      videoEl,
-      {
-        opacity: 0,
-        filter: "brightness(0)",
-      },
-      {
-        opacity: 1,
-        filter: "brightness(1)",
-        duration: VIDEO_FADE_IN_DURATION,
-        ease: "power1.inOut",
-      },
-    );
-  }, [showVideo]);
-
-  // Khi video hết: Khúc màu đen bên trái quẹt sang bên phải thành fullscreen đen, delay rồi mới chạy After Credit
+  // Khi video kết thúc hoàn tất: Chuyển sang phần After-Credit
   const handleVideoEnded = () => {
-    const wipeEl = blackWipeRef.current;
-    const videoEl = videoRef.current;
-
-    if (!wipeEl) {
-      setTimeout(() => setShowAfterCredits(true), 3000);
-      return;
-    }
-
-    // Quét dải màu đen từ bên trái sang toàn màn hình chậm rãi và mượt mà hơn (2.4s)
-    const wipeState = { p: 0 };
-    gsap.to(wipeState, {
-      p: 100,
-      duration: 4,
-      ease: "power2.inOut",
-      onUpdate: () => {
-        if (!wipeEl) return;
-        const p = wipeState.p;
-        // Vát chéo nhẹ ở mép quẹt tạo hiệu ứng điện ảnh mượt mà
-        const top = Math.min(100, p * 1.05);
-        const bottom = Math.min(100, Math.max(0, p * 1.05 - 5));
-        wipeEl.style.clipPath = `polygon(0% 0%, ${top}% 0%, ${bottom}% 100%, 0% 100%)`;
-      },
-      onComplete: () => {
-        // Tắt video
-        if (videoEl) {
-          videoEl.pause();
-          videoEl.style.display = "none";
-        }
-        // Delay sau khi animation màu đen quẹt xong hoàn toàn: giữ tĩnh lặng trên nền đen rồi mới mở After Credit
-        setTimeout(() => {
-          setShowAfterCredits(true);
-        }, 3000);
-      },
-    });
+    setShowAfterCredits(true);
   };
 
   // After-Credit: Tự động cuộn chậm rãi, trang trọng từ dưới lên trên chuẩn điện ảnh và neo cụm chữ cuối tại giữa màn hình
@@ -537,10 +545,7 @@ export default function SepTrungBirthPage() {
     const tl = gsap.timeline({
       delay: 0.2,
       onComplete: () => {
-        // Sau khi chữ neo vững chắc ở giữa màn hình rồi thì delay cỡ 1s bắt đầu các tấm hình 3D tunnel bay ra
-        setTimeout(() => {
-          setShowTunnelGallery(true);
-        }, 1000);
+        setShowTunnelGallery(true);
       },
     });
 
@@ -621,6 +626,11 @@ export default function SepTrungBirthPage() {
     // Bấm 1 lần: Làn sóng tròn mở rộng chậm rãi từ đúng tọa độ con trỏ chuột sang Section 2
     setStage("exiting");
 
+    // Đệm trước dữ liệu video ngay từ khi user click tương tác đầu tiên (tận dụng 18-19s chuyển cảnh & đếm số)
+    if (videoRef.current) {
+      videoRef.current.load();
+    }
+
     const x = event.clientX;
     const y = event.clientY;
     const maxRadius = Math.hypot(
@@ -660,7 +670,7 @@ export default function SepTrungBirthPage() {
       onClick={handleContainerClick}
       className="font-haffer relative h-screen w-screen cursor-pointer overflow-hidden bg-black text-white select-none"
     >
-      {/* SECTION 4: After-Credits cuộn mượt mà như rạp chiếu phim sau khi video quẹt đen xong */}
+      {/* SECTION 4: After-Credits cuộn mượt mà như rạp chiếu phim sau khi video tối dần hoàn tất */}
       {showAfterCredits && (
         <div
           onDoubleClick={handleSkipCredits}
@@ -690,7 +700,7 @@ export default function SepTrungBirthPage() {
                     Đạo diễn
                   </div>
                   <div className="text-left font-normal whitespace-nowrap text-white">
-                    Khánh Ngọc
+                    Trương Hoàng Trí
                   </div>
                 </div>
 
@@ -725,7 +735,7 @@ export default function SepTrungBirthPage() {
                   Thành viên
                 </div>
                 <div className="text-left">
-                  <div className="grid w-fit grid-cols-[max-content_max-content] gap-x-6 gap-y-2.5 font-normal whitespace-nowrap text-white sm:gap-x-8">
+                  <div className="grid w-fit grid-cols-1 gap-x-6 gap-y-2.5 font-normal whitespace-nowrap text-white sm:gap-x-8">
                     {ACTORS_44.map((actor, idx) => (
                       <div key={idx}>{actor}</div>
                     ))}
@@ -745,7 +755,7 @@ export default function SepTrungBirthPage() {
                     Đạo diễn hình ảnh
                   </div>
                   <div className="text-left font-normal whitespace-nowrap text-white">
-                    Trần Thị Thu Hà
+                    Trương Hoàng Trí
                   </div>
                 </div>
 
@@ -760,10 +770,10 @@ export default function SepTrungBirthPage() {
 
                 <div className="grid w-full grid-cols-2 items-start gap-x-8 text-[15px] leading-relaxed sm:gap-x-12 md:gap-x-16">
                   <div className="text-right font-normal whitespace-nowrap text-white">
-                    Team Kho
+                    Hỗ trợ quay
                   </div>
                   <div className="text-left">
-                    <div className="grid w-fit grid-cols-[max-content_max-content] gap-x-6 gap-y-2 font-normal whitespace-nowrap text-white sm:gap-x-8">
+                    <div className="grid w-fit grid-cols-1 gap-x-6 gap-y-2 font-normal whitespace-nowrap text-white sm:gap-x-8">
                       {WAREHOUSE_TEAM.map((name, idx) => (
                         <div key={idx}>{name}</div>
                       ))}
@@ -773,10 +783,10 @@ export default function SepTrungBirthPage() {
 
                 <div className="grid w-full grid-cols-2 items-start gap-x-8 text-[15px] leading-relaxed sm:gap-x-12 md:gap-x-16">
                   <div className="text-right font-normal whitespace-nowrap text-white">
-                    Team Ecom
+                    Team Kho
                   </div>
                   <div className="text-left">
-                    <div className="grid w-fit grid-cols-[max-content_max-content] gap-x-6 gap-y-2 font-normal whitespace-nowrap text-white sm:gap-x-8">
+                    <div className="grid w-fit grid-cols-1 gap-x-6 gap-y-2 font-normal whitespace-nowrap text-white sm:gap-x-8">
                       {ECOM_TEAM.map((name, idx) => (
                         <div key={idx}>{name}</div>
                       ))}
@@ -797,7 +807,7 @@ export default function SepTrungBirthPage() {
                     Dựng phim
                   </div>
                   <div className="text-left font-normal whitespace-nowrap text-white">
-                    Lê Minh Khôi
+                    Trương Hoàng Trí
                   </div>
                 </div>
 
@@ -806,16 +816,25 @@ export default function SepTrungBirthPage() {
                     Trợ lý dựng
                   </div>
                   <div className="text-left font-normal whitespace-nowrap text-white">
-                    Trần Đăng Khoa
+                    Đào Cao Thành
                   </div>
                 </div>
 
                 <div className="grid w-full grid-cols-2 items-start gap-x-8 text-[15px] leading-relaxed sm:gap-x-12 md:gap-x-16">
                   <div className="text-right font-normal whitespace-nowrap text-white">
-                    Hiệu ứng
+                    Hậu kỳ ảnh
                   </div>
                   <div className="text-left font-normal whitespace-nowrap text-white">
-                    Nguyễn Hoàng Anh
+                    Trần Khôi Nguyên
+                  </div>
+                </div>
+
+                <div className="grid w-full grid-cols-2 items-start gap-x-8 text-[15px] leading-relaxed sm:gap-x-12 md:gap-x-16">
+                  <div className="text-right font-normal whitespace-nowrap text-white">
+                    Ánh sáng
+                  </div>
+                  <div className="text-left font-normal whitespace-nowrap text-white">
+                    Phan Ngọc Thảo Nguyên
                   </div>
                 </div>
 
@@ -824,7 +843,7 @@ export default function SepTrungBirthPage() {
                     Chỉnh màu
                   </div>
                   <div className="text-left font-normal whitespace-nowrap text-white">
-                    Vũ Bảo Long
+                    Phạm Ngọc Hằng
                   </div>
                 </div>
               </div>
@@ -841,7 +860,7 @@ export default function SepTrungBirthPage() {
                     Quản lý sản xuất video
                   </div>
                   <div className="text-left font-normal whitespace-nowrap text-white">
-                    Đặng Thị Ngọc Ánh
+                    Trương Hoàng Trí
                   </div>
                 </div>
 
@@ -868,14 +887,16 @@ export default function SepTrungBirthPage() {
             {/* SECTION 6: Special Thanks To */}
             <div className="mb-28 w-full text-center">
               <h2 className="mb-6 text-center text-[14px] font-normal text-white uppercase">
-                Special Thanks To
+                Lời tri ân tới
               </h2>
               <div className="mx-auto max-w-2xl rounded-2xl border border-white/5 bg-white/[0.02] p-6 backdrop-blur-sm">
                 <p className="text-[15px] leading-relaxed font-normal text-white">
-                  Trước tiên cảm ơn Sếp Hạnh và toàn bộ thành viên đã cùng tụi
-                  em tham gia vào chiếc clip nhỏ này và xin gửi lời cảm ơn đặc
-                  biệt tới Sếp Trung mặc dù không tham gia nhưng vì Sếp đã tạo
-                  ra một gia đình.
+                  Nguyễn Ngọc Phúc, Huỳnh Thị Bạch Tuyết Nhung, Nguyễn Kim Thy,
+                  Giang Anh Thư, Lê Nguyễn Thuý Quỳnh, Trần Thị Thanh Thương,
+                  Trần Thị Quế Chi, Nguyễn Thị Thanh Xiếu, Phan Thị Nga, Lương
+                  Bích Hạnh, Nguyễn Mộng Bích, Nguyễn Thành Trung, Nguyễn Trần
+                  Thị Minh Hiền, Võ Thị Tiên, Võ Thị Trường An, Nguyễn Đặng Minh
+                  Tú, Võ Văn Tâm
                 </p>
               </div>
             </div>
@@ -937,8 +958,7 @@ export default function SepTrungBirthPage() {
             </div>
           </div>
 
-          {/* 3D TUNNEL GALLERY COMPONENT (Clone từ https://centered-future-205322.framer.app/)
-              Xuất hiện sau khi chữ xuất hiện delay 1s, chiều sâu 3D sâu hun hút, không chạm và không bao giờ che chữ (z-10 < z-50) */}
+          {/* 3D TUNNEL GALLERY COMPONENT */}
           {showTunnelGallery && (
             <div className="pointer-events-auto fixed inset-0 z-10 flex items-center justify-center overflow-hidden [perspective:800px] [transform-style:preserve-3d]">
               <style>{`
@@ -1037,26 +1057,21 @@ export default function SepTrungBirthPage() {
         </div>
       )}
 
-      {/* SECTION 3: Video tự động phát khi tối hoàn tất, sáng dần trong 8.5s */}
-      {showVideo && !showAfterCredits && (
-        <div className="fixed inset-0 z-40 flex h-screen w-screen items-center justify-center overflow-hidden bg-black select-none">
-          {/* Video chính */}
-          <video
-            ref={videoRef}
+      {/* SECTION 3: Custom Video Player (Preload ngầm, Spinner chống lag, Bộ điều khiển tối giản cinematic) */}
+      {!showAfterCredits && (
+        <div
+          className={`fixed inset-0 z-40 flex h-screen w-screen items-center justify-center overflow-hidden bg-black transition-opacity duration-700 select-none ${
+            showVideo
+              ? "pointer-events-auto opacity-100"
+              : "pointer-events-none opacity-0"
+          }`}
+        >
+          <SepTrungVideoPlayer
             src={VIDEO_SRC}
-            playsInline
+            videoRef={videoRef}
+            isActive={showVideo}
+            fadeInDuration={VIDEO_FADE_IN_DURATION}
             onEnded={handleVideoEnded}
-            className="h-full w-full object-contain"
-            style={{ opacity: 0, filter: "brightness(0)" }}
-          />
-
-          {/* Màn đen quét từ bên trái sang toàn màn hình khi video kết thúc */}
-          <div
-            ref={blackWipeRef}
-            className="pointer-events-none absolute inset-0 z-30 bg-black"
-            style={{
-              clipPath: "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)",
-            }}
           />
         </div>
       )}
@@ -1122,15 +1137,11 @@ export default function SepTrungBirthPage() {
           >
             <h1
               ref={introTitleRef}
-              className="font-haffer bg-clip-text text-3xl font-light tracking-[-0.04em] text-transparent drop-shadow-[0_0_20px_rgba(255,163,54,0.65)] select-none sm:text-4xl"
-              style={{
-                backgroundImage:
-                  "linear-gradient(135deg, #FF6F00 0%, #FFA336 40%, #FFD074 75%, #FFECC0 100%)",
-              }}
+              className="font-haffer bg-clip-text text-3xl font-light tracking-[-0.04em] text-transparent text-white drop-shadow-[0_0_20px_rgba(255,163,54,0.65)] select-none sm:text-4xl"
             >
               <span className="font-light italic">Picare</span>{" "}
               <span className="font-normal">
-                Client<span className="text-[#FF8D10]">.</span>
+                Client<span className="">.</span>
               </span>
             </h1>
 

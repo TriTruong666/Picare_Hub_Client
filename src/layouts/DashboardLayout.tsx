@@ -549,7 +549,7 @@ function Navbar({ onMenuOpen }: { onMenuOpen: () => void }) {
                   {/* Client-side Routes Section */}
                   {matchingRoutes.length > 0 && (
                     <div className="mb-2 px-2">
-                      <div className="px-2 py-1.5 text-[10px] font-semibold tracking-wider text-gray-400 uppercase dark:text-white/30">
+                      <div className="px-2 py-1.5 text-[10px] font-semibold text-gray-400 uppercase dark:text-white/30">
                         Chuyển trang nhanh
                       </div>
                       <div className="space-y-0.5">

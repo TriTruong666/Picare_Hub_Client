@@ -272,7 +272,7 @@ function ConnectionCard({
 
       <div className="mt-4 grid grid-cols-2 gap-4 border-t border-gray-200 pt-3 dark:border-white/[0.07]">
         <div>
-          <p className="text-[9px] tracking-wider text-gray-400 uppercase dark:text-white/25">
+          <p className="text-[9px] text-gray-400 uppercase dark:text-white/25">
             Khách hàng
           </p>
           <p className="mt-1 truncate text-[11px] text-gray-700 dark:text-white/60">
@@ -280,7 +280,7 @@ function ConnectionCard({
           </p>
         </div>
         <div>
-          <p className="text-[9px] tracking-wider text-gray-400 uppercase dark:text-white/25">
+          <p className="text-[9px] text-gray-400 uppercase dark:text-white/25">
             Dịch vụ
           </p>
           <p className="mt-1 text-[11px] text-gray-700 tabular-nums dark:text-white/60">

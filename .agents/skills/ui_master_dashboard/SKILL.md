@@ -17,6 +17,7 @@ This document is the single source of truth for the **UI/UX** of the Picare OMS 
 Maintain a "Simple & Black" aesthetic. Our goal is a premium, high-end dark SaaS feel.
 
 ### 🎨 Design Palette & Tokens
+
 - **Backgrounds**: Main (`#18181b`), Surface (`#202022`), Glass (`bg-white/5` or `bg-white/2` with `backdrop-blur`).
 - **Borders**: Thin and subtle (`border-white/10` or `border-white/5`).
 - **Primary Color**: `#4f46e5` (Indigo) for primary dashboard actions (replacing red for a more premium dark feel).
@@ -27,23 +28,27 @@ Maintain a "Simple & Black" aesthetic. Our goal is a premium, high-end dark SaaS
 - **Text**: White for headings, `text-gray-400` or `white/40` for secondary/helper text. Avoid pure bright white for large blocks of text.
 
 ### 📐 Principles of Minimalism
+
 - **No Decorative Clutter**: Do NOT add icons next to every label. Only use icons for primary navigation or critical buttons.
 - **Badge Usage**: Avoid colorful status badges everywhere. Use subtle text colors or dot indicators where possible.
 - **Tabular Numerals**: Always use `tabular-nums` for any numbers to prevent layout jitter during data updates.
 - **Micro-interactions**: Use `hover:scale-[1.02]` or `transition-all` instead of heavy shadows or glows.
 
 ### 🌑 Dark Mode (Default)
+
 - **Backgrounds**: Main (`#050505`), Surface (`#202022`), Glass (`bg-white/5` with `backdrop-blur`).
 - **Borders**: Thin and subtle (`border-white/10` or `border-white/5`).
 - **Text**: Heading (`text-white`), Secondary (`text-gray-400`).
 
 ### ☀️ Light Mode
+
 - **Backgrounds**: Main (`bg-white`), Surface (`bg-gray-50`).
 - **Borders**: More pronounced to define structure. Main Container (`border-gray-400`), Dividers/Cells (`border-gray-400`).
 - **Text**: Heading (`text-gray-900`), Secondary (`text-gray-600`), Helper (`text-gray-500`).
 - **Interaction**: Use `hover:bg-gray-50` for rows and items.
 
 ### 🎨 Shared Design Tokens
+
 - **Primary Action**: `#4f46e5` (Indigo) for most primary buttons in dashboard.
 - **Critical Action**: `#de3c3c` (Red) for delete/warning buttons.
 - **Typography**: Display/Headings (`OverusedGrotesk`), Body (`Manrope`). Always wrap dashboard-specific UI in `.dashboard-theme`.
@@ -56,9 +61,11 @@ Maintain a "Simple & Black" aesthetic. Our goal is a premium, high-end dark SaaS
 Follow these steps strictly when adding a new page to ensure consistent routing, breadcrumbs, and layout.
 
 ### A. Define the Path Constants
+
 All paths MUST be centralized in `src/config/paths.ts` under the `DASHBOARD` object (e.g., `MY_NEW_PAGE: "/dashboard/quynhnhu"`).
 
 ### B. Page Layout Template (`src/pages/*.tsx`)
+
 Every page should follow this structural hierarchy. Use `@/components/custom-ui/Breadcrumb` for navigation.
 
 ```tsx
@@ -70,16 +77,18 @@ export default function PageLayoutTemplate() {
     <div className="page-layout">
       {/* 1. Header with Breadcrumb */}
       <div className="mb-6 flex flex-col">
-        <Breadcrumb items={[{ label: "Home", path: "/" }, { label: "Current" }]} />
+        <Breadcrumb
+          items={[{ label: "Home", path: "/" }, { label: "Current" }]}
+        />
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-4xl">
           Tiêu đề trang
         </h1>
       </div>
 
       {/* 2. Main Content Container (Animated) */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }} 
-        animate={{ opacity: 1, y: 0 }} 
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
       >
         {/* Components go here */}
       </motion.div>
@@ -89,7 +98,9 @@ export default function PageLayoutTemplate() {
 ```
 
 ### C. Register Lazy Import & ROUTES_CONFIG
+
 In `src/config/routes.config.tsx`:
+
 1. Use `lazy(() => import("@/pages/..."))` for code splitting.
 2. Add a route object to `ROUTES_CONFIG` matching the constant from `PATHS.DASHBOARD.X`.
 
@@ -100,10 +111,13 @@ In `src/config/routes.config.tsx`:
 When implementing data-driven UIs (Tables, Grids) powered by React Query, you must rigorously account for 4 UI states: **Loading**, **Error**, **Empty Data**, and **Successful Data Display**.
 
 ### A. Table vs. Card Toggle
+
 For list-heavy pages, provide a switcher in the header between Table (`LuTable2`) and Card (`LuGrid3X3`) views. Manage it via `const [tableLayout, setTableLayout] = useState<"table" | "card">("table");`.
 
 ### B. Table Component Layout
+
 Tables must follow a consistent layout for a clean "Simple & Black" look.
+
 - **Container**: Wrap in `div.overflow-x-auto`.
 - **Table**: `dark:border-border-dark w-full min-w-225 table-fixed border-collapse border-x border-t border-gray-100 text-left`.
 - **Header**: `dark:bg-border-dark/30 bg-gray-50/50` with uppercase, small text for `<th>`.
@@ -111,64 +125,70 @@ Tables must follow a consistent layout for a clean "Simple & Black" look.
 - **Pagination**: Every table MUST be accompanied by the `@/components/custom-ui/Pagination` component. The pagination must be **connected** directly to the bottom of the table (no top margin) to shared the border system, creating a unified data block.
 
 ### C. Grid/Card Layout Strategy (Skeletons & Minimalist Blocks)
+
 For dashboard grids, use **Skeleton Cards** (pulse effects) for loading and **Minimalist Blocks** (transparent/no background) for error/empty states.
 
 #### Minimalist Folder/Collection Cards
+
 - **Aesthetic**: No cover images. Use a gradient header with a large icon.
-- **Typography**: Small and refined. Titles (`text-sm font-bold`), Metadata Labels (`text-[10px] uppercase tracking-wider`), Values (`text-xs`).
+- **Typography**: Small and refined. Titles (`text-sm font-bold`), Metadata Labels (`text-[10px] uppercase `), Values (`text-xs`).
 - **Interaction**: `transition-all hover:-translate-y-1`.
 - **Spacing**: Tighter padding (`p-4` or `p-5`) and gaps (`gap-2`) to maintain a clean, high-information-density look.
 
 ```tsx
-{isLoading ? (
-  /* PREMIUM LOADING (SKELETONS) */
-  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    {[...Array(8)].map((_, i) => (
-      <div key={i} className="h-48 rounded-2xl animate-pulse bg-white/5 opacity-50" />
-    ))}
-  </div>
-) : isError ? (
-  /* NEW ERROR STATE PATTERN */
-  <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
-    <p className="max-w-md text-center text-sm font-medium text-red-400">
-      Đã xảy ra lỗi khi tải dữ liệu từ hệ thống
-    </p>
-    <button
-      onClick={() => refetch()}
-      className="mt-6 rounded-lg border border-white/5 bg-white/5 px-6 py-2.5 text-xs font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
-    >
-      Thử lại
-    </button>
-  </div>
-) : data && data.length > 0 ? (
-  /* DATA RENDER */
-  <div className="grid...">...</div>
-) : (
-  /* NEW EMPTY STATE PATTERN (WITH CTA, NO ICON) */
-  <div className="flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
-    <h3 className="text-lg font-semibold text-white">
-      Danh sách trống
-    </h3>
-    <p className="mt-2 text-sm text-white/50">
-      Chưa có dữ liệu nào được tìm thấy trong hệ thống
-    </p>
-    <button
-      onClick={handleAction}
-      className="mt-6 flex items-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-xs font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-red-600"
-    >
-      <FiPlus className="text-lg" />
-      Thêm ngay
-    </button>
-  </div>
-)}
+{
+  isLoading ? (
+    /* PREMIUM LOADING (SKELETONS) */
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {[...Array(8)].map((_, i) => (
+        <div
+          key={i}
+          className="h-48 animate-pulse rounded-2xl bg-white/5 opacity-50"
+        />
+      ))}
+    </div>
+  ) : isError ? (
+    /* NEW ERROR STATE PATTERN */
+    <div className="flex min-h-[400px] flex-col items-center justify-center py-10">
+      <p className="max-w-md text-center text-sm font-medium text-red-400">
+        Đã xảy ra lỗi khi tải dữ liệu từ hệ thống
+      </p>
+      <button
+        onClick={() => refetch()}
+        className="mt-6 rounded-lg border border-white/5 bg-white/5 px-6 py-2.5 text-xs font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-white/10"
+      >
+        Thử lại
+      </button>
+    </div>
+  ) : data && data.length > 0 ? (
+    /* DATA RENDER */
+    <div className="grid...">...</div>
+  ) : (
+    /* NEW EMPTY STATE PATTERN (WITH CTA, NO ICON) */
+    <div className="flex min-h-[400px] flex-col items-center justify-center py-10 text-center">
+      <h3 className="text-lg font-semibold text-white">Danh sách trống</h3>
+      <p className="mt-2 text-sm text-white/50">
+        Chưa có dữ liệu nào được tìm thấy trong hệ thống
+      </p>
+      <button
+        onClick={handleAction}
+        className="mt-6 flex items-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-xs font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-red-600"
+      >
+        <FiPlus className="text-lg" />
+        Thêm ngay
+      </button>
+    </div>
+  );
+}
 ```
 
 ### D. Infinite Scroll / "Load More" Pattern (Infinity Loading)
+
 For list-heavy pages where traditional pagination feels too "steppy" (e.g., activity feeds, large collections), use the **Infinite Loading** pattern.
 
 - **State Management**: Maintain an `allData` state array to accumulate results. Use `useEffect` to append new data when the `page` or `data` changes.
 - **Deduplication**: Rigorously use a `Set` of unique identifiers (e.g., `id`, `orderId`) to prevent duplicate items during rapid fetching or state updates.
-- **Load More Button**: 
+- **Load More Button**:
   - **Styles**: `btn-secondary min-w-[200px] gap-3 rounded-xl border-white/10 bg-white/5 py-3 transition-all hover:bg-white/10`.
   - **Loading State**: Render a `Spinner` and "Đang tải thêm..." text during `isFetching`.
   - **Progress Badge**: Display a `Badge` (type `info`) showing the current count vs total records (e.g., `value={\`${allData.length} / ${total}\`}`).
@@ -194,7 +214,9 @@ useEffect(() => {
 }, [data, page]);
 
 const pagination = fullResponse?.pagination;
-const hasMore = pagination ? (pagination.currentPage || 0) < (pagination.totalPages || 0) : false;
+const hasMore = pagination
+  ? (pagination.currentPage || 0) < (pagination.totalPages || 0)
+  : false;
 
 const handleLoadMore = () => {
   if (!isFetching && hasMore) setPage((prev) => prev + 1);
@@ -206,13 +228,15 @@ const handleLoadMore = () => {
 ## 🧩 4. Specialized Component Patterns
 
 ### A. Modals (High-End Dark)
+
 Modals are managed via `src/stores/modalStore.ts` using Jotai.
+
 - **Container**: `flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/80 backdrop-blur-xl`. Standard width is often `w-150` for forms.
 - **Header**:
   - **Styles**: `flex items-center justify-between border-b border-white/10 bg-white/5 p-6`.
   - **Title**: `text-base font-semibold tracking-tight text-white`.
   - **Close Button**: `rounded-lg p-2 text-gray-400 transition hover:bg-white/10 hover:text-white`. Use `HiOutlineX` (h-5 w-5).
-- **Footer**: 
+- **Footer**:
   - **Styles**: `flex items-center justify-end gap-3 border-t border-white/10 bg-white/2 p-6 backdrop-blur-md`.
   - **Secondary Button (Exit/Cancel)**: `rounded-lg px-4 py-2 text-sm text-gray-300 transition hover:bg-white/10`.
   - **Primary Button (Next/Submit)**: `bg-indigo-600 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 active:scale-95 disabled:bg-white/10 disabled:text-white/40`.
@@ -227,19 +251,24 @@ Modals are managed via `src/stores/modalStore.ts` using Jotai.
   - **Confirm/Sync Modal**: Highlight warnings with `border-yellow-500/20 bg-yellow-500/5`. Use `isModalLockedAtom` to prevent closing during async tasks.
 
 ### B. Analytics & Charts
+
 - **Dependencies**: `react-chartjs-2` + `framer-motion`.
 - **Colors**: Use exact Hex values (Green `#22c55e`, Orange `#f97316`, Pink `#EC4899`, Purple `#8b5cf6`).
 - **Charts**: Hide grids (`display: false`). Use `cutout: "70%"` for Doughnut charts and center the absolute label.
 - **Metric Card**: Keep them simple (`rounded-lg border border-white/10 bg-white/5`) with `tabular-nums` for the main value.
 
 ### C. Terminal / Command Console
+
 Used for background tasks (e.g. Syncing).
+
 - **Aesthetic**: `bg-black/60 shadow-2xl backdrop-blur-sm`.
 - **Header**: Faux window controls (red, yellow, green circles) + task name.
 - **Body**: `font-mono text-[11px]`. Prepend `>` to lines. Slice logs array so it doesn't overflow infinitely. Add `text-primary inline-block animate-pulse` for the `_` cursor.
 
 ### D. Item Card Pattern
+
 A structured layout for grid lists.
+
 - **Layout**: `flex flex-col rounded-2xl border border-white/5 bg-white/5 p-4 backdrop-blur`. Interaction via `whileHover={{ y: -4 }}`.
 - **Separator**: Use `h-px bg-white/5` between sections.
 - **Footer**: A flex row containing a **Status Indicator** (left) and **Action Icons** (right) using `Tooltip` + `IconAction`. Hide actions until `group-hover:opacity-100`.
@@ -253,5 +282,5 @@ A structured layout for grid lists.
 3. **Proper Vietnamese**: All UI text must be in Vietnamese with full diacritics. No mixing of languages unless it's a technical term (e.g., "ID", "API").
 4. **Font Consistency**: Ensure all dashboard UI (including modals and floating elements) uses the `Manrope` font via the `.dashboard-theme` class.
 5. **Subtle Transitions**: Use `transition-all duration-300` for all hover states.
-4. **Spacing**: Maintain generous white space (airy design) to avoid an "overcrowded" feel.
-5. **Rounded Corners**: Stick to `rounded-lg` for inputs/buttons and `rounded-2xl` for large containers.
+6. **Spacing**: Maintain generous white space (airy design) to avoid an "overcrowded" feel.
+7. **Rounded Corners**: Stick to `rounded-lg` for inputs/buttons and `rounded-2xl` for large containers.

@@ -121,10 +121,7 @@ export default function StorageFolderDetailPage() {
     cursor,
   });
 
-  const currentRows = useMemo(
-    () => assetsData?.assets ?? [],
-    [assetsData],
-  );
+  const currentRows = useMemo(() => assetsData?.assets ?? [], [assetsData]);
   const pagination = assetsData?.pagination;
   const hasMore = pagination?.hasNext ?? false;
 
@@ -309,7 +306,7 @@ export default function StorageFolderDetailPage() {
               setSearch(value.trim());
               setCursor(undefined);
             }}
-            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 placeholder:text-gray-500 outline-none transition hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 transition outline-none placeholder:text-gray-500 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
           />
         </div>
       </div>
@@ -456,7 +453,10 @@ function StorageGridSection({
       />
 
       {/* Infinite loading sentinel for Grid */}
-      <div ref={loadMoreRef} className="flex flex-col items-center justify-center py-6">
+      <div
+        ref={loadMoreRef}
+        className="flex flex-col items-center justify-center py-6"
+      >
         {isFetching && (
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
             <Spinner size="sm" color="primary" />
@@ -522,7 +522,11 @@ const StorageGridCard = memo(function StorageGridCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -8 }}
-      transition={{ duration: 0.25, ease: "easeOut", delay: (index % 4) * 0.04 }}
+      transition={{
+        duration: 0.25,
+        ease: "easeOut",
+        delay: (index % 4) * 0.04,
+      }}
       onClick={() => onView(asset)}
       className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-300 bg-gray-50 transition-all duration-300 hover:border-gray-400 hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/[0.08] dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
     >
@@ -785,7 +789,9 @@ function StorageTable({
                               <FiEyeOff />
                             ) : (
                               (() => {
-                                const { icon: Icon } = getAssetMimeInfo(asset.mimeType);
+                                const { icon: Icon } = getAssetMimeInfo(
+                                  asset.mimeType,
+                                );
                                 return <Icon />;
                               })()
                             )}
@@ -859,7 +865,10 @@ function StorageTable({
       </div>
 
       {/* Infinite loading sentinel & loading indicator */}
-      <div ref={loadMoreRef} className="flex flex-col items-center justify-center py-6">
+      <div
+        ref={loadMoreRef}
+        className="flex flex-col items-center justify-center py-6"
+      >
         {isFetching && (
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
             <Spinner size="sm" color="primary" />
@@ -928,7 +937,7 @@ function StorageEmptyState({
 function FileMetaBlock({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+      <p className="text-[10px] font-medium text-gray-500 uppercase dark:text-gray-400">
         {label}
       </p>
       <p className="mt-0.5 text-xs font-semibold text-gray-800 dark:text-gray-200">

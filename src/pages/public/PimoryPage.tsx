@@ -255,7 +255,7 @@ export default function PimoryPage() {
               <div className="absolute h-14 w-14 animate-pulse rounded-full bg-[#FFA336]/20 blur-md" />
               <div className="h-10 w-10 animate-spin rounded-full border-[2.5px] border-white/10 border-t-[#FFA336]" />
             </div>
-            <p className="font-haffer text-sm font-normal tracking-wide text-zinc-300">
+            <p className="font-haffer text-[12px] font-normal text-zinc-300">
               Đang tải toàn bộ khoảnh khắc Pimory...
             </p>
           </div>

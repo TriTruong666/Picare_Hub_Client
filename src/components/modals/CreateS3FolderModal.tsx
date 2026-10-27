@@ -106,7 +106,7 @@ export default function CreateS3FolderModal({
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-5 p-6">
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-6">
               <div className="rounded-xl border border-indigo-500/20 bg-indigo-50 p-4 dark:bg-indigo-500/10">
                 <div className="flex items-start gap-3">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm dark:bg-black/30 dark:text-indigo-300">
@@ -127,7 +127,7 @@ export default function CreateS3FolderModal({
               <div>
                 <label
                   htmlFor="s3-folder-name"
-                  className="mb-1.5 block text-[11px] font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40"
+                  className="mb-1.5 block text-[11px] font-semibold text-gray-500 uppercase dark:text-white/40"
                 >
                   Tên thư mục
                 </label>
@@ -151,7 +151,7 @@ export default function CreateS3FolderModal({
               <div>
                 <label
                   htmlFor="s3-folder-description"
-                  className="mb-1.5 block text-[11px] font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40"
+                  className="mb-1.5 block text-[11px] font-semibold text-gray-500 uppercase dark:text-white/40"
                 >
                   Mô tả
                 </label>

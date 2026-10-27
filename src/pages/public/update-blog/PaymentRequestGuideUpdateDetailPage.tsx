@@ -252,8 +252,8 @@ export default function PaymentRequestGuideUpdateDetailPage() {
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base">
             Hướng dẫn toàn diện cho nhân viên và các cấp quản lý tại Picare
-            Office: từ cách chọn mẫu biểu phù hợp, kê khai hóa đơn chi phí,
-            tải chứng từ thanh toán đến ký duyệt số và theo dõi hồ sơ tài chính
+            Office: từ cách chọn mẫu biểu phù hợp, kê khai hóa đơn chi phí, tải
+            chứng từ thanh toán đến ký duyệt số và theo dõi hồ sơ tài chính
             chuẩn doanh nghiệp.
           </p>
         </motion.header>
@@ -262,10 +262,10 @@ export default function PaymentRequestGuideUpdateDetailPage() {
         <article className="mt-8 space-y-12 text-sm leading-7 font-light text-zinc-300 sm:mt-12 sm:text-base">
           {/* Tóm tắt nhanh */}
           <div className="border-l-2 border-[#F86D2B] pl-4 text-sm leading-7 text-zinc-300 sm:pl-5 sm:text-[15px]">
-            <strong className="font-semibold text-white">Xem nhanh:</strong> Chọn
-            biểu mẫu tài chính → Kê khai người nhận & ngân hàng (VietQR) → Nhập
-            chi tiết chi phí hóa đơn → Đính kèm chứng từ → Ký số & Gửi duyệt
-            vào luồng phê duyệt đa cấp.
+            <strong className="font-semibold text-white">Xem nhanh:</strong>{" "}
+            Chọn biểu mẫu tài chính → Kê khai người nhận & ngân hàng (VietQR) →
+            Nhập chi tiết chi phí hóa đơn → Đính kèm chứng từ → Ký số & Gửi
+            duyệt vào luồng phê duyệt đa cấp.
           </div>
 
           {/* Mục lục bài viết */}
@@ -273,7 +273,7 @@ export default function PaymentRequestGuideUpdateDetailPage() {
             aria-label="Nội dung bài viết"
             className="border border-white/10 bg-white/[0.025] p-5"
           >
-            <p className="mb-3 text-xs font-semibold tracking-wider text-[#FFA336]">
+            <p className="mb-3 text-xs font-semibold text-[#FFA336]">
               TRONG BÀI NÀY
             </p>
             <div className="grid gap-2 text-sm sm:grid-cols-2">
@@ -297,7 +297,10 @@ export default function PaymentRequestGuideUpdateDetailPage() {
 
           {/* Mục 1: Các loại biểu mẫu tài chính */}
           <section id="cac-loai-bieu-mau" className="scroll-mt-28 space-y-5">
-            <SectionHeading number="1" title="Các loại biểu mẫu tài chính tại Picare Office" />
+            <SectionHeading
+              number="1"
+              title="Các loại biểu mẫu tài chính tại Picare Office"
+            />
             <p>
               Nhằm chuẩn hóa công tác quản lý tài chính và hỗ trợ việc lập đề
               xuất nhanh chóng, phân hệ Tài chính cung cấp sẵn 3 nhóm biểu mẫu
@@ -327,10 +330,13 @@ export default function PaymentRequestGuideUpdateDetailPage() {
 
           {/* Mục 2: 5 bước lên đơn duyệt */}
           <section id="quy-trinh-5-buoc" className="scroll-mt-28 space-y-5">
-            <SectionHeading number="2" title="Quy trình 5 bước lên đơn đề nghị thanh toán" />
+            <SectionHeading
+              number="2"
+              title="Quy trình 5 bước lên đơn đề nghị thanh toán"
+            />
             <p>
-              Giao diện tạo đơn được thiết kế trực quan, khoa học giúp người dùng
-              dễ dàng thao tác qua 5 bước:
+              Giao diện tạo đơn được thiết kế trực quan, khoa học giúp người
+              dùng dễ dàng thao tác qua 5 bước:
             </p>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -364,10 +370,11 @@ export default function PaymentRequestGuideUpdateDetailPage() {
                   Bước 1: Chọn pháp nhân công ty & Tự động điền người đề nghị
                 </h3>
                 <p className="mt-1 text-sm text-zinc-400">
-                  Chọn công ty thành viên trực thuộc Picare Group mà bạn đang phát
-                  sinh nghiệp vụ chi phí. Hệ thống sẽ tự động đồng bộ họ tên,
-                  phòng ban và chức vụ từ hồ sơ người dùng đã được định danh trên
-                  Picare Office, giúp loại bỏ hoàn toàn việc gõ tay thủ công.
+                  Chọn công ty thành viên trực thuộc Picare Group mà bạn đang
+                  phát sinh nghiệp vụ chi phí. Hệ thống sẽ tự động đồng bộ họ
+                  tên, phòng ban và chức vụ từ hồ sơ người dùng đã được định
+                  danh trên Picare Office, giúp loại bỏ hoàn toàn việc gõ tay
+                  thủ công.
                 </p>
               </div>
 
@@ -389,11 +396,11 @@ export default function PaymentRequestGuideUpdateDetailPage() {
                   Bước 3: Kê khai bảng hóa đơn & Tự động đọc số tiền
                 </h3>
                 <p className="mt-1 text-sm text-zinc-400">
-                  Thêm các dòng chi phí tương ứng: Ngày hóa đơn, Số hóa đơn GTGT,
-                  Nội dung diễn giải và Số tiền (VND). Hệ thống sẽ tự động cộng
-                  tổng tiền, chuyển đổi thành số tiền bằng chữ tiếng Việt chuẩn xác
-                  và tự động trừ khoản tạm ứng đã nhận (nếu có) để tính số tiền
-                  thanh toán thực tế.
+                  Thêm các dòng chi phí tương ứng: Ngày hóa đơn, Số hóa đơn
+                  GTGT, Nội dung diễn giải và Số tiền (VND). Hệ thống sẽ tự động
+                  cộng tổng tiền, chuyển đổi thành số tiền bằng chữ tiếng Việt
+                  chuẩn xác và tự động trừ khoản tạm ứng đã nhận (nếu có) để
+                  tính số tiền thanh toán thực tế.
                 </p>
               </div>
 
@@ -402,10 +409,10 @@ export default function PaymentRequestGuideUpdateDetailPage() {
                   Bước 4: Đính kèm hóa đơn điện tử & Tài liệu chứng từ
                 </h3>
                 <p className="mt-1 text-sm text-zinc-400">
-                  Tải lên tệp hóa đơn VAT (PDF hoặc hình ảnh) và các tài liệu liên
-                  quan (hợp đồng, đề xuất, biên bản nghiệm thu). Bạn có thể xem
-                  trực tiếp chứng từ đã tải lên, đổi tệp hoặc gỡ bỏ tệp nếu có sai
-                  sót.
+                  Tải lên tệp hóa đơn VAT (PDF hoặc hình ảnh) và các tài liệu
+                  liên quan (hợp đồng, đề xuất, biên bản nghiệm thu). Bạn có thể
+                  xem trực tiếp chứng từ đã tải lên, đổi tệp hoặc gỡ bỏ tệp nếu
+                  có sai sót.
                 </p>
               </div>
 
@@ -417,10 +424,14 @@ export default function PaymentRequestGuideUpdateDetailPage() {
                   Bảng xem trước tài liệu A4 chuẩn doanh nghiệp hiển thị đầy đủ
                   tiêu ngữ, mã đơn, bảng kê chi phí và các khung chữ ký. Sử dụng
                   thanh công cụ nổi (Floating Dock) ở góc dưới để bấm{" "}
-                  <strong className="text-white font-medium">Lưu nháp (Draft)</strong> nếu
-                  chưa muốn gửi ngay, hoặc bấm{" "}
-                  <strong className="text-white font-medium">Gửi duyệt (Submit)</strong> để
-                  chuyển tiếp đơn đến các cấp phê duyệt.
+                  <strong className="font-medium text-white">
+                    Lưu nháp (Draft)
+                  </strong>{" "}
+                  nếu chưa muốn gửi ngay, hoặc bấm{" "}
+                  <strong className="font-medium text-white">
+                    Gửi duyệt (Submit)
+                  </strong>{" "}
+                  để chuyển tiếp đơn đến các cấp phê duyệt.
                 </p>
               </div>
             </div>
@@ -428,7 +439,10 @@ export default function PaymentRequestGuideUpdateDetailPage() {
 
           {/* Mục 3: Video hướng dẫn */}
           <section id="video-huong-dan" className="scroll-mt-28 space-y-5">
-            <SectionHeading number="3" title="Video hướng dẫn thao tác thực tế" />
+            <SectionHeading
+              number="3"
+              title="Video hướng dẫn thao tác thực tế"
+            />
             <p>
               Theo dõi chi tiết toàn bộ các thao tác từng bước từ chọn mẫu, điền
               thông tin, tải chứng từ đến gửi duyệt và ký số qua video thực tế
@@ -444,11 +458,14 @@ export default function PaymentRequestGuideUpdateDetailPage() {
 
           {/* Mục 4: Ma trận ký duyệt */}
           <section id="ma-tran-ky-duyet" className="scroll-mt-28 space-y-5">
-            <SectionHeading number="4" title="Ma trận & Vai trò các cấp trong quy trình ký duyệt" />
+            <SectionHeading
+              number="4"
+              title="Ma trận & Vai trò các cấp trong quy trình ký duyệt"
+            />
             <p>
-              Để đảm bảo tính minh bạch và bảo vệ an toàn ngân sách công ty,
-              mỗi đơn đề nghị đều trải qua luồng thẩm định tuần tự theo ma trận
-              phân quyền:
+              Để đảm bảo tính minh bạch và bảo vệ an toàn ngân sách công ty, mỗi
+              đơn đề nghị đều trải qua luồng thẩm định tuần tự theo ma trận phân
+              quyền:
             </p>
             <div className="space-y-3">
               {APPROVAL_ROLES.map((role) => (
@@ -462,8 +479,8 @@ export default function PaymentRequestGuideUpdateDetailPage() {
             <div className="grid gap-3 pt-2 sm:grid-cols-2">
               <InfoCard title="Tự động ký cho người tạo" icon={FiPenTool}>
                 Khi bấm Gửi duyệt, hệ thống sẽ tự động ký xác nhận cho Người đề
-                nghị nếu tài khoản đã có chữ ký cá nhân, giúp tiết kiệm thời gian
-                thao tác.
+                nghị nếu tài khoản đã có chữ ký cá nhân, giúp tiết kiệm thời
+                gian thao tác.
               </InfoCard>
               <InfoCard title="Tự động sinh PDF chứng từ" icon={FiFileText}>
                 Khi tất cả các cấp phê duyệt hoàn tất ký, hệ thống sẽ tự động
@@ -475,11 +492,14 @@ export default function PaymentRequestGuideUpdateDetailPage() {
 
           {/* Mục 5: Trạng thái & FAQ */}
           <section id="trang-thai-va-faq" className="scroll-mt-28 space-y-5">
-            <SectionHeading number="5" title="Trạng thái đơn & Câu hỏi thường gặp" />
+            <SectionHeading
+              number="5"
+              title="Trạng thái đơn & Câu hỏi thường gặp"
+            />
             <p>
               Theo dõi trạng thái tiến trình xử lý hồ sơ qua các mốc vòng đời:
             </p>
-            
+
             <div className="divide-y divide-white/10 border border-white/10">
               {APPROVAL_STATUSES.map((status) => (
                 <div
@@ -500,7 +520,7 @@ export default function PaymentRequestGuideUpdateDetailPage() {
               ))}
             </div>
 
-            <div className="pt-4 space-y-3">
+            <div className="space-y-3 pt-4">
               <h3 className="font-semibold text-white">Câu hỏi thường gặp</h3>
               {FAQS.map((item) => (
                 <div
@@ -511,7 +531,7 @@ export default function PaymentRequestGuideUpdateDetailPage() {
                     <FiHelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#FFA336]" />
                     <span>{item.question}</span>
                   </h4>
-                  <p className="mt-2 text-sm leading-6 text-zinc-400 pl-6.5">
+                  <p className="mt-2 pl-6.5 text-sm leading-6 text-zinc-400">
                     {item.answer}
                   </p>
                 </div>

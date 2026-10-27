@@ -12,7 +12,10 @@ import { useNavigate } from "react-router-dom";
 import { formatFileSize, formatRelativeTime } from "@/common/format";
 import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
-import { StateShell, StateLoadingContainer } from "@/components/custom_ui/ShellState";
+import {
+  StateShell,
+  StateLoadingContainer,
+} from "@/components/custom_ui/ShellState";
 import CreateS3FolderModal from "@/components/modals/CreateS3FolderModal";
 import DeleteS3FolderModal from "@/components/modals/DeleteS3FolderModal";
 import EditS3FolderModal from "@/components/modals/EditS3FolderModal";
@@ -116,7 +119,7 @@ export default function StorageDashboardPage() {
             placeholder="Tìm kiếm theo tên thư mục..."
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
-            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 placeholder:text-gray-500 outline-none transition hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
+            className="h-10 w-full rounded-lg border border-gray-500 bg-white pr-4 pl-9 text-[13px] text-gray-800 transition outline-none placeholder:text-gray-500 hover:bg-gray-50 focus:border-indigo-500/50 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/30 dark:hover:bg-white/8 dark:focus:bg-white/8 dark:focus:ring-indigo-500/10"
           />
         </div>
       </div>
@@ -131,7 +134,8 @@ export default function StorageDashboardPage() {
       ) : filteredFolders.length === 0 ? (
         <div className="flex min-h-[240px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 py-12 text-center dark:border-white/10">
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Không tìm thấy thư mục nào phù hợp với từ khóa &ldquo;{searchInput}&rdquo;
+            Không tìm thấy thư mục nào phù hợp với từ khóa &ldquo;{searchInput}
+            &rdquo;
           </p>
         </div>
       ) : (
@@ -157,7 +161,9 @@ export default function StorageDashboardPage() {
                     event.preventDefault();
                     event.stopPropagation();
                     setActiveFolderId((currentFolderId) =>
-                      currentFolderId === folder.folderId ? null : folder.folderId,
+                      currentFolderId === folder.folderId
+                        ? null
+                        : folder.folderId,
                     );
                   }}
                   className="group block w-full overflow-hidden rounded-2xl border border-gray-300 bg-gray-50 text-left transition-all duration-300 hover:border-gray-400 hover:bg-white hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/[0.08] dark:hover:shadow-[0_15px_35px_rgba(0,0,0,0.25)]"
@@ -170,7 +176,10 @@ export default function StorageDashboardPage() {
                         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/40 text-gray-900 shadow-sm backdrop-blur dark:bg-black/40 dark:text-white">
                           <FiFolder className="text-xl" />
                         </span>
-                        <Badge type="info" value={`${folder.assetCount} files`} />
+                        <Badge
+                          type="info"
+                          value={`${folder.assetCount} files`}
+                        />
                       </div>
                       <span className="text-[10px] font-bold tracking-widest text-gray-600 uppercase tabular-nums dark:text-gray-400">
                         {formatFileSize(folder.totalSize)}
@@ -189,7 +198,7 @@ export default function StorageDashboardPage() {
                     </div>
 
                     <div className="flex items-center justify-between border-t border-gray-300 pt-3 dark:border-white/10">
-                      <span className="text-[10px] font-medium tracking-wider text-gray-400 uppercase dark:text-gray-500">
+                      <span className="text-[10px] font-medium text-gray-400 uppercase dark:text-gray-500">
                         {formatRelativeTime(folder.updatedAt)}
                       </span>
                       <button
@@ -202,7 +211,7 @@ export default function StorageDashboardPage() {
                               : folder.folderId,
                           );
                         }}
-                        className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-indigo-600 uppercase transition-all hover:bg-indigo-500/10 hover:text-indigo-500 dark:text-indigo-300 dark:hover:bg-white/10 dark:hover:text-indigo-200"
+                        className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 uppercase transition-all hover:bg-indigo-500/10 hover:text-indigo-500 dark:text-indigo-300 dark:hover:bg-white/10 dark:hover:text-indigo-200"
                       >
                         Tùy chọn
                       </button>
@@ -223,7 +232,7 @@ export default function StorageDashboardPage() {
                         setActiveFolderId(null);
                         setEditingFolder(folder);
                       }}
-                      className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-medium text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-900 hover:translate-x-0.5 dark:text-gray-200 dark:hover:bg-white/8 dark:hover:text-white"
+                      className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-medium text-gray-700 transition-all hover:translate-x-0.5 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-white/8 dark:hover:text-white"
                     >
                       Chỉnh sửa
                       <FiEdit3 size={12} />
@@ -234,7 +243,7 @@ export default function StorageDashboardPage() {
                         setActiveFolderId(null);
                         setDeletingFolder(folder);
                       }}
-                      className="mt-1 flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-medium text-red-600 transition-all hover:bg-red-50 hover:text-red-700 hover:translate-x-0.5 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+                      className="mt-1 flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-medium text-red-600 transition-all hover:translate-x-0.5 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
                     >
                       Xóa folder
                       <FiTrash2 size={12} />

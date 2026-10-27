@@ -130,7 +130,7 @@ function EditS3FolderModalContent({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-5 p-6">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-6">
           <div className="rounded-xl border border-indigo-500/20 bg-indigo-50 p-4 dark:bg-indigo-500/10">
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm dark:bg-black/30 dark:text-indigo-300">
@@ -151,7 +151,7 @@ function EditS3FolderModalContent({
           <div>
             <label
               htmlFor="edit-s3-folder-name"
-              className="mb-1.5 block text-[11px] font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40"
+              className="mb-1.5 block text-[11px] font-semibold text-gray-500 uppercase dark:text-white/40"
             >
               Tên thư mục
             </label>
@@ -175,7 +175,7 @@ function EditS3FolderModalContent({
           <div>
             <label
               htmlFor="edit-s3-folder-description"
-              className="mb-1.5 block text-[11px] font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40"
+              className="mb-1.5 block text-[11px] font-semibold text-gray-500 uppercase dark:text-white/40"
             >
               Mô tả
             </label>
@@ -192,32 +192,32 @@ function EditS3FolderModalContent({
         </div>
 
         <div className="flex shrink-0 items-center justify-end gap-3 border-t border-gray-300 bg-gray-50 p-6 dark:border-white/10 dark:bg-white/5">
-              <button
-                type="button"
-                disabled={updateFolderMutation.isPending}
-                onClick={handleClose}
-                className="rounded-lg px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
-              >
-                Thoát
-              </button>
-              <button
-                type="submit"
-                disabled={!canSubmit || !!nameError}
-                className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all active:scale-95 enabled:bg-indigo-600 enabled:hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:shadow-none dark:shadow-indigo-500/10 dark:enabled:bg-indigo-500 dark:enabled:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
-              >
-                {updateFolderMutation.isPending ? (
-                  <>
-                    <Spinner size="sm" />
-                    Đang cập nhật...
-                  </>
-                ) : (
-                  <>
-                    <FiEdit3 size={14} />
-                    Lưu thay đổi
-                  </>
-                )}
-              </button>
-            </div>
+          <button
+            type="button"
+            disabled={updateFolderMutation.isPending}
+            onClick={handleClose}
+            className="rounded-lg px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
+          >
+            Thoát
+          </button>
+          <button
+            type="submit"
+            disabled={!canSubmit || !!nameError}
+            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all active:scale-95 enabled:bg-indigo-600 enabled:hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:shadow-none dark:shadow-indigo-500/10 dark:enabled:bg-indigo-500 dark:enabled:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
+          >
+            {updateFolderMutation.isPending ? (
+              <>
+                <Spinner size="sm" />
+                Đang cập nhật...
+              </>
+            ) : (
+              <>
+                <FiEdit3 size={14} />
+                Lưu thay đổi
+              </>
+            )}
+          </button>
+        </div>
       </motion.form>
     </div>
   );

@@ -56,7 +56,9 @@ export default function UploadS3AssetsModal({
   const totalSize = files.reduce((total, item) => total + item.file.size, 0);
   const canClose = !isUploading;
 
-  const currentUploadingId = files.find((item) => item.status === "uploading")?.id;
+  const currentUploadingId = files.find(
+    (item) => item.status === "uploading",
+  )?.id;
 
   // Lock body scroll while modal is open
   useEffect(() => {
@@ -311,7 +313,7 @@ export default function UploadS3AssetsModal({
 
               <div className="mt-5 flex flex-col gap-4">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40">
+                  <label className="mb-1.5 block text-xs font-semibold text-gray-500 uppercase dark:text-white/40">
                     Ghi chú
                   </label>
                   <input
@@ -324,7 +326,7 @@ export default function UploadS3AssetsModal({
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-white/40">
+                  <label className="mb-1.5 block text-xs font-semibold text-gray-500 uppercase dark:text-white/40">
                     Quyền truy cập
                   </label>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -372,7 +374,7 @@ export default function UploadS3AssetsModal({
 
                   <div
                     data-lenis-prevent
-                    className="max-h-64 divide-y divide-gray-200 overflow-y-auto overscroll-contain dark:divide-white/10 sm:max-h-72"
+                    className="max-h-64 divide-y divide-gray-200 overflow-y-auto overscroll-contain sm:max-h-72 dark:divide-white/10"
                   >
                     {files.map((item) => {
                       const isItemUploading = item.status === "uploading";
