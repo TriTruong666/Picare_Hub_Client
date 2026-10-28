@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SepTrungVideoPlayer } from "./SepTrungVideoPlayer";
+import { PATHS } from "@/config/paths";
 import logoPicareNonBg from "@/assets/images/logo_picare_nonbg.png";
 import logoTrungHanhNonBg from "@/assets/images/logo_trunghanh_nonbg.png";
 import logoDermacoonNonBg from "@/assets/images/logo_dermacoon_nonbg.png";
@@ -119,6 +121,7 @@ function SpinDigit({ value }: { value: string }) {
 }
 
 export default function SepTrungBirthPage() {
+  const navigate = useNavigate();
   const [isIntro, setIsIntro] = useState(true);
   // stage: 'idle' (sẵn sàng click) -> 'exiting' (đang quét vòng tròn sang Section 2)
   const [stage, setStage] = useState<"idle" | "exiting">("idle");
@@ -133,6 +136,7 @@ export default function SepTrungBirthPage() {
   const [showVideo, setShowVideo] = useState(false);
   const [showAfterCredits, setShowAfterCredits] = useState(false);
   const [showTunnelGallery, setShowTunnelGallery] = useState(false);
+  const [showHomeLogo, setShowHomeLogo] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const creditsRollRef = useRef<HTMLDivElement>(null);
   const finalMessageRef = useRef<HTMLDivElement>(null);
@@ -502,6 +506,23 @@ export default function SepTrungBirthPage() {
     setShowTunnelGallery(true);
   };
 
+  // Sau khi chạy Tunnel được 10s: Hiện logo ở góc trên bên trái với hiệu ứng rõ dần để quay về trang Home
+  useEffect(() => {
+    if (!showTunnelGallery) return;
+
+    const timer = setTimeout(() => {
+      setShowHomeLogo(true);
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [showTunnelGallery]);
+
+  const handleHomeLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(PATHS.HOME);
+  };
+
   // Bấm vào bất kỳ đâu trên màn hình Section 2 để bắt đầu đếm ngược
   const handleStartCountdown = () => {
     if (isCounting || countdown <= 0) return;
@@ -577,6 +598,39 @@ export default function SepTrungBirthPage() {
           onDoubleClick={handleSkipCredits}
           className="fixed inset-0 z-50 overflow-hidden bg-black text-white select-none"
         >
+          {/* Logo góc trên bên trái xuất hiện mượt mà sau 10s chạy Tunnel (đồng bộ vị trí & style từ PublicLandingNavbar) */}
+          <AnimatePresence>
+            {showHomeLogo && (
+              <div className="pointer-events-none fixed inset-x-0 top-0 z-60 flex flex-col items-center">
+                <motion.header
+                  initial={{ opacity: 0, y: -18, filter: "blur(8px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
+                  transition={{
+                    duration: 1.2,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className="pointer-events-none w-full px-3 pt-2.5 sm:px-6 sm:pt-3.5"
+                >
+                  <div className="pointer-events-none relative flex h-15 w-full items-center justify-between px-6 sm:h-16 sm:px-8 lg:px-10">
+                    <a
+                      href={PATHS.HOME}
+                      onClick={handleHomeLogoClick}
+                      aria-label="Picare Client"
+                      className="pointer-events-auto flex cursor-pointer items-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] transition-opacity duration-300 hover:opacity-85"
+                    >
+                      <img
+                        src={logoPicareNewBlack}
+                        alt="Picare Client"
+                        className="-my-4 h-10 w-auto object-contain mix-blend-screen sm:-my-6 sm:h-14"
+                      />
+                    </a>
+                  </div>
+                </motion.header>
+              </div>
+            )}
+          </AnimatePresence>
+
           {/* Dải cuộn After-Credit: xuất phát hoàn toàn từ dưới đáy màn hình (translateY 100vh) */}
           <div
             ref={creditsRollRef}
