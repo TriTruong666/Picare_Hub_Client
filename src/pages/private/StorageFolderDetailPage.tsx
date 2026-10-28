@@ -100,23 +100,6 @@ function isAudioAsset(asset: S3Asset) {
   );
 }
 
-function AssetAudioPlayer({ asset }: { asset: S3Asset }) {
-  const source =
-    asset.presignedUrl || (asset.visibility === "public" ? asset.s3Url : "");
-  if (!source) return null;
-
-  return (
-    <audio
-      controls
-      preload="none"
-      src={source}
-      aria-label={`Phát ${asset.originalName}`}
-      className="w-full max-w-full"
-      onClick={(event) => event.stopPropagation()}
-    />
-  );
-}
-
 export default function StorageFolderDetailPage() {
   const { folderId } = useParams<{ folderId: string }>();
   const queryClient = useQueryClient();
@@ -159,7 +142,6 @@ export default function StorageFolderDetailPage() {
     search: search || undefined,
     limit: pageSize,
     cursor,
-    includeUrl: true,
   });
 
   const currentRows = useMemo(() => assetsData?.assets ?? [], [assetsData]);
@@ -641,7 +623,6 @@ const StorageGridCard = memo(function StorageGridCard({
           <h2 className="line-clamp-1 text-sm font-bold tracking-tight text-gray-900 dark:text-white">
             {asset.originalName}
           </h2>
-          {isAudioAsset(asset) && <AssetAudioPlayer asset={asset} />}
           <div className="grid grid-cols-2 gap-2">
             <FileMetaBlock
               label="Kích thước"
@@ -871,14 +852,6 @@ function StorageTable({
                           </p>
                           {isPrivate && <Badge type="error" value="Private" />}
                         </div>
-                        {isAudioAsset(asset) && (
-                          <div
-                            className="mt-2"
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            <AssetAudioPlayer asset={asset} />
-                          </div>
-                        )}
                         <div className="mt-2 flex items-center gap-3">
                           <div className="flex gap-1">
                             {asset.tags?.map((tag) => (

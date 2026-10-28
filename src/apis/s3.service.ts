@@ -126,7 +126,6 @@ export async function getS3Assets(params: {
   // offset: number;
   cursor?: string;
   search?: string;
-  includeUrl?: boolean;
 }): Promise<BaseResponse<S3AssetsPage>> {
   const res = await hubAxiosClient.get(`/api/v1/s3/assets`, { params });
   return res.data;

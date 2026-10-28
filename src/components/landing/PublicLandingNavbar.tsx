@@ -216,12 +216,11 @@ export function PublicLandingNavbar({
                 </span>
                 <p className="font-haffer text-[11px] font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
                   <span>
-                    Tất cả các nhân sự công ty vui lòng kiểm tra mail lời mời
-                    của Picare Office để hoàn tất quá trình setup tài khoản.
-                    Video hướng dẫn:
+                    Video sinh nhật hiện tại đã hoàn thành và được xuất bản ở
+                    trên Picare Client, mọi người có thể xem thông qua đường dẫn
                   </span>
                   <Link
-                    to={PATHS.OFFICE_SETUP_GUIDE}
+                    to={PATHS.CELEBRATION_BIRTHDATE}
                     className="ml-2 inline-flex items-center gap-1 font-semibold text-white underline underline-offset-4 transition-opacity hover:opacity-85"
                   >
                     Xem ngay

@@ -98,7 +98,6 @@ export function useS3Assets(params: {
   limit: number;
   cursor?: string;
   search?: string;
-  includeUrl?: boolean;
 }) {
   return useFetch(["s3-assets", params], () => S3Service.getS3Assets(params));
 }

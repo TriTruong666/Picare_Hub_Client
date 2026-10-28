@@ -62,6 +62,29 @@ const ECOM_TEAM = [
   "Trương Nguyễn Mạnh Tưởng",
 ];
 
+const SPECIAL_THANKS_TEAM = [
+  "Nguyễn Ngọc Phúc",
+  "Huỳnh Thị Bạch Tuyết Nhung",
+  "Nguyễn Kim Thy",
+  "Giang Anh Thư",
+  "Lê Nguyễn Thuý Quỳnh",
+  "Trần Thị Thanh Thương",
+  "Trần Thị Quế Chi",
+  "Nguyễn Thị Thanh Xiếu",
+  "Phan Thị Nga",
+  "Lương Bích Hạnh",
+  "Nguyễn Mộng Bích",
+  "Nguyễn Thành Trung",
+  "Nguyễn Trần Thị Minh Hiền",
+  "Võ Thị Tiên",
+  "Võ Thị Trường An",
+  "Nguyễn Đặng Minh Tú",
+  "Võ Văn Tâm",
+];
+
+const CREDIT_AUDIO_SRC =
+  "https://picare-s3.s3.ap-southeast-1.amazonaws.com/public/1793157254373_2840bf0c-9841-4885-8a93-304d08f4855d_happy-birthday-remix-2020-bain-nhaipoundc-cuia-heineken-aang-auioiipoundc-suii-duipoundng-nhieiiu-trein-tiktok.mp3";
+
 /**
  * Component hiển thị 1 chữ số với hiệu ứng cuộn xoay 3D (Spin Drum) cực mượt, không giật
  * Dùng Framer Motion AnimatePresence mode="popLayout", chỉ animate khi số thực sự thay đổi
@@ -124,6 +147,7 @@ export default function SepTrungBirthPage() {
   // State 2: Lớp nền màu sáng quét mở rộng theo hình tròn từ vị trí con trỏ chuột
   const state2Ref = useRef<HTMLDivElement>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const creditAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Âm thanh tíc tắc cơ học chân thực, âm lượng nhỏ dần về các số cuối
   const playClockTick = useCallback((step: number) => {
@@ -353,6 +377,43 @@ export default function SepTrungBirthPage() {
   const handleVideoEnded = () => {
     setShowAfterCredits(true);
   };
+
+  // Khi bắt đầu state Credit: Phát sound Happy Birthday remix, tăng dần âm lượng lúc đầu (fade-in), không loop
+  useEffect(() => {
+    if (!showAfterCredits) return;
+
+    const audio = new Audio(CREDIT_AUDIO_SRC);
+    audio.loop = false;
+    audio.volume = 0;
+    creditAudioRef.current = audio;
+
+    audio.play().catch((err) => {
+      console.warn("Credit audio play failed:", err);
+    });
+
+    // Tăng dần độ lớn sound lúc đầu (fade in từ 0 lên 1 trong 3.5s)
+    const FADE_DURATION = 3500;
+    const startTime = Date.now();
+    const fadeInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(1, elapsed / FADE_DURATION);
+      if (creditAudioRef.current) {
+        creditAudioRef.current.volume = progress;
+      }
+      if (progress >= 1) {
+        clearInterval(fadeInterval);
+      }
+    }, 50);
+
+    return () => {
+      clearInterval(fadeInterval);
+      if (creditAudioRef.current) {
+        creditAudioRef.current.pause();
+        creditAudioRef.current.src = "";
+        creditAudioRef.current = null;
+      }
+    };
+  }, [showAfterCredits]);
 
   // After-Credit: Tự động cuộn chậm rãi, trang trọng từ dưới lên trên chuẩn điện ảnh và neo cụm chữ cuối tại giữa màn hình
   useEffect(() => {
@@ -729,14 +790,22 @@ export default function SepTrungBirthPage() {
               <h2 className="mb-6 text-center text-[14px] font-normal text-white uppercase">
                 Lời tri ân tới
               </h2>
-              <div className="mx-auto max-w-2xl rounded-2xl border border-white/5 bg-white/[0.02] p-6 backdrop-blur-sm">
-                <p className="text-[15px] leading-relaxed font-normal text-white">
-                  Nguyễn Ngọc Phúc, Huỳnh Thị Bạch Tuyết Nhung, Nguyễn Kim Thy,
-                  Giang Anh Thư, Lê Nguyễn Thuý Quỳnh, Trần Thị Thanh Thương,
-                  Trần Thị Quế Chi, Nguyễn Thị Thanh Xiếu, Phan Thị Nga, Lương
-                  Bích Hạnh, Nguyễn Mộng Bích, Nguyễn Thành Trung, Nguyễn Trần
-                  Thị Minh Hiền, Võ Thị Tiên, Võ Thị Trường An, Nguyễn Đặng Minh
-                  Tú, Võ Văn Tâm
+              <div className="mx-auto max-w-2xl rounded-2xl border border-white/5 bg-white/[0.02] p-6 backdrop-blur-sm sm:p-8">
+                <div className="grid grid-cols-1 gap-y-2.5 text-center text-[15px] font-normal text-white sm:grid-cols-2 sm:gap-x-10 sm:gap-y-3">
+                  {SPECIAL_THANKS_TEAM.map((name, idx) => (
+                    <div key={idx} className="whitespace-nowrap">
+                      {name}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Đường line ngăn cách trang trọng trước câu chúc chốt lại */}
+                <div className="mx-auto my-6 h-[1px] w-full max-w-md bg-white/10" />
+
+                <p className="text-[15px] leading-relaxed font-normal text-white sm:text-base">
+                  Chúc tất cả anh chị tuổi mới thật nhiều sức khoẻ, nhiều sự may
+                  mắn và thật nhiều hạnh phúc trong cuộc sống. Chúng ta là một
+                  gia đình, Picare Luv All.
                 </p>
               </div>
             </div>
@@ -744,7 +813,7 @@ export default function SepTrungBirthPage() {
             {/* SECTION 7: We are from */}
             <div className="mb-28 w-full text-center">
               <h2 className="mb-10 text-center text-[14px] font-normal text-white uppercase">
-                We Are From
+                Chúng tôi là
               </h2>
               {/* 3 hình logo công ty nằm ngang: Picare, Trung Hạnh, Dermacoon (cân bằng kích thước quang học) */}
               <div className="mb-16 flex items-center justify-center gap-10 sm:gap-16">
@@ -766,7 +835,7 @@ export default function SepTrungBirthPage() {
               </div>
 
               <h2 className="mb-10 text-center text-[14px] font-normal text-white uppercase">
-                Powered By
+                Được vận hành bởi
               </h2>
               <div className="flex items-center justify-center">
                 <img
@@ -810,20 +879,29 @@ export default function SepTrungBirthPage() {
                 @keyframes move-3d {
                   0% {
                     opacity: 0;
+                    pointer-events: auto;
                     --translate-z: -5000px;
                     transform: translate3d(var(--tx), var(--ty), -5000px) scale(0.35) rotate(var(--rot));
                     filter: brightness(0.4) contrast(0.9);
                   }
-                  15% {
+                  9% {
                     opacity: 0.95;
                     filter: brightness(0.85);
                   }
-                  85% {
+                  51% {
                     opacity: 0.95;
                     filter: brightness(1.05);
                   }
+                  60% {
+                    opacity: 0;
+                    pointer-events: none;
+                    --translate-z: 1800px;
+                    transform: translate3d(calc(var(--tx) * 1.5), calc(var(--ty) * 1.5), 1800px) scale(1.25) rotate(var(--rot));
+                    filter: brightness(1.15);
+                  }
                   100% {
                     opacity: 0;
+                    pointer-events: none;
                     --translate-z: 1800px;
                     transform: translate3d(calc(var(--tx) * 1.5), calc(var(--ty) * 1.5), 1800px) scale(1.25) rotate(var(--rot));
                     filter: brightness(1.15);
@@ -841,7 +919,7 @@ export default function SepTrungBirthPage() {
                   will-change: transform, opacity;
                   cursor: pointer;
                   opacity: 0;
-                  animation: move-3d 28s linear infinite;
+                  animation: move-3d 47.3s linear infinite;
                   animation-delay: var(--delay);
                   transition: box-shadow 0.3s ease, border-color 0.3s ease, filter 0.3s ease;
                 }
