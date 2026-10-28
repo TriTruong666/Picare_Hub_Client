@@ -4,8 +4,10 @@ import type {
   GetPresignedURLRequest,
   GetPresignedURLResponse,
   S3AssetsPage,
+  S3Asset,
   S3Folder,
   UpdateS3FolderPayload,
+  UpdateS3AssetPayload,
   UploadS3Request,
   UploadS3Response,
 } from "@/types/S3";
@@ -127,6 +129,17 @@ export async function getS3Assets(params: {
   includeUrl?: boolean;
 }): Promise<BaseResponse<S3AssetsPage>> {
   const res = await hubAxiosClient.get(`/api/v1/s3/assets`, { params });
+  return res.data;
+}
+
+export async function updateS3Asset(
+  assetId: string,
+  payload: UpdateS3AssetPayload,
+): Promise<BaseResponse<S3Asset>> {
+  const res = await hubAxiosClient.patch(
+    `/api/v1/s3/assets/${encodeURIComponent(assetId)}`,
+    payload,
+  );
   return res.data;
 }
 

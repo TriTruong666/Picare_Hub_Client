@@ -49,6 +49,12 @@ export type S3Asset = {
   presignedUrl: string;
 };
 
+export type UpdateS3AssetPayload = {
+  originalName: string;
+  visibility: "public" | "private";
+  tags: string[];
+};
+
 export type S3AssetsPagination = {
   limit: number;
   hasNext: boolean;

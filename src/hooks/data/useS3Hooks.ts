@@ -5,6 +5,7 @@ import type {
   CreateS3FolderPayload,
   GetPresignedURLRequest,
   UpdateS3FolderPayload,
+  UpdateS3AssetPayload,
   UploadS3Request,
 } from "@/types/S3";
 import { useFetch } from "../useQuery";
@@ -100,6 +101,24 @@ export function useS3Assets(params: {
   includeUrl?: boolean;
 }) {
   return useFetch(["s3-assets", params], () => S3Service.getS3Assets(params));
+}
+
+export function useUpdateS3Asset() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ assetId, payload }: { assetId: string; payload: UpdateS3AssetPayload }) =>
+      S3Service.updateS3Asset(assetId, payload),
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("Thành công", "Đã cập nhật tệp");
+        queryClient.invalidateQueries({ queryKey: ["s3-assets"] });
+      } else {
+        toast.error("Thất bại", translateErrorMessage(data.error_code, data.message));
+      }
+    },
+    onError: (err) => toast.error("Lỗi", getApiErrorMessage(err)),
+  });
 }
 
 /**

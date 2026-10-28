@@ -2,7 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FiDownload,
-  FiEye,
+  FiEdit3,
   FiEyeOff,
   FiGrid,
   FiImage,
@@ -22,6 +22,7 @@ import { Badge } from "@/components/custom_ui/Badge";
 import Breadcrumb from "@/components/custom_ui/Breadcrumb";
 import IconAction from "@/components/custom_ui/IconAction";
 import DeleteS3AssetModal from "@/components/modals/DeleteS3AssetModal";
+import EditS3AssetModal from "@/components/modals/EditS3AssetModal";
 import UploadS3AssetsModal from "@/components/modals/UploadS3AssetsModal";
 import GlassSelect from "@/components/custom_ui/Select";
 import { Spinner } from "@/components/custom_ui/Spinner";
@@ -129,6 +130,7 @@ export default function StorageFolderDetailPage() {
   const pageSize = 12;
 
   const [assetToDelete, setAssetToDelete] = useState<S3Asset | null>(null);
+  const [assetToEdit, setAssetToEdit] = useState<S3Asset | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const downloadMutation = useDownloadS3Asset();
@@ -369,6 +371,7 @@ export default function StorageFolderDetailPage() {
           onRefetch={refetch}
           onView={handleViewAsset}
           onDelete={setAssetToDelete}
+          onEdit={setAssetToEdit}
           onDownload={handleDownloadAsset}
           onUpload={() => setIsUploadModalOpen(true)}
           onLoadMore={handleLoadMore}
@@ -384,6 +387,7 @@ export default function StorageFolderDetailPage() {
           onRefetch={refetch}
           onView={handleViewAsset}
           onDelete={setAssetToDelete}
+          onEdit={setAssetToEdit}
           onDownload={handleDownloadAsset}
           onUpload={() => setIsUploadModalOpen(true)}
         />
@@ -406,6 +410,15 @@ export default function StorageFolderDetailPage() {
           );
         }}
       />
+      <EditS3AssetModal
+        asset={assetToEdit}
+        onClose={() => setAssetToEdit(null)}
+        onSuccess={(updatedAsset) => {
+          setAllAssets((prev) =>
+            prev.map((item) => item.assetId === updatedAsset.assetId ? updatedAsset : item),
+          );
+        }}
+      />
     </div>
   );
 }
@@ -420,6 +433,7 @@ function StorageGridSection({
   onRefetch,
   onView,
   onDelete,
+  onEdit,
   onDownload,
   onUpload,
 }: {
@@ -432,6 +446,7 @@ function StorageGridSection({
   onRefetch: () => void;
   onView: (asset: S3Asset) => void;
   onDelete: (asset: S3Asset) => void;
+  onEdit: (asset: S3Asset) => void;
   onDownload: (asset: S3Asset) => void;
   onUpload: () => void;
 }) {
@@ -488,6 +503,7 @@ function StorageGridSection({
         assets={assets}
         onView={onView}
         onDelete={onDelete}
+        onEdit={onEdit}
         onDownload={onDownload}
       />
 
@@ -546,12 +562,14 @@ const StorageGridCard = memo(function StorageGridCard({
   index,
   onView,
   onDelete,
+  onEdit,
   onDownload,
 }: {
   asset: S3Asset;
   index: number;
   onView: (asset: S3Asset) => void;
   onDelete: (asset: S3Asset) => void;
+  onEdit: (asset: S3Asset) => void;
   onDownload: (asset: S3Asset) => void;
 }) {
   const isPrivate = asset.visibility === "private";
@@ -647,15 +665,15 @@ const StorageGridCard = memo(function StorageGridCard({
             )}
           </div>
           <div className="flex items-center gap-1">
-            <Tooltip content="Xem">
+            <Tooltip content="Chỉnh sửa">
               <button
                 onClick={(event) => {
                   event.stopPropagation();
-                  onView(asset);
+                  onEdit(asset);
                 }}
                 className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white"
               >
-                <FiEye size={14} />
+                <FiEdit3 size={14} />
               </button>
             </Tooltip>
             <Tooltip content="Tải xuống">
@@ -691,11 +709,13 @@ function StorageGrid({
   assets,
   onView,
   onDelete,
+  onEdit,
   onDownload,
 }: {
   assets: S3Asset[];
   onView: (asset: S3Asset) => void;
   onDelete: (asset: S3Asset) => void;
+  onEdit: (asset: S3Asset) => void;
   onDownload: (asset: S3Asset) => void;
 }) {
   return (
@@ -707,6 +727,7 @@ function StorageGrid({
           index={index}
           onView={onView}
           onDelete={onDelete}
+          onEdit={onEdit}
           onDownload={onDownload}
         />
       ))}
@@ -723,6 +744,7 @@ function StorageTable({
   onRefetch,
   onView,
   onDelete,
+  onEdit,
   onDownload,
   onUpload,
   onLoadMore,
@@ -735,6 +757,7 @@ function StorageTable({
   onRefetch: () => void;
   onView: (asset: S3Asset) => void;
   onDelete: (asset: S3Asset) => void;
+  onEdit: (asset: S3Asset) => void;
   onDownload: (asset: S3Asset) => void;
   onUpload: () => void;
   onLoadMore: () => void;
@@ -896,10 +919,10 @@ function StorageTable({
                     onClick={(event) => event.stopPropagation()}
                   >
                     <div className="flex items-center justify-center gap-2">
-                      <Tooltip content="Xem file">
+                      <Tooltip content="Chỉnh sửa">
                         <IconAction
-                          icon={<FiEye />}
-                          onClick={() => onView(asset)}
+                          icon={<FiEdit3 />}
+                          onClick={() => onEdit(asset)}
                         />
                       </Tooltip>
                       <Tooltip content="Tải xuống">
