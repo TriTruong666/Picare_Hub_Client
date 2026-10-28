@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -8,6 +7,7 @@ import {
   FiGrid,
   FiImage,
   FiList,
+  FiMusic,
   FiPlayCircle,
   FiRefreshCw,
   FiSearch,
@@ -32,7 +32,7 @@ import {
   useS3Assets,
   useS3Folders,
 } from "@/hooks/data/useS3Hooks";
-import type { S3Asset, S3AssetsPagination, S3Folder } from "@/types/S3";
+import type { S3Asset, S3Folder } from "@/types/S3";
 import clsx from "clsx";
 
 type StorageViewMode = "grid" | "table";
@@ -54,7 +54,15 @@ const columns = [
   { key: "actions", label: "Thao tác", width: "w-[20%]", align: "center" },
 ] as const;
 
-function getAssetMimeInfo(mimeType: string) {
+function getAssetMimeInfo(mimeType: string, assetType?: string) {
+  if (assetType === "audio" || mimeType.toLowerCase().startsWith("audio/")) {
+    return {
+      label: "Âm thanh",
+      badgeType: "info" as const,
+      icon: FiMusic,
+    };
+  }
+
   if (mimeType.startsWith("video/")) {
     return {
       label: "Video",
@@ -76,6 +84,36 @@ function getAssetMimeInfo(mimeType: string) {
     badgeType: "info" as const,
     icon: FiImage,
   };
+}
+
+function getAssetFormat(asset: S3Asset) {
+  const extension = asset.originalName.match(/\.([a-z0-9]+)$/i)?.[1];
+  if (extension) return extension.toUpperCase();
+  return asset.mimeType.split("/")[1]?.split(";")[0]?.toUpperCase() || "FILE";
+}
+
+function isAudioAsset(asset: S3Asset) {
+  return (
+    asset.assetType === "audio" ||
+    asset.mimeType.toLowerCase().startsWith("audio/")
+  );
+}
+
+function AssetAudioPlayer({ asset }: { asset: S3Asset }) {
+  const source =
+    asset.presignedUrl || (asset.visibility === "public" ? asset.s3Url : "");
+  if (!source) return null;
+
+  return (
+    <audio
+      controls
+      preload="none"
+      src={source}
+      aria-label={`Phát ${asset.originalName}`}
+      className="w-full max-w-full"
+      onClick={(event) => event.stopPropagation()}
+    />
+  );
 }
 
 export default function StorageFolderDetailPage() {
@@ -119,6 +157,7 @@ export default function StorageFolderDetailPage() {
     search: search || undefined,
     limit: pageSize,
     cursor,
+    includeUrl: true,
   });
 
   const currentRows = useMemo(() => assetsData?.assets ?? [], [assetsData]);
@@ -544,6 +583,10 @@ const StorageGridCard = memo(function StorageGridCard({
             alt={asset.originalName}
             className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
           />
+        ) : isAudioAsset(asset) ? (
+          <div className="flex h-full w-full items-center justify-center bg-indigo-50 dark:bg-indigo-500/10">
+            <FiMusic className="text-5xl text-indigo-400" />
+          </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-white/5">
             <FiPlayCircle className="text-4xl text-gray-300" />
@@ -555,13 +598,16 @@ const StorageGridCard = memo(function StorageGridCard({
         <div className="absolute top-4 left-4 flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
             {(() => {
-              const { icon: Icon } = getAssetMimeInfo(asset.mimeType);
+              const { icon: Icon } = getAssetMimeInfo(
+                asset.mimeType,
+                asset.assetType,
+              );
               return <Icon />;
             })()}
           </span>
           <Badge
-            type={getAssetMimeInfo(asset.mimeType).badgeType}
-            value={getAssetMimeInfo(asset.mimeType).label}
+            type={getAssetMimeInfo(asset.mimeType, asset.assetType).badgeType}
+            value={getAssetMimeInfo(asset.mimeType, asset.assetType).label}
           />
         </div>
 
@@ -577,6 +623,7 @@ const StorageGridCard = memo(function StorageGridCard({
           <h2 className="line-clamp-1 text-sm font-bold tracking-tight text-gray-900 dark:text-white">
             {asset.originalName}
           </h2>
+          {isAudioAsset(asset) && <AssetAudioPlayer asset={asset} />}
           <div className="grid grid-cols-2 gap-2">
             <FileMetaBlock
               label="Kích thước"
@@ -584,7 +631,7 @@ const StorageGridCard = memo(function StorageGridCard({
             />
             <FileMetaBlock
               label="Loại"
-              value={getAssetMimeInfo(asset.mimeType).label}
+              value={getAssetMimeInfo(asset.mimeType, asset.assetType).label}
             />
           </div>
         </div>
@@ -801,6 +848,14 @@ function StorageTable({
                           </p>
                           {isPrivate && <Badge type="error" value="Private" />}
                         </div>
+                        {isAudioAsset(asset) && (
+                          <div
+                            className="mt-2"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <AssetAudioPlayer asset={asset} />
+                          </div>
+                        )}
                         <div className="mt-2 flex items-center gap-3">
                           <div className="flex gap-1">
                             {asset.tags?.map((tag) => (
@@ -820,14 +875,19 @@ function StorageTable({
 
                   <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
                     <Badge
-                      type={getAssetMimeInfo(asset.mimeType).badgeType}
-                      value={getAssetMimeInfo(asset.mimeType).label}
+                      type={
+                        getAssetMimeInfo(asset.mimeType, asset.assetType)
+                          .badgeType
+                      }
+                      value={
+                        getAssetMimeInfo(asset.mimeType, asset.assetType).label
+                      }
                     />
                   </td>
 
                   <td className="border-r border-gray-400 p-4 text-center dark:border-white/10">
                     <span className="text-[13px] font-medium text-gray-600 dark:text-gray-300">
-                      {getAssetMimeInfo(asset.mimeType).label}
+                      {getAssetFormat(asset)}
                     </span>
                   </td>
 
