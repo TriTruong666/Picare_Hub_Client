@@ -19,7 +19,14 @@ export const STATIC_HUB_CLIENTS: HubClient[] = [
     clientExternalUrl: PATHS.CONTRACT_CREATE,
     clientStatus: "active",
     isActive: false, // Bật/tắt trạng thái hoạt động: true = Hoạt động bình thường, false = Ngưng hoạt động toàn bộ tính năng và UI
-    allowedRoles: ["admin", "finance", "hr", "ceo", "supply_chain"],
+    allowedRoles: [
+      "admin",
+      "finance",
+      "hr",
+      "ceo",
+      "supply_chain",
+      "admin_brand",
+    ],
     note: "Static hub client",
     createdAt: "",
     updatedAt: "",
@@ -73,10 +80,23 @@ export function isStaticHubClientActive(clientId: string): boolean {
 }
 
 /**
+ * Map các static client theo clientId để truy xuất nhanh O(1).
+ */
+export const STATIC_HUB_CLIENTS_MAP: Record<string, HubClient> =
+  Object.fromEntries(STATIC_HUB_CLIENTS.map((c) => [c.clientId, c]));
+
+/**
  * Lấy thông tin static client theo clientId.
  */
 export function getStaticHubClient(clientId: string): HubClient | undefined {
-  return STATIC_HUB_CLIENTS.find((c) => c.clientId === clientId);
+  return STATIC_HUB_CLIENTS_MAP[clientId];
+}
+
+/**
+ * Lấy danh sách allowedRoles của một static hub client theo clientId.
+ */
+export function getStaticHubClientRoles(clientId: string) {
+  return getStaticHubClient(clientId)?.allowedRoles ?? [];
 }
 
 /**

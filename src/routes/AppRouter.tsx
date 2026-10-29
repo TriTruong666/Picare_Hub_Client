@@ -11,13 +11,11 @@ import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
 import CatalogueCreatePage from "@/pages/private/CatalogueCreatePage";
 import CatalogueEditPage from "@/pages/private/CatalogueEditPage";
 import QRProductEditPage from "@/pages/private/QRProductEditPage";
-import { AuthGuard } from "@/components/guards/AuthGuard";
-import ServiceSuspendedPage from "@/components/common/ServiceSuspendedPage";
+import { StaticClientGuard } from "@/components/guards/StaticClientGuard";
 import {
   DIGITAL_CONTRACT_CLIENT_ID,
   QR_CODE_GENERATOR_CLIENT_ID,
   DIGITAL_CATALOGUE_CLIENT_ID,
-  isStaticHubClientActive,
 } from "@/constants/staticHubClients";
 
 export default function AppRouter() {
@@ -27,98 +25,80 @@ export default function AppRouter() {
       <Route
         path="/contracts/:contractId/sign-partner"
         element={
-          isStaticHubClientActive(DIGITAL_CONTRACT_CLIENT_ID) ? (
+          <StaticClientGuard
+            clientId={DIGITAL_CONTRACT_CLIENT_ID}
+            requireAuth={false}
+          >
             <ContractPartnerSignPage />
-          ) : (
-            <ServiceSuspendedPage clientName="Picare E-Contract" />
-          )
+          </StaticClientGuard>
         }
       />
       <Route path="/contracts/*" element={<PrivateContractRoutes />} />
       <Route
         path={PATHS.CATALOGUE.CREATE}
         element={
-          !isStaticHubClientActive(DIGITAL_CATALOGUE_CLIENT_ID) ? (
-            <ServiceSuspendedPage clientName="Picare Catalogue" />
-          ) : (
-            <AuthGuard
-              allowedRoles={["admin", "business_development", "marketing"]}
-            >
-              <CatalogueCreatePage />
-            </AuthGuard>
-          )
+          <StaticClientGuard clientId={DIGITAL_CATALOGUE_CLIENT_ID}>
+            <CatalogueCreatePage />
+          </StaticClientGuard>
         }
       />
       <Route
         path={PATHS.CATALOGUE.EDIT}
         element={
-          !isStaticHubClientActive(DIGITAL_CATALOGUE_CLIENT_ID) ? (
-            <ServiceSuspendedPage clientName="Picare Catalogue" />
-          ) : (
-            <AuthGuard
-              allowedRoles={["admin", "business_development", "marketing"]}
-            >
-              <CatalogueEditPage />
-            </AuthGuard>
-          )
+          <StaticClientGuard clientId={DIGITAL_CATALOGUE_CLIENT_ID}>
+            <CatalogueEditPage />
+          </StaticClientGuard>
         }
       />
       <Route
         path={PATHS.QR_PRODUCT_GENERATOR}
         element={
-          !isStaticHubClientActive(QR_CODE_GENERATOR_CLIENT_ID) ? (
-            <ServiceSuspendedPage clientName="Picare QR Generator" />
-          ) : (
-            <AuthGuard allowedRoles={["admin", "business_development"]}>
-              <QRProductGeneratorPage />
-            </AuthGuard>
-          )
+          <StaticClientGuard clientId={QR_CODE_GENERATOR_CLIENT_ID}>
+            <QRProductGeneratorPage />
+          </StaticClientGuard>
         }
       />
       <Route
         path={PATHS.QR_PRODUCT_EDIT}
         element={
-          !isStaticHubClientActive(QR_CODE_GENERATOR_CLIENT_ID) ? (
-            <ServiceSuspendedPage clientName="Picare QR Generator" />
-          ) : (
-            <AuthGuard allowedRoles={["admin", "business_development"]}>
-              <QRProductEditPage />
-            </AuthGuard>
-          )
+          <StaticClientGuard clientId={QR_CODE_GENERATOR_CLIENT_ID}>
+            <QRProductEditPage />
+          </StaticClientGuard>
         }
       />
       <Route
         path={PATHS.QR_PRODUCT_PREVIEW}
         element={
-          isStaticHubClientActive(QR_CODE_GENERATOR_CLIENT_ID) ? (
+          <StaticClientGuard
+            clientId={QR_CODE_GENERATOR_CLIENT_ID}
+            requireAuth={false}
+          >
             <QRProductPreviewPage />
-          ) : (
-            <ServiceSuspendedPage clientName="Picare QR Generator" />
-          )
+          </StaticClientGuard>
         }
       />
       <Route
         path={PATHS.CATALOGUE.PUBLIC_GALLERY}
         element={
-          !isStaticHubClientActive(DIGITAL_CATALOGUE_CLIENT_ID) ? (
-            <ServiceSuspendedPage clientName="Picare Catalogue" />
-          ) : (
-            <AuthGuard requireDashboardAccess={false}>
-              <CataloguePublicGalleryPage />
-            </AuthGuard>
-          )
+          <StaticClientGuard
+            clientId={DIGITAL_CATALOGUE_CLIENT_ID}
+            requireDashboardAccess={false}
+            checkRoles={false}
+          >
+            <CataloguePublicGalleryPage />
+          </StaticClientGuard>
         }
       />
       <Route
         path={PATHS.CATALOGUE.PUBLIC_PREVIEW}
         element={
-          !isStaticHubClientActive(DIGITAL_CATALOGUE_CLIENT_ID) ? (
-            <ServiceSuspendedPage clientName="Picare Catalogue" />
-          ) : (
-            <AuthGuard requireDashboardAccess={false}>
-              <CataloguePublicPreviewPage />
-            </AuthGuard>
-          )
+          <StaticClientGuard
+            clientId={DIGITAL_CATALOGUE_CLIENT_ID}
+            requireDashboardAccess={false}
+            checkRoles={false}
+          >
+            <CataloguePublicPreviewPage />
+          </StaticClientGuard>
         }
       />
 
