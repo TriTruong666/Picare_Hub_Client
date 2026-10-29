@@ -287,7 +287,7 @@ function ProductPreviewContent({ product }: { product: ProductQR }) {
 
   return (
     <div className="font-haffer min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
-      <PublicLandingNavbar isDarkBg={true} />
+      <PublicLandingNavbar showNoticeBanner={false} isDarkBg={true} />
 
       <main className="mx-auto max-w-[1400px] px-4 pt-24 pb-16 sm:px-6 sm:pt-28 lg:px-10 xl:px-12">
         <section className="py-6 sm:py-8 lg:py-12">
@@ -405,7 +405,7 @@ export default function QRProductPreviewPage() {
   if (isLoading) {
     return (
       <div className="font-haffer min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
-        <PublicLandingNavbar isDarkBg={true} />
+        <PublicLandingNavbar showNoticeBanner={false} isDarkBg={true} />
         <main className="flex min-h-[60vh] items-center justify-center px-6 pt-28">
           <div className="flex flex-col items-center gap-4 text-center">
             <Spinner size="lg" color="primary" />
@@ -422,13 +422,15 @@ export default function QRProductPreviewPage() {
   if (isError || !product) {
     return (
       <div className="font-haffer min-h-screen bg-[#f6f1e8] text-[#111111] transition-colors dark:bg-[#050505] dark:text-white">
-        <PublicLandingNavbar isDarkBg={true} />
+        <PublicLandingNavbar showNoticeBanner={false} isDarkBg={true} />
         <main className="flex min-h-[60vh] items-center justify-center px-6 pt-28">
           <div className="max-w-md text-center">
             <p className="text-[11px] font-medium text-black/35 uppercase dark:text-white/35">
               Product Preview
             </p>
-            <h1 className="mt-3 text-2xl font-medium">Không tìm thấy sản phẩm</h1>
+            <h1 className="mt-3 text-2xl font-medium">
+              Không tìm thấy sản phẩm
+            </h1>
             <p className="mt-3 text-sm leading-7 text-black/58 dark:text-white/58">
               Link preview này có thể đã hết hiệu lực hoặc mã sản phẩm không còn
               tồn tại.

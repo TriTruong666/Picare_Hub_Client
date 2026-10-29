@@ -248,13 +248,16 @@ export default function CataloguePublicGalleryPage() {
 
   return (
     <main className="font-haffer relative min-h-screen w-full bg-[#120F17] font-normal text-[#f0ede6] antialiased selection:bg-[#FFA336] selection:text-black">
-      <PublicLandingNavbar onLogoClick={handleBackToHome} />
+      <PublicLandingNavbar
+        showNoticeBanner={false}
+        onLogoClick={handleBackToHome}
+      />
 
       {/* Ambient background glow effects matching Landing Page */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-[20%] left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-[#FFA336]/[0.045] blur-[150px]" />
         <div className="absolute top-[40%] -left-[10%] h-[500px] w-[700px] rounded-full bg-[#F86D2B]/[0.035] blur-[160px]" />
-        <div className="absolute -bottom-[10%] right-[5%] h-[450px] w-[600px] rounded-full bg-[#FFA336]/[0.03] blur-[140px]" />
+        <div className="absolute right-[5%] -bottom-[10%] h-[450px] w-[600px] rounded-full bg-[#FFA336]/[0.03] blur-[140px]" />
       </div>
 
       <motion.div
@@ -332,7 +335,6 @@ export default function CataloguePublicGalleryPage() {
               className="absolute right-0 -bottom-px left-0 h-[2px] origin-left bg-gradient-to-r from-[#FFA336] via-[#F86D2B] to-[#FFA336] shadow-[0_0_12px_rgba(255,163,54,0.65)]"
             />
           </motion.div>
-
         </section>
 
         {isLoading && serverCatalogues.length === 0 ? (
@@ -345,7 +347,8 @@ export default function CataloguePublicGalleryPage() {
               Không thể tải danh sách catalogue
             </h2>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-white/45">
-              Đã xảy ra lỗi khi kết nối với máy chủ. Vui lòng kiểm tra lại hoặc thử lại sau.
+              Đã xảy ra lỗi khi kết nối với máy chủ. Vui lòng kiểm tra lại hoặc
+              thử lại sau.
             </p>
             <button
               type="button"

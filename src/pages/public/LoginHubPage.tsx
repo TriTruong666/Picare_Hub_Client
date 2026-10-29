@@ -63,9 +63,9 @@ export default function LoginHubPage() {
   const backTo = PATHS.HOME;
 
   return (
-    <div className="font-haffer relative min-h-screen min-h-dvh w-full overflow-x-hidden overflow-y-auto lg:overflow-hidden bg-[#120F17]">
+    <div className="font-haffer relative min-h-dvh min-h-screen w-full overflow-x-hidden overflow-y-auto bg-[#120F17] lg:overflow-hidden">
       {/* Background WebGPU AeroShards */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-auto">
+      <div className="pointer-events-auto fixed inset-0 z-0 overflow-hidden">
         <AeroShards
           backgroundColor="#120F17"
           shardColor="#F86D2B"

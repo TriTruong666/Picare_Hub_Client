@@ -1181,7 +1181,7 @@ export default function ClientOmsPage() {
   return (
     <div className="font-haffer relative min-h-screen w-full overflow-x-hidden bg-[#120F17] text-white select-none">
       {/* Reusable Landing Navbar với animated Dark Glassmorphism background khi cuộn */}
-      <PublicLandingNavbar isDarkBg={isScrolled} />
+      <PublicLandingNavbar showNoticeBanner={false} isDarkBg={isScrolled} />
 
       {/* Main Content */}
       <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-start px-4 pt-40 pb-0 text-center sm:px-6 sm:pt-48 md:pt-56">

@@ -89,7 +89,8 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
   const preferredMockup = client.clientMockupImage?.trim() || loginMockup;
   const [mockupSrc, setMockupSrc] = useState(preferredMockup);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const isActive = client.clientStatus === "active" && client.isActive !== false;
+  const isActive =
+    client.clientStatus === "active" && client.isActive !== false;
 
   const bgRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -986,6 +987,7 @@ export default function LoginHubFormSection({
           isAuthenticated={isAuthenticated}
           user={user}
           onLogoClick={handleBack}
+          showNoticeBanner={false}
           className="z-50"
         />
       </div>

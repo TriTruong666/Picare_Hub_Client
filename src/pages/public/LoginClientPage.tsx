@@ -38,7 +38,8 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
   const preferredMockup = client.clientMockupImage?.trim() || loginMockup;
   const [mockupSrc, setMockupSrc] = useState(preferredMockup);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const isActive = client.clientStatus === "active" && client.isActive !== false;
+  const isActive =
+    client.clientStatus === "active" && client.isActive !== false;
 
   const bgRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -141,7 +142,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
       onClick={handleAccess}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`client-card-item group relative flex min-h-[360px] sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0 w-full flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none ${
+      className={`client-card-item group relative flex min-h-[360px] w-full flex-col justify-between overflow-hidden border-r border-b border-white/[0.08] bg-[#070709] select-none sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0 ${
         !isActive ? "cursor-not-allowed opacity-60" : "cursor-pointer"
       }`}
     >
@@ -215,7 +216,7 @@ function ClientCard({ client, index }: { client: HubClient; index: number }) {
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 function ClientSkeleton() {
   return (
-    <div className="relative flex min-h-[360px] sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0 flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709]">
+    <div className="relative flex min-h-[360px] flex-col justify-between border-r border-b border-white/[0.08] bg-[#070709] sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0">
       <div className="w-full flex-1 animate-pulse bg-white/3" />
       <div className="flex flex-col space-y-2 border-t border-white/[0.06] p-5 sm:p-6 lg:p-7">
         <div className="h-6 w-36 animate-pulse rounded-full bg-white/5" />
@@ -229,7 +230,7 @@ function ClientSkeleton() {
 function EmptyCard({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`relative min-h-[360px] sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0 border-r border-b border-white/[0.08] bg-transparent ${className}`}
+      className={`relative min-h-[360px] border-r border-b border-white/[0.08] bg-transparent sm:min-h-[44vh] lg:h-[50vh] lg:min-h-0 ${className}`}
     />
   );
 }
@@ -255,13 +256,14 @@ export default function LoginClientPage() {
   return (
     <div
       data-lenis-prevent
-      className="relative flex min-h-screen min-h-dvh w-full flex-col overflow-x-hidden overflow-y-auto bg-[#050505]"
+      className="relative flex min-h-dvh min-h-screen w-full flex-col overflow-x-hidden overflow-y-auto bg-[#050505]"
     >
       {/* Navbar: cố định ở trên cùng đè lên, không có background */}
       <div className="pointer-events-none fixed inset-x-0 top-0 z-50">
         <PublicLandingNavbar
           isDarkBg={false}
           className="z-50"
+          showNoticeBanner={false}
         />
       </div>
 
@@ -270,7 +272,7 @@ export default function LoginClientPage() {
         initial={{ x: "-100%", opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-        className="relative flex-1 w-full bg-[#050505] pt-24 pb-14 sm:pt-28 lg:p-0"
+        className="relative w-full flex-1 bg-[#050505] pt-24 pb-14 sm:pt-28 lg:p-0"
       >
         {/* Outer border frame */}
         <div className="pointer-events-none absolute inset-0 border border-white/[0.08]" />
@@ -286,17 +288,13 @@ export default function LoginClientPage() {
               ))}
               {Array.from({
                 length:
-                  clientList.length % 3 === 0
-                    ? 0
-                    : 3 - (clientList.length % 3),
+                  clientList.length % 3 === 0 ? 0 : 3 - (clientList.length % 3),
               }).map((_, i) => (
                 <EmptyCard key={`empty-lg-${i}`} className="hidden lg:flex" />
               ))}
               {Array.from({
                 length:
-                  clientList.length % 2 === 0
-                    ? 0
-                    : 2 - (clientList.length % 2),
+                  clientList.length % 2 === 0 ? 0 : 2 - (clientList.length % 2),
               }).map((_, i) => (
                 <EmptyCard
                   key={`empty-md-${i}`}
