@@ -5,6 +5,10 @@ on:
     branches:
       - production
 
+concurrency:
+  group: picare-hub-production
+  cancel-in-progress: false
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -29,12 +33,25 @@ jobs:
         run: |
           echo "$ENV_CONTENT" > .env.production
 
+      - name: Build and Push UI Access Service
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: ui-access
+          push: true
+          tags: |
+            ghcr.io/tritruong666/picare-hub-ui-access:latest
+            ghcr.io/tritruong666/picare-hub-ui-access:${{ github.sha }}
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
+          target: hub-client
           push: true
-          tags: ghcr.io/tritruong666/picare-hub-client:latest
+          tags: |
+            ghcr.io/tritruong666/picare-hub-client:latest
+            ghcr.io/tritruong666/picare-hub-client:${{ github.sha }}
 
   deploy:
     needs: build-and-push
@@ -70,6 +87,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd ~/projects/picare-hub/client
+            export PICARE_HUB_RELEASE="${{ github.sha }}"
 
             # Login để pull image mới
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -78,10 +96,10 @@ jobs:
             docker compose -f docker-compose.prod.yml -p picare-hub-client pull
 
             # Chạy lại container
-            docker compose -f docker-compose.prod.yml -p picare-hub-client up -d --force-recreate
+            docker compose -f docker-compose.prod.yml -p picare-hub-client up -d --force-recreate --wait --wait-timeout 90
 
             # Dọn dẹp image cũ
-            docker image prune -f
+            docker image prune -f --filter until=168h
 
             # (Tùy chọn) Reload Nginx Gateway nếu cần cập nhật IP nội bộ
             docker exec nginx-gateway nginx -s reload

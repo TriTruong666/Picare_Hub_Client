@@ -1,4 +1,4 @@
-import type { UserRole } from "@/types/User";
+import type { UserRole } from "../types/User";
 
 export const DASHBOARD_ACCESS_ROLES: UserRole[] = [
   "admin",

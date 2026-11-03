@@ -1,16 +1,44 @@
 services:
+  hub-ui-access:
+    image: ghcr.io/tritruong666/picare-hub-ui-access:${PICARE_HUB_RELEASE:-latest}
+    container_name: picare-hub-ui-access
+    restart: always
+    read_only: true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      UI_ASSET_LIMIT_PER_MINUTE: "180"
+    networks:
+      - picare-network
+      - hub-security
+
   picare-hub-client:
-    
-    image: ghcr.io/tritruong666/picare-hub-client:latest
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    depends_on:
+      hub-ui-access:
+        condition: service_healthy
+
+    image: ghcr.io/tritruong666/picare-hub-client:${PICARE_HUB_RELEASE:-latest}
     container_name: picare-hub-client
     restart: always
     networks:
       - picare-network
       - web_network
+      - hub-security
 
 networks:
+  hub-security:
+    internal: true
   picare-network:
     external: true
-  web_network: 
+  web_network:
     external: true
-    

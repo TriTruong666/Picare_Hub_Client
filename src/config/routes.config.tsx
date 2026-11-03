@@ -20,25 +20,7 @@ import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
 import SepTrungBirthPage from "@/pages/public/birthdate/SepTrungBirthPage";
 import { AuthGuard } from "@/components/guards/AuthGuard";
 import { FullScreenSpinner } from "@/components/custom_ui/Spinner";
-import ContractCreatePage from "@/pages/private/ContractCreatePage";
-import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
-import ContractEditPage from "@/pages/private/ContractEditPage";
-import ContractPreviewPage from "@/pages/private/ContractPreviewPage";
-import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
-import CatalogueCreatePage from "@/pages/private/CatalogueCreatePage";
-import CatalogueEditPage from "@/pages/private/CatalogueEditPage";
-import QRProductEditPage from "@/pages/private/QRProductEditPage";
-import QRProductDashboardPage from "@/pages/private/QRProductDashboardPage";
-import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
-import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
-import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
-import HubClientDashboardPage from "@/pages/private/HubClientDashboardPage";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
-import LicenseCreatePage from "@/pages/private/LicenseCreatePage";
-import LicenseEditPage from "@/pages/private/LicenseEditPage";
-import LicenseDetailPage from "@/pages/private/LicenseDetailPage";
-import LicenseListPage from "@/pages/private/LicenseListPage";
-import LicenseSupportPage from "@/pages/private/LicenseSupportPage";
 import {
   DIGITAL_CONTRACT_CLIENT_ID,
   QR_CODE_GENERATOR_CLIENT_ID,
@@ -47,7 +29,7 @@ import {
 import { PATHS } from "./paths";
 
 // AuthGuard must render successfully before React requests this private chunk.
-const PimoryPage = lazy(() => import("@/pages/public/PimoryPage"));
+const PimoryPage = lazy(() => import("@/pages/authenticated/PimoryPage"));
 
 export interface RouteConfig {
   path: string;
@@ -118,7 +100,6 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
 export const PRIVATE_ROUTES: RouteConfig[] = [
   {
     path: PATHS.DASHBOARD.ROOT,
-    element: <SummaryDashboardPage />,
     label: "Tổng quan",
     icon: FiLayout,
     showInSidebar: true,
@@ -126,21 +107,18 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
   },
   {
     path: PATHS.DASHBOARD.SUMMARY,
-    element: <SummaryDashboardPage />,
     label: "Tổng quan",
     icon: FiLayout,
     showInSidebar: false,
   },
   {
     path: PATHS.DASHBOARD.ACCOUNTS,
-    element: <AccountDashboardPage />,
     label: "Tài khoản",
     icon: FiUsers,
     showInSidebar: true,
   },
   {
     path: PATHS.DASHBOARD.CONTRACTS,
-    element: <ContractDashboardPage />,
     label: "Hợp đồng",
     icon: FiFileText,
     showInSidebar: true,
@@ -149,7 +127,6 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
   },
   {
     path: PATHS.DASHBOARD.QR_PRODUCTS,
-    element: <QRProductDashboardPage />,
     label: "QR Sản phẩm",
     icon: FiBox,
     showInSidebar: true,
@@ -158,7 +135,6 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
   },
   {
     path: PATHS.DASHBOARD.STORAGE,
-    element: <StorageDashboardPage />,
     label: "Lưu trữ",
     icon: FiArchive,
     showInSidebar: true,
@@ -166,7 +142,6 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
   },
   {
     path: PATHS.DASHBOARD.HUB_CLIENTS,
-    element: <HubClientDashboardPage />,
     label: "Hub Clients",
     icon: FiGrid,
     showInSidebar: true,
@@ -181,29 +156,29 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     children: [
       {
         path: PATHS.DASHBOARD.LICENSE_CREATE,
-        element: <LicenseCreatePage />,
+
         label: "Tạo bản quyền",
         showInSidebar: true,
       },
       {
         path: PATHS.DASHBOARD.LICENSE_EDIT,
-        element: <LicenseEditPage />,
+
         showInSidebar: false,
       },
       {
         path: PATHS.DASHBOARD.LICENSE_DETAIL,
-        element: <LicenseDetailPage />,
+
         showInSidebar: false,
       },
       {
         path: PATHS.DASHBOARD.LICENSE_LIST,
-        element: <LicenseListPage />,
+
         label: "Danh sách",
         showInSidebar: true,
       },
       {
         path: PATHS.DASHBOARD.LICENSE_SUPPORT,
-        element: <LicenseSupportPage />,
+
         label: "Hỗ trợ",
         showInSidebar: true,
       },
@@ -211,37 +186,30 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
   },
   {
     path: PATHS.CONTRACT_CREATE,
-    element: <ContractCreatePage />,
     showInSidebar: false,
   },
   {
     path: PATHS.CONTRACT_EDIT,
-    element: <ContractEditPage />,
     showInSidebar: false,
   },
   {
     path: PATHS.CONTRACT_PREVIEW,
-    element: <ContractPreviewPage />,
     showInSidebar: false,
   },
   {
     path: PATHS.QR_PRODUCT_GENERATOR,
-    element: <QRProductGeneratorPage />,
     showInSidebar: false,
   },
   {
     path: PATHS.CATALOGUE.CREATE,
-    element: <CatalogueCreatePage />,
     showInSidebar: false,
   },
   {
     path: PATHS.CATALOGUE.EDIT,
-    element: <CatalogueEditPage />,
     showInSidebar: false,
   },
   {
     path: PATHS.QR_PRODUCT_EDIT,
-    element: <QRProductEditPage />,
     showInSidebar: false,
   },
 ];

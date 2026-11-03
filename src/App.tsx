@@ -1,13 +1,14 @@
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { FullScreenSpinner } from "@/components/custom_ui/Spinner";
 import AppRouter from "./routes/AppRouter";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AuthProvider } from "./hooks/useAuth";
 import { ToastContainer } from "./components/ToastContainer";
-import ModalContainer from "./components/ModalContainer";
 import { DevtoolsGuard } from "./components/guards/DevtoolsGuard";
 import { CurveTransitionProvider } from "@/components/custom_ui/CurvePageTransition";
+import UiTrace from "@/components/security/UiTrace";
 
 export default function App() {
   return (
@@ -15,9 +16,11 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <DevtoolsGuard />
+          <UiTrace />
           <CurveTransitionProvider>
-            <AppRouter />
-            <ModalContainer />
+            <Suspense fallback={<FullScreenSpinner />}>
+              <AppRouter />
+            </Suspense>
             <ToastContainer />
           </CurveTransitionProvider>
         </BrowserRouter>

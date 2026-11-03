@@ -8,6 +8,7 @@ import {
   isStaticHubClientActive,
 } from "@/constants/staticHubClients";
 import DashboardLayout from "@/layouts/DashboardLayout";
+import ModalContainer from "@/components/ModalContainer";
 import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
 import ContractDetailDashboardPage from "@/pages/private/ContractDetailDashboardPage";
 import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
@@ -34,6 +35,7 @@ import {
 export default function PrivateRoutes() {
   return (
     <AuthGuard>
+      <ModalContainer />
       <Routes>
         <Route element={<DashboardLayout />}>
           <Route index element={<SummaryDashboardPage />} />

@@ -2,15 +2,10 @@ import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import PublicRoutes from "./PublicRoutes";
 import { PATHS } from "@/config/paths";
-import PrivateRoutes from "./PrivateRoutes";
-import PrivateContractRoutes from "./PrivateContractRoutes";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
 import { FullScreenSpinner } from "@/components/custom_ui/Spinner";
-import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
-import CatalogueCreatePage from "@/pages/private/CatalogueCreatePage";
-import CatalogueEditPage from "@/pages/private/CatalogueEditPage";
-import QRProductEditPage from "@/pages/private/QRProductEditPage";
+import { AuthGuard } from "@/components/guards/AuthGuard";
 import { StaticClientGuard } from "@/components/guards/StaticClientGuard";
 import {
   DIGITAL_CONTRACT_CLIENT_ID,
@@ -20,16 +15,43 @@ import {
 
 // These imports run only after StaticClientGuard has validated the session.
 const CataloguePublicPreviewPage = lazy(
-  () => import("@/pages/public/CataloguePublicPreviewPage"),
+  () => import("@/pages/authenticated/CataloguePublicPreviewPage"),
 );
 const CataloguePublicGalleryPage = lazy(
-  () => import("@/pages/public/CataloguePublicGalleryPage"),
+  () => import("@/pages/authenticated/CataloguePublicGalleryPage"),
+);
+
+const PrivateRoutes = lazy(() => import("./PrivateRoutes"));
+
+const PrivateContractRoutes = lazy(() => import("./PrivateContractRoutes"));
+
+const QRProductGeneratorPage = lazy(
+  () => import("@/pages/private/QRProductGeneratorPage"),
+);
+
+const CatalogueCreatePage = lazy(
+  () => import("@/pages/private/CatalogueCreatePage"),
+);
+
+const CatalogueEditPage = lazy(
+  () => import("@/pages/private/CatalogueEditPage"),
+);
+
+const QRProductEditPage = lazy(
+  () => import("@/pages/private/QRProductEditPage"),
 );
 
 export default function AppRouter() {
   return (
     <Routes>
-      <Route path="/dashboard/*" element={<PrivateRoutes />} />
+      <Route
+        path="/dashboard/*"
+        element={
+          <AuthGuard>
+            <PrivateRoutes />
+          </AuthGuard>
+        }
+      />
       <Route
         path="/contracts/:contractId/sign-partner"
         element={
@@ -41,7 +63,14 @@ export default function AppRouter() {
           </StaticClientGuard>
         }
       />
-      <Route path="/contracts/*" element={<PrivateContractRoutes />} />
+      <Route
+        path="/contracts/*"
+        element={
+          <StaticClientGuard clientId={DIGITAL_CONTRACT_CLIENT_ID}>
+            <PrivateContractRoutes />
+          </StaticClientGuard>
+        }
+      />
       <Route
         path={PATHS.CATALOGUE.CREATE}
         element={
