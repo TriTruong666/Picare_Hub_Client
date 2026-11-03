@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import PublicRoutes from "./PublicRoutes";
 import { PATHS } from "@/config/paths";
@@ -5,8 +6,7 @@ import PrivateRoutes from "./PrivateRoutes";
 import PrivateContractRoutes from "./PrivateContractRoutes";
 import ContractPartnerSignPage from "@/pages/public/ContractPartnerSignPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
-import CataloguePublicPreviewPage from "@/pages/public/CataloguePublicPreviewPage";
-import CataloguePublicGalleryPage from "@/pages/public/CataloguePublicGalleryPage";
+import { FullScreenSpinner } from "@/components/custom_ui/Spinner";
 import QRProductGeneratorPage from "@/pages/private/QRProductGeneratorPage";
 import CatalogueCreatePage from "@/pages/private/CatalogueCreatePage";
 import CatalogueEditPage from "@/pages/private/CatalogueEditPage";
@@ -17,6 +17,14 @@ import {
   QR_CODE_GENERATOR_CLIENT_ID,
   DIGITAL_CATALOGUE_CLIENT_ID,
 } from "@/constants/staticHubClients";
+
+// These imports run only after StaticClientGuard has validated the session.
+const CataloguePublicPreviewPage = lazy(
+  () => import("@/pages/public/CataloguePublicPreviewPage"),
+);
+const CataloguePublicGalleryPage = lazy(
+  () => import("@/pages/public/CataloguePublicGalleryPage"),
+);
 
 export default function AppRouter() {
   return (
@@ -85,7 +93,9 @@ export default function AppRouter() {
             requireDashboardAccess={false}
             checkRoles={false}
           >
-            <CataloguePublicGalleryPage />
+            <Suspense fallback={<FullScreenSpinner />}>
+              <CataloguePublicGalleryPage />
+            </Suspense>
           </StaticClientGuard>
         }
       />
@@ -97,7 +107,9 @@ export default function AppRouter() {
             requireDashboardAccess={false}
             checkRoles={false}
           >
-            <CataloguePublicPreviewPage />
+            <Suspense fallback={<FullScreenSpinner />}>
+              <CataloguePublicPreviewPage />
+            </Suspense>
           </StaticClientGuard>
         }
       />

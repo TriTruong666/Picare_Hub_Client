@@ -4,6 +4,45 @@ import tailwindcss from '@tailwindcss/vite'
 import JavaScriptObfuscator from 'javascript-obfuscator'
 import path from 'path'
 
+const PRIVATE_UI_MODULES = [
+  '/src/pages/public/PimoryPage.tsx',
+  '/src/components/reactbit/Masonry.tsx',
+  '/src/pages/public/CataloguePublicPreviewPage.tsx',
+  '/src/pages/public/CataloguePublicGalleryPage.tsx',
+  '/src/components/custom_ui/CataloguePageTurnCanvas.tsx',
+  '/src/utils/CataloguePageImageCache.ts',
+]
+
+function isPrivateUiModule(id: string): boolean {
+  const normalizedId = id.split('?')[0].replace(/\\/g, '/')
+  return PRIVATE_UI_MODULES.some((module) => normalizedId.endsWith(module))
+}
+
+// Fail the build if a later static import exposes a private screen again.
+function verifyPrivateUiPlugin(): Plugin {
+  return {
+    name: 'picare-verify-private-ui',
+    apply: 'build',
+    generateBundle(_options, bundle) {
+      for (const asset of Object.values(bundle)) {
+        if (asset.type !== 'chunk') continue
+        if (
+          Object.keys(asset.modules).some(isPrivateUiModule) &&
+          (!asset.fileName.startsWith('protected/') || asset.isEntry)
+        ) {
+          this.error(`Private UI code leaked into public bundle: ${asset.fileName}`)
+        }
+        if (
+          !asset.fileName.startsWith('protected/') &&
+          asset.imports.some((file) => file.startsWith('protected/'))
+        ) {
+          this.error(`Public chunk eagerly imports private UI: ${asset.fileName}`)
+        }
+      }
+    },
+  }
+}
+
 const PROTECTED_ANIMATION_PATHS = [
   '/src/components/animations-ui/',
   '/src/components/animations/',
@@ -124,6 +163,7 @@ export default defineConfig({
     }),
     tailwindcss(),
     protectAnimationsPlugin(),
+    verifyPrivateUiPlugin(),
   ],
   resolve: {
     alias: {
@@ -131,6 +171,15 @@ export default defineConfig({
     },
   },
   build: {
+    manifest: true,
+    rollupOptions: {
+      output: {
+        chunkFileNames: (chunk) =>
+          chunk.moduleIds.some(isPrivateUiModule)
+            ? 'protected/[name]-[hash].js'
+            : 'assets/[name]-[hash].js',
+      },
+    },
     minify: 'terser',
     sourcemap: false, // Tắt hoàn toàn source map trên production
     terserOptions: {

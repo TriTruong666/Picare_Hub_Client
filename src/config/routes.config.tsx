@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import {
   FiArchive,
@@ -18,8 +18,8 @@ import BlogUpdatesPage from "@/pages/public/BlogUpdatesPage";
 import LoginHubPage from "@/pages/public/LoginHubPage";
 import QRProductPreviewPage from "@/pages/public/QRProductPreviewPage";
 import SepTrungBirthPage from "@/pages/public/birthdate/SepTrungBirthPage";
-import PimoryPage from "@/pages/public/PimoryPage";
 import { AuthGuard } from "@/components/guards/AuthGuard";
+import { FullScreenSpinner } from "@/components/custom_ui/Spinner";
 import ContractCreatePage from "@/pages/private/ContractCreatePage";
 import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
 import ContractEditPage from "@/pages/private/ContractEditPage";
@@ -45,6 +45,9 @@ import {
   isStaticHubClientActive,
 } from "@/constants/staticHubClients";
 import { PATHS } from "./paths";
+
+// AuthGuard must render successfully before React requests this private chunk.
+const PimoryPage = lazy(() => import("@/pages/public/PimoryPage"));
 
 export interface RouteConfig {
   path: string;
@@ -104,7 +107,9 @@ export const PUBLIC_ROUTES: RouteConfig[] = [
     path: PATHS.PIMORY,
     element: (
       <AuthGuard requireDashboardAccess={false}>
-        <PimoryPage />
+        <Suspense fallback={<FullScreenSpinner />}>
+          <PimoryPage />
+        </Suspense>
       </AuthGuard>
     ),
   },
@@ -245,7 +250,10 @@ export const getSidebarNavigation = (role?: Role) =>
   PRIVATE_ROUTES.filter((route) => {
     if (!canAccessDashboard(role)) return false;
     const hasRole = !route.roles || (role && route.roles.includes(role));
-    if (route.staticClientId && !isStaticHubClientActive(route.staticClientId)) {
+    if (
+      route.staticClientId &&
+      !isStaticHubClientActive(route.staticClientId)
+    ) {
       return false;
     }
     return route.showInSidebar && hasRole;
