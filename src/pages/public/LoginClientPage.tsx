@@ -251,7 +251,8 @@ export default function LoginClientPage() {
     status: "active",
   });
 
-  const clientList = [...(clients || []), ...STATIC_HUB_CLIENTS];
+  const reversedApiClients = clients ? [...clients].reverse() : [];
+  const clientList = [...reversedApiClients, ...STATIC_HUB_CLIENTS];
 
   return (
     <div
