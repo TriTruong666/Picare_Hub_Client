@@ -28,7 +28,7 @@ Gateway có lớp riêng 10 request asset/giây/IP, burst 120 cho Hub; không á
 
 - Log JSON của UI service ghi userId/role do Core xác thực, auditId, buildId, đường dẫn, quyết định, requestId; không ghi cookie/token, query string, email, tên hay body form.
 - `ui.delivery` là lần server cấp/từ chối code. `ui.navigation.client_reported` là đường dẫn client khai báo, có thể bị sửa; không dùng nó một mình làm bằng chứng sao chép.
-- Watermark trên các màn hình riêng dùng phần cuối userId và auditId của phiên. Không chặn click/selection, không xuất hiện trên login/landing hay tài liệu public ký đối tác. Ẩn khi print để giữ mẫu hợp đồng. Người có kỹ năng có thể gỡ watermark; ảnh chụp không có watermark không chứng minh không truy cập.
+- Audit điều hướng chạy nền, không render watermark, auditId hay lớp phủ nào lên giao diện; không thay đổi thao tác click, selection hay bản in. Client không gọi endpoint lấy auditId để hiển thị. Log phía server vẫn đối chiếu theo userId/auditId, nhưng không còn dấu định danh trên ảnh chụp màn hình.
 - AuditId là HMAC theo user/token với khóa ngẫu nhiên chỉ ở bộ nhớ service; đổi khi restart. Log đã có cả auditId/userId nên vẫn tra được các phiên cũ. Không lưu bearer token làm mã truy vết.
 - Log container xoay vòng 10 MB x 5 file; cần chuyển log sang hệ thống lưu trữ tập trung nếu muốn điều tra dài hạn. Không có tự khóa tài khoản hoặc MFA step-up vì repo này chưa có backend hỗ trợ luồng đó.
 
