@@ -1,0 +1,61 @@
+# Allow internal Picare Antigravity AI Assistant
+User-agent: Picare-Antigravity-Agent
+Allow: /
+
+# Block AI Scrapers, LLM Crawlers & Web Cloners
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Perplexity-User
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: FirecrawlAgent
+Disallow: /
+
+User-agent: JinaBot
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: Cohere-ai
+Disallow: /
+
+# Default rule for internal ERP client
+User-agent: *
+Disallow: /assets/
+Disallow: /
+
