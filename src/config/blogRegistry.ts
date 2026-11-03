@@ -1,5 +1,7 @@
 import type { ComponentType } from "react";
+import { PATHS } from "./paths";
 import {
+  SystemSecurityUpdateDetailPage,
   PaymentRequestGuideUpdateDetailPage,
   OfficeSetupGuideUpdateDetailPage,
   OrderReturnGuideUpdateDetailPage,
@@ -51,6 +53,20 @@ export interface BlogItemConfig {
 }
 
 export const BLOG_REGISTRY: BlogItemConfig[] = [
+  {
+    id: "ban-cap-nhat-bao-mat-he-thong-picare-client-031126",
+    path: PATHS.SECURITY_UPDATE_DETAIL_2,
+    component: SystemSecurityUpdateDetailPage,
+    version: "03.11.2026-security",
+    category: "Bảo mật",
+    date: "03/11/2026",
+    readTime: "5 phút đọc",
+    title: "Bản cập nhật bảo mật hệ thống Picare Client",
+    summary:
+      "Tăng cường bảo vệ tài nguyên nội bộ trước hoạt động thu thập tự động, hướng dẫn sử dụng bot và AI đúng phạm vi; kế hoạch bảo trì hạ tầng liên quan CVE-2026-98432.",
+    author: "IT Picare Vietnam",
+    authorRole: "Picare Engineering",
+  },
   {
     id: "huong-dan-tao-va-ky-duyet-de-nghi-thanh-toan",
     path: "/changes/huong-dan-tao-va-ky-duyet-de-nghi-thanh-toan",
