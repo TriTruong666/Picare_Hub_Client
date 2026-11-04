@@ -1,4 +1,4 @@
-import type { UserRole } from "@/types/User";
+import type { UserRole } from "./User";
 
 export type HubClient = {
   clientId: string;

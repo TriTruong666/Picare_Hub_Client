@@ -2,11 +2,15 @@ import { createHash } from "node:crypto";
 import JavaScriptObfuscator from "javascript-obfuscator";
 import type { Plugin } from "vite";
 
-type Scope = "member" | "dashboard";
+type Scope = "member" | "dashboard" | "qr-products" | "catalogue";
 const normalized = (id: string) => id.split("?")[0].replace(/\\/g, "/");
 function rootScope(id: string): Scope | null {
   const file = normalized(id);
   if (/\/src\/pages\/authenticated\/.*\.tsx$/.test(file)) return "member";
+  if (/\/src\/pages\/private\/QRProduct(?:Generator|Edit)Page\.tsx$/.test(file))
+    return "qr-products";
+  if (/\/src\/pages\/private\/Catalogue(?:Create|Edit)Page\.tsx$/.test(file))
+    return "catalogue";
   if (
     /\/src\/pages\/private\/(?:[^/]+\.tsx|.*Page\.tsx)$/.test(file) ||
     /\/src\/routes\/Private(?:Contract)?Routes\.tsx$/.test(file)
@@ -15,19 +19,37 @@ function rootScope(id: string): Scope | null {
   return null;
 }
 
-export function privateUiBuild(dashboardRoles: readonly string[]) {
+export function privateUiBuild(
+  dashboardRoles: readonly string[],
+  toolRoles: Record<"qr-products" | "catalogue", readonly string[]>,
+) {
+  const scopeRoles: Record<string, readonly string[]> = {
+    dashboard: dashboardRoles,
+    ...toolRoles,
+  };
   const publicIds = new Set<string>();
   const scopes = new Map<string, Set<Scope>>();
-  const scopeOf = (id: string): Scope | null => {
+  const scopeOf = (id: string): string | null => {
     if (publicIds.has(id)) return null;
     const allowed = scopes.get(id);
-    return allowed?.has("member")
-      ? "member"
-      : allowed?.has("dashboard")
-        ? "dashboard"
-        : null;
+    if (!allowed?.size) return null;
+    // Anything required by authenticated member screens remains member-shared.
+    if (allowed.has("member")) return "member";
+    const key = [...allowed].sort().join("+");
+    scopeRoles[key] = [
+      ...new Set([...allowed].flatMap((scope) => scopeRoles[scope])),
+    ].sort();
+    return key;
   };
   return {
+    // Keep dependencies shared by tools and dashboard in separate chunks so
+    // allowing a tool never exposes an entire dashboard page bundled with them.
+    sharedChunk(id: string) {
+      const scope = scopeOf(id);
+      return scope?.includes("+")
+        ? `shared-${scope.replaceAll("+", "-")}`
+        : undefined;
+    },
     chunkFileNames(chunk: { moduleIds: string[] }) {
       const groups = new Set(chunk.moduleIds.map(scopeOf).filter(Boolean));
       if (groups.size > 1)
@@ -69,7 +91,7 @@ export function privateUiBuild(dashboardRoles: readonly string[]) {
         }
       },
       generateBundle(_options, bundle) {
-        const files: Record<string, Scope> = {};
+        const files: Record<string, string> = {};
         for (const asset of Object.values(bundle)) {
           if (asset.type !== "chunk") continue;
           for (const id of Object.keys(asset.modules)) {
@@ -87,11 +109,13 @@ export function privateUiBuild(dashboardRoles: readonly string[]) {
             );
           }
           if (asset.fileName.startsWith("protected/")) {
-            files["/" + asset.fileName] = asset.fileName.startsWith(
-              "protected/dashboard/",
-            )
-              ? "dashboard"
-              : "member";
+            const grants = new Set(
+              Object.keys(asset.modules).map(scopeOf).filter(Boolean),
+            );
+            if (grants.size !== 1)
+              this.error(`Ambiguous private chunk grant: ${asset.fileName}`);
+            const scope = [...grants][0]!;
+            files["/" + asset.fileName] = scope;
           }
         }
         const buildId = createHash("sha256")
@@ -101,7 +125,12 @@ export function privateUiBuild(dashboardRoles: readonly string[]) {
         this.emitFile({
           type: "asset",
           fileName: ".security/ui-policy.json",
-          source: JSON.stringify({ buildId, dashboardRoles, files }),
+          source: JSON.stringify({
+            buildId,
+            dashboardRoles,
+            scopeRoles,
+            files,
+          }),
         });
       },
     } satisfies Plugin,

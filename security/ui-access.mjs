@@ -4,11 +4,13 @@ import { createServer } from "node:http";
 import { pathToFileURL } from "node:url";
 
 export function routeScope(path) {
+  if (/^\/qr-products\/(?:generator\/?$|[^/]+\/edit\/?$)/.test(path))
+    return "qr-products";
+  if (/^\/catalogue\/(?:create\/?$|[^/]+\/edit\/?$)/.test(path))
+    return "catalogue";
   if (
     /^\/dashboard(?:\/|$)/.test(path) ||
-    /^\/contracts\/(?:create\/?$|[^/]+\/(?:edit|preview)\/?$)/.test(path) ||
-    /^\/catalogue\/(?:create\/?$|[^/]+\/edit\/?$)/.test(path) ||
-    /^\/qr-products\/(?:generator\/?$|[^/]+\/edit\/?$)/.test(path)
+    /^\/contracts\/(?:create\/?$|[^/]+\/(?:edit|preview)\/?$)/.test(path)
   )
     return "dashboard";
   if (
@@ -156,8 +158,11 @@ export function createUiAccess({
       if (
         status === 200 &&
         (!scope ||
-          (scope === "dashboard" &&
-            !policy.dashboardRoles.includes(subject.role)))
+          (scope !== "member" &&
+            !(
+              policy.scopeRoles?.[scope] ??
+              (scope === "dashboard" ? policy.dashboardRoles : [])
+            ).includes(subject.role)))
       )
         status = 403;
       if (

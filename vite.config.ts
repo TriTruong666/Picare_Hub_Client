@@ -4,9 +4,17 @@ import tailwindcss from "@tailwindcss/vite";
 import { privateUiBuild, obfuscateBuild } from "./build/ui-security";
 import { DASHBOARD_ACCESS_ROLES } from "./src/config/dashboardAccess";
 import path from "path";
+import {
+  getStaticHubClientRoles,
+  QR_CODE_GENERATOR_CLIENT_ID,
+  DIGITAL_CATALOGUE_CLIENT_ID,
+} from "./src/constants/staticHubClients";
 
 // https://vite.dev/config/
-const privateUi = privateUiBuild(DASHBOARD_ACCESS_ROLES);
+const privateUi = privateUiBuild(DASHBOARD_ACCESS_ROLES, {
+  "qr-products": getStaticHubClientRoles(QR_CODE_GENERATOR_CLIENT_ID),
+  catalogue: getStaticHubClientRoles(DIGITAL_CATALOGUE_CLIENT_ID),
+});
 
 export default defineConfig({
   plugins: [
@@ -29,6 +37,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         chunkFileNames: privateUi.chunkFileNames,
+        manualChunks: privateUi.sharedChunk,
+        onlyExplicitManualChunks: true,
       },
     },
     minify: "terser",

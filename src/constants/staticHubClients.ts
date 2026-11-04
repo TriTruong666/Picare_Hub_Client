@@ -1,5 +1,5 @@
-import { PATHS } from "@/config/paths";
-import type { HubClient } from "@/types/HubClient";
+import { PATHS } from "../config/paths";
+import type { HubClient } from "../types/HubClient";
 
 export const DIGITAL_CONTRACT_CLIENT_ID = "digital-contracts";
 export const QR_CODE_GENERATOR_CLIENT_ID = "qr-code-generator";
@@ -139,4 +139,3 @@ export function isStaticRoutePathActive(pathname: string): {
   }
   return { isActive: true };
 }
-

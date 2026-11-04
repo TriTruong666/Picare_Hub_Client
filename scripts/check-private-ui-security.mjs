@@ -32,11 +32,41 @@ for (const [key, item] of Object.entries(manifest)) {
   if (key.startsWith("src/pages/authenticated/"))
     assert.match(item.file, /^protected\/member\//);
   if (
-    /^src\/pages\/private\/[^/]+\.tsx$/.test(key) ||
+    (/^src\/pages\/private\/[^/]+\.tsx$/.test(key) &&
+      !/\/(?:QRProduct(?:Generator|Edit)|Catalogue(?:Create|Edit))Page\.tsx$/.test(
+        key,
+      )) ||
     /^src\/routes\/Private/.test(key)
   )
     assert.match(item.file, /^protected\/dashboard\//);
 }
+for (const [key, scope] of [
+  ["src/pages/private/QRProductGeneratorPage.tsx", "qr-products"],
+  ["src/pages/private/QRProductEditPage.tsx", "qr-products"],
+  ["src/pages/private/CatalogueCreatePage.tsx", "catalogue"],
+  ["src/pages/private/CatalogueEditPage.tsx", "catalogue"],
+]) {
+  assert.ok(manifest[key], key);
+  assert.equal(policy.files["/" + manifest[key].file], scope);
+  assert.ok(policy.scopeRoles[scope].includes("marketing"));
+  assert.ok(!policy.scopeRoles[scope].includes("finance"));
+  // Every static import needed by the tool must be deliverable to marketing.
+  const visited = new Set();
+  function checkImports(id) {
+    if (visited.has(id)) return;
+    visited.add(id);
+    const chunk = manifest[id],
+      grant = policy.files["/" + chunk.file];
+    if (grant && grant !== "member")
+      assert.ok(policy.scopeRoles[grant].includes("marketing"), id);
+    for (const dependency of chunk.imports || []) checkImports(dependency);
+  }
+  checkImports(key);
+}
+assert.ok(
+  !policy.dashboardRoles.includes("marketing"),
+  "Do not grant marketing general dashboard access",
+);
 assert.ok(Object.values(policy.files).includes("member"));
 assert.ok(Object.values(policy.files).includes("dashboard"));
 console.log(
@@ -57,6 +87,9 @@ const service = createUiAccess({
         "token=fixture-admin",
         "token=fixture-member",
         "token=fixture-inactive",
+        "token=fixture-marketing",
+        "token=fixture-business_development",
+        "token=fixture-finance",
       ].includes(token)
     )
       return new Response("{}", { status: 401 });
@@ -64,8 +97,16 @@ const service = createUiAccess({
       JSON.stringify({
         success: true,
         data: {
-          userId: token.includes("admin") ? "admin-one" : "member-one",
-          role: token.includes("admin") ? "admin" : "warehouse",
+          userId: token.includes("admin")
+            ? "admin-one"
+            : token === "token=fixture-member"
+              ? "member-one"
+              : token.slice("token=fixture-".length),
+          role: token.includes("admin")
+            ? "admin"
+            : ["token=fixture-member", "token=fixture-inactive"].includes(token)
+              ? "warehouse"
+              : token.slice("token=fixture-".length),
           status: token.includes("inactive") ? "INACTIVE" : "ACTIVE",
         },
       }),
@@ -161,6 +202,29 @@ try {
     await check(uri, 200, admin, true);
   }
   await check("/dashboard", 403, member, true);
+  const marketing = { Cookie: "token=fixture-marketing" },
+    business = { Cookie: "token=fixture-business_development" },
+    finance = { Cookie: "token=fixture-finance" };
+  for (const uri of [
+    "/qr-products/generator",
+    "/qr-products/example/edit",
+    "/catalogue/create",
+    "/catalogue/example/edit",
+  ]) {
+    await check(uri, 200, marketing, true);
+    await check(uri, 200, business, true);
+    await check(uri, 403, finance, true);
+    await check(uri, 403, member, true);
+    await check(uri, 403, { Cookie: "token=fixture-inactive" }, true);
+  }
+  for (const uri of [
+    "/dashboard",
+    "/dashboard/accounts",
+    "/dashboard/qr-products",
+    "/contracts/create",
+  ])
+    await check(uri, 403, marketing, true);
+  await check("/qr-products/generator?source=fixture", 200, marketing, true);
   const firstMember = Object.keys(policy.files).find(
     (name) => policy.files[name] === "member",
   );
@@ -172,6 +236,31 @@ try {
     await check(uri, 401, fake, true);
     await check(uri, 200, admin, true);
     await check(uri, scope === "member" ? 200 : 403, member, true);
+    await check(
+      uri,
+      scope === "member" || policy.scopeRoles[scope].includes("marketing")
+        ? 200
+        : 403,
+      marketing,
+      true,
+    );
+    await check(
+      uri,
+      scope === "member" ||
+        policy.scopeRoles[scope].includes("business_development")
+        ? 200
+        : 403,
+      business,
+      true,
+    );
+    await check(
+      uri,
+      scope === "member" || policy.scopeRoles[scope].includes("finance")
+        ? 200
+        : 403,
+      finance,
+      true,
+    );
   }
   await check(firstDashboard, 403, { Cookie: "token=fixture-inactive" }, true);
   await check("/_private_ui_auth", 404);
@@ -187,13 +276,19 @@ try {
   revoked = true;
   await check(firstMember, 401, admin, true);
   revoked = false;
+  const toolFile =
+    "/" + manifest["src/pages/private/QRProductGeneratorPage.tsx"].file;
+  revoked = true;
+  await check(toolFile, 401, marketing, true);
+  revoked = false;
   failCore = true;
+  await check(toolFile, 503, marketing, true);
   await check(firstMember, 503, admin, true);
   failCore = false;
   // Optional browser exercise used by the local integration harness.
   if (process.env.UI_BROWSER_CHECK) {
     const { run } = await import(process.env.UI_BROWSER_CHECK);
-    await run({ base, policy, admin, member });
+    await run({ base, policy, admin, member, marketing });
   }
   let throttled = false;
   for (let n = 0; n < 190; n++) {

@@ -6,6 +6,8 @@
 
 - Trang `.tsx` ở cấp đầu của `src/pages/private/` và các file `*Page.tsx` lồng sâu thuộc nhóm dashboard. Hai router nội bộ cũng là điểm bắt đầu của nhóm này.
 - Trang trong `src/pages/authenticated/` thuộc nhóm member.
+- Hai trang QR Product Generator/Edit thuộc scope `qr-products`; hai trang Catalogue Create/Edit thuộc scope `catalogue`. HTML và bundle của mỗi công cụ dùng cùng allowedRoles lấy từ `src/constants/staticHubClients.ts` khi build, thay vì kế thừa quyền dashboard.
+- Dependency dùng chung giữa các công cụ/dashboard có chunk và danh sách role riêng (hợp các quyền cần dùng dependency đó). Build chặn trộn màn hình chỉ dành cho dashboard vào chunk được cấp cho marketing.
 - Build duyệt đồ thị import tĩnh, đưa cả dependency riêng của từng nhóm sang `dist/protected/<scope>/`. Dependency thực sự cần cho trang public vẫn được chia sẻ public. Thêm trang theo quy ước thư mục không cần thêm vào allowlist bảo vệ.
 - Các modal tài khoản chỉ được import qua router dashboard. Metadata sidebar không import component trang nội bộ nữa.
 - Nếu import tĩnh màn hình riêng vào public entry, build thất bại. Manifest `.security/ui-policy.json` là allowlist file và scope do build sinh; không phục vụ manifest này qua HTTP.
@@ -16,6 +18,7 @@
 Dịch vụ `hub-ui-access` chỉ chạy trong mạng Docker, không publish cổng ra host. Nginx gửi subrequest nội bộ trước khi cấp HTML/chunk riêng. Dịch vụ gọi Core `/api/v1/users/me`, yêu cầu tài khoản ACTIVE và kiểm tra scope:
 
 - member: mọi tài khoản ACTIVE có phiên hợp lệ;
+- qr-products/catalogue: role của static client tương ứng (hiện gồm admin, business_development, marketing); không mở quyền `/dashboard/*` cho marketing;
 - dashboard: các role trong `src/config/dashboardAccess.ts`, được build đưa vào policy. Đây là quyền phân phối theo nhóm; các quyền chi tiết của tài khoản/lưu trữ/hợp đồng vẫn phải được backend API kiểm tra. Không tuyên bố phân phối chunk riêng cho từng role con trong cùng nhóm dashboard.
 
 Cookie phải được Core xác thực; không tin cookie tự đặt, header `X-Ui-Actor`, User-Agent hay Referer. Không cache quyết định thành công sau request; chỉ gộp các lần kiểm tra cùng token đang đồng thời chờ Core. Core lỗi thì không cấp file.
