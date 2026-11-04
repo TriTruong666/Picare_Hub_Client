@@ -2,12 +2,43 @@ import { createHash } from "node:crypto";
 import JavaScriptObfuscator from "javascript-obfuscator";
 import type { Plugin } from "vite";
 
-type Scope = "member" | "dashboard" | "qr-products" | "catalogue";
+type Scope =
+  | "member"
+  | "dashboard"
+  | "qr-products"
+  | "catalogue"
+  | "admin"
+  | "overview"
+  | "contracts-dashboard";
 const normalized = (id: string) => id.split("?")[0].replace(/\\/g, "/");
 function rootScope(id: string): Scope | null {
   const file = normalized(id);
   if (/\/src\/pages\/authenticated\/.*\.tsx$/.test(file)) return "member";
-  if (/\/src\/pages\/private\/QRProduct(?:Generator|Edit)Page\.tsx$/.test(file))
+  if (/\/src\/components\/(?:ModalContainer|DrawerContainer)\.tsx$/.test(file))
+    return "admin";
+  if (
+    /\/src\/pages\/private\/(?:AccountDashboard|HubClient(?:Create|Dashboard|Edit)|Storage(?:Dashboard|FolderDetail)|License(?:Create|Edit|Detail|List|Support)|SystemSettingDashboard)Page\.tsx$/.test(
+      file,
+    )
+  )
+    return "admin";
+  if (
+    /\/src\/pages\/private\/Contract(?:Dashboard|DetailDashboard)Page\.tsx$/.test(
+      file,
+    )
+  )
+    return "contracts-dashboard";
+  if (
+    /\/src\/(?:routes\/PrivateRoutes|pages\/private\/(?:SettingDashboardPage|PrivateStubPage))\.tsx$/.test(
+      file,
+    )
+  )
+    return "dashboard";
+  if (
+    /\/src\/pages\/private\/QRProduct(?:Generator|Edit|Dashboard)Page\.tsx$/.test(
+      file,
+    )
+  )
     return "qr-products";
   if (/\/src\/pages\/private\/Catalogue(?:Create|Edit)Page\.tsx$/.test(file))
     return "catalogue";
@@ -15,13 +46,17 @@ function rootScope(id: string): Scope | null {
     /\/src\/pages\/private\/(?:[^/]+\.tsx|.*Page\.tsx)$/.test(file) ||
     /\/src\/routes\/Private(?:Contract)?Routes\.tsx$/.test(file)
   )
-    return "dashboard";
+    return "overview";
   return null;
 }
 
 export function privateUiBuild(
   dashboardRoles: readonly string[],
-  toolRoles: Record<"qr-products" | "catalogue", readonly string[]>,
+  toolRoles: Record<
+    "qr-products" | "catalogue" | "admin" | "overview" | "contracts-dashboard",
+    readonly string[]
+  >,
+  dashboardRoutes: readonly { pattern: string; scope: string }[],
 ) {
   const scopeRoles: Record<string, readonly string[]> = {
     dashboard: dashboardRoles,
@@ -129,6 +164,7 @@ export function privateUiBuild(
             buildId,
             dashboardRoles,
             scopeRoles,
+            dashboardRoutes,
             files,
           }),
         });

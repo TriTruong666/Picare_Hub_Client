@@ -4,7 +4,10 @@
 
 ## Phân loại tự động khi build
 
-- Trang `.tsx` ở cấp đầu của `src/pages/private/` và các file `*Page.tsx` lồng sâu thuộc nhóm dashboard. Hai router nội bộ cũng là điểm bắt đầu của nhóm này.
+- Router dashboard và trang hồ sơ/bảo mật cá nhân thuộc scope `dashboard` (khung dùng chung). Marketing được vào khung và mặc định chuyển đến QR Sản phẩm; không có quyền Tổng quan.
+- QR Product Generator/Edit/Dashboard thuộc `qr-products`, Catalogue Create/Edit thuộc `catalogue`; quyền lấy từ static client.
+- Tài khoản, Lưu trữ, Hub Clients, Bản quyền và cài đặt Hệ thống (kể cả modal/drawer tài khoản) thuộc scope `admin`, chỉ admin được nhận bundle. Các trang dashboard được lazy-load sau guard quyền để không đưa màn hình admin vào khung dùng chung.
+- Danh sách/chi tiết hợp đồng dashboard dùng `contracts-dashboard` theo quyền hiện có. Các trang private còn lại và router biểu mẫu hợp đồng giữ quyền legacy trong scope `overview`.
 - Trang trong `src/pages/authenticated/` thuộc nhóm member.
 - Hai trang QR Product Generator/Edit thuộc scope `qr-products`; hai trang Catalogue Create/Edit thuộc scope `catalogue`. HTML và bundle của mỗi công cụ dùng cùng allowedRoles lấy từ `src/constants/staticHubClients.ts` khi build, thay vì kế thừa quyền dashboard.
 - Dependency dùng chung giữa các công cụ/dashboard có chunk và danh sách role riêng (hợp các quyền cần dùng dependency đó). Build chặn trộn màn hình chỉ dành cho dashboard vào chunk được cấp cho marketing.
@@ -19,7 +22,11 @@ Dịch vụ `hub-ui-access` chỉ chạy trong mạng Docker, không publish c�
 
 - member: mọi tài khoản ACTIVE có phiên hợp lệ;
 - qr-products/catalogue: role của static client tương ứng (hiện gồm admin, business_development, marketing); không mở quyền `/dashboard/*` cho marketing;
-- dashboard: các role trong `src/config/dashboardAccess.ts`, được build đưa vào policy. Đây là quyền phân phối theo nhóm; các quyền chi tiết của tài khoản/lưu trữ/hợp đồng vẫn phải được backend API kiểm tra. Không tuyên bố phân phối chunk riêng cho từng role con trong cùng nhóm dashboard.
+- dashboard: các role được vào khung dùng chung, bao gồm marketing;
+- admin: chỉ admin; áp dụng cả HTML của URL trực tiếp và mã trang;
+- overview/contracts-dashboard: giữ danh sách quyền trước đó của Tổng quan và Hợp đồng.
+
+`src/config/dashboardAccess.ts` là nguồn quy tắc dashboard dùng chung cho sidebar desktop/mobile, tìm kiếm, menu tài khoản, tab cài đặt, route và policy server sinh khi build. Quyền API backend tiếp tục được kiểm tra độc lập; ẩn menu không thay thế xác thực API.
 
 Cookie phải được Core xác thực; không tin cookie tự đặt, header `X-Ui-Actor`, User-Agent hay Referer. Không cache quyết định thành công sau request; chỉ gộp các lần kiểm tra cùng token đang đồng thời chờ Core. Core lỗi thì không cấp file.
 

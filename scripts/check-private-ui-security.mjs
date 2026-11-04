@@ -31,14 +31,16 @@ for (const [key, item] of Object.entries(manifest))
 for (const [key, item] of Object.entries(manifest)) {
   if (key.startsWith("src/pages/authenticated/"))
     assert.match(item.file, /^protected\/member\//);
-  if (
-    (/^src\/pages\/private\/[^/]+\.tsx$/.test(key) &&
-      !/\/(?:QRProduct(?:Generator|Edit)|Catalogue(?:Create|Edit))Page\.tsx$/.test(
-        key,
-      )) ||
-    /^src\/routes\/Private/.test(key)
-  )
+  if (key === "src/routes/PrivateRoutes.tsx")
     assert.match(item.file, /^protected\/dashboard\//);
+  if (key === "src/pages/private/QRProductDashboardPage.tsx")
+    assert.equal(policy.files["/" + item.file], "qr-products");
+  if (
+    /^src\/pages\/private\/(?:AccountDashboard|HubClient(?:Create|Dashboard|Edit)|Storage(?:Dashboard|FolderDetail)|License(?:Create|Edit|Detail|List|Support)|SystemSettingDashboard)Page\.tsx$/.test(
+      key,
+    )
+  )
+    assert.equal(policy.files["/" + item.file], "admin");
 }
 for (const [key, scope] of [
   ["src/pages/private/QRProductGeneratorPage.tsx", "qr-products"],
@@ -63,10 +65,9 @@ for (const [key, scope] of [
   }
   checkImports(key);
 }
-assert.ok(
-  !policy.dashboardRoles.includes("marketing"),
-  "Do not grant marketing general dashboard access",
-);
+assert.deepEqual(policy.scopeRoles.admin, ["admin"]);
+assert.ok(policy.dashboardRoles.includes("marketing"));
+assert.ok(!policy.scopeRoles.overview.includes("marketing"));
 assert.ok(Object.values(policy.files).includes("member"));
 assert.ok(Object.values(policy.files).includes("dashboard"));
 console.log(
@@ -90,6 +91,9 @@ const service = createUiAccess({
         "token=fixture-marketing",
         "token=fixture-business_development",
         "token=fixture-finance",
+        "token=fixture-ceo",
+        "token=fixture-hr",
+        "token=fixture-admin_brand",
       ].includes(token)
     )
       return new Response("{}", { status: 401 });
@@ -97,16 +101,20 @@ const service = createUiAccess({
       JSON.stringify({
         success: true,
         data: {
-          userId: token.includes("admin")
-            ? "admin-one"
-            : token === "token=fixture-member"
-              ? "member-one"
-              : token.slice("token=fixture-".length),
-          role: token.includes("admin")
-            ? "admin"
-            : ["token=fixture-member", "token=fixture-inactive"].includes(token)
-              ? "warehouse"
-              : token.slice("token=fixture-".length),
+          userId:
+            token === "token=fixture-admin"
+              ? "admin-one"
+              : token === "token=fixture-member"
+                ? "member-one"
+                : token.slice("token=fixture-".length),
+          role:
+            token === "token=fixture-admin"
+              ? "admin"
+              : ["token=fixture-member", "token=fixture-inactive"].includes(
+                    token,
+                  )
+                ? "warehouse"
+                : token.slice("token=fixture-".length),
           status: token.includes("inactive") ? "INACTIVE" : "ACTIVE",
         },
       }),
@@ -218,13 +226,56 @@ try {
     await check(uri, 403, { Cookie: "token=fixture-inactive" }, true);
   }
   for (const uri of [
-    "/dashboard",
     "/dashboard/accounts",
-    "/dashboard/qr-products",
+    "/dashboard/storage",
+    "/dashboard/storage/example",
+    "/dashboard/hub-clients",
+    "/dashboard/hub-clients/create",
+    "/dashboard/licenses",
+    "/dashboard/licenses/create",
+    "/dashboard/licenses/example/edit",
+    "/dashboard/settings/system",
+    "/dashboard/summary",
     "/contracts/create",
   ])
     await check(uri, 403, marketing, true);
+  for (const uri of [
+    "/dashboard",
+    "/dashboard/qr-products",
+    "/dashboard/settings",
+    "/dashboard/settings/security",
+  ]) {
+    await check(uri, 200, marketing, true);
+    await check(uri, 200, business, true);
+  }
+  await check("/dashboard/qr-products", 403, finance, true);
+  for (const uri of [
+    "/dashboard/accounts",
+    "/dashboard/storage",
+    "/dashboard/hub-clients",
+    "/dashboard/licenses",
+    "/dashboard/settings/system",
+  ]) {
+    await check(uri, 403, business, true);
+    await check(uri, 403, finance, true);
+    await check(uri, 200, admin, true);
+  }
   await check("/qr-products/generator?source=fixture", 200, marketing, true);
+  for (const role of ["ceo", "hr", "admin_brand"]) {
+    const headers = { Cookie: "token=fixture-" + role };
+    await check("/dashboard", 200, headers, true);
+    await check("/dashboard/qr-products", 403, headers, true);
+    for (const uri of [
+      "/dashboard/accounts",
+      "/dashboard/storage",
+      "/dashboard/hub-clients",
+      "/dashboard/licenses",
+      "/dashboard/settings/system",
+    ])
+      await check(uri, 403, headers, true);
+    for (const [file, scope] of Object.entries(policy.files))
+      if (scope === "admin") await check(file, 403, headers, true);
+  }
   const firstMember = Object.keys(policy.files).find(
     (name) => policy.files[name] === "member",
   );

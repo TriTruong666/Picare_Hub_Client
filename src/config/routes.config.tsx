@@ -11,7 +11,14 @@ import {
   FiShield,
 } from "react-icons/fi";
 import type { Role } from "@/hooks/useAuth";
-import { canAccessDashboard } from "@/config/dashboardAccess";
+import {
+  canAccessDashboard,
+  canAccessDashboardPath,
+  ADMIN_ACCESS_ROLES,
+  QR_DASHBOARD_ROLES,
+  CONTRACT_DASHBOARD_ROLES,
+  DASHBOARD_OVERVIEW_ROLES,
+} from "@/config/dashboardAccess";
 import LandingPage from "@/pages/public/LandingPage";
 import ClientOmsPage from "@/pages/public/client_products/ClientOmsPage";
 import BlogUpdatesPage from "@/pages/public/BlogUpdatesPage";
@@ -101,6 +108,7 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
   {
     path: PATHS.DASHBOARD.ROOT,
     label: "Tổng quan",
+    roles: DASHBOARD_OVERVIEW_ROLES,
     icon: FiLayout,
     showInSidebar: true,
     index: true,
@@ -108,12 +116,14 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
   {
     path: PATHS.DASHBOARD.SUMMARY,
     label: "Tổng quan",
+    roles: DASHBOARD_OVERVIEW_ROLES,
     icon: FiLayout,
     showInSidebar: false,
   },
   {
     path: PATHS.DASHBOARD.ACCOUNTS,
     label: "Tài khoản",
+    roles: ADMIN_ACCESS_ROLES,
     icon: FiUsers,
     showInSidebar: true,
   },
@@ -122,7 +132,7 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     label: "Hợp đồng",
     icon: FiFileText,
     showInSidebar: true,
-    roles: ["admin", "ceo", "hr", "finance"],
+    roles: CONTRACT_DASHBOARD_ROLES,
     staticClientId: DIGITAL_CONTRACT_CLIENT_ID,
   },
   {
@@ -130,7 +140,7 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     label: "QR Sản phẩm",
     icon: FiBox,
     showInSidebar: true,
-    roles: ["admin", "ceo", "business_development"],
+    roles: QR_DASHBOARD_ROLES,
     staticClientId: QR_CODE_GENERATOR_CLIENT_ID,
   },
   {
@@ -138,21 +148,21 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
     label: "Lưu trữ",
     icon: FiArchive,
     showInSidebar: true,
-    roles: ["admin"],
+    roles: ADMIN_ACCESS_ROLES,
   },
   {
     path: PATHS.DASHBOARD.HUB_CLIENTS,
     label: "Hub Clients",
     icon: FiGrid,
     showInSidebar: true,
-    roles: ["admin"],
+    roles: ADMIN_ACCESS_ROLES,
   },
   {
     path: "/dashboard/licenses",
     label: "Bản quyền",
     icon: FiShield,
     showInSidebar: true,
-    roles: ["admin"],
+    roles: ADMIN_ACCESS_ROLES,
     children: [
       {
         path: PATHS.DASHBOARD.LICENSE_CREATE,
@@ -214,15 +224,21 @@ export const PRIVATE_ROUTES: RouteConfig[] = [
   },
 ];
 
-export const getSidebarNavigation = (role?: Role) =>
-  PRIVATE_ROUTES.filter((route) => {
-    if (!canAccessDashboard(role)) return false;
-    const hasRole = !route.roles || (role && route.roles.includes(role));
-    if (
-      route.staticClientId &&
-      !isStaticHubClientActive(route.staticClientId)
-    ) {
-      return false;
-    }
-    return route.showInSidebar && hasRole;
-  });
+export function getSidebarNavigation(role?: Role): RouteConfig[] {
+  if (!canAccessDashboard(role)) return [];
+  const filter = (routes: RouteConfig[]): RouteConfig[] =>
+    routes
+      .filter(
+        (route) =>
+          route.showInSidebar &&
+          canAccessDashboardPath(role, route.path) &&
+          (!route.roles || (!!role && route.roles.includes(role))) &&
+          (!route.staticClientId ||
+            isStaticHubClientActive(route.staticClientId)),
+      )
+      .map((route) => ({
+        ...route,
+        ...(route.children ? { children: filter(route.children) } : {}),
+      }));
+  return filter(PRIVATE_ROUTES);
+}

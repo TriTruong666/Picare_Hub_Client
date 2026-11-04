@@ -3,16 +3,20 @@ import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { pathToFileURL } from "node:url";
 
-export function routeScope(path) {
+export function routeScope(path, policy) {
+  if (/^\/dashboard(?:\/|$)/.test(path)) {
+    return (
+      policy.dashboardRoutes?.find((rule) =>
+        new RegExp(rule.pattern).test(path),
+      )?.scope ?? "dashboard"
+    );
+  }
   if (/^\/qr-products\/(?:generator\/?$|[^/]+\/edit\/?$)/.test(path))
     return "qr-products";
   if (/^\/catalogue\/(?:create\/?$|[^/]+\/edit\/?$)/.test(path))
     return "catalogue";
-  if (
-    /^\/dashboard(?:\/|$)/.test(path) ||
-    /^\/contracts\/(?:create\/?$|[^/]+\/(?:edit|preview)\/?$)/.test(path)
-  )
-    return "dashboard";
+  if (/^\/contracts\/(?:create\/?$|[^/]+\/(?:edit|preview)\/?$)/.test(path))
+    return "overview";
   if (
     /^\/pimory\/?$/.test(path) ||
     /^\/catalogue\/public\/[A-Za-z0-9-]+\/?$/.test(path)
@@ -153,7 +157,7 @@ export function createUiAccess({
       // Manifest allowlist prevents a guessed filename from selecting its own role.
       const scope = path.startsWith("/protected/")
         ? policy.files[path]
-        : routeScope(path);
+        : routeScope(path, policy);
       let status = subject.status;
       if (
         status === 200 &&

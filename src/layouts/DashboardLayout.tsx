@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -34,14 +36,13 @@ import {
   useNavigate,
 } from "react-router-dom";
 import clsx from "clsx";
-import { getSidebarNavigation, PRIVATE_ROUTES } from "@/config/routes.config";
+import { getSidebarNavigation } from "@/config/routes.config";
 import type { RouteConfig } from "@/config/routes.config";
 import { PATHS } from "@/config/paths";
-import { isStaticHubClientActive } from "@/constants/staticHubClients";
 import { useAuth } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/data/useAuthHooks";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
-import DrawerContainer from "@/components/DrawerContainer";
+const DrawerContainer = lazy(() => import("@/components/DrawerContainer"));
 
 type ViewTransitionDocument = Document & {
   startViewTransition?: (callback: () => void) => {
@@ -83,6 +84,7 @@ function getServerThemeSnapshot(): boolean {
 }
 
 export default function DashboardLayout() {
+  const { user } = useAuth();
   const location = useLocation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -179,7 +181,11 @@ export default function DashboardLayout() {
 
   return (
     <div className="relative bg-white font-sans text-gray-800 transition-colors duration-300 dark:bg-[#050505] dark:text-white">
-      <DrawerContainer />
+      {user?.role === "admin" && (
+        <Suspense fallback={null}>
+          <DrawerContainer />
+        </Suspense>
+      )}
       <div className="relative flex h-dvh h-screen overflow-hidden">
         {/* Mobile drawer sidebar */}
         <MobileSidebar
@@ -321,15 +327,6 @@ function Navbar({ onMenuOpen }: { onMenuOpen: () => void }) {
     const routes: SearchableRoute[] = [];
     const traverse = (configList: RouteConfig[], parent?: RouteConfig) => {
       for (const route of configList) {
-        const hasRole = !route.roles || (role && route.roles.includes(role));
-        if (!hasRole) continue;
-        if (
-          route.staticClientId &&
-          !isStaticHubClientActive(route.staticClientId)
-        ) {
-          continue;
-        }
-
         if (
           route.label &&
           route.path &&
@@ -349,7 +346,7 @@ function Navbar({ onMenuOpen }: { onMenuOpen: () => void }) {
         }
       }
     };
-    traverse(PRIVATE_ROUTES);
+    traverse(getSidebarNavigation(role));
 
     // Deduplicate by path
     const uniqueRoutesMap = new Map<string, SearchableRoute>();
@@ -371,13 +368,10 @@ function Navbar({ onMenuOpen }: { onMenuOpen: () => void }) {
 
   const placeholderTexts = useMemo(
     () => [
-      "Tìm kiếm chức năng, trang quản trị...",
-      "Quản lý hợp đồng & tài liệu số...",
-      "Quản lý bản quyền & Hub clients...",
-      "Quản lý lưu trữ & tài khoản...",
-      "Đi tới trang cài đặt...",
+      "Tìm kiếm chức năng được cấp quyền...",
+      ...getSidebarNavigation(role).map((route) => `Đi tới ${route.label}...`),
     ],
-    [],
+    [role],
   );
 
   useEffect(() => {
@@ -957,13 +951,13 @@ export function AvatarDropdown() {
             className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#050505]"
           >
             <AvatarDropdownItem
-              label="Tài khoản"
+              label="Hồ sơ cá nhân"
               url={PATHS.DASHBOARD.SETTINGS.ROOT}
               onClick={() => setOpen(false)}
             />
             <AvatarDropdownItem
-              label="Cài đặt"
-              url={PATHS.DASHBOARD.SETTINGS.ROOT}
+              label="Bảo mật tài khoản"
+              url={PATHS.DASHBOARD.SETTINGS.SECURITY}
               onClick={() => setOpen(false)}
             />
             <AvatarDropdownItem

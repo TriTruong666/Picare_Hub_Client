@@ -2,7 +2,11 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { privateUiBuild, obfuscateBuild } from "./build/ui-security";
-import { DASHBOARD_ACCESS_ROLES } from "./src/config/dashboardAccess";
+import {
+  DASHBOARD_ACCESS_ROLES,
+  DASHBOARD_SCOPE_ROLES,
+  DASHBOARD_ROUTE_POLICIES,
+} from "./src/config/dashboardAccess";
 import path from "path";
 import {
   getStaticHubClientRoles,
@@ -11,10 +15,15 @@ import {
 } from "./src/constants/staticHubClients";
 
 // https://vite.dev/config/
-const privateUi = privateUiBuild(DASHBOARD_ACCESS_ROLES, {
-  "qr-products": getStaticHubClientRoles(QR_CODE_GENERATOR_CLIENT_ID),
-  catalogue: getStaticHubClientRoles(DIGITAL_CATALOGUE_CLIENT_ID),
-});
+const privateUi = privateUiBuild(
+  DASHBOARD_ACCESS_ROLES,
+  {
+    ...DASHBOARD_SCOPE_ROLES,
+    "qr-products": getStaticHubClientRoles(QR_CODE_GENERATOR_CLIENT_ID),
+    catalogue: getStaticHubClientRoles(DIGITAL_CATALOGUE_CLIENT_ID),
+  },
+  DASHBOARD_ROUTE_POLICIES,
+);
 
 export default defineConfig({
   plugins: [

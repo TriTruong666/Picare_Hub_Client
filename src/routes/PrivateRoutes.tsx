@@ -1,3 +1,12 @@
+import { lazy } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  ADMIN_ACCESS_ROLES,
+  QR_DASHBOARD_ROLES,
+  CONTRACT_DASHBOARD_ROLES,
+  DASHBOARD_OVERVIEW_ROLES,
+  getDashboardHomePath,
+} from "@/config/dashboardAccess";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthGuard } from "@/components/guards/AuthGuard";
 import { PATHS } from "@/config/paths";
@@ -8,42 +17,93 @@ import {
   isStaticHubClientActive,
 } from "@/constants/staticHubClients";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import ModalContainer from "@/components/ModalContainer";
-import AccountDashboardPage from "@/pages/private/AccountDashboardPage";
-import ContractDetailDashboardPage from "@/pages/private/ContractDetailDashboardPage";
-import ContractDashboardPage from "@/pages/private/ContractDashboardPage";
-import HubClientCreatePage from "@/pages/private/HubClientCreatePage";
-import HubClientDashboardPage from "@/pages/private/HubClientDashboardPage";
-import HubClientEditPage from "@/pages/private/HubClientEditPage";
-import QRProductDashboardPage from "@/pages/private/QRProductDashboardPage";
-import PrivateStubPage from "@/pages/private/PrivateStubPage";
-import StorageDashboardPage from "@/pages/private/StorageDashboardPage";
-import StorageFolderDetailPage from "@/pages/private/StorageFolderDetailPage";
-import SummaryDashboardPage from "@/pages/private/SummaryDashboardPage";
-import LicenseCreatePage from "@/pages/private/LicenseCreatePage";
-import LicenseEditPage from "@/pages/private/LicenseEditPage";
-import LicenseDetailPage from "@/pages/private/LicenseDetailPage";
-import LicenseListPage from "@/pages/private/LicenseListPage";
-import LicenseSupportPage from "@/pages/private/LicenseSupportPage";
+const ModalContainer = lazy(() => import("@/components/ModalContainer"));
+const AccountDashboardPage = lazy(
+  () => import("@/pages/private/AccountDashboardPage"),
+);
+const ContractDetailDashboardPage = lazy(
+  () => import("@/pages/private/ContractDetailDashboardPage"),
+);
+const ContractDashboardPage = lazy(
+  () => import("@/pages/private/ContractDashboardPage"),
+);
+const HubClientCreatePage = lazy(
+  () => import("@/pages/private/HubClientCreatePage"),
+);
+const HubClientDashboardPage = lazy(
+  () => import("@/pages/private/HubClientDashboardPage"),
+);
+const HubClientEditPage = lazy(
+  () => import("@/pages/private/HubClientEditPage"),
+);
+const QRProductDashboardPage = lazy(
+  () => import("@/pages/private/QRProductDashboardPage"),
+);
+const PrivateStubPage = lazy(() => import("@/pages/private/PrivateStubPage"));
+const StorageDashboardPage = lazy(
+  () => import("@/pages/private/StorageDashboardPage"),
+);
+const StorageFolderDetailPage = lazy(
+  () => import("@/pages/private/StorageFolderDetailPage"),
+);
+const SummaryDashboardPage = lazy(
+  () => import("@/pages/private/SummaryDashboardPage"),
+);
+const LicenseCreatePage = lazy(
+  () => import("@/pages/private/LicenseCreatePage"),
+);
+const LicenseEditPage = lazy(() => import("@/pages/private/LicenseEditPage"));
+const LicenseDetailPage = lazy(
+  () => import("@/pages/private/LicenseDetailPage"),
+);
+const LicenseListPage = lazy(() => import("@/pages/private/LicenseListPage"));
+const LicenseSupportPage = lazy(
+  () => import("@/pages/private/LicenseSupportPage"),
+);
 import SettingDashboardLayout from "@/layouts/SettingDashboardLayout";
-import {
-  ProfileSettingDashboardPage,
-  SecuritySettingDashboardPage,
-  SystemSettingDashboardPage,
-} from "@/pages/private/SettingDashboardPage";
+const ProfileSettingDashboardPage = lazy(() =>
+  import("@/pages/private/SettingDashboardPage").then((module) => ({
+    default: module.ProfileSettingDashboardPage,
+  })),
+);
+const SecuritySettingDashboardPage = lazy(() =>
+  import("@/pages/private/SettingDashboardPage").then((module) => ({
+    default: module.SecuritySettingDashboardPage,
+  })),
+);
+const SystemSettingDashboardPage = lazy(
+  () => import("@/pages/private/SystemSettingDashboardPage"),
+);
 
 export default function PrivateRoutes() {
+  const { user } = useAuth();
   return (
     <AuthGuard>
-      <ModalContainer />
+      {user?.role === "admin" && <ModalContainer />}
       <Routes>
         <Route element={<DashboardLayout />}>
-          <Route index element={<SummaryDashboardPage />} />
-          <Route path="summary" element={<SummaryDashboardPage />} />
+          <Route
+            index
+            element={
+              user?.role && !DASHBOARD_OVERVIEW_ROLES.includes(user.role) ? (
+                <Navigate to={getDashboardHomePath(user.role)} replace />
+              ) : (
+                <SummaryDashboardPage />
+              )
+            }
+          />
+          <Route
+            path="summary"
+            element={
+              <AuthGuard allowedRoles={DASHBOARD_OVERVIEW_ROLES}>
+                <SummaryDashboardPage />
+              </AuthGuard>
+            }
+          />
           <Route
             path="accounts"
             element={
-              <AuthGuard allowedRoles={["admin", "ceo"]}>
+              <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                 <AccountDashboardPage />
               </AuthGuard>
             }
@@ -51,7 +111,7 @@ export default function PrivateRoutes() {
           <Route
             path="contracts"
             element={
-              <AuthGuard allowedRoles={["admin", "ceo", "hr", "finance"]}>
+              <AuthGuard allowedRoles={CONTRACT_DASHBOARD_ROLES}>
                 {isStaticHubClientActive(DIGITAL_CONTRACT_CLIENT_ID) ? (
                   <ContractDashboardPage />
                 ) : (
@@ -66,9 +126,7 @@ export default function PrivateRoutes() {
           <Route
             path="qr-products"
             element={
-              <AuthGuard
-                allowedRoles={["admin", "ceo", "business_development"]}
-              >
+              <AuthGuard allowedRoles={QR_DASHBOARD_ROLES}>
                 {isStaticHubClientActive(QR_CODE_GENERATOR_CLIENT_ID) ? (
                   <QRProductDashboardPage />
                 ) : (
@@ -83,7 +141,7 @@ export default function PrivateRoutes() {
           <Route
             path="contracts/:contractId"
             element={
-              <AuthGuard allowedRoles={["admin", "ceo", "hr", "finance"]}>
+              <AuthGuard allowedRoles={CONTRACT_DASHBOARD_ROLES}>
                 {isStaticHubClientActive(DIGITAL_CONTRACT_CLIENT_ID) ? (
                   <ContractDetailDashboardPage />
                 ) : (
@@ -98,7 +156,7 @@ export default function PrivateRoutes() {
           <Route
             path="storage"
             element={
-              <AuthGuard allowedRoles={["admin"]}>
+              <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                 <StorageDashboardPage />
               </AuthGuard>
             }
@@ -106,7 +164,7 @@ export default function PrivateRoutes() {
           <Route
             path="storage/:folderId"
             element={
-              <AuthGuard allowedRoles={["admin"]}>
+              <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                 <StorageFolderDetailPage />
               </AuthGuard>
             }
@@ -114,7 +172,7 @@ export default function PrivateRoutes() {
           <Route
             path="hub-clients"
             element={
-              <AuthGuard allowedRoles={["admin"]}>
+              <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                 <HubClientDashboardPage />
               </AuthGuard>
             }
@@ -122,7 +180,7 @@ export default function PrivateRoutes() {
           <Route
             path="hub-clients/create"
             element={
-              <AuthGuard allowedRoles={["admin"]}>
+              <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                 <HubClientCreatePage />
               </AuthGuard>
             }
@@ -130,7 +188,7 @@ export default function PrivateRoutes() {
           <Route
             path="hub-clients/:clientId/edit"
             element={
-              <AuthGuard allowedRoles={["admin"]}>
+              <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                 <HubClientEditPage />
               </AuthGuard>
             }
@@ -138,7 +196,7 @@ export default function PrivateRoutes() {
           <Route
             path="licenses"
             element={
-              <AuthGuard allowedRoles={["admin"]}>
+              <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                 <LicenseListPage />
               </AuthGuard>
             }
@@ -146,7 +204,7 @@ export default function PrivateRoutes() {
           <Route
             path="licenses/create"
             element={
-              <AuthGuard allowedRoles={["admin"]}>
+              <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                 <LicenseCreatePage />
               </AuthGuard>
             }
@@ -154,7 +212,7 @@ export default function PrivateRoutes() {
           <Route
             path="licenses/:licenseId"
             element={
-              <AuthGuard allowedRoles={["admin"]}>
+              <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                 <LicenseDetailPage />
               </AuthGuard>
             }
@@ -162,7 +220,7 @@ export default function PrivateRoutes() {
           <Route
             path="licenses/:licenseId/edit"
             element={
-              <AuthGuard allowedRoles={["admin"]}>
+              <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                 <LicenseEditPage />
               </AuthGuard>
             }
@@ -170,19 +228,20 @@ export default function PrivateRoutes() {
           <Route
             path="licenses/support"
             element={
-              <AuthGuard allowedRoles={["admin"]}>
+              <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                 <LicenseSupportPage />
               </AuthGuard>
             }
           />
           <Route path="profile" element={<PrivateStubPage />} />
+          <Route path="help" element={<PrivateStubPage />} />
           <Route path="settings" element={<SettingDashboardLayout />}>
             <Route index element={<ProfileSettingDashboardPage />} />
             <Route path="security" element={<SecuritySettingDashboardPage />} />
             <Route
               path="system"
               element={
-                <AuthGuard allowedRoles={["admin"]}>
+                <AuthGuard allowedRoles={ADMIN_ACCESS_ROLES}>
                   <SystemSettingDashboardPage />
                 </AuthGuard>
               }

@@ -14,7 +14,10 @@ import {
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
 import { useAuth } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/data/useAuthHooks";
-import { canAccessDashboard } from "@/config/dashboardAccess";
+import {
+  canAccessDashboard,
+  getDashboardHomePath,
+} from "@/config/dashboardAccess";
 import { ROLE_LABELS } from "@/types/User";
 import { PATHS } from "@/config/paths";
 import { useCurveTransition } from "@/components/custom_ui/CurvePageTransition";
@@ -407,7 +410,7 @@ export function PublicLandingNavbar({
                       <div className="font-haffer space-y-0.5 pt-1 text-[12px]">
                         {canUseDashboard && (
                           <Link
-                            to={PATHS.DASHBOARD.ROOT}
+                            to={getDashboardHomePath(user?.role)}
                             onClick={() => setIsUserMenuOpen(false)}
                             className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-[#FFA336]"
                           >
@@ -431,17 +434,32 @@ export function PublicLandingNavbar({
                           <span>Không gian làm việc</span>
                         </Link>
 
-                        <Link
-                          to={PATHS.DASHBOARD.SETTINGS.ROOT}
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-[#FFA336]"
-                        >
-                          <FiSettings
-                            size={14}
-                            className="text-zinc-500 transition-colors group-hover:text-[#FFA336]"
-                          />
-                          <span>Cài đặt hệ thống</span>
-                        </Link>
+                        {canUseDashboard && (
+                          <Link
+                            to={PATHS.DASHBOARD.SETTINGS.ROOT}
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-[#FFA336]"
+                          >
+                            <FiSettings
+                              size={14}
+                              className="text-zinc-500 transition-colors group-hover:text-[#FFA336]"
+                            />
+                            <span>Cài đặt tài khoản</span>
+                          </Link>
+                        )}
+                        {user?.role === "admin" && (
+                          <Link
+                            to={PATHS.DASHBOARD.SETTINGS.SYSTEM}
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-[#FFA336]"
+                          >
+                            <FiSettings
+                              size={14}
+                              className="text-zinc-500 transition-colors group-hover:text-[#FFA336]"
+                            />
+                            <span>Cài đặt hệ thống</span>
+                          </Link>
+                        )}
                       </div>
 
                       {/* Divider */}

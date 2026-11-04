@@ -16,7 +16,10 @@ import type { HubClient } from "@/types/HubClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/data/useAuthHooks";
 import { STATIC_HUB_CLIENTS } from "@/constants/staticHubClients";
-import { canAccessDashboard } from "@/config/dashboardAccess";
+import {
+  canAccessDashboard,
+  getDashboardHomePath,
+} from "@/config/dashboardAccess";
 import { PATHS } from "@/config/paths";
 
 export default function LandingHeader({
@@ -381,7 +384,7 @@ export default function LandingHeader({
                       </Link>
                       {canUseDashboard ? (
                         <Link
-                          to="/dashboard"
+                          to={getDashboardHomePath(user?.role)}
                           className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
@@ -389,22 +392,26 @@ export default function LandingHeader({
                           Hub Dashboard
                         </Link>
                       ) : null}
-                      <Link
-                        to="/profile"
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <FiUser size={16} className="text-white/40" />
-                        Hồ sơ của tôi
-                      </Link>
-                      <Link
-                        to={PATHS.DASHBOARD.SETTINGS.ROOT}
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <FiSettings size={16} className="text-white/40" />
-                        Cài đặt
-                      </Link>
+                      {canUseDashboard && (
+                        <>
+                          <Link
+                            to={PATHS.DASHBOARD.SETTINGS.ROOT}
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            <FiUser size={16} className="text-white/40" />
+                            Hồ sơ của tôi
+                          </Link>
+                          <Link
+                            to={PATHS.DASHBOARD.SETTINGS.SECURITY}
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            <FiSettings size={16} className="text-white/40" />
+                            Bảo mật tài khoản
+                          </Link>
+                        </>
+                      )}
                     </div>
 
                     {/* Logout */}
@@ -444,7 +451,7 @@ function HubClientCard({ item }: { item: HubClient }) {
 
   if (!isActive) {
     return (
-      <div className="flex flex-col space-y-3 rounded-xl border border-white/5 bg-neutral-900/20 p-4 opacity-60 cursor-not-allowed select-none">
+      <div className="flex cursor-not-allowed flex-col space-y-3 rounded-xl border border-white/5 bg-neutral-900/20 p-4 opacity-60 select-none">
         <div className="relative overflow-hidden rounded-lg outline-1 outline-white/5">
           <img
             src={
@@ -452,7 +459,7 @@ function HubClientCard({ item }: { item: HubClient }) {
               "https://framerusercontent.com/images/gTH5qA521PTXYmAuTkvadn5fso.png?width=1292&height=450"
             }
             alt={item.clientName}
-            className="h-44 w-full object-cover grayscale opacity-50"
+            className="h-44 w-full object-cover opacity-50 grayscale"
           />
           <div className="absolute inset-0 bg-black/40" />
         </div>
