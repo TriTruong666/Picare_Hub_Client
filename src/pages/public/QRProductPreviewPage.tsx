@@ -425,9 +425,6 @@ export default function QRProductPreviewPage() {
         <PublicLandingNavbar showNoticeBanner={false} isDarkBg={true} />
         <main className="flex min-h-[60vh] items-center justify-center px-6 pt-28">
           <div className="max-w-md text-center">
-            <p className="text-[11px] font-medium text-black/35 uppercase dark:text-white/35">
-              Product Preview
-            </p>
             <h1 className="mt-3 text-2xl font-medium">
               Không tìm thấy sản phẩm
             </h1>
