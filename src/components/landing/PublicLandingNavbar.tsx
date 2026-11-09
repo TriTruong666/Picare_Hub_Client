@@ -493,8 +493,8 @@ export function PublicLandingNavbar({
                 >
                   <span className="nav-link-underline">Đăng nhập</span>
                 </button>
-                <button
-                  type="button"
+                <a
+                  href={PATHS.LOGIN_CLIENT}
                   onClick={handleStartClick}
                   className="pointer-events-auto inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-white px-4 text-[13px] font-normal tracking-normal text-[#120F17] shadow-[0_4px_20px_rgba(0,0,0,0.3)] transition-all hover:bg-white/92 hover:shadow-[0_4px_24px_rgba(255,255,255,0.25)]"
                 >
@@ -514,7 +514,7 @@ export function PublicLandingNavbar({
                       strokeLinejoin="round"
                     />
                   </svg>
-                </button>
+                </a>
               </>
             )}
           </div>

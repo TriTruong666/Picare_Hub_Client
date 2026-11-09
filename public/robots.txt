@@ -2,6 +2,29 @@
 User-agent: Picare-Antigravity-Agent
 Allow: /
 
+# Allow Search Engines (Google, Bing, Apple, etc.) to index public pages & sitelinks
+User-agent: Googlebot
+Allow: /
+Allow: /login/client
+Allow: /client/oms
+Allow: /changes
+Disallow: /dashboard/
+Disallow: /contracts/
+Disallow: /qr-products/
+Disallow: /catalogue/create
+Disallow: /pimory
+
+User-agent: Bingbot
+Allow: /
+Allow: /login/client
+Allow: /client/oms
+Allow: /changes
+Disallow: /dashboard/
+Disallow: /contracts/
+Disallow: /qr-products/
+Disallow: /catalogue/create
+Disallow: /pimory
+
 # Block AI Scrapers, LLM Crawlers & Web Cloners
 User-agent: GPTBot
 Disallow: /
@@ -54,8 +77,16 @@ Disallow: /
 User-agent: Cohere-ai
 Disallow: /
 
-# Default rule for internal ERP client
+# Default rule: Allow public landing & sitelinks, block private internal ERP routes
 User-agent: *
-Disallow: /assets/
-Disallow: /
+Allow: /
+Allow: /login/client
+Allow: /client/oms
+Allow: /changes
+Disallow: /dashboard/
+Disallow: /contracts/
+Disallow: /qr-products/
+Disallow: /catalogue/create
+Disallow: /pimory
 
+Sitemap: https://hub.picare.vn/sitemap.xml

@@ -73,11 +73,11 @@ function GsapFooterStartButton({
 }: {
   onClick?: (e: React.MouseEvent) => void;
 }) {
-  const btnRef = useRef<HTMLButtonElement>(null);
+  const btnRef = useRef<HTMLAnchorElement>(null);
   const arrowRef = useRef<SVGSVGElement>(null);
   const fillRef = useRef<HTMLSpanElement>(null);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const btn = btnRef.current;
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
@@ -128,9 +128,9 @@ function GsapFooterStartButton({
   };
 
   return (
-    <button
+    <a
       ref={btnRef}
-      type="button"
+      href={PATHS.LOGIN_CLIENT}
       onClick={onClick}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
@@ -159,7 +159,7 @@ function GsapFooterStartButton({
           strokeLinejoin="round"
         />
       </svg>
-    </button>
+    </a>
   );
 }
 

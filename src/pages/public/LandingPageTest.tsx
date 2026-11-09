@@ -157,6 +157,16 @@ export default function LandingPageTest() {
   const isLoginPage = location.pathname.startsWith(PATHS.LOGIN);
   const isClientSelectPage = location.pathname.startsWith(PATHS.LOGIN_CLIENT);
 
+  useEffect(() => {
+    if (isClientSelectPage) {
+      document.title = "Bắt đầu | Picare Client";
+    } else if (isLoginPage) {
+      document.title = "Đăng nhập | Picare Client";
+    } else {
+      document.title = "Picare Client";
+    }
+  }, [isClientSelectPage, isLoginPage]);
+
   const isFromCatalogue = Boolean(
     (location.state as { fromCatalogue?: boolean })?.fromCatalogue ||
     new URLSearchParams(location.search).get("from") === "catalogue",

@@ -940,6 +940,13 @@ export default function ClientOmsPage() {
 
   // Cinematic Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    document.title = "Picare OMS | Picare Client";
+    return () => {
+      document.title = "Picare Client";
+    };
+  }, []);
   const [activeVideoModalUrl, setActiveVideoModalUrl] =
     useState<string>(VIDEO_URL);
 
