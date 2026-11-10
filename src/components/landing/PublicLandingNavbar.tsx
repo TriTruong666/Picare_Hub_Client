@@ -227,7 +227,7 @@ export function PublicLandingNavbar({
                     vào eBiz, vui lòng đọc kỹ thông tin chi tiết tại:
                   </span>
                   <Link
-                    to={PATHS.WAREHOUSE_TRANSFER_GUIDE}
+                    to={PATHS.WMS_EBIZ_OPERATING_MODEL}
                     className="ml-2 inline-flex items-center gap-1 font-semibold text-white underline underline-offset-4 transition-opacity hover:opacity-85"
                   >
                     Xem ngay
