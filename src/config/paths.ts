@@ -7,10 +7,14 @@ export const PATHS = {
   HOME: "/",
   TEST: "/test",
   CHANGES: "/changes", // Trang Blog cập nhật hệ thống / release notes
-  PAYMENT_REQUEST_GUIDE: "/changes/huong-dan-tao-va-ky-duyet-de-nghi-thanh-toan", // Trang hướng dẫn tạo đơn và ký duyệt đề nghị thanh toán
+  PAYMENT_REQUEST_GUIDE:
+    "/changes/huong-dan-tao-va-ky-duyet-de-nghi-thanh-toan", // Trang hướng dẫn tạo đơn và ký duyệt đề nghị thanh toán
   OFFICE_SETUP_GUIDE: "/changes/huong-dan-thiet-lap-picare-office", // Trang hướng dẫn thiết lập tài khoản Picare Office
   SECURITY_UPDATE_DETAIL: "/changes/nang-cap-dang-nhap", // Trang chi tiết nâng cấp bảo mật Picare Office
-  SECURITY_UPDATE_DETAIL_2: "/changes/ban-cap-nhat-bao-mat-he-thong-picare-client-031126", // Trang hướng dẫn nâng cấp bảo mật Picare Office
+  SECURITY_UPDATE_DETAIL_2:
+    "/changes/ban-cap-nhat-bao-mat-he-thong-picare-client-031126", // Trang hướng dẫn nâng cấp bảo mật Picare Office
+  WMS_EBIZ_OPERATING_MODEL: "/changes/van-hanh-kho-wms-gioi-han-ebiz",
+  WAREHOUSE_TRANSFER_GUIDE: "/changes/huong-dan-chuyen-kho",
   CHANGE_DETAIL: "/changes/:slug",
   PIMORY: "/pimory", // Trang bộ sưu tập khoảnh khắc Pimory
   BIRTHDATE_SEPTRUNG: "/celebration/birthdate",

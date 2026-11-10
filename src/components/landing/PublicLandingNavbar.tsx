@@ -210,27 +210,27 @@ export function PublicLandingNavbar({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             aria-label="Thông báo nâng cấp bảo mật Picare Client"
-            className="pointer-events-auto w-full overflow-hidden border-b border-orange-400/30 bg-red-500 shadow-[0_4px_20px_rgba(248,109,43,0.35)] backdrop-blur-md"
+            className="pointer-events-auto w-full overflow-hidden border-b border-orange-400/30 bg-cyan-500 shadow-[0_4px_20px_rgba(248,109,43,0.35)] backdrop-blur-md"
           >
             <div className="flex min-h-[36px] items-center justify-between px-3.5 py-1.5 sm:px-6">
               <div className="mx-auto flex flex-1 items-center justify-center gap-2 text-center">
-                <span className="">
+                {/* <span className="">
                   <FiAlertTriangle className="relative flex h-4 w-4 shrink-0" />
-                </span>
+                </span> */}
                 {/* <span className="relative flex h-2 w-2 shrink-0">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
                 </span> */}
                 <p className="font-haffer text-[11px] font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
                   <span>
-                    Nâng cấp bảo mật cho toàn bộ hệ thống của Picare Client. Chi
-                    tiết bản cập nhật tại:
+                    Chỉnh sửa và hoàn thiện WMS để chuẩn bị cắt giảm truy cập
+                    vào eBiz, vui lòng đọc kỹ thông tin chi tiết tại:
                   </span>
                   <Link
-                    to={PATHS.SECURITY_UPDATE_DETAIL_2}
+                    to={PATHS.WAREHOUSE_TRANSFER_GUIDE}
                     className="ml-2 inline-flex items-center gap-1 font-semibold text-white underline underline-offset-4 transition-opacity hover:opacity-85"
                   >
-                    Bản cập nhật bảo mật
+                    Xem ngay
                     <FiArrowRight size={12} className="inline-block" />
                   </Link>
                 </p>

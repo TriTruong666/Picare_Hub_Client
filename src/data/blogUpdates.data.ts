@@ -97,7 +97,7 @@ export const BLOG_UPDATES: BlogUpdate[] = [
     publishedAt: "2026-08-28",
     dateLabel: "28.08.2026",
     version: "v2.3.8",
-    category: "Hạ tầng WMS",
+    category: "Nổi bật",
     title: "Cải thiện khả năng vận hành kho trong điều kiện mạng yếu",
     summary:
       "Chuẩn bị cơ chế đồng bộ lại dữ liệu và tối ưu trải nghiệm quét mã tại các điểm kho.",

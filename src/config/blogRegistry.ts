@@ -7,6 +7,8 @@ import {
   OrderReturnGuideUpdateDetailPage,
   SecurityOfficeUpdateDetailPage,
   StocktakingGuideUpdateDetailPage,
+  WarehouseTransferGuideUpdateDetailPage,
+  WmsEbizOperatingModelUpdateDetailPage,
 } from "@/pages/public/update-blog";
 
 export interface BlogItemConfig {
@@ -53,6 +55,34 @@ export interface BlogItemConfig {
 }
 
 export const BLOG_REGISTRY: BlogItemConfig[] = [
+  {
+    id: "van-hanh-kho-wms-gioi-han-ebiz",
+    path: PATHS.WMS_EBIZ_OPERATING_MODEL,
+    component: WmsEbizOperatingModelUpdateDetailPage,
+    version: "10.11.2026-wms",
+    category: "Nổi bật",
+    date: "10/11/2026",
+    readTime: "15 phút đọc",
+    title: "Chuyển đổi phần mềm qua WMS & Giới hạn quyền trong eBiz",
+    summary:
+      "Phân tích mô hình tập trung thao tác kho trên WMS và tiếp tục đồng bộ chứng từ về eBiz: phạm vi phân quyền, lợi ích, hạn chế, rủi ro lệch tồn, điều kiện nghiệm thu, xử lý sự cố và lộ trình chuyển đổi.",
+    author: "IT Picare Vietnam",
+    authorRole: "Picare Engineering",
+  },
+  {
+    id: "huong-dan-chuyen-kho",
+    path: PATHS.WAREHOUSE_TRANSFER_GUIDE,
+    component: WarehouseTransferGuideUpdateDetailPage,
+    version: "10.11.2026-wms",
+    category: "Tính năng mới",
+    date: "10/11/2026",
+    readTime: "6 phút đọc",
+    title: "Hướng dẫn chuyển kho: chọn kho, gửi yêu cầu và duyệt",
+    summary:
+      "Hướng dẫn chuyển kho trên Picare WMS: chọn công ty, kho xuất và kho nhận, chọn một người duyệt có vai trò Kho, nhận thông báo và theo dõi kết quả. Kèm video thao tác thực tế.",
+    author: "IT Picare Vietnam",
+    authorRole: "Picare Engineering",
+  },
   {
     id: "ban-cap-nhat-bao-mat-he-thong-picare-client-031126",
     path: PATHS.SECURITY_UPDATE_DETAIL_2,

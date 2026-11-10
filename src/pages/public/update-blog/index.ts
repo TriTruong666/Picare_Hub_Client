@@ -1,3 +1,5 @@
+export { default as WmsEbizOperatingModelUpdateDetailPage } from "./WmsEbizOperatingModelUpdateDetailPage";
+export { default as WarehouseTransferGuideUpdateDetailPage } from "./WarehouseTransferGuideUpdateDetailPage";
 export { default as SystemSecurityUpdateDetailPage } from "./SystemSecurityUpdateDetailPage";
 export { default as PaymentRequestGuideUpdateDetailPage } from "./PaymentRequestGuideUpdateDetailPage";
 export { default as OfficeSetupGuideUpdateDetailPage } from "./OfficeSetupGuideUpdateDetailPage";
