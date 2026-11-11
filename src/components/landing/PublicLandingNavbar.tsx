@@ -25,6 +25,7 @@ import {
   LANDING_PRODUCTS,
   type LandingProductItem,
 } from "@/constants/landingProducts";
+import GradualBlur from "@/components/reactbit/GradialBlur";
 import gsap from "gsap";
 
 import type { User } from "@/types/User";
@@ -201,7 +202,7 @@ export function PublicLandingNavbar({
     <div
       className={`pointer-events-none fixed inset-x-0 top-0 z-50 flex flex-col items-center ${className}`}
     >
-      {/* 0. Top Upgrade Notice Banner (Màu cam) */}
+      {/* 0. Top Upgrade Notice Banner - Tách biệt hoàn toàn, không bị ảnh hưởng bởi lớp GradualBlur */}
       <AnimatePresence>
         {isBannerVisible && (
           <motion.aside
@@ -210,17 +211,10 @@ export function PublicLandingNavbar({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             aria-label="Thông báo nâng cấp bảo mật Picare Client"
-            className="pointer-events-auto w-full overflow-hidden border-b border-orange-400/30 bg-cyan-500 shadow-[0_4px_20px_rgba(248,109,43,0.35)] backdrop-blur-md"
+            className="pointer-events-auto relative z-20 w-full overflow-hidden border-b border-orange-400/30 bg-cyan-500 shadow-[0_4px_20px_rgba(248,109,43,0.35)] backdrop-blur-md"
           >
             <div className="flex min-h-[36px] items-center justify-between px-3.5 py-1.5 sm:px-6">
               <div className="mx-auto flex flex-1 items-center justify-center gap-2 text-center">
-                {/* <span className="">
-                  <FiAlertTriangle className="relative flex h-4 w-4 shrink-0" />
-                </span> */}
-                {/* <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
-                </span> */}
                 <p className="font-haffer text-[11px] font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
                   <span>
                     Chỉnh sửa và hoàn thiện WMS để chuẩn bị cắt giảm truy cập
@@ -250,6 +244,22 @@ export function PublicLandingNavbar({
         )}
       </AnimatePresence>
 
+      {/* Full-width Gradual Blur background layer (ở phía sau navbar, làm mờ nội dung cuộn bên dưới) */}
+      <GradualBlur
+        position="top"
+        height="6rem"
+        strength={3}
+        layers={8}
+        curve="linear"
+        exponential
+        tint="rgba(18, 15, 23, 0.6)"
+        target="parent"
+        opacity={isDarkBg ? 1 : 0}
+        saturation={1}
+        hoverIntensity={1}
+        zIndex={0}
+      />
+
       <motion.header
         initial={{ opacity: 0, y: -22, filter: "blur(6px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -258,18 +268,12 @@ export function PublicLandingNavbar({
           delay: 0.1,
           ease: [0.16, 1, 0.3, 1],
         }}
-        className="pointer-events-none w-full px-3 pt-2.5 sm:px-6 sm:pt-3.5"
+        className="pointer-events-none relative z-10 w-full px-3 pt-1 sm:px-6 sm:pt-1.5"
       >
         <div
           ref={menuContainerRef}
-          className="pointer-events-auto relative flex h-15 w-full items-center justify-between px-6 sm:h-16 sm:px-8 lg:px-10"
+          className="pointer-events-auto relative flex h-12 w-full items-center justify-between px-6 sm:h-13 sm:px-8 lg:px-10"
         >
-          {/* Animated Dark Background for Grid section and contrast protection */}
-          <div
-            ref={navbarBgRef}
-            className="pointer-events-none absolute inset-0 -z-10 rounded-2xl border border-white/[0.12] bg-[#0E0B14]/92 shadow-[0_8px_32px_rgba(0,0,0,0.65)] backdrop-blur-md"
-            style={{ opacity: 0 }}
-          />
           {/* Logo */}
           <a
             href={PATHS.HOME}

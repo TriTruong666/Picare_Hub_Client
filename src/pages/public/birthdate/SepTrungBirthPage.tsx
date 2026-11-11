@@ -246,6 +246,36 @@ export default function SepTrungBirthPage() {
   }, []);
   const timerContainerRef = useRef<HTMLDivElement>(null);
 
+  // Chặn hoàn toàn Google/Search Engines lập chỉ mục trang kỷ niệm nội bộ này
+  useEffect(() => {
+    const originalTitle = document.title;
+    document.title = "Kỷ niệm sinh nhật | Picare";
+
+    let metaRobots = document.querySelector<HTMLMetaElement>(
+      'meta[name="robots"]',
+    );
+    const hadExistingMeta = Boolean(metaRobots);
+    const originalContent = metaRobots?.getAttribute("content") || "";
+
+    if (!metaRobots) {
+      metaRobots = document.createElement("meta");
+      metaRobots.setAttribute("name", "robots");
+      document.head.appendChild(metaRobots);
+    }
+    metaRobots.setAttribute("content", "noindex, nofollow, noarchive");
+
+    return () => {
+      document.title = originalTitle;
+      if (metaRobots) {
+        if (hadExistingMeta) {
+          metaRobots.setAttribute("content", originalContent);
+        } else {
+          metaRobots.remove();
+        }
+      }
+    };
+  }, []);
+
   // Entrance ban đầu: Toàn bộ chữ và logo xuất hiện mượt mà ngay từ đầu
   useGSAP(
     () => {

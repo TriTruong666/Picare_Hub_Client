@@ -8,6 +8,8 @@ Allow: /
 Allow: /login/client
 Allow: /client/oms
 Allow: /changes
+Disallow: /celebration/
+Disallow: /birthdate/
 Disallow: /dashboard/
 Disallow: /contracts/
 Disallow: /qr-products/
@@ -19,6 +21,8 @@ Allow: /
 Allow: /login/client
 Allow: /client/oms
 Allow: /changes
+Disallow: /celebration/
+Disallow: /birthdate/
 Disallow: /dashboard/
 Disallow: /contracts/
 Disallow: /qr-products/
@@ -83,6 +87,8 @@ Allow: /
 Allow: /login/client
 Allow: /client/oms
 Allow: /changes
+Disallow: /celebration/
+Disallow: /birthdate/
 Disallow: /dashboard/
 Disallow: /contracts/
 Disallow: /qr-products/
