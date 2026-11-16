@@ -15,6 +15,7 @@ export const PATHS = {
     "/changes/ban-cap-nhat-bao-mat-he-thong-picare-client-031126", // Trang hướng dẫn nâng cấp bảo mật Picare Office
   WMS_EBIZ_OPERATING_MODEL: "/changes/van-hanh-kho-wms-gioi-han-ebiz",
   WAREHOUSE_TRANSFER_GUIDE: "/changes/huong-dan-chuyen-kho",
+  OFFICE_CHAT_UPDATE: "/changes/ra-mat-picare-chat-office",
   CHANGE_DETAIL: "/changes/:slug",
   PIMORY: "/pimory", // Trang bộ sưu tập khoảnh khắc Pimory
   BIRTHDATE_SEPTRUNG: "/celebration/birthdate",

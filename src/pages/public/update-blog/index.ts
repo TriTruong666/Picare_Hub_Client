@@ -1,3 +1,4 @@
+export { default as OfficeChatUpdateDetailPage } from "./OfficeChatUpdateDetailPage";
 export { default as WmsEbizOperatingModelUpdateDetailPage } from "./WmsEbizOperatingModelUpdateDetailPage";
 export { default as WarehouseTransferGuideUpdateDetailPage } from "./WarehouseTransferGuideUpdateDetailPage";
 export { default as SystemSecurityUpdateDetailPage } from "./SystemSecurityUpdateDetailPage";

@@ -9,7 +9,6 @@ import {
   FiSettings,
   FiArrowRight,
   FiX,
-  FiAlertTriangle,
 } from "react-icons/fi";
 import logoPicareNewBlack from "@/assets/images/logo_picare_new_black.png";
 import { useAuth } from "@/hooks/useAuth";
@@ -210,19 +209,24 @@ export function PublicLandingNavbar({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            aria-label="Thông báo nâng cấp bảo mật Picare Client"
-            className="pointer-events-auto relative z-20 w-full overflow-hidden border-b border-orange-400/30 bg-cyan-500 shadow-[0_4px_20px_rgba(248,109,43,0.35)] backdrop-blur-md"
+            aria-label="Thông báo tính năng mới Picare Office"
+            style={{
+              backgroundImage:
+                "linear-gradient(120deg, #ffffff 0%, #fbcfe8 32%, #bbf7d0 68%, #bae6fd 100%)",
+            }}
+            className="pointer-events-auto relative z-20 w-full overflow-hidden border-b border-pink-200/80 shadow-[0_4px_20px_rgba(251,207,232,0.3)] backdrop-blur-md"
           >
             <div className="flex min-h-[36px] items-center justify-between px-3.5 py-1.5 sm:px-6">
               <div className="mx-auto flex flex-1 items-center justify-center gap-2 text-center">
-                <p className="font-haffer text-[11px] font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] sm:text-[12px]">
+                <p className="font-haffer text-[11px] font-medium text-gray-900 sm:text-[12px]">
                   <span>
-                    Chỉnh sửa và hoàn thiện WMS để chuẩn bị cắt giảm truy cập
-                    vào eBiz, vui lòng đọc kỹ thông tin chi tiết tại:
+                    Tính năng mới bên Picare Office: Ra mắt không gian{" "}
+                    <strong className="font-semibold">Picare Chat</strong> &amp;
+                    ký duyệt chi phí tức thì — đọc thông tin chi tiết tại:
                   </span>
                   <Link
-                    to={PATHS.WMS_EBIZ_OPERATING_MODEL}
-                    className="ml-2 inline-flex items-center gap-1 font-semibold text-white underline underline-offset-4 transition-opacity hover:opacity-85"
+                    to={PATHS.OFFICE_CHAT_UPDATE}
+                    className="ml-2 inline-flex items-center gap-1 font-semibold text-gray-950 underline underline-offset-4 transition-opacity hover:opacity-75"
                   >
                     Xem ngay
                     <FiArrowRight size={12} className="inline-block" />
@@ -235,7 +239,7 @@ export function PublicLandingNavbar({
                 onClick={() => setIsBannerVisible(false)}
                 title="Đóng thông báo"
                 aria-label="Đóng thông báo"
-                className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-white/80 transition-all hover:bg-black/15 hover:text-white"
+                className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-gray-700 transition-all hover:bg-black/10 hover:text-gray-950"
               >
                 <FiX size={15} />
               </button>

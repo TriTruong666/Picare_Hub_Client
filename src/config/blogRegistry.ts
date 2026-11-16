@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { PATHS } from "./paths";
 import {
+  OfficeChatUpdateDetailPage,
   SystemSecurityUpdateDetailPage,
   PaymentRequestGuideUpdateDetailPage,
   OfficeSetupGuideUpdateDetailPage,
@@ -55,6 +56,20 @@ export interface BlogItemConfig {
 }
 
 export const BLOG_REGISTRY: BlogItemConfig[] = [
+  {
+    id: "ra-mat-picare-chat-office",
+    path: PATHS.OFFICE_CHAT_UPDATE,
+    component: OfficeChatUpdateDetailPage,
+    version: "16.11.2026-office",
+    category: "Tính năng mới",
+    date: "16/11/2026",
+    readTime: "6 phút đọc",
+    title: "Ra mắt Picare Chat & Trợ thủ thông báo Pibot trên Picare Office",
+    summary:
+      "Giới thiệu không gian giao tiếp nội bộ Picare Chat (Cá nhân, Nhóm, Đại gia đình - Picare Group), ký duyệt chi phí bằng #, Voice Chat, Bento Grid ảnh/video, bảo mật AES-256-GCM và lộ trình nâng cấp sắp tới.",
+    author: "IT Picare Vietnam",
+    authorRole: "Picare Engineering",
+  },
   {
     id: "van-hanh-kho-wms-gioi-han-ebiz",
     path: PATHS.WMS_EBIZ_OPERATING_MODEL,
