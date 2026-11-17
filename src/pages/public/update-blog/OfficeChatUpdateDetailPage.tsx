@@ -78,11 +78,11 @@ export default function OfficeChatUpdateDetailPage() {
               <span aria-hidden="true" className="text-white/20">
                 /
               </span>
-              <time dateTime="2026-11-16">16 Tháng 11, 2026</time>
+              <time dateTime="2026-11-18">18 Tháng 11, 2026</time>
               <span aria-hidden="true" className="text-white/20">
                 /
               </span>
-              <span>Picare Office</span>
+              <span>Picare Office &amp; Saleforce (SFA)</span>
             </div>
             <h1 className="mt-5 text-2xl leading-snug font-semibold text-white sm:text-3xl md:text-[38px]">
               Có gì mới: Ra mắt Picare Chat &amp; Trợ thủ thông báo Pibot trên
@@ -244,13 +244,82 @@ export default function OfficeChatUpdateDetailPage() {
                       Thư viện tài nguyên
                     </strong>{" "}
                     tổng hợp toàn bộ ảnh, video, tài liệu và đường dẫn đã chia
-                    sẻ trong từng cuộc trò chuyện.
+                    sẻ trong từng cuộc trò chuyện. Ngoài trang Chat toàn màn
+                    hình, người dùng còn có{" "}
+                    <strong className="font-medium text-white">
+                      Floating Chat Dock
+                    </strong>{" "}
+                    ở góc dưới Dashboard hỗ trợ xem nhanh tin nhắn, âm thanh
+                    thông báo, nhấp nháy tiêu đề trình duyệt và xem ảnh/video
+                    bằng phím điều hướng (<code className="rounded bg-white/10 px-1 py-0.5 font-mono text-xs text-white">←</code>{" "}
+                    <code className="rounded bg-white/10 px-1 py-0.5 font-mono text-xs text-white">→</code>{" "}
+                    <code className="rounded bg-white/10 px-1 py-0.5 font-mono text-xs text-white">ESC</code>).
                   </p>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-white">
+                    1.6. Tích hợp chính thức vào Picare Saleforce (SFA) &amp;
+                    Thẻ Đơn hàng thông minh
+                  </h3>
+                  <p>
+                    Hệ thống Chat Dock đã được đồng bộ hoàn chỉnh sang{" "}
+                    <strong className="font-medium text-white">
+                      Picare Saleforce (SFA)
+                    </strong>{" "}
+                    (thay thế hoàn toàn giao diện dropdown cũ) với đầy đủ khả
+                    năng nhắn tin thời gian thực, âm thanh thông báo, nhắc tên{" "}
+                    <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs text-white">
+                      @
+                    </code>
+                    , thả cảm xúc, ghi âm và gửi tệp tin.
+                  </p>
+                  <ul className="mt-2 list-disc space-y-1.5 pl-5 text-zinc-300">
+                    <li>
+                      <strong className="font-medium text-white">
+                        Thẻ Đơn hàng SFA chi tiết SKU, Lô &amp; HSD:
+                      </strong>{" "}
+                      Khi gõ{" "}
+                      <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs text-white">
+                        #
+                      </code>{" "}
+                      hoặc chọn từ menu{" "}
+                      <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs text-white">
+                        +
+                      </code>
+                      , nhân sự kinh doanh có thể đính kèm trực tiếp đơn hàng
+                      vào khung chat kèm thông tin khách hàng, danh sách sản
+                      phẩm, mã{" "}
+                      <span className="font-mono text-white">SKU</span>, số lô,
+                      hạn sử dụng (<span className="font-mono text-white">HSD</span>),
+                      số lượng và tổng tiền.
+                    </li>
+                    <li>
+                      <strong className="font-medium text-white">
+                        Duyệt &amp; xử lý đơn hàng ngay trên thẻ Chat:
+                      </strong>{" "}
+                      Hỗ trợ thao tác trực tiếp theo đúng luồng nghiệp vụ SFA
+                      (Gửi duyệt, Kế toán duyệt, Admin duyệt, Xác nhận đã giao,
+                      Hoàn tất, Từ chối hoặc Huỷ đơn kèm lý do) và tự động đồng
+                      bộ trạng thái mới nhất lên cả Saleforce lẫn Picare Office.
+                    </li>
+                    <li>
+                      <strong className="font-medium text-white">
+                        Phân tách dữ liệu &amp; định danh Office:
+                      </strong>{" "}
+                      Danh bạ chat và tạo nhóm trên SFA sử dụng định danh nhân
+                      sự chính thức từ Picare Office (tự động chặn các tài khoản
+                      Core thuần). Bên cạnh đó, SFA chỉ hiển thị thẻ dữ liệu
+                      thuộc hệ thống Saleforce, trong khi Picare Office đóng vai
+                      trò trung tâm hiển thị đầy đủ toàn bộ thẻ nghiệp vụ từ mọi
+                      phần mềm.
+                    </li>
+                  </ul>
                 </div>
 
                 <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] p-4">
                   <h3 className="font-semibold text-emerald-300">
-                    1.6. Bảo mật dữ liệu chuẩn AES-256-GCM
+                    1.7. Bảo mật dữ liệu chuẩn AES-256-GCM
                   </h3>
                   <p className="mt-1.5 text-sm leading-relaxed text-zinc-300">
                     Toàn bộ nội dung tin nhắn và tệp đính kèm lưu trữ qua máy
@@ -385,15 +454,19 @@ export default function OfficeChatUpdateDetailPage() {
 
                 <div className="space-y-1.5">
                   <h3 className="font-semibold text-white">
-                    • Tích hợp thông số liên hệ thống từ OMS, WMS, SFA &amp; Tài
-                    chính
+                    • Mở rộng đồng bộ liên hệ thống sang WMS, OMS &amp; Tài
+                    chính (sau SFA)
                   </h3>
                   <p>
-                    Kết nối dữ liệu trực tiếp từ các hệ thống vận hành cốt lõi
-                    gồm Quản lý đơn hàng (OMS), Quản lý kho bãi (WMS), Hệ thống
-                    bán hàng hiện trường (SFA) và Tài chính để trích xuất và gửi
-                    nhanh các thông số tổng hợp về doanh thu bán hàng, tồn kho,
-                    vận đơn hay dòng tiền ngay vào trong khung chat.
+                    Sau khi hoàn tất tích hợp Chat Dock và thẻ Đơn hàng trực
+                    tiếp vào{" "}
+                    <strong className="font-medium text-white">
+                      Picare Saleforce (SFA)
+                    </strong>
+                    , hệ thống sẽ tiếp tục nhân rộng mô hình Entity Card
+                    Registry sang Quản lý kho bãi (WMS), Quản lý đơn hàng (OMS)
+                    và Tài chính để gửi nhanh phiếu nhập/xuất kho, vận đơn và
+                    thông số doanh thu ngay trong khung chat.
                   </p>
                 </div>
               </div>

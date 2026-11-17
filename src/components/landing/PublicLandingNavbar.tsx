@@ -220,15 +220,16 @@ export function PublicLandingNavbar({
               <div className="mx-auto flex flex-1 items-center justify-center gap-2 text-center">
                 <p className="font-haffer text-[11px] font-medium text-gray-900 sm:text-[12px]">
                   <span>
-                    Tính năng mới bên Picare Office: Ra mắt không gian{" "}
-                    <strong className="font-semibold">Picare Chat</strong> &amp;
-                    ký duyệt chi phí tức thì — đọc thông tin chi tiết tại:
+                    Tích hợp{" "}
+                    <strong className="font-semibold">Picare Chat</strong> vào
+                    Saleforce nhằm phục vụ thông tin xử lý đơn hàng thuận tiện
+                    hơn - Đọc kỹ thông tin
                   </span>
                   <Link
                     to={PATHS.OFFICE_CHAT_UPDATE}
-                    className="ml-2 inline-flex items-center gap-1 font-semibold text-gray-950 underline underline-offset-4 transition-opacity hover:opacity-75"
+                    className="ml-1 inline-flex items-center gap-1 font-semibold text-gray-950 underline underline-offset-4 transition-opacity hover:opacity-75"
                   >
-                    Xem ngay
+                    Tại đây
                     <FiArrowRight size={12} className="inline-block" />
                   </Link>
                 </p>
